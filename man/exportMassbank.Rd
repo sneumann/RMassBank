@@ -1,0 +1,61 @@
+\name{exportMassbank}
+\alias{exportMassbank}
+\title{Export internally stored MassBank data to files}
+\usage{
+  exportMassbank(compiled, files, molfile)
+}
+\arguments{
+  \item{compiled}{Is ONE "compiled" entry, i.e. ONE
+  compound with e.g. 14 spectra, as returned from
+  \code{\link{compileRecord}}.}
+
+  \item{files}{A n-membered array (usually a return value
+  from \code{lapply(\link{toMassbank})}), i.e. contains n
+  plain-text arrays with MassBank records.}
+
+  \item{molfile}{A molfile from
+  \code{\link{createMolfile}}}
+}
+\value{
+  No return value.
+}
+\description{
+  Exports MassBank recfile data arrays and corresponding
+  molfiles to physical files on hard disk, for one
+  compound.
+}
+\details{
+  The data from \code{compiled} is still used here, because
+  it contains the "visible" accession number. In the
+  plain-text format contained in \code{files}, the
+  accession number is not "accessible" anymore since it's
+  in the file.
+}
+\note{
+  An improvement would be to write the accession numbers
+  into \code{names(compiled)} and later into
+  \code{names(files)} so \code{compiled} wouldn't be needed
+  here anymore. (The compound ID would have to go into
+  \code{names(molfile)}, since it is also retrieved from
+  \code{compiled}.)
+}
+\examples{
+\dontrun{
+		compiled <- compileRecord(record, mbdata, refilteredRcSpecs)
+		mbfiles <- toMassbank(compiled)
+		molfile <- createMolfile(compiled[[1]][["CH$SMILES"]])
+		exportMassbank(compiled, mbfiles, molfile)
+}
+}
+\author{
+  Michael Stravs
+}
+\references{
+  MassBank record format:
+  \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
+}
+\seealso{
+  \code{\link{createMolfile}}, \code{\link{compileRecord}},
+  \code{\link{toMassbank}}, \code{\link{mbWorkflow}}
+}
+

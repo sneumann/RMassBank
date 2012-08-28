@@ -1,0 +1,66 @@
+\name{filterPeakSatellites}
+\alias{filterPeakSatellites}
+\title{Filter satellite peaks}
+\usage{
+  filterPeakSatellites(peaks, cutoff_mz_limit = 0.5,
+    cutoff_int_limit = 0.05)
+}
+\arguments{
+  \item{peaks}{A peak dataframe with at least the columns
+  \code{mz, int}. Note that \code{mz} is used even for the
+  recalibrated spectra, i.e. the desatellited spectrum is
+  identical for both the unrecalibrated and the
+  recalibrated spectra.}
+
+  \item{cutoff_mz_limit}{The window around a "parent" peak
+  to consider for satellite search.}
+
+  \item{cutoff_int_limit}{The relative intensity below
+  which to discard "satellites".}
+}
+\value{
+  Returns the peak table with satellite peaks removed.
+}
+\description{
+  Filters satellite peaks in FT spectra which arise from FT
+  artifacts and from conversion to stick mode. A very
+  simple rule is used which holds mostly true for MSMS
+  spectra (and shouldn't be applied to MS1 spectra which
+  contain isotope structures...)
+}
+\details{
+  The function cuts off all peaks within 0.5 m/z from every
+  peak, in decreasing intensity order, which are below 5%
+  of the referring peak's intensity.  E.g. for peaks
+  m/z=100, int=100; m/z=100.2, int=2, m/z=100.3, int=6, m/z
+  150, int=10: The most intense peak (m/z=100) is selected,
+  all neighborhood peaks below 5% are removed (in this
+  case, only the m/z=100.2 peak) and the next less intense
+  peak is selected. Here this is the m/z=150 peak. All
+  low-intensity neighborhood peaks are removed (nothing).
+  The next less intense peak is selected (m/z=100.3) and
+  again neighborhood peaks are cut away (nothing to cut
+  here. Note that the m/z = 100.2 peak was alredy removed.)
+}
+\note{
+  This is a very crude rule, but works remarkably well for
+  our spectra.
+}
+\examples{
+# From the workflow:
+\dontrun{
+    # Filter out satellite peaks:
+    shot <- filterPeakSatellites(shot)
+    shot_satellite_n <- setdiff(row.names(shot_full), row.names(shot))
+    shot_satellite <- shot_full[shot_satellite_n,]
+    # shot_satellite contains the peaks which were eliminated as satellites.
+}
+}
+\author{
+  Michael Stravs
+}
+\seealso{
+  \code{\link{analyzeMsMs}},
+  \code{\link{filterLowaccResults}}
+}
+

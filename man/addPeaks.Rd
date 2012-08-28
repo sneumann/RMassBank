@@ -1,0 +1,33 @@
+\name{addPeaks}
+\alias{addPeaks}
+\title{Add additional peaks to spectra}
+\usage{
+  addPeaks(mb, filename_or_dataframe)
+}
+\arguments{
+  \item{mb}{The \code{mbWorkspace} to load the peaks into.}
+
+  \item{filename_or_dataframe}{Filename of the csv file, or
+  name of the R dataframe containing the peaklist.}
+}
+\value{
+  The \code{mbWorkspace} with loaded additional peaks.
+}
+\description{
+  Loads a table with additional peaks to add to the
+  MassBank spectra. Required columns are \code{cpdID, scan,
+  int, mzFound, OK}.
+}
+\details{
+  All peaks with OK=1 will be included in the spectra.
+}
+\examples{
+\dontrun{addPeaks("myrun_additionalPeaks.csv")}
+}
+\author{
+  Michael Stravs
+}
+\seealso{
+  \code{\link{mbWorkflow}}
+}
+

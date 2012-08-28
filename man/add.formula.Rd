@@ -1,0 +1,48 @@
+\name{add.formula}
+\alias{add.formula}
+\alias{multiply.formula}
+\title{Calculations on molecular formulas}
+\usage{
+  add.formula(f1, f2, as.formula = TRUE, as.list = FALSE)
+    multiply.formula(f1, n, as.formula = TRUE, as.list =
+    FALSE)
+}
+\arguments{
+  \item{f1,f2}{Molecular formulas (in list form or in text
+  form) to calculate with.}
+
+  \item{n}{Multiplier (positive or negative, integer or
+  non-integer.)}
+
+  \item{as.formula}{Return the result as a text formula
+  (e.g. \code{"C6H12O6"}). This is the default}
+
+  \item{as.list}{Return the result in list format (e.g.
+  \code{list(C=6, H=12, O=6)}).}
+}
+\value{
+  The resulting formula, as specified above.
+}
+\description{
+  Add, subtract, and multiply molecular formulas.
+}
+\details{
+  Note that the results are not checked for plausibility at
+  any stage, nor reordered.
+}
+\examples{
+##
+
+add.formula("C6H12O6", "C3H3")
+add.formula("C6H12O6", "C-3H-3")
+add.formula("C6H12O6", multiply.formula("C3H3", -1))
+}
+\author{
+  Michael Stravs
+}
+\seealso{
+  \code{\link{formulastring.to.list}},
+  \code{\link{is.valid.formula}},
+  \code{\link{order.formula}}
+}
+

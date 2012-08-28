@@ -1,0 +1,37 @@
+\name{getMolecule}
+\alias{getMolecule}
+\title{Create Rcdk molecule from SMILES}
+\usage{
+  getMolecule(smiles)
+}
+\arguments{
+  \item{smiles}{The SMILES code of the compound.}
+}
+\value{
+  A Rcdk \code{IAtomContainer} reference.
+}
+\description{
+  Generates a Rcdk molecule object from SMILES code, which
+  is fully typed and usable (in contrast to the built-in
+  \code{parse.smiles}).
+}
+\details{
+  \bold{NOTE: As of today (2012-03-16), Rcdk discards
+  stereochemistry when loading the SMILES code!} Therefore,
+  do not trust this function blindly, e.g.  don't generate
+  InChI keys from the result. It is, however, useful if you
+  want to compute the mass (or something else) with Rcdk.
+}
+\examples{
+# Lindane:
+getMolecule("C1(C(C(C(C(C1Cl)Cl)Cl)Cl)Cl)Cl")
+# Benzene:
+getMolecule("C1=CC=CC=C1")
+}
+\author{
+  Michael Stravs
+}
+\seealso{
+  \code{\link{parse.smiles}}
+}
+
