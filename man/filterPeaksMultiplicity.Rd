@@ -1,0 +1,60 @@
+\name{filterPeaksMultiplicity}
+\alias{filterPeaksMultiplicity}
+\title{Multiplicity filtering: Removes peaks which occur only once in a n-spectra set.}
+\usage{
+  filterPeaksMultiplicity(peaks, formulacol, recalcBest =
+    TRUE)
+}
+\arguments{
+  \item{peaks}{A data frame containing all peaks to be
+  analyzed; with at least the columns \code{cpdID, scan,
+  mzFound} and one column for the formula specified with
+  the \code{formulacol} parameter.}
+
+  \item{formulacol}{Which column the assigned formula is
+  stored in.}
+
+  \item{recalcBest}{Whether the best formula for each peak
+  should be re-determined.  This is necessary for results
+  from the ordinary \code{\link{analyzeMsMs}} analysis
+  which allows multiple potential formulas per peak - the
+  old best match could potentially have been dropped
+  because of multiplicity filtering. For results from
+  \code{\link{reanalyzeFailpeak}} this is not necessary,
+  since only one potential formula is assigned in this
+  case.}
+}
+\value{
+  The peak table is returned, enriched with columns:
+  \itemize{ \item{\code{formulaMultiplicity}}{The # of
+  occurrences of this formula in the spectra of its
+  compounds.}
+  \item{\code{fM_factor}}{\code{formulaMultiplicity}
+  converted to \code{factor} type for use with
+  \code{\link{split}}} }
+}
+\description{
+  For every compound, every peak (with annotated formula)
+  is compared across all spectra. Peaks whose formula
+  occurs only once for all collision energies / spectra
+  types, are discarded. This eliminates "stochastic formula
+  hits" of pure electronic noise peaks efficiently from the
+  spectra. Note that in the author's experimental setup two
+  spectra were recorded at every collision energy, and
+  therefore every peak-formula should appear at least twice
+  if it is real, even if it is by chance a fragment which
+  appears on only one collision energy setting. The
+  function was not tested in a different setup. Therefore,
+  use with a bit of caution.
+}
+\examples{
+\dontrun{
+		peaksFiltered <- filterPeaksMultiplicity(aggregatedRcSpecs$peaksMatched,
+			"formula", TRUE)
+		peaksOK <- subset(peaksFiltered, formulaMultiplicity > 1)
+}
+}
+\author{
+  Michael Stravs, EAWAG <michael.stravs@eawag.ch>
+}
+

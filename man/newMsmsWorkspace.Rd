@@ -1,0 +1,35 @@
+\name{newMsmsWorkspace}
+\alias{loadMsmsWorkspace}
+\alias{newMsmsWorkspace}
+\title{Create new empty workspace or load saved data for \code{msmsWorkflow}}
+\usage{
+  newMsmsWorkspace(files = character(0))
+}
+\arguments{
+  \item{files}{If given, the files list to initialize the
+  workspace with.}
+}
+\value{
+  A new \code{msmsWorkspace} object
+}
+\description{
+  Creates an empty workspace or loads an existing workspace
+  from disk.
+}
+\details{
+  \code{newMsmsWorkspace} creates a new empty workspace for
+  use with \code{msmsWorkflow.}
+
+  \code{loadMsmsWorkspace} loads a workspace saved using
+  \code{\link{archiveResults}}. Note that it also
+  successfully loads data saved with the old RMassBank data
+  format into the new \code{msmsWorkspace} object.
+}
+\author{
+  Michael Stravs, Eawag <michael.stravs@eawag.ch>
+}
+\seealso{
+  \code{\link{msmsWorkflow}},
+  \code{\link{msmsWorkspace-class}}
+}
+

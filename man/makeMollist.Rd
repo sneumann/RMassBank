@@ -1,0 +1,34 @@
+\name{makeMollist}
+\alias{makeMollist}
+\title{Write list.tsv file}
+\usage{
+  makeMollist(compiled)
+}
+\arguments{
+  \item{compiled}{A list of compiled spectra (in
+  tree-format, as returned by \code{compileRecord}).}
+}
+\value{
+  No return value.
+}
+\description{
+  Makes a list.tsv file in the "moldata" folder.
+}
+\details{
+  Generates the list.tsv file which is needed by MassBank
+  to connect records with their respective molfiles. The
+  first compound name is linked to a mol-file with the
+  compound ID (e.g. 2334.mol for ID 2334).
+}
+\examples{
+\dontrun{
+		compiled <- compileRecord(record, mbdata, refilteredRcSpecs)
+		# a list.tsv for only one record:
+		clist <- list(compiled)
+		makeMollist(clist)
+}
+}
+\author{
+  Michael A. Stravs, Eawag <michael.stravs@eawag.ch>
+}
+

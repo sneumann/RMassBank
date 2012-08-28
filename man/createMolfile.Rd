@@ -1,0 +1,46 @@
+\name{createMolfile}
+\alias{createMolfile}
+\title{Create MOL file for a chemical structure}
+\usage{
+  createMolfile(id_or_smiles, fileName = FALSE)
+}
+\arguments{
+  \item{id_or_smiles}{The compound ID or a SMILES code.}
+
+  \item{fileName}{If the filename is set, the file is
+  written directly to disk using the specified filename.
+  Otherwise, it is returned as a text array.}
+}
+\value{
+  A character array containing the MOL/SDF format file,
+  ready to be written to disk.
+}
+\description{
+  Creates a MOL file (in memory or on disk) for a compound
+  specified by the compound ID or by a SMILES code.
+}
+\details{
+  The function invokes OpenBabel (and therefore needs a
+  correctly set OpenBabel path in the RMassBank settings),
+  using the SMILES code retrieved with \code{findSmiles} or
+  using the SMILES code directly. The current
+  implementation of the workflow uses the latter version,
+  reading the SMILES code directly from the MassBank record
+  itself.
+}
+\examples{
+# Benzene:
+\dontrun{
+createMolfile("C1=CC=CC=C1")
+}
+}
+\author{
+  Michael Stravs
+}
+\references{
+  OpenBabel: \url{http://openbabel.org}
+}
+\seealso{
+  \code{\link{findSmiles}}
+}
+

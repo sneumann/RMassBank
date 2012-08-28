@@ -1,0 +1,82 @@
+\name{toMassbank}
+\alias{toMassbank}
+\title{Write MassBank record into character array}
+\usage{
+  toMassbank(mbdata)
+}
+\arguments{
+  \item{mbdata}{A MassBank record in list format.}
+}
+\value{
+  The result is a text array, which is ready to be written
+  to the disk as a file.
+}
+\description{
+  Writes a MassBank record in list format to a text array.
+}
+\details{
+  The function is a general conversion tool for the
+  MassBank format; i.e. the field names are not fixed.
+  \code{mbdata} must be a named list, and the entries can
+  be as follows: \itemize{ \item A single text line:
+
+  \code{'CH\$EXACT_MASS' = '329.1023'}
+
+  is written as
+
+  \code{CH\$EXACT_MASS: 329.1023} \item A character array:
+
+  \code{'CH\$NAME' = c('2-Aminobenzimidazole',
+  '1H-Benzimidazol-2-amine')}
+
+  is written as
+
+  \code{CH\$NAME: 2-Aminobenzimidazole}
+
+  \code{CH\$NAME: 1H-Benzimidazol-2-amine}
+
+  \item A named list of strings:
+
+  \code{'CH\$LINK' = list('CHEBI' = "27822", "KEGG" =
+  "C10901")}
+
+  is written as
+
+  \code{CH\$LINK: CHEBI 27822}
+
+  \code{CH\$LINK: KEGG C10901}
+
+  \item A data frame (e.g. the peak table) is written as
+  specified in the MassBank record format (Section 2.6.3):
+  the column names are used as headers for the first line,
+  all data rows are printed space-separated. }
+}
+\note{
+  The function iterates over the list item names.
+  \bold{This means that duplicate entries in \code{mbdata}
+  are (partially) discarded!} The correct way to add them
+  is by making a character array (as specified above):
+  Instead of \code{'CH\$NAME' = 'bla', 'CH\$NAME' = 'blub'}
+  specify \code{'CH\$NAME' = c('bla','blub')}.
+}
+\examples{
+\dontrun{
+# Read just the compound info skeleton from the Internet for some compound ID
+id <- 35
+mbdata <- gatherData(id)
+#' # Export the mbdata blocks to line arrays
+# (there is no spectrum information, just the compound info...)
+mbtext <- toMassbank(mbdata)
+}
+}
+\author{
+  Michael Stravs
+}
+\references{
+  MassBank record format:
+  \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
+}
+\seealso{
+  \code{\link{compileRecord}}, \code{\link{mbWorkflow}}
+}
+

@@ -1,0 +1,49 @@
+\name{formulastring.to.list}
+\alias{formulastring.to.list}
+\alias{list.to.formula}
+\title{Interconvert molecular formula representations}
+\usage{
+  list.to.formula(flist)
+
+  formulastring.to.list(formula)
+}
+\arguments{
+  \item{flist}{A molecular formula in list format, e.g.
+  \code{list( "C" = 6, "H" = 12, "O" = 6 )}.}
+
+  \item{formula}{A molecular formula in string format, e.g.
+  \code{"C6H12O6"}.}
+}
+\value{
+  \code{list.to.formula} returns a string representation of
+  the formula; \code{formulastring.to.list} returns the
+  list representation.
+}
+\description{
+  Converts molecular formulas from string to list
+  representation or vice versa.
+}
+\details{
+  The function doesn't care about whether your formula
+  makes sense. However, \code{"C3.5O4"} will give
+  \code{list("C" = 3, "O" = 4)} because regular expressions
+  are used for matching (however, \code{list("C" = 3.5, "O"
+  = 4)} gives \code{"C3.5O4"}.) Duplicate elements cause
+  problems; only "strict" molecular formulas ("CH4O", but
+  not "CH3OH") work correctly.
+}
+\examples{
+#
+	list.to.formula(list("C" = 4, "H" = 12))
+	# This is also OK and useful to calculate e.g. adducts or losses.
+	list.to.formula(list("C" = 4, "H" = -1))
+	formulastring.to.list(list.to.formula(formulastring.to.list("CHIBr")))
+}
+\author{
+  Michael Stravs
+}
+\seealso{
+  \code{\link{add.formula}}, \code{\link{order.formula}},
+  \code{\link{is.valid.formula}}
+}
+

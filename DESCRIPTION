@@ -1,0 +1,20 @@
+Package: RMassBank
+Type: Package
+Title: Workflow to process tandem MS files and build MassBank records
+Version: 0.99.3
+Author: Michael Stravs, Emma Schymanski
+Maintainer: Michael Stravs, Emma Schymanski <massbank@eawag.ch>
+Description: Workflow to process tandem MS files and build MassBank records.
+    Functions include automated extraction of tandem MS spectra, formula
+    assignment to tandem MS fragments, recalibration of tandem MS spectra with
+    assigned fragments, spectrum cleanup, automated retrieval of compound
+    information from Internet databases, and export to MassBank records.
+License: Artistic-2.0
+SystemRequirements: OpenBabel
+biocViews: Bioinformatics, MassSpectrometry, Metabolomics, Software
+Depends: rcdk,yaml,mzR,methods
+Imports: XML,RCurl
+Suggests: gplots,RMassBankData,xcms
+Collate: 'createMassBank.R' 'formulaCalculator.R' 'leCsvAccess.R'
+        'leMsMs.r' 'leMsmsRaw.R' 'settings_example.R' 'webAccess.R'
+        'deprofile.R' 'RmbWorkspace.R'

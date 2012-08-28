@@ -1,0 +1,55 @@
+\name{gatherData}
+\alias{gatherData}
+\title{Retrieve annotation data}
+\usage{
+  gatherData(id)
+}
+\arguments{
+  \item{id}{The compound ID.}
+}
+\value{
+  Returns a list of type \code{list(id= \var{compoundID},
+  ..., 'ACCESSION' = '', 'RECORD_TITLE' = '', )} etc. %%
+  ...
+}
+\description{
+  Retrieves annotation data for a compound from the
+  internet services CTS and Cactvs, based on the SMILES
+  code and name of the compounds stored in the compound
+  list.
+}
+\details{
+  Composes the "upper part" of a MassBank record filled
+  with chemical data about the compound: name, exact mass,
+  structure, CAS no., links to PubChem, KEGG, ChemSpider.
+  The instrument type is also written into this block (even
+  if not strictly part of the chemical information).
+  Additionally, index fields are added at the start of the
+  record, which will be removed later: \code{id, dbcas,
+  dbname} from the compound list, \code{dataused} to
+  indicate the used identifier for CTS search
+  (\code{smiles} or \code{dbname}).
+
+  Additionally, the fields \code{ACCESSION} and
+  \code{RECORD_TITLE} are inserted empty and will be filled
+  later on.
+}
+\examples{
+# Gather data for compound ID 131
+\dontrun{gatherData(131)}
+}
+\author{
+  Michael Stravs
+}
+\references{
+  Chemical Translation Service:
+  \url{http://uranus.fiehnlab.ucdavis.edu:8080/cts/homePage}
+  cactus Chemical Identifier Resolver:
+  \url{http://cactus.nci.nih.gov/chemical/structure}
+  MassBank record format:
+  \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
+}
+\seealso{
+  \code{\link{mbWorkflow}}
+}
+
