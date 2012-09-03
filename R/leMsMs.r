@@ -109,7 +109,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8),confirmMode = FALSE, newReca
 				  return(s)
 			  })
 	  for(f in w@files)
-		  w@analyzedSpecs[[basename(as.character(f))]]$name <<- basename(as.character(f))
+		  w@analyzedSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
 	  close(pb)
   }
   # Step 3: aggregate all spectra
