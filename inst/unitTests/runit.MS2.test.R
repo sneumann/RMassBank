@@ -1,8 +1,3 @@
-test.instrumentname <- function(){
-	Instrument_Name <- RMassBank.env$mb[[RMassBank.env$testnumber]]@compiled_ok[[1]][['AC$INSTRUMENT']]
-	checkTrue(Instrument_Name %in% RMassBank.env$Instrument_List)
-}
-
 test.NA <- function(){
 	checkTrue(!(NA %in% as.matrix(RMassBank.env$mb[[RMassBank.env$testnumber]]@compiled_ok[[1]][['PK$PEAK']])))
 }
