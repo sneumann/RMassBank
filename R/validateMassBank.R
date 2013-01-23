@@ -18,25 +18,25 @@ validate <- function(File){
 	# Is the argument a directory?
 	# If yes, list the files
 	RMassBank.env$Instrument_List <- .getInstruments()
+	RMassBank.env$testnumber <- 1
 	if(file.info(File[1])$isdir){
 	    Files <- list.files(path = File, full.names = TRUE)
 	}
 
 	# Parsing with the help the parseMassBank-function
 	RMassBank.env$mb <- lapply(Files,parseMassBank)
-	print("yeah")
 	# Test RMassBank Objects with RUnit
 	# This loop creates the tests and defines one test suite for every record
 	tests <- list()
-	for(i in 1:length(Files)){
+	for(i in 1:length(RMassBank.env$mb)){
 		if(RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS2" || RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS"){
-		tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "unitTests"), testFileRegexp = "^runit.MS2.test.[rR]$",
-                testFuncRegexp = "^test.+",
+		tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "unitTests"), testFileRegexp = "runit.MS2.test.R",
+                #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
 		} else{
 			tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "unitTests"), testFileRegexp = "^runit.MSn.test.[rR]$",
-                testFuncRegexp = "^test.+",
+                #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
 		}
@@ -45,7 +45,7 @@ validate <- function(File){
 	# Testing the list of Testsuites
 	testData <- runTestSuite(tests)
 	# Prints the HTML-record
-	printHTMLProtocol(testData, fileName = paste(system.file(package = "RMassBank"),"report.html", sep = ""))
+	printHTMLProtocol(testData, fileName = paste(getwd(),"/report.html", sep = ""))
 	print(paste("Report for the file(s) finished"))
 }
 
