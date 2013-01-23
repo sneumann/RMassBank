@@ -14,7 +14,7 @@
   This function calculates the exact mass from a SMILES-String and is needed for a test
 }
 \examples{
-smiles2mass(c(ccc1C(=NN=C2C)C(=O)N2)cc1)
+smiles2mass("c(ccc1C(=NN=C2C)C(=O)N2)cc1")
 
 }
 \author{
