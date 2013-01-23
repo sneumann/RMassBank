@@ -17,4 +17,4 @@ Imports: XML,RCurl
 Suggests: gplots,RMassBankData,xcms
 Collate: 'createMassBank.R' 'formulaCalculator.R' 'leCsvAccess.R'
         'leMsMs.r' 'leMsmsRaw.R' 'settings_example.R' 'webAccess.R'
-        'deprofile.R' 'parseMassBank.R' 'validateMassBank.R' 'RmbWorkspace.R'
+        'deprofile.R' 'parseMassBank.R' 'validateMassBank.R' 'RmbWorkspace.R' 'zzz.R'
