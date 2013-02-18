@@ -96,7 +96,7 @@ findMsMsHRperxcms <- function(fileName) {
 	
 	parentMass <- findMass(cpdID) + 1
 	RT <- findRt(cpdID)$RT * 60
-	mzabs <- 0.1
+	mzabs <- 0.1 ## TODO: als Parameter
 	
 	getRT <- function(xa) {
 		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
@@ -107,7 +107,7 @@ findMsMsHRperxcms <- function(fileName) {
 	xrmsms <- xcmsRaw(fileName, includeMSn=TRUE)
 
 	## Where is the wanted isolation ?
-	precursorrange <- range(which(xrmsms@msnPrecursorMz == 354.1))
+	precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
 
 	## Fake MS1 from MSn scans
 	xrmsmsAsMs <- msn2xcms(xrmsms)
@@ -117,9 +117,8 @@ findMsMsHRperxcms <- function(fileName) {
 					method="MS1")
 
 	peaks(xsmsms) <- findPeaks(xrmsmsAsMs, method="centWave", peakwidth=c(5,12),
-							prefilter=c(0,0), ppm=25,
-							snthr=2,verbose.columns=T,
-							scanrange=precursorrange)
+							prefilter=c(0,0), ppm=25, snthr=2,
+							scanrange=precursorrange) ## TODO: parameters from findMsMsHRperxcms
 
 	## Get pspec 
 	pl <- peaks(xsmsms)[,c("mz", "rt")]
@@ -303,4 +302,12 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA)
 	rt <- headerMS1$retentionTime
 	scan <- headerMS1$acquisitionNum
 	return(data.frame(rt = rt, intensity=pks_t, scan=scan))
+}
+
+
+if (FALSE) {
+library(RMassBank)
+loadList("/home/sneumann/CASMI/example/Chelidonine.csv")
+
+
 }
