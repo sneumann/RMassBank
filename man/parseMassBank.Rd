@@ -16,9 +16,6 @@
 \details{
   Reading Annotations does not work at the moment
 }
-\examples{
-	parseMassBank(c("filepath_to_records/RC00001.txt","filepath_to_records/RC00002.txt"))
-}
 \author{
   Erik Mueller
 }
