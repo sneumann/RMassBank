@@ -88,7 +88,9 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 }
 
 #' @export
-findMsMsHRperxcms <- function(fileName) {
+findMsMsHRperxcms <- function(fileName, mode="pH", mzabs=0.1, method="centWave",
+								peakwidth=c(5,12), prefilter=c(0,0),
+								ppm=25, snthr=2, scanrange=precursorrange) {
 	
 	splitfn <- strsplit(fileName,'_')
     splitsfn <- splitfn[[1]]
@@ -96,7 +98,6 @@ findMsMsHRperxcms <- function(fileName) {
 	
 	parentMass <- findMass(cpdID) + 1
 	RT <- findRt(cpdID)$RT * 60
-	mzabs <- 0.1 ## TODO: als Parameter
 	
 	getRT <- function(xa) {
 		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
@@ -118,7 +119,7 @@ findMsMsHRperxcms <- function(fileName) {
 
 	peaks(xsmsms) <- findPeaks(xrmsmsAsMs, method="centWave", peakwidth=c(5,12),
 							prefilter=c(0,0), ppm=25, snthr=2,
-							scanrange=precursorrange) ## TODO: parameters from findMsMsHRperxcms
+							scanrange=precursorrange)
 
 	## Get pspec 
 	pl <- peaks(xsmsms)[,c("mz", "rt")]
