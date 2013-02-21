@@ -22,6 +22,10 @@ loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 msmsXCMS@specs <- findMsMsHRperxcms(msmsXCMS@files[1]) 
 
 
+#########################################
+#########################################
+#########################################
+
 ##Use the normal function with the standard first RMassBankData-Input
 ##1), 2), 3) same deal, but the function for getting the spectra is different
 msmsRMBD <- newMsmsWorkspace()
