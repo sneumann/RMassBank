@@ -303,11 +303,3 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA)
 	scan <- headerMS1$acquisitionNum
 	return(data.frame(rt = rt, intensity=pks_t, scan=scan))
 }
-
-
-if (FALSE) {
-library(RMassBank)
-loadList("/home/sneumann/CASMI/example/Chelidonine.csv")
-
-
-}
