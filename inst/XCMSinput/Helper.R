@@ -15,7 +15,12 @@ msmsXCMS <- newMsmsWorkspace()
 filesXCMS <- system.file("XCMSinput/Chelidonine_666_pos.mzData",package="RMassBank") 
 msmsXCMS@files <- filesXCMS
 loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
-msmsXCMS@specs <- findMsMsHRperxcms(msmsXCMS@files[1]) ##
+
+##
+##WARNING: Because a pseudospectrum in CAMERA is a matrix, but @specs is defined as a list, the matrix is converted into a list!
+##
+msmsXCMS@specs <- findMsMsHRperxcms(msmsXCMS@files[1]) 
+
 
 ##Use the normal function with the standard first RMassBankData-Input
 ##1), 2), 3) same deal, but the function for getting the spectra is different
