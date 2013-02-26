@@ -90,7 +90,7 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 #' @export
 findMsMsHRperxcms <- function(fileName, mode="pH", mzabs=0.1, method="centWave",
 								peakwidth=c(5,12), prefilter=c(0,0),
-								ppm=25, snthr=2, scanrange=precursorrange) {
+								ppm=25, snthr=2) {
 	
 	splitfn <- strsplit(fileName,'_')
     splitsfn <- splitfn[[1]]
