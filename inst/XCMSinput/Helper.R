@@ -270,7 +270,7 @@ library(RMassBank)
 	ret$childHeader[1,13] <- 1 
 	ret$childHeader[1,14] <- findMz(cpdID)[[3]]
 	ret$childHeader[1,15] <- 1 ##Will be changed for different charges
-	ret$childHeader[1,16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. Workaround?
+	ret$childHeader[1,16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. WorkarmsmsXCMS@files[1]ound?
 	ret$childHeader[1,17:20] <- 0 ##Will be changed if merge is wanted
 	ret$childHeader <- as.data.frame(ret$childHeader)
 	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
@@ -318,9 +318,35 @@ filesXCMS <- system.file("XCMSinput/Chelidonine_666_pos.mzData",package="RMassBa
 msmsXCMS@files <- filesXCMS
 loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 
-msmsXCMSspecs <- findMsMsHRperxcms(msmsXCMS@files[1])
+##
+## More example data
+##
+## http://www.casmi-contest.org/challenges-cat1-2.shtml
+## Challenge3 MSMSneg10_Challenge3 MSMSneg20_Challenge3 MSMSneg30_Challenge3 MSMSneg40_Challenge3
+##    4 individuelle Rohdatenfiles
+##    Modus "mH" !
+## http://www.casmi-contest.org/solutions-cat1-2.shtml
+## Glucolesquerellin
+
+##
+## Overwrite parameters in spectraList
+## 
+getOption("RMassBank")$spectraList
+
+## spectraList:
+##  # First scan: CID 20
+## - mode: CID
+##   ces: 20
+##   ce: 20
+##   res: ca. 7500
+
+xr <- system.file("microtofq/MSMSpos20_6.mzML", package="msdata", includeMsn=TRUE)
+str(xr@msnCollisionEnergy)
+
+msmsXCMSspecs <- findMsMsHRperxcms()
 msmsXCMS@specs[[1]] <- XCMStoRMB(msmsXCMSspecs,666)
 names(msmsXCMS@specs) <- findName(666)
+
 
 mode = "pH"
 #shots <- lapply(msmsXCMS@specs[[1]]$peaks, analyzeTandemShot)
