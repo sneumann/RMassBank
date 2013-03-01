@@ -310,24 +310,44 @@ library(RMassBank)
 loadRmbSettings(system.file("XCMSinput/mysettings.ini",package="RMassBank"))
 
 ##Use the xcms-CAMERA-Peakpicker with the ChelidonineMSn-mzData
-##1) Extract filepath
-##2) Load Compoundlist
-##3) Get the spec into specsXCMS
+##Extract filepath
+##Load Compoundlist
+##Get the spec into specsXCMS
+
 msmsXCMS <- newMsmsWorkspace()
 filesXCMS <- system.file("XCMSinput/Chelidonine_666_pos.mzData",package="RMassBank") 
 msmsXCMS@files <- filesXCMS
 loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 
+
+#####WORKFLOW STEPS 1 to 8
+
+########
+##STEP 1
+########
+
 msmsXCMSspecs <- findMsMsHRperxcms(msmsXCMS@files[1])
 msmsXCMS@specs[[1]] <- XCMStoRMB(msmsXCMSspecs,666)
 names(msmsXCMS@specs) <- findName(666)
 
+########
+##STEP 2 
+########
+
 mode = "pH"
-#shots <- lapply(msmsXCMS@specs[[1]]$peaks, analyzeTandemShot)
+
+
 msmsXCMS@analyzedSpecs <- lapply(msmsXCMS@specs, function(spec) {
 				  s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="preliminary" )
 				  return(s)
 			  })
+			  
+########
+##STEP 3
+########
+msmsXCMS@aggregatedSpecs <- aggregateSpectra(msmsXCMS@analyzedSpecs)
+
+
 
 
 #########################################
