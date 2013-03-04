@@ -67,13 +67,8 @@ library(RMassBank)
   ################################################################################## 
   ################################################################################## 
   ################################################################################## 
-  
-  
-  
-  
-  
-  
- XCMStoRMB <- function(msmsXCMSspecs, cpdID, MS1 = NA){
+
+XCMStoRMB <- function(msmsXCMSspecs, cpdID, MS1 = NA){
 	ret <- list()
 	ret$foundOK <- 1
 	
@@ -125,38 +120,17 @@ library(RMassBank)
 	ret$formula <- findFormula(cpdID)
 	return(ret)
 }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 ##This uses an already created template for the settings
 ##Change path or settings at own risk
 loadRmbSettings(system.file("XCMSinput/mysettings.ini",package="RMassBank"))
 
-##Use the xcms-CAMERA-Peakpicker with the ChelidonineMSn-mzData
+##Use the xcms-CAMERA-Peakpicker with the Glucolesquerellin-MSn-mzData
 ##Extract filepath
 ##Load Compoundlist
 ##Get the spec into specsXCMS
-msmsXCMS <- newMsmsWorkspace()
-filesXCMS <- system.file("XCMSinput/Chelidonine_666_pos.mzData",package="RMassBank") 
-msmsXCMS@files <- filesXCMS
+msmsList <- newMsmsWorkspace()
+fileList <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin", full.names=TRUE)[2:5]
+msmsList@files <- fileList
 loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 
 #####WORKFLOW STEPS 1 to 8
@@ -165,30 +139,60 @@ loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 ##STEP 1
 ########
 
-msmsXCMSspecs <- findMsMsHRperxcms.direct(msmsXCMS@files[1])
-msmsXCMS@specs[[1]] <- XCMStoRMB(msmsXCMSspecs,666)
-names(msmsXCMS@specs) <- findName(666)
+#msmsListspecs <- findMsMsHRperxcms.workflow(msmsList@files, mode="mH", method="centWave", peakwidth=c(5,10),
+#												prefilter=c(3,200), ppm=25, snthr=5)
+#msmsList@specs <- lapply(msmsList,XCMStoRMB, 2184)
+#names(msmsList@specs) <- findName(2184)
 
-########
-##STEP 2 
-########
 
-mode = "pH"
-msmsXCMS@analyzedSpecs <- lapply(msmsXCMS@specs, function(spec) {
-				  s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="preliminary" )
-				  return(s)
-			  })
-			  
-########
-##STEP 3
-########
-msmsXCMS@aggregatedSpecs <- aggregateSpectra(msmsXCMS@analyzedSpecs)
+#################
+##STEP 1 MANUALLY, BECAUSE IT CAN'T FIND A FITTING PSEUDOSPECTRUM OF THE SECOND FILE?
+#################
+	fileName <- msmsList@files[2] 
+	splitfn <- strsplit(fileName,'_')
+    splitsfn <- splitfn[[1]]
+    cpdID <- as.numeric(splitsfn[[length(splitsfn)-1]])
+	
+	parentMass <- findMz(cpdID)$mzCenter
+	RT <- findRt(cpdID)$RT * 60
+	mzabs <- 0.1
+	
+	getRT <- function(xa) {
+		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
+	}
+	##
+	## MS
+	##
+	
+	##
+	## MSMS
+	##
+	xrmsms <- xcmsRaw(fileName, includeMSn=TRUE)
 
-########
-##STEP 4
-########
-#recal <- makeRecalibration(msmsXCMS@aggregatedSpecs, mode)
-#msmsXCMS$rc <- recal$rc
-#msmsXCMS$rc.ms1 <- recal$rc.ms1
-#msmsXCMS@recalibratedSpecs <- recalibrateSpectra(mode, msmsXCMS@specs, w = msmsXCMS)
-recalibrate.addMS1data(spec = msmsXCMS@aggregatedSpecs, mode = "pH", 15)
+	## Where is the wanted isolation ?
+	precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
+
+	## Fake MS1 from MSn scans
+	xrmsmsAsMs <- msn2xcms(xrmsms)
+
+	## Fake s simplistic xcmsSet
+	xsmsms <-  xcmsSet (files=fileName,
+					method="MS1")
+
+	peaks(xsmsms) <- findPeaks(xsmsms, method="centWave", peakwidth=c(5,10),
+                         prefilter=c(3,200), ppm=25,
+                         snthr=5, verbose.columns=T)
+
+	## Get pspec 
+	pl <- peaks(xsmsms)[,c("mz", "rt")]
+	candidates <- which( pl[,"mz"] < parentMass + mzabs & pl[,"mz"] > parentMass - mzabs
+						& pl[,"rt"] < RT * 1.1 & pl[,"rt"] > RT * 0.9 )
+	
+	anmsms <- xsAnnotate(xsmsms)
+	anmsms <- groupFWHM(anmsms)
+
+	## Now find the pspec for Chelidonine
+	psp <- which(sapply(anmsms@pspectra, function(x) {candidates %in% x}))
+	
+	## Alternative: Spectrum closest to MS1
+	##psp <- which.min(getRT(anmsms) - actualRT)

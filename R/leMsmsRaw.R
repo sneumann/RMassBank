@@ -88,20 +88,35 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 }
 
 #' @export
-findMsMsHRperxcms <- function(fileName, mode="pH", mzabs=0.1, method="centWave",
+findMsMsHRperxcms.workflow <- function(fileNames, mode="pH", mzabs=0.1, method="centWave",
 								peakwidth=c(5,12), prefilter=c(0,0),
-								ppm=25, snthr=2) {
-	
+								ppm=25, snthr=2, MS1 = NA) {
+	msmsXCMSlist <- list()
+	msmsXCMSlist <- lapply(fileNames, findMsMsHRperxcms.direct, mode=mode, mzabs = mzabs, method = method,
+							peakwidth = peakwidth, prefilter = prefilter, 
+							ppm = ppm, snthr = snthr, MS1 = MS1)
+	return(msmsXCMSlist)
+}
+
+#' @export
+findMsMsHRperxcms.direct <- function(fileName, mode="pH", mzabs=0.1, method="centWave",
+								peakwidth=c(5,12), prefilter=c(0,0),
+								ppm=25, snthr=2, MS1 = NA) {
 	splitfn <- strsplit(fileName,'_')
     splitsfn <- splitfn[[1]]
     cpdID <- as.numeric(splitsfn[[length(splitsfn)-1]])
 	
-	parentMass <- findMass(cpdID) + 1
+	parentMass <- findMz(cpdID)$mzCenter
 	RT <- findRt(cpdID)$RT * 60
+	mzabs <- 0.1
 	
 	getRT <- function(xa) {
 		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
 	}
+	##
+	## MS
+	##
+	
 	##
 	## MSMS
 	##
@@ -123,7 +138,7 @@ findMsMsHRperxcms <- function(fileName, mode="pH", mzabs=0.1, method="centWave",
 
 	## Get pspec 
 	pl <- peaks(xsmsms)[,c("mz", "rt")]
-	candidates <- which( pl[,"mz"] < parentMass+mzabs & pl[,"mz"] > parentMass-mzabs
+	candidates <- which( pl[,"mz"] < parentMass + mzabs & pl[,"mz"] > parentMass - mzabs
 						& pl[,"rt"] < RT * 1.1 & pl[,"rt"] > RT * 0.9 )
 
 	anmsms <- xsAnnotate(xsmsms)
@@ -136,11 +151,6 @@ findMsMsHRperxcms <- function(fileName, mode="pH", mzabs=0.1, method="centWave",
 	##psp <- which.min(getRT(anmsms) - actualRT)
 	
 	return(getpspectra(anmsms, psp))
-}
-
-#' @export
-findMsMsHRperhand <- function(fileName) {
-	
 }
 
 #' @export
