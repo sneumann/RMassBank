@@ -138,17 +138,24 @@ findMsMsHRperxcms.direct <- function(fileName, mode="pH", mzabs=0.1, method="cen
 
 	## Get pspec 
 	pl <- peaks(xsmsms)[,c("mz", "rt")]
+
+        ## Best: find precursor peak
 	candidates <- which( pl[,"mz"] < parentMass + mzabs & pl[,"mz"] > parentMass - mzabs
 						& pl[,"rt"] < RT * 1.1 & pl[,"rt"] > RT * 0.9 )
 
+        
 	anmsms <- xsAnnotate(xsmsms)
 	anmsms <- groupFWHM(anmsms)
-
-	## Now find the pspec for Chelidonine
+      
+	## Now find the pspec for compound
 	psp <- which(sapply(anmsms@pspectra, function(x) {candidates %in% x}))
-	
-	## Alternative: Spectrum closest to MS1
-	##psp <- which.min(getRT(anmsms) - actualRT)
+
+        ## 2nd best: Spectrum closest to MS1
+	##psp <- which.min( abs(getRT(anmsms) - actualRT))
+
+        ## 4rd Best: find pspec closest to RT from spreadsheet
+	#psp <- which.min( abs(abs(getRT(anmsms) - RT) )
+
 	
 	return(getpspectra(anmsms, psp))
 }

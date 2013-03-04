@@ -173,6 +173,9 @@ names(msmsXCMS@specs) <- findName(666)
 ##STEP 2 
 ########
 
+msmsXCMS@specs[[1]]$parentPeak[,"mz"] <- 354.134499255997
+msmsXCMS@specs[[1]]$parentPeak[,"int"] <- 354.134499255997
+
 mode = "pH"
 msmsXCMS@analyzedSpecs <- lapply(msmsXCMS@specs, function(spec) {
 				  s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="preliminary" )
@@ -191,4 +194,28 @@ msmsXCMS@aggregatedSpecs <- aggregateSpectra(msmsXCMS@analyzedSpecs)
 #msmsXCMS$rc <- recal$rc
 #msmsXCMS$rc.ms1 <- recal$rc.ms1
 #msmsXCMS@recalibratedSpecs <- recalibrateSpectra(mode, msmsXCMS@specs, w = msmsXCMS)
+
 recalibrate.addMS1data(spec = msmsXCMS@aggregatedSpecs, mode = "pH", 15)
+
+rmbo <- getOption("RMassBank")
+rmbo$spectraList <- list(
+  list(mode="CID",
+       ces="10eV",
+       ce="10eV",
+       res=12000),
+  list(mode="CID",
+       ces="20eV",
+       ce="20eV",
+       res=12000),
+  list(mode="CID",
+       ces="30eV",
+       ce="30eV",
+       res=12000),
+  list(mode="CID",
+       ces="40eV",
+       ce="40eV",
+       res=12000)
+  )
+
+options("RMassBank" = rmbo )
+
