@@ -193,6 +193,7 @@ loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 
 ##Set the options correctly
 rmbo <- getOption("RMassBank")
+rmbo$annotations$entry_prefix <- 'IH'
 rmbo$spectraList <- list(
   list(mode="CID",
        ces="20eV",
@@ -284,58 +285,4 @@ msmsXCMS@refilteredRcSpecs$peaksReanOK <- msmsXCMS@refilteredRcSpecs$peaksFilter
 
 mbXCMS <- newMbWorkspace(msmsXCMS)
 mbXCMS <- loadInfolists(mbXCMS, system.file("XCMSinput/infolists", package = "RMassBank"))
-
-########
-##STEP 1
-########
-
-mbdata_ids <- lapply(mbXCMS@aggregatedRcSpecs$specFound, function(spec) spec$id)
-	  
-	  message("mbWorkflow: Step 1")
-	  
-      # Which IDs are not in mbdata_archive yet?
-      new_ids <- setdiff(as.numeric(unlist(mbdata_ids)), mbXCMS@mbdata_archive$id)
-      mbXCMS@mbdata <- lapply(new_ids, function(id) 
-      {
-        #print(id)
-        d <- gatherData(id)
-        #print(d$dataused)
-		message(paste(id, ": ", d$dataused, sep=''))
-        return(d)
-      })
-	  
-########
-##STEP 2
-########
-
-##NOT NEEDED YET
-
-########
-##STEP 3
-########
-
-	message("mbWorkflow: Step 3")
-    mbXCMS@mbdata_relisted <- apply(mbXCMS@mbdata_archive, 1, readMbdata)
-
-########
-##STEP 4
-########
-message("mbWorkflow: Step 4")
-	  mbXCMS@compiled <- mapply(
-			  function(r, refiltered) {
-				  message(paste("Compiling: ", r$name, sep=""))
-				  mbdata <- mbXCMS@mbdata_relisted[[which(mbXCMS@mbdata_archive$id == as.numeric(r$id))]]
-				  if(ncol(mbXCMS@additionalPeaks) > 0)
-					  res <-compileRecord(r, mbdata, refiltered, mbXCMS@additionalPeaks)
-				  else
-					  res <-compileRecord(r, mbdata, refiltered, NULL)
-				  return(res)
-			  },
-			  mbXCMS@aggregatedRcSpecs$specFound,
-			  MoreArgs = list(refiltered=mbXCMS@refilteredRcSpecs),
-			  SIMPLIFY=FALSE
-	  )
-	  # check which compounds have useful spectra
-	  mbXCMS@ok <- which(!is.na(mbXCMS@compiled) & !(lapply(mbXCMS@compiled, length)==0))
-	  mbXCMS@problems <- which(is.na(mbXCMS@compiled))
-	  mbXCMS@compiled_ok <- mbXCMS@compiled[mbXCMS@ok]
+mbXCMS <- mbWorkflow(mbXCMS)
