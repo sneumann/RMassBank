@@ -275,9 +275,15 @@ msmsXCMS@reanalyzedRcSpecs <- reanalyzeFailpeaks(msmsXCMS@aggregatedRcSpecs, cus
 ##STEP 8
 ########
 
+## This hack will not be neccessary after RMassBank 1.1.2
 msmsXCMS@refilteredRcSpecs <- filterMultiplicity(msmsXCMS@reanalyzedRcSpecs, archivename=NA, mode)
 msmsXCMS@refilteredRcSpecs$peaksOK <- msmsXCMS@refilteredRcSpecs$peaksFiltered
 msmsXCMS@refilteredRcSpecs$peaksReanOK <- msmsXCMS@refilteredRcSpecs$peaksFilteredReanalysis
+
+##
+## Aim to be able to 
+##  w <- msmsWorkflow(w, mode="pH", steps=c(2:8), archivename="pH_130301_pos")
+##
 
 ############
 ##MBWORKFLOW
