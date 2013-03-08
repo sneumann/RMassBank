@@ -182,7 +182,12 @@ NULL
   # The settings define which recal function is used
   recalibrator = list(
 	MS1 = "recalibrate.loess",
-	MS2 = "recalibrate.loess")
+	MS2 = "recalibrate.loess"),
+  # Define the multiplicity filtering level
+  # Default is 2 (peak occurs at least twice)
+  # Set this to 1 if you want to turn this option off.
+  # Set this to anything > 2 if you want harder filtering
+  multiplicityFilter = 2
   )
 
 # Writes a file with sample settings which the user can adjust with his values.

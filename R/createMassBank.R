@@ -1,5 +1,6 @@
 # Script for writing MassBank files
 
+#testtest change
 #' Load MassBank compound information lists
 #' 
 #' Loads MassBank compound information lists (i.e. the lists which were created
@@ -164,7 +165,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   {
       mbdata_ids <- lapply(mb@aggregatedRcSpecs$specFound, function(spec) spec$id)
 	  
-	  message("mbWorkflow: Step 1")
+	  message("mbWorkflow: Step 1. Gather info from CTS")
 	  
       # Which IDs are not in mbdata_archive yet?
       new_ids <- setdiff(as.numeric(unlist(mbdata_ids)), mb@mbdata_archive$id)
@@ -181,7 +182,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # Otherwise, continue!
   if(2 %in% steps)
   {
-	message("mbWorkflow: Step 2")
+	message("mbWorkflow: Step 2. Export infolist (if required)")
     if(length(mb@mbdata)>0)
     {
       mbdata_mat <- flatten(mb@mbdata)
@@ -196,7 +197,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # Step 3: Take the archive data (in table format) and reformat it to MassBank tree format.
   if(3 %in% steps)
   {
-	message("mbWorkflow: Step 3")
+	message("mbWorkflow: Step 3. Data reformatting")
     mb@mbdata_relisted <- apply(mb@mbdata_archive, 1, readMbdata)
   }
   # Step 4: Compile the spectra! Using the skeletons from the archive data, create
@@ -204,7 +205,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # Also, assign accession numbers based on scan mode and relative scan no.
   if(4 %in% steps)
   {
-	  message("mbWorkflow: Step 4")
+	  message("mbWorkflow: Step 4. Spectra compilation")
 	  mb@compiled <- mapply(
 			  function(r, refiltered) {
 				  message(paste("Compiling: ", r$name, sep=""))
@@ -228,7 +229,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # flat-text string arrays (basically, into text-file style, but still in memory)
   if(5 %in% steps)
   {
-	message("mbWorkflow: Step 5")
+	message("mbWorkflow: Step 5. Flattening records")
     mb@mbfiles <- lapply(mb@compiled_ok, function(c) lapply(c, toMassbank))
   }
   # Step 6: For all OK records, generate a corresponding molfile with the structure
@@ -236,14 +237,14 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # is still in memory only, not yet a physical file)
   if(6 %in% steps)
   {
-	message("mbWorkflow: Step 6")
+	message("mbWorkflow: Step 6. Generate molfiles")
     mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(c[[1]][["CH$SMILES"]]))
   }
   # Step 7: If necessary, generate the appropriate subdirectories, and actually write
   # the files to disk.
   if(7 %in% steps)
   {
-	message("mbWorkflow: Step 7")
+	message("mbWorkflow: Step 7. Generate subdirs and export")
     dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "moldata", sep='/'),recursive=TRUE)
     dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "recdata", sep='/'),recursive=TRUE)
     for(cnt in 1:length(mb@compiled_ok))
@@ -253,7 +254,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # to attribute substances to their corresponding structure molfiles.
   if(8 %in% steps)
   {
-	message("mbWorkflow: Step 8")
+	message("mbWorkflow: Step 8. Create list.tsv")
     makeMollist(mb@compiled_ok)
   }
   return(mb)
