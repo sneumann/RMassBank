@@ -8,28 +8,6 @@ library(RMassBank)
 ############################
 ############################
 
-##
-## More example data
-##
-## http://www.casmi-contest.org/challenges-cat1-2.shtml
-## Challenge3 MSMSneg10_Challenge3 MSMSneg20_Challenge3 MSMSneg30_Challenge3 MSMSneg40_Challenge3
-##    4 individuelle Rohdatenfiles
-##    Modus "mH" !
-## http://www.casmi-contest.org/solutions-cat1-2.shtml
-## Glucolesquerellin
-
-##
-## Overwrite parameters in spectraList
-## 
-## getOption("RMassBank")$spectraList
-
-## spectraList:
-##  # First scan: CID 20
-## - mode: CID
-##   ces: 20
-##   ce: 20
-##   res: 7500
-
 ## xr <- system.file("microtofq/MSMSpos20_6.mzML", package="msdata", includeMsn=TRUE)
   
   ################################################################################## 
@@ -71,7 +49,59 @@ library(RMassBank)
   
   
   
-  
+ handToRMB <- function(handSpecs, cpdID, MS1 = NA){
+	ret <- list()
+	ret$foundOK <- 1
+	
+	##Write nothing in the parents
+	ret$parentscan <- 1
+	ret$parentHeader <- matrix(0, ncol = 20, nrow = 1)
+	rownames(ret$parentHeader) <-1
+	colnames(ret$parentHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
+									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
+									"mergedResultStartScanNum", "mergedResultEndScanNum")
+	ret$parentHeader[1,1:3] <- 1
+	ret$parentHeader[1,4:20] <- 0
+	ret$parentHeader <- as.data.frame(ret$parentHeader)
+	
+	##Write the peaks into the childscans
+	ret$childScans <- 2
+	ret$childHeader <- matrix(0, ncol = 20, nrow = 1)
+	rownames(ret$childHeader) <- 2
+	colnames(ret$childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
+									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
+									"mergedResultStartScanNum", "mergedResultEndScanNum")
+	ret$childHeader[1,1:2] <- ret$childScans
+	ret$childHeader[1,3] <- 2
+	ret$childHeader[1,4] <- length(handSpecs[,1])
+	ret$childHeader[1,5] <- 0 ##Does this matter?
+	ret$childHeader[1,6] <- findRt(cpdID)$RT * 60
+	ret$childHeader[1,7] <- 0 ##Isn't possible per hand?
+	ret$childHeader[1,8] <- 0 ##Isn't possible per hand?
+	ret$childHeader[1,9] <- 0 ##Isn't possible per hand.
+	ret$childHeader[1,10] <- 0 ##Isn't possible per hand.
+	ret$childHeader[1,11] <- min(handSpecs[,1])
+	ret$childHeader[1,12] <- max(handSpecs[,1])
+	ret$childHeader[1,13] <- 1
+	ret$childHeader[1,14] <- findMz(cpdID)[[3]]
+	ret$childHeader[1,15] <- 1 ##Will be changed for different charges
+	ret$childHeader[1,16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. Workaround?
+	ret$childHeader[1,17:20] <- 0 ##Will be changed if merge is wanted
+	ret$childHeader <- as.data.frame(ret$childHeader)
+	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
+	colnames(ret$parentPeak) <- c("mz","int")
+	ret$parentPeak[1,] <- c(findMz(cpdID)$mzCenter,100)
+	ret$peaks <- list()
+	ret$peaks[[1]] <- matrix(nrow = length(handSpecs[,1]), ncol = 2)
+	colnames(ret$peaks[[1]]) <- c("mz","int")
+	ret$peaks[[1]][,1] <- handSpecs[,1]
+	ret$peaks[[1]][,2] <- handSpecs[,2]
+	ret$mz <- findMz(cpdID)
+	ret$id <- cpdID
+	ret$formula <- findFormula(cpdID)
+ }
   
  XCMStoRMB <- function(msmsXCMSspecs, cpdID, MS1 = NA){
 	ret <- list()
@@ -116,12 +146,14 @@ library(RMassBank)
 	ret$childHeader <- as.data.frame(ret$childHeader)
 	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
 	colnames(ret$parentPeak) <- c("mz","int")
+	ret$parentPeak[1,] <- c(findMz(cpdID)$mzCenter,100)
 	ret$peaks <- list()
 	ret$peaks[[1]] <- matrix(nrow = length(msmsXCMSspecs[,1]), ncol = 2)
 	colnames(ret$peaks[[1]]) <- c("mz","int")
 	ret$peaks[[1]][,1] <- msmsXCMSspecs[,1]
 	ret$peaks[[1]][,2] <- msmsXCMSspecs[,7]
 	ret$mz <- findMz(cpdID)
+	ret$id <- cpdID
 	ret$formula <- findFormula(cpdID)
 	return(ret)
 }
@@ -159,6 +191,18 @@ filesXCMS <- system.file("XCMSinput/Chelidonine_666_pos.mzData",package="RMassBa
 msmsXCMS@files <- filesXCMS
 loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 
+##Set the options correctly
+rmbo <- getOption("RMassBank")
+rmbo$spectraList <- list(
+  list(mode="CID",
+       ces="20eV",
+       ce="20eV",
+       res=7500)
+  )
+#rmbo$recalibrateMS1 <- "none"
+options("RMassBank" = rmbo)
+
+
 #####WORKFLOW STEPS 1 to 8
 
 ########
@@ -167,14 +211,11 @@ loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 
 msmsXCMSspecs <- findMsMsHRperxcms.direct(msmsXCMS@files[1])
 msmsXCMS@specs[[1]] <- XCMStoRMB(msmsXCMSspecs,666)
-names(msmsXCMS@specs) <- findName(666)
+names(msmsXCMS@specs) <- basename(msmsXCMS@files)
 
 ########
 ##STEP 2 
 ########
-
-msmsXCMS@specs[[1]]$parentPeak[,"mz"] <- 354.134499255997
-msmsXCMS@specs[[1]]$parentPeak[,"int"] <- 354.134499255997
 
 mode = "pH"
 msmsXCMS@analyzedSpecs <- lapply(msmsXCMS@specs, function(spec) {
@@ -185,37 +226,116 @@ msmsXCMS@analyzedSpecs <- lapply(msmsXCMS@specs, function(spec) {
 ########
 ##STEP 3
 ########
+
 msmsXCMS@aggregatedSpecs <- aggregateSpectra(msmsXCMS@analyzedSpecs)
 
 ########
 ##STEP 4
 ########
-#recal <- makeRecalibration(msmsXCMS@aggregatedSpecs, mode)
-#msmsXCMS$rc <- recal$rc
-#msmsXCMS$rc.ms1 <- recal$rc.ms1
-#msmsXCMS@recalibratedSpecs <- recalibrateSpectra(mode, msmsXCMS@specs, w = msmsXCMS)
+recal <- makeRecalibration(msmsXCMS@aggregatedSpecs, mode)
+msmsXCMS@rc <- recal$rc
+msmsXCMS@rc.ms1 <- recal$rc.ms1
+msmsXCMS@recalibratedSpecs <- recalibrateSpectra(mode, msmsXCMS@specs, w = msmsXCMS)
 
-recalibrate.addMS1data(spec = msmsXCMS@aggregatedSpecs, mode = "pH", 15)
+# p <- as.data.frame(msmsXCMS@specs[[1]]$peaks)
+# rc <- msmsXCMS@rc
+# Fix the column names so our
+# prediction functions choose the right
+# rows. 
+# colnames(p) <- c("mzFound", "int")
+# drecal <- predict(rc, newdata= p)
+# Problem: Too many warnings
 
-rmbo <- getOption("RMassBank")
-rmbo$spectraList <- list(
-  list(mode="CID",
-       ces="10eV",
-       ce="10eV",
-       res=12000),
-  list(mode="CID",
-       ces="20eV",
-       ce="20eV",
-       res=12000),
-  list(mode="CID",
-       ces="30eV",
-       ce="30eV",
-       res=12000),
-  list(mode="CID",
-       ces="40eV",
-       ce="40eV",
-       res=12000)
-  )
+########
+##STEP 5
+########
 
-options("RMassBank" = rmbo )
+msmsXCMS@analyzedRcSpecs <- lapply(msmsXCMS@recalibratedSpecs, function(spec){
+		s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="recalibrated", cut=0, cut_ratio=0 )
+		return(s)
+	})
+ for(f in msmsXCMS@files)
+msmsXCMS@analyzedRcSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
 
+########
+##STEP 6
+########
+
+msmsXCMS@aggregatedRcSpecs <- aggregateSpectra(msmsXCMS@analyzedRcSpecs, addIncomplete=TRUE)
+msmsXCMS@aggregatedRcSpecs$peaksUnmatchedC <- cleanElnoise(msmsXCMS@aggregatedRcSpecs$peaksUnmatched)
+
+########
+##STEP 7
+########
+
+msmsXCMS@reanalyzedRcSpecs <- reanalyzeFailpeaks(msmsXCMS@aggregatedRcSpecs, custom_additions="N2O", mode=mode)
+
+########
+##STEP 8
+########
+
+msmsXCMS@refilteredRcSpecs <- filterMultiplicity(msmsXCMS@reanalyzedRcSpecs, archivename=NA, mode)
+msmsXCMS@refilteredRcSpecs$peaksOK <- msmsXCMS@refilteredRcSpecs$peaksFiltered
+msmsXCMS@refilteredRcSpecs$peaksReanOK <- msmsXCMS@refilteredRcSpecs$peaksFilteredReanalysis
+
+############
+##MBWORKFLOW
+############
+
+mbXCMS <- newMbWorkspace(msmsXCMS)
+mbXCMS <- loadInfolists(mbXCMS, system.file("XCMSinput/infolists", package = "RMassBank"))
+
+########
+##STEP 1
+########
+
+mbdata_ids <- lapply(mbXCMS@aggregatedRcSpecs$specFound, function(spec) spec$id)
+	  
+	  message("mbWorkflow: Step 1")
+	  
+      # Which IDs are not in mbdata_archive yet?
+      new_ids <- setdiff(as.numeric(unlist(mbdata_ids)), mbXCMS@mbdata_archive$id)
+      mbXCMS@mbdata <- lapply(new_ids, function(id) 
+      {
+        #print(id)
+        d <- gatherData(id)
+        #print(d$dataused)
+		message(paste(id, ": ", d$dataused, sep=''))
+        return(d)
+      })
+	  
+########
+##STEP 2
+########
+
+##NOT NEEDED YET
+
+########
+##STEP 3
+########
+
+	message("mbWorkflow: Step 3")
+    mbXCMS@mbdata_relisted <- apply(mbXCMS@mbdata_archive, 1, readMbdata)
+
+########
+##STEP 4
+########
+message("mbWorkflow: Step 4")
+	  mbXCMS@compiled <- mapply(
+			  function(r, refiltered) {
+				  message(paste("Compiling: ", r$name, sep=""))
+				  mbdata <- mbXCMS@mbdata_relisted[[which(mbXCMS@mbdata_archive$id == as.numeric(r$id))]]
+				  if(ncol(mbXCMS@additionalPeaks) > 0)
+					  res <-compileRecord(r, mbdata, refiltered, mbXCMS@additionalPeaks)
+				  else
+					  res <-compileRecord(r, mbdata, refiltered, NULL)
+				  return(res)
+			  },
+			  mbXCMS@aggregatedRcSpecs$specFound,
+			  MoreArgs = list(refiltered=mbXCMS@refilteredRcSpecs),
+			  SIMPLIFY=FALSE
+	  )
+	  # check which compounds have useful spectra
+	  mbXCMS@ok <- which(!is.na(mbXCMS@compiled) & !(lapply(mbXCMS@compiled, length)==0))
+	  mbXCMS@problems <- which(is.na(mbXCMS@compiled))
+	  mbXCMS@compiled_ok <- mbXCMS@compiled[mbXCMS@ok]

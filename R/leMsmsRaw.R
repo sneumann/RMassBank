@@ -150,11 +150,11 @@ findMsMsHRperxcms.direct <- function(fileName, mode="pH", mzabs=0.1, method="cen
 	## Now find the pspec for compound
 	psp <- which(sapply(anmsms@pspectra, function(x) {candidates %in% x}))
 
-        ## 2nd best: Spectrum closest to MS1
+    ## 2nd best: Spectrum closest to MS1
 	##psp <- which.min( abs(getRT(anmsms) - actualRT))
 
         ## 4rd Best: find pspec closest to RT from spreadsheet
-	#psp <- which.min( abs(abs(getRT(anmsms) - RT) )
+	##psp <- which.min( abs(abs(getRT(anmsms) - RT) )
 
 	
 	return(getpspectra(anmsms, psp))

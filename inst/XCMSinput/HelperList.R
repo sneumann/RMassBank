@@ -120,6 +120,7 @@ XCMStoRMB <- function(msmsXCMSspecs, cpdID, MS1 = NA){
 	ret$formula <- findFormula(cpdID)
 	return(ret)
 }
+
 ##This uses an already created template for the settings
 ##Change path or settings at own risk
 loadRmbSettings(system.file("XCMSinput/mysettings.ini",package="RMassBank"))
@@ -132,6 +133,28 @@ msmsList <- newMsmsWorkspace()
 fileList <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin", full.names=TRUE)[2:5]
 msmsList@files <- fileList
 loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
+
+##Set the options right
+rmbo <- getOption("RMassBank")
+rmbo$spectraList <- list(
+  list(mode="CID",
+       ces="10eV",
+       ce="10eV",
+       res=12000),
+  list(mode="CID",
+       ces="20eV",
+       ce="20eV",
+       res=12000),
+  list(mode="CID",
+       ces="30eV",
+       ce="30eV",
+       res=12000),
+  list(mode="CID",
+       ces="40eV",
+       ce="40eV",
+       res=12000)
+  )
+
 
 #####WORKFLOW STEPS 1 to 8
 
@@ -179,7 +202,7 @@ loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 	xsmsms <-  xcmsSet (files=fileName,
 					method="MS1")
 
-	peaks(xsmsms) <- findPeaks(xsmsms, method="centWave", peakwidth=c(5,10),
+	peaks(xsmsms) <- findPeaks(xrmsmsAsMs, method="centWave", peakwidth=c(5,10),
                          prefilter=c(3,200), ppm=25,
                          snthr=5, verbose.columns=T)
 

@@ -3,10 +3,10 @@
 <cvLookup cvLabel="PSI" fullName="The PSI Ontology" version="1.4.0" address="http://psidev.sourceforge.net/ontology/"/>
 <description>
 <admin>
-<sampleName>MSMSneg20</sampleName>
+<sampleName>MSMSneg10</sampleName>
 <sourceFile>
 <nameOfFile>analysis.baf</nameOfFile>
-<pathToFile>/CASMI/MSMSneg20_2-A%2c1_01_2184.d/</pathToFile>
+<pathToFile>/CASMI/MSMSneg10_2-A%2c1_01_2186.d/</pathToFile>
 <fileType>micrOTOFcontrol 2.2.23.0</fileType>
 </sourceFile>
 <contact>
@@ -29,7 +29,7 @@
 </detector>
 </instrument>
 <dataProcessing>
-<software completionTime="2012-07-19T14:22:30.763+02:00">
+<software completionTime="2012-07-19T14:21:07.251+02:00">
 <name>CompassXport</name>
 <version>3.0.5</version>
 </software>
@@ -51,13 +51,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="57.19598648" mzRangeStop="981.20917086">
+<spectrumInstrument msLevel="2" mzRangeStart="45.78819511" mzRangeStop="986.28519176">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.76812"/>
-<userParam name="basePeakMz" value="294.12947455"/>
-<userParam name="basePeakIntensity" value="112.00000000"/>
-<userParam name="totIonCurrent" value="1313.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.76692"/>
+<userParam name="basePeakMz" value="399.16555122"/>
+<userParam name="basePeakIntensity" value="182.00000000"/>
+<userParam name="totIonCurrent" value="1843.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -71,10 +71,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="42">QmTIsUKyYSRC4fbBQvzHf0MHDHxDCASzQxMLOEMVEAZDKA17Qy8bU0M1EJ9DTfoMQ1kuL0NceENDXRfGQ20I40N+CBFDgG4zQ4W070OLjmxDjA2oQ5MQk0OhF6tDohHaQ6sTwkOsicJDrhY0Q7GXQkPLnYpD2aAyQ/VrokQPni1EEJ8jRCdkpkQ4Gp5ERs3qREjuPURU+qBEWmf7RFux0kRcugpEdU1j</data>
+<data precision="32" endian="big" length="55">QjcnHUJDy/BCfd48QocWiEKjU/FCsjqFQrrCI0Ltj6tDBYxlQwcCjUMbB45DJfzCQy8feUM1DCBDPl06Q0EOK0N7mapDfBifQ4APqkOCTD5DhIw5Q4USuEOFJYFDheKdQ5CH3UOTDsxDk5JYQ5UbtEOaj/RDohBkQ6lXpEOrFMtDrAD0Q7EUYUOxlzxDuRVXQ7mUDUO8wI1Dx5UxQ8gXBUPIlnFDyRaCQ8mY4UPKFxBDypl8Q8sOhkP40OlD/vg8RAtQm0QaxOVELaDcREXTTURqsVZEdamqRHaSQQ==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="42">QgQAAEHAAABB4AAAQgwAAEIEAABBsAAAQegAAEGwAABBsAAAQlAAAEJUAABB6AAAQagAAEGwAABB2AAAQhAAAEHwAABCFAAAQfgAAEJwAABBuAAAQuAAAEHwAABBqAAAQigAAEHoAABBqAAAQbAAAEGwAABByAAAQbAAAEHYAABB8AAAQeAAAEHwAABBqAAAQfgAAEHAAABCFAAAQagAAEHIAABBwAAA</data>
+<data precision="32" endian="big" length="55">QdgAAEHgAABBsAAAQdAAAEHYAABCBAAAQagAAEHQAABCLAAAQbgAAEHoAABB2AAAQeAAAEHoAABBqAAAQggAAEHAAABB0AAAQagAAEHYAABBwAAAQagAAEG4AABBwAAAQbAAAELYAABB2AAAQgAAAEGwAABByAAAQggAAEJwAABBqAAAQfAAAEGoAABCCAAAQbAAAEGoAABDNgAAQkwAAEHAAABCZAAAQmAAAEI8AABBuAAAQlwAAEGwAABB6AAAQggAAEH4AABB2AAAQbAAAEG4AABBwAAAQbgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="338">
@@ -83,13 +83,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="47.60736628" mzRangeStop="951.41470263">
+<spectrumInstrument msLevel="2" mzRangeStart="88.35160254" mzRangeStop="963.03199771">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.77932"/>
-<userParam name="basePeakMz" value="294.13045460"/>
-<userParam name="basePeakIntensity" value="193.00000000"/>
-<userParam name="totIonCurrent" value="1254.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.77808"/>
+<userParam name="basePeakMz" value="399.15438234"/>
+<userParam name="basePeakIntensity" value="79.00000000"/>
+<userParam name="totIonCurrent" value="1718.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -103,10 +103,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="38">Qj5t8UK/6mxCwflJQsQDr0MLAXZDDMDGQw7zn0MnEUxDKArZQykI6kMvHqVDMwy3QzUKzENAU7ZDTSv1Q2hSWENpz39DaghfQ34Zc0OQiTFDkxCzQ5OM/UOUEpxDmonwQ5qd0kObDfVDqxPnQ6taMEPHmP9D26oGQ+RBM0Pn06lEDHl8RBbq6EQdAPxEWx3QRFzfJURt2oo=</data>
+<data precision="32" endian="big" length="57">QrC0BUK1pYNCxegyQtOb40LXPDJC5/BBQu/FEUMJ5bdDDNJkQxYzo0MXBM5DJwekQyepiEM1DQRDNkllQzliFENeE3ZDbIAIQ2/TL0N9JGhDfwrRQ4BRN0OERNVDhNvGQ4uTDEONhmhDk5ExQ5mKwkOaDjxDm8OeQ50O+UOfoghDohGTQ6oR6EOrFCtDq5JkQ7EVkUOxlrVDuhDGQ8AU7kPBDfNDxcjFQ8ahYkPHk8NDyJevQ8kYAEPJmZlDyxJBQ9RDQEPW/VxD3pbbRAR2ZkQhRHZEMgjjRD5LUkQ/iJNEcMIM</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="38">QcgAAEG4AABB4AAAQdAAAEHAAABB6AAAQcAAAEIYAABBqAAAQdgAAEHwAABB+AAAQdgAAEHgAABB+AAAQfAAAEHQAABByAAAQkgAAEG4AABDQQAAQggAAEIYAABCCAAAQfgAAEGwAABCIAAAQbAAAEI4AABBwAAAQbgAAEHwAABBsAAAQagAAEGwAABB2AAAQgAAAEHYAAA=</data>
+<data precision="32" endian="big" length="57">QgwAAEHgAABCHAAAQdAAAEGoAABCDAAAQbAAAEHwAABBsAAAQfAAAEGoAABByAAAQagAAEHQAABBsAAAQcAAAEHQAABBuAAAQdAAAEGoAABBwAAAQagAAEG4AABBqAAAQggAAEHAAABByAAAQbAAAEHwAABBuAAAQagAAEHgAABCcAAAQgQAAEI4AABBwAAAQmwAAEIYAABBqAAAQjAAAEHYAABB2AAAQcAAAEKeAABChAAAQnAAAEIkAABB8AAAQegAAEIEAABBwAAAQagAAEGoAABBqAAAQbgAAEHAAABBwAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="339">
@@ -115,13 +115,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="54.89502787" mzRangeStop="736.15811372">
+<spectrumInstrument msLevel="2" mzRangeStart="81.39964071" mzRangeStop="795.43026340">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.79052"/>
-<userParam name="basePeakMz" value="294.14080917"/>
-<userParam name="basePeakIntensity" value="76.00000000"/>
-<userParam name="totIonCurrent" value="1231.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.78925"/>
+<userParam name="basePeakMz" value="402.17590141"/>
+<userParam name="basePeakIntensity" value="168.00000000"/>
+<userParam name="totIonCurrent" value="1771.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -135,10 +135,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="45">QluUgkKFEupCweYWQtv/h0MVEMlDFwtMQxkQKEMlofNDKAnUQzINlUMzBsFDQ/9ZQ00V/UNf+y9Dbw85Q34ZZ0OEDW5DhJEMQ4YOl0OLCChDjA4KQ5MSBkOZjaxDmo71Q6ISeUOpld5DqxHhQ6uhCEOyma9DyJZlQ9qmfkPb/51D37WNQ+2NmkPvTXZD8GZbRAG4D0QIL0tEDZsVRBRkJEQWOGVEJTbARCql8kQ28AxEOAof</data>
+<data precision="32" endian="big" length="50">QqLMnkKzOpFC4fasQvyjsUMR3nlDGQ2sQycAYUMvHD1DMBlAQzMJa0NK41VDVS1mQ3a+OUN4XWZDeoZKQ34dUUOES7xDlBFVQ5UPjUOajc5Dm4xWQ58HmkOiBslDohCUQ6gQKUOqFT5DqpkzQ6sT/EOrIYFDrFczQ8AU00PBFR5DweoQQ8eWR0PIFR5DyRaEQ8mY3EPKnSxDyw8QQ8x2HkPRFZRD3xdGQ+CYGEPkRKVD8THyRAC8iEQG1opECVhERCIpgERG24k=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="45">QcAAAEG4AABB4AAAQegAAEHAAABB0AAAQcAAAEHAAABCEAAAQbAAAEGwAABB4AAAQcgAAEIIAABBuAAAQiAAAEIEAABBqAAAQbgAAEGoAABCLAAAQpgAAEGwAABBsAAAQjQAAEHAAABB6AAAQbgAAEHIAABB4AAAQbgAAEGoAABBuAAAQbAAAEG4AABBuAAAQgAAAEHAAABBuAAAQbgAAEGoAABBsAAAQggAAEHIAABByAAA</data>
+<data precision="32" endian="big" length="50">QcAAAEHIAABCggAAQagAAEIcAABCFAAAQjQAAEIUAABCIAAAQgQAAEGoAABB8AAAQbAAAEG4AABBsAAAQkwAAEHAAABCBAAAQfAAAEIgAABCAAAAQcAAAEH4AABCEAAAQegAAEHAAABCFAAAQtQAAEGoAABBqAAAQhQAAEIEAABBsAAAQngAAEG4AABDKAAAQbAAAEIIAABB2AAAQfAAAEGoAABB0AAAQmAAAEHIAABB+AAAQdgAAEHAAABB0AAAQdAAAEHgAAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="340">
@@ -147,13 +147,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="48.45104935" mzRangeStop="942.05445508">
+<spectrumInstrument msLevel="2" mzRangeStart="60.51797640" mzRangeStop="864.76973120">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.80168"/>
-<userParam name="basePeakMz" value="294.15499907"/>
-<userParam name="basePeakIntensity" value="78.00000000"/>
-<userParam name="totIonCurrent" value="1489.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.80042"/>
+<userParam name="basePeakMz" value="342.15306109"/>
+<userParam name="basePeakIntensity" value="180.00000000"/>
+<userParam name="totIonCurrent" value="1531.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -167,10 +167,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="47">QkHN4EJf3UpC9BBFQvt7OEMlI2dDLyqpQ0AOQ0NBHuRDTm4MQ1xMSENgGdFDYUjCQ2UfY0NnHA9DbxLOQ34UuEOIEQ5Di42oQ4wL1EOMhndDkxPXQ5OR/kOUj6JDmzQoQ5wRkUOiFBtDqxLVQ6ycCUOwNcFDwJQLQ8mWikPZobBD3IQ+Q979MUQKb+9EDnt0RBlHEEQso3NELQ1NRDaxiEQ4721EPc69RD8aXkRZVL9EZMaKRGbrlkRrg3w=</data>
+<data precision="32" endian="big" length="43">QnISaEJ2+jNCw/0ZQwcClkMRCaZDGPWVQx4ClkM1C7FDSRa7Q1ELKkNhCS9DZHkaQ3sV1UOAi5NDhQ4IQ4sI/kOTAdBDkxDWQ5OR00OaOzFDmxD+Q54F5kOpFGRDqhcfQ6sTmEOrkz9DvxU5Q7+TwUPAFShDxBpuQ8hR10PJFu5DyZb5Q8sRNkPMbgVD1DmFQ9l19UPhn4hD4h71RBO5/EQls4xEJ+Z9RFgxQw==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="47">QgwAAEHAAABBqAAAQkAAAEH4AABBqAAAQdgAAEG4AABB2AAAQdAAAEIMAABCIAAAQdAAAEHoAABCWAAAQbgAAEG4AABCYAAAQhQAAEIAAABCnAAAQgQAAEIcAABBwAAAQbgAAEHwAABCbAAAQjwAAEHAAABBuAAAQggAAEIYAABBwAAAQcAAAEIEAABB2AAAQfAAAEGwAABByAAAQagAAEHwAABB0AAAQagAAEHAAABBqAAAQhwAAEIAAAA=</data>
+<data precision="32" endian="big" length="43">QbAAAEHQAABB0AAAQegAAEH4AABByAAAQbgAAEHAAABB0AAAQbgAAEHAAABBuAAAQfgAAEGwAABByAAAQgAAAEIgAABDLAAAQdgAAEHoAABCFAAAQgAAAEH4AABB6AAAQzQAAEIcAABCCAAAQbAAAEHYAABB6AAAQcgAAEI4AABCNAAAQkAAAEHAAABByAAAQegAAEHAAABB8AAAQcAAAEHQAABBsAAAQbgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="341">
@@ -179,13 +179,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="51.53285020" mzRangeStop="981.35938188">
+<spectrumInstrument msLevel="2" mzRangeStart="54.28045827" mzRangeStop="953.00557759">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.81285"/>
-<userParam name="basePeakMz" value="294.13676107"/>
-<userParam name="basePeakIntensity" value="59.00000000"/>
-<userParam name="totIonCurrent" value="999.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.81158"/>
+<userParam name="basePeakMz" value="402.18073460"/>
+<userParam name="basePeakIntensity" value="191.00000000"/>
+<userParam name="totIonCurrent" value="1967.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -199,10 +199,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="36">Qk4ho0KfdGRC798kQwoXLEMKKIpDFCe/QxXzhUMXCQ1DVndMQ2EYEUODoaFDi47xQ4wNA0ONmYVDkxGBQ5NWBUOTkHZDlBRsQ5kKv0Oaj/FDoPNUQ6EQHUOndHtDqxHOQ8edPkPJq79Dynm0Q98TxkQGJDFEEbW+RCifT0QtE/FEOHK1REsLqkRRqNdEdVcA</data>
+<data precision="32" endian="big" length="55">QlkfMEK8p8NC2zkJQuS93ULtVw9DALjYQx59VEMjfqZDKzhAQz7x1kNdyuhDYWfZQ3LCAUN5FNxDexKNQ3wZKkN9CQNDiPk/Q4q9bkORVVFDkxCXQ5SNgkOWh1xDmf23Q5qQWkObD5VDm42fQ54R0kOqlEZDqxUnQ6uUnEOsEIlDso+7Q7ZN/EO6EMJDxyIPQ8eR/UPIkqFDyPD8Q8kXIkPJlopDyp4+Q8sOmkPgGCpD4ZvbQ+WWREPvVvhEAXTXRAo+LkQKdWREFJyWRCoWoURYxsdEYTpxRG5AWw==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="36">QcAAAEG4AABB6AAAQbAAAEGoAABBsAAAQbAAAEI8AABBuAAAQbAAAEGoAABCZAAAQggAAEHAAABCbAAAQdgAAEIkAABCCAAAQbAAAEHAAABCEAAAQdgAAEHAAABBqAAAQbAAAEHQAABCBAAAQcAAAEHIAABBuAAAQcAAAEGwAABBuAAAQagAAEGoAABB6AAA</data>
+<data precision="32" endian="big" length="55">QcgAAEGoAABB0AAAQbgAAEHAAABBqAAAQdgAAEIYAABByAAAQcgAAEGoAABBqAAAQagAAEIIAABCEAAAQgQAAEJMAABB6AAAQcAAAEIgAABC1gAAQggAAEHQAABBsAAAQgQAAEIsAABByAAAQdgAAEIQAABC9gAAQngAAEIMAABBuAAAQcAAAEG4AABByAAAQcgAAEGoAABB0AAAQz8AAEG4AABCGAAAQpoAAEHIAABCOAAAQggAAEHYAABB+AAAQegAAEHIAABBqAAAQcAAAEHAAABBsAAAQcgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="342">
@@ -211,13 +211,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="64.55141575" mzRangeStop="992.53781483">
+<spectrumInstrument msLevel="2" mzRangeStart="49.04572707" mzRangeStop="994.99435674">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.82402"/>
-<userParam name="basePeakMz" value="294.13808203"/>
-<userParam name="basePeakIntensity" value="54.00000000"/>
-<userParam name="totIonCurrent" value="1270.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.82275"/>
+<userParam name="basePeakMz" value="402.17425713"/>
+<userParam name="basePeakIntensity" value="224.00000000"/>
+<userParam name="totIonCurrent" value="1779.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -231,10 +231,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="44">QoEaU0KGg1RCpa72QsqL/0MK2ZhDCwk2QxkE0UMdAfxDIQn+QyL+fkM1DWRDQQ+HQ0udq0NMLopDTwdDQ1EJhENdH3VDbK1vQ28Ui0N9HtNDhApFQ4YKxUOLjK9DkJJGQ5MRrUOajJhDmxO7Q5uSPUOfFMZDoJLPQ8eXSUP7l5lEAQzkRAbZhkQKjJhEFlSJRCd7R0RQwvNEUcwXRGcW5URnkPZEbE+ERHIpV0R4Imw=</data>
+<data precision="32" endian="big" length="46">QkQu00LB6ztC6ajTQxbtbEMhCMJDYA3zQ3USyUN7ELhDfQwIQ4YDoUOHEFxDh4iRQ4nPAUOKEthDi4NCQ47/lEOTEOhDk5HlQ5QSs0ObDu9DnY/3Q6IRx0Oo1OhDqRgsQ6sTIkPHmilDyRZOQ8qZ/EPLDv5DzHQFQ9CUukPeEotD4Z49Q+KEdUPkDbhD9lxlQ/mAv0P8F0ZEB9+jRAnbYUQPE6ZENoBlRFYB4URZlhZEZyvpRHi/pA==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="44">QdgAAEIEAABBwAAAQdgAAEH4AABCBAAAQggAAEI8AABB4AAAQegAAEIQAABBwAAAQcgAAEHAAABByAAAQcAAAEH4AABB6AAAQfAAAEGoAABByAAAQhwAAEIYAABB+AAAQlgAAEI0AABBsAAAQbAAAEGwAABCBAAAQcAAAEHwAABB6AAAQbgAAEGoAABCBAAAQfgAAEHAAABBwAAAQcAAAEHQAABBqAAAQcgAAEGwAAA=</data>
+<data precision="32" endian="big" length="46">QbAAAEIUAABBsAAAQfAAAEHYAABCFAAAQgAAAELSAABCHAAAQbAAAEHIAABBwAAAQcgAAEHYAABByAAAQbAAAEKwAABCDAAAQcAAAEIkAABB8AAAQhAAAEGoAABCCAAAQqoAAEG4AABDYAAAQbAAAEKUAABCfAAAQagAAEG4AABCRAAAQbAAAEHIAABB8AAAQegAAEIAAABCBAAAQfgAAEG4AABBuAAAQagAAEIQAABCBAAAQdgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="343">
@@ -243,13 +243,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="70.90936961" mzRangeStop="938.86944182">
+<spectrumInstrument msLevel="2" mzRangeStart="50.16094587" mzRangeStop="878.50581071">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.83518"/>
-<userParam name="basePeakMz" value="294.13305388"/>
-<userParam name="basePeakIntensity" value="201.00000000"/>
-<userParam name="totIonCurrent" value="894.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.83392"/>
+<userParam name="basePeakMz" value="294.13162130"/>
+<userParam name="basePeakIntensity" value="124.00000000"/>
+<userParam name="totIonCurrent" value="1602.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -263,10 +263,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="26">Qo3RmUKTf39DJAE/Q1MNyENv3UVDfRdJQ4aMxkOMDftDkxEIQ5OS7UOiDjZDqJwwQ7meGkO8ngNDvk2hQ8BPy0QDuH9EDO9PRA3/7kQXbN5EHkpNRCBYmUQzHQtEUPimRGhhwERqt6U=</data>
+<data precision="32" endian="big" length="49">Qkikz0LbvrBC5XKSQukQD0LxxqtDAJTtQ0MIVUNQ8phDVhHYQ1rOu0NcI1BDaRxxQ28JQ0N7DVFDfhjQQ4eJCkOLiElDjRJ+Q5MQ2UOTj2ZDnRTmQ6IRsUOpFS5DqxPOQ6u5XUOtpgRDr1/1Q7ES3kOxmwRDsxLbQ8AWt0PEFv9Dx5yTQ8ikBEPJGCxDyZ4YQ8sQSUPLkKhD2SIrQ96WTkPfjItD35h3RAMjsEQDwxpED8hjRBBko0QfIBFEILS/RFugXw==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="26">QgAAAEHYAABB4AAAQfAAAEHwAABBuAAAQgwAAEJAAABDSQAAQggAAEHgAABBqAAAQagAAEHQAABBsAAAQagAAEHIAABByAAAQdgAAEIUAABCCAAAQcgAAEGoAABBwAAAQeAAAEGoAAA=</data>
+<data precision="32" endian="big" length="49">QbgAAEGoAABB4AAAQbAAAEGoAABBqAAAQfAAAEHYAABBqAAAQbAAAEHAAABBsAAAQcgAAEIUAABCIAAAQegAAEHYAABB6AAAQvgAAEIYAABCDAAAQiwAAEIwAABC2gAAQbAAAEHQAABBwAAAQmgAAEIAAABBsAAAQfAAAEHoAABB4AAAQfAAAEIIAABCbAAAQhQAAEHQAABB4AAAQbgAAEGwAABB4AAAQdgAAEHgAABByAAAQbAAAEHIAABBsAAAQgQAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="344">
@@ -275,13 +275,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="71.78063970" mzRangeStop="850.15827162">
+<spectrumInstrument msLevel="2" mzRangeStart="45.10734317" mzRangeStop="853.61711314">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.84635"/>
-<userParam name="basePeakMz" value="294.13501400"/>
-<userParam name="basePeakIntensity" value="55.00000000"/>
-<userParam name="totIonCurrent" value="1182.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.84508"/>
+<userParam name="basePeakMz" value="342.15062530"/>
+<userParam name="basePeakIntensity" value="186.00000000"/>
+<userParam name="totIonCurrent" value="1881.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -295,10 +295,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="42">Qo+PsEKfVGtC4h2uQxzOekMxBDFDSPcLQ1MLcENXEj1DWxvKQ10LckNrvatDbQbgQ3LXo0N3HUZDex/qQ30eA0OEI2dDhQwqQ4YN2EOKCnxDi45SQ48RJkOTEUhDmpPpQ5sQFkOiEjFDpK0dQ6sSYUO9GbhDvaiVQ7+DTkPCzVhDxqkyQ9rMdkPetSFECzPQRBldj0QqxkJENjAVREXGkURQxSpEVIoh</data>
+<data precision="32" endian="big" length="56">QjRt60JuNxZCqqq1Qtf/N0L0niFDBHjWQxcZUkMhC39DK9uPQ1AeKkNRHH9DUiZZQ10bykNhE+ZDbxVVQ3Ir2UN7EQ5DfQ6lQ34UAkOA2cFDgRRcQ46FK0OTENpDk58cQ5YugUObD4FDnPEvQ50eYUOdg7JDnhEVQ6JQsUOrE0hDq5G2Q6wliEOxEf5DshOqQ7RabkO5Ep1DwhRkQ8kWE0PJmLZDyxIBQ8soE0PLPUpDzHRNQ9MegkPginRD4JpnQ+EejEPj/1RD8HS0RBkdZ0QpBXpELRp+RE4kokRVZ38=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="42">QgAAAEHwAABB0AAAQbAAAEIEAABBwAAAQdgAAEIwAABBsAAAQgwAAEHgAABByAAAQagAAEGoAABBqAAAQbAAAEG4AABB4AAAQegAAEIsAABBuAAAQfAAAEJcAABCMAAAQjgAAEHYAABB4AAAQgQAAEG4AABBsAAAQcgAAEHAAABBwAAAQagAAEHoAABBwAAAQfAAAEHIAABBqAAAQeAAAEG4AABBqAAA</data>
+<data precision="32" endian="big" length="56">QegAAEGoAABBqAAAQhwAAEHoAABB2AAAQdgAAEIAAABBuAAAQeAAAEG4AABBsAAAQcAAAEHIAABB2AAAQbAAAEIMAABCkgAAQbAAAEGoAABByAAAQdAAAEKkAABCDAAAQdgAAEJMAABByAAAQagAAEGwAABBuAAAQbAAAEM6AABCDAAAQcAAAEHwAABBuAAAQcAAAEHoAABByAAAQrwAAEJ8AABCEAAAQcgAAEHYAABCKAAAQbgAAEHYAABBqAAAQagAAEIcAABBwAAAQagAAEG4AABCGAAAQagAAEH4AAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="345">
@@ -307,13 +307,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="48.27368695" mzRangeStop="982.44438460">
+<spectrumInstrument msLevel="2" mzRangeStart="102.67326588" mzRangeStop="1001.49481975">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.85752"/>
-<userParam name="basePeakMz" value="155.12855928"/>
-<userParam name="basePeakIntensity" value="111.00000000"/>
-<userParam name="totIonCurrent" value="1167.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.85625"/>
+<userParam name="basePeakMz" value="402.17864187"/>
+<userParam name="basePeakIntensity" value="225.00000000"/>
+<userParam name="totIonCurrent" value="2048.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -327,10 +327,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="38">QkEYQUKbge9CnBY4QsHnQEL01BNDFwdxQxsg6UMnClhDTgStQ1sf10NdOVpDaRvGQ28TYkNzEz9DgYiSQ4aEn0OK815Dj4lkQ5MSgkOguMhDopPpQ6ftG0O1ksNDtv82Q7eY2EPBlqJDzQb6Q9cfdkPZ3pRD4o+8Q+tzAkQFgxREC6EQRA2+jkQhnmdEOitHREjtf0R1nHE=</data>
+<data precision="32" endian="big" length="54">Qs1YtkLjd3RDAU4HQxAHwkMXnz1DMXCzQzMNkUNHDUlDUA8HQ1aX2kNvFOdDcCznQ3sOCkN9EZhDfhvpQ38b8UOHt61Djo4aQ5MQlUOTkIZDlJ2JQ5UMBUOZIsJDmpBcQ5sLNEOdEGNDngnrQ6IN1kOrE7NDq47EQ7ETDUOyGaZDuRTBQ7+UZkPAFMJDxH/GQ8ibZ0PJFt5DyZWSQ8pcdUPKofpDzGyYQ+CPC0PhDftEAQL+RAu0aEQS5VdEKX7PRCy6mkRHhx5EU9/VRGAU2kRshdtEel+r</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="38">QdgAAEHAAABBsAAAQgQAAEGwAABBwAAAQt4AAEJUAABB4AAAQgAAAEGwAABByAAAQiwAAEGoAABB8AAAQagAAEHwAABBqAAAQjgAAEHwAABCTAAAQcAAAEIoAABBuAAAQegAAEG4AABB4AAAQagAAEGoAABB2AAAQfAAAEHAAABBwAAAQagAAEIQAABBqAAAQdgAAEHwAAA=</data>
+<data precision="32" endian="big" length="54">QdAAAEH4AABB2AAAQdgAAEHIAABBqAAAQoIAAEIIAABCCAAAQgAAAEH4AABCBAAAQlAAAEKOAABCLAAAQfgAAEHwAABB8AAAQrIAAEIsAABCAAAAQbgAAEIMAABCWAAAQfAAAEIMAABBsAAAQbgAAEKQAABB0AAAQiQAAEIoAABCLAAAQbAAAEGwAABBsAAAQhgAAENhAABCOAAAQbgAAEHgAABCKAAAQfAAAEHoAABBuAAAQdAAAEGoAABCCAAAQfAAAEGwAABBsAAAQegAAEIgAABBqAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="346">
@@ -339,13 +339,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="156.86165515" mzRangeStop="984.99500061">
+<spectrumInstrument msLevel="2" mzRangeStart="73.73210111" mzRangeStop="952.45879188">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.86868"/>
-<userParam name="basePeakMz" value="269.04138010"/>
-<userParam name="basePeakIntensity" value="56.00000000"/>
-<userParam name="totIonCurrent" value="800.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.86742"/>
+<userParam name="basePeakMz" value="294.14419174"/>
+<userParam name="basePeakIntensity" value="161.00000000"/>
+<userParam name="totIonCurrent" value="2038.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -359,10 +359,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="28">QxzclUMfBh1DRA+IQ10H8ENu36pDhAslQ4aFTEOLjUhDjA/YQ46bjUOTExRDlA28Q5qR6kOcEGBDnLaHQ50JeUOtgS9DrZsmQ7Aez0PqHKtD8525RBXxdUQbLn1EIRgmRD1eS0RLjTREW/6ARHY/rg==</data>
+<data precision="32" endian="big" length="58">QpN21kKlrgJC1TodQwqxaEMapMlDKF+dQzMHqkM+BQpDQQmeQ0QKsEN5Fi5DexCIQ3wXBUN9EOJDfTSQQ42Ix0ORgahDkxJ1Q5WHpUOWHKZDmxEyQ6ISvUOpFGdDqxKRQ6uPCkOs3SFDsM8+Q7ESiUOyDH5DuRI9Q8AU60PBFgtDxyGPQ8gbgEPJFt9DyZmZQ8oUJ0PLDftDyyRyQ8uitUPMc9xD1+TDQ9+bdUPgjKxD4K3xQ+ENQUPhm1tD5/ckQ/E5s0P0bsRECCUhRBSD8EQW2VtELD+YRDlqKURZZGxEWkzSRG4dXQ==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="28">QagAAEHwAABBqAAAQggAAEIgAABCIAAAQmAAAEIEAABBuAAAQgAAAEIYAABCHAAAQgQAAEGwAABB0AAAQbAAAEGoAABBwAAAQbAAAEIIAABBqAAAQagAAEGwAABByAAAQbgAAEGwAABCAAAAQbgAAA==</data>
+<data precision="32" endian="big" length="58">QbAAAEGoAABB8AAAQdAAAEHQAABB6AAAQcAAAEIUAABByAAAQcgAAEIAAABCcAAAQhgAAEHoAABB2AAAQdAAAEIIAABDIQAAQdAAAEHYAABB8AAAQcgAAEIAAABCrAAAQhwAAEGwAABByAAAQpwAAEIMAABBuAAAQdgAAEGwAABBsAAAQfgAAELAAABCSAAAQlAAAEIIAABBsAAAQoIAAEHYAABB0AAAQcAAAEKuAABBqAAAQbgAAEHwAABB8AAAQagAAEG4AABB2AAAQdAAAEGoAABBsAAAQcAAAEGoAABBqAAAQbgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="347">
@@ -371,13 +371,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="53.30294801" mzRangeStop="1000.62395349">
+<spectrumInstrument msLevel="2" mzRangeStart="82.98544639" mzRangeStop="938.82478407">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.87985"/>
-<userParam name="basePeakMz" value="294.13348000"/>
-<userParam name="basePeakIntensity" value="119.00000000"/>
-<userParam name="totIonCurrent" value="1504.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.87858"/>
+<userParam name="basePeakMz" value="402.18402318"/>
+<userParam name="basePeakIntensity" value="216.00000000"/>
+<userParam name="totIonCurrent" value="2003.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -391,10 +391,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="50">QlU2OEJsD+1CtgRgQr0KuULQOBBC2QAdQuEG00L0svRDCRbGQwqTEkMPZihDFwoNQxkJ0kMmBx1DLRBUQz8JiUN0l0hDeyudQ4SQzUOHBfNDh4euQ4ttUUORjuVDktQxQ5MRFkOajWxDnYoVQ6HqI0OnHCNDqs7hQ6sTC0OzNi9DtIqXQ76ZFEPGlNlD01HwQ/W2+EQDeCdEEg41RBPyBkQkC0JELiFZRDoG4EQ6ZwtEPluqRE5nzERgY0BEcSJzRHTRyER6J+8=</data>
+<data precision="32" endian="big" length="55">QqX4jELB63FC3hN3QuQ7O0L+d3JDGAxbQynEa0NTD6dDYQheQ3sOe0N9D+xDfhu6Q4YOuEOLjnxDi7MjQ4wOb0OOj/pDkxCCQ5Z+8UOaj4dDmw9dQ5sgkEObpg9DnQ+WQ6IRoUOilWVDpDwzQ6mfl0OqDe5DqxOeQ6wU7EOxmdpDso4TQ7MHQUO6/FpDwJS2Q8kXjkPKFgpDypp5Q8qumEPLD2RDzHSWQ9HEskPaQwVD3b+nQ+CPTkPiGqhD4uEtQ+TYv0PuxRNEFRnJRE5SrURS8VVEWj4TRGq0yQ==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="50">QagAAEG4AABB2AAAQfgAAEHAAABB0AAAQegAAEHwAABB0AAAQgAAAEIAAABCHAAAQeAAAEIEAABB2AAAQfAAAEHQAABB2AAAQcAAAEIkAABBuAAAQdAAAEG4AABBqAAAQu4AAEJIAABBuAAAQdAAAEHAAABCDAAAQkQAAEG4AABBwAAAQbgAAEIgAABCFAAAQdAAAEHYAABB2AAAQbgAAEGoAABByAAAQdgAAEIUAABBuAAAQfgAAEGwAABB6AAAQbgAAEGoAAA=</data>
+<data precision="32" endian="big" length="55">QgQAAEIgAABBsAAAQdgAAEHwAABB0AAAQagAAEHYAABB4AAAQmQAAEHQAABCTAAAQggAAEIUAABB0AAAQdgAAEIIAABCcAAAQbAAAEHIAABB6AAAQbgAAEHYAABCCAAAQhAAAEHAAABBqAAAQgQAAEIMAABDDgAAQcgAAEG4AABB+AAAQegAAEIAAABBqAAAQ1gAAEIYAABBqAAAQdgAAEIoAABCLAAAQiAAAEIAAABB0AAAQoQAAEHwAABBwAAAQfAAAEIIAABBwAAAQagAAEHAAABBwAAAQbgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="348">
@@ -403,13 +403,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="47.70323365" mzRangeStop="999.94393223">
+<spectrumInstrument msLevel="2" mzRangeStart="113.01935503" mzRangeStop="854.86798959">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.89102"/>
-<userParam name="basePeakMz" value="294.13620712"/>
-<userParam name="basePeakIntensity" value="163.00000000"/>
-<userParam name="totIonCurrent" value="1541.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.88975"/>
+<userParam name="basePeakMz" value="402.17301147"/>
+<userParam name="basePeakIntensity" value="217.00000000"/>
+<userParam name="totIonCurrent" value="1977.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -423,10 +423,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="48">Qj7QHEKpw5dC5wQHQxV6akMeIc1DKPsJQysTykMzCPRDRaAWQ0wPC0NRBLhDURjBQ1IWEENdAQdDXgIOQ2Pd2kN7D1hDfBNwQ34RnEOEuOZDhQyzQ4kMIkOLB+JDkxFvQ5Np5kOTjxlDlgi3Q5qO7UOiE39DqxYBQ7AeFEOxhchDtKqTQ7ifikO9jsJDwZb/Q9rZAkPbZJZD3Dw3Q96X2kPikZVEBMAwRAprREQvuLhEPUHJREIZmkRDdbtEefxp</data>
+<data precision="32" endian="big" length="50">QuIJ6UMM/w5DHhV7QyELiUMqBfFDQBRiQ1MTlENe0yhDZAoBQ3sMwUN9EU1DfhmOQ38bzkOFDdhDh4niQ5AMW0OTD79DlQwaQ5YF3EOcWitDnQ/AQ6INdkOjkAVDqhi8Q6qTHEOrFFVDq3ipQ6uWH0OsjONDshU2Q7bUUUO/mYBDwBSfQ8dXREPHmjNDyJczQ8kWJUPJma9Dyh7SQ8xqq0PfmhFD4I7PQ+GYJUPiIKZD6P1MQ/u0BkQh1kBERRa4RE9AEURVt40=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="48">QagAAEIAAABBwAAAQdAAAEHAAABCAAAAQhwAAEIsAABByAAAQcAAAEGwAABB+AAAQhQAAEI4AABCAAAAQagAAEHAAABByAAAQfAAAEGwAABBqAAAQbgAAEHIAABDIwAAQeAAAEIEAABB8AAAQigAAEHYAABCyAAAQhAAAEIMAABB2AAAQbAAAEGwAABBuAAAQdgAAEIAAABB2AAAQdgAAEGwAABBqAAAQagAAEGoAABBsAAAQhAAAEHYAABBqAAA</data>
+<data precision="32" endian="big" length="50">QegAAEG4AABBsAAAQfgAAEIAAABBsAAAQcAAAEHYAABCFAAAQqYAAEKWAABB6AAAQjgAAEIMAABCJAAAQbAAAEJ4AABByAAAQagAAEIgAABBuAAAQegAAEHQAABBsAAAQhQAAEM4AABB4AAAQbgAAEG4AABB4AAAQcgAAEHoAABCmAAAQfAAAEIMAABBqAAAQ1kAAEJMAABBuAAAQagAAEHgAABCYAAAQfgAAEG4AABByAAAQbgAAEGwAABBuAAAQegAAEIgAAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="349">
@@ -435,13 +435,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="52.92936051" mzRangeStop="982.68513868">
+<spectrumInstrument msLevel="2" mzRangeStart="57.26071093" mzRangeStop="995.73901802">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.90218"/>
-<userParam name="basePeakMz" value="294.12759967"/>
-<userParam name="basePeakIntensity" value="76.00000000"/>
-<userParam name="totIonCurrent" value="1136.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.90092"/>
+<userParam name="basePeakMz" value="342.15434792"/>
+<userParam name="basePeakIntensity" value="237.00000000"/>
+<userParam name="totIonCurrent" value="2127.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -455,10 +455,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="39">QlO3qkKIRgxCj13MQr4w3EK/Wl1C/BJmQwQQ2kMXBF1DIwswQyYHMEMnEcVDORPsQ0AIOkNlCqJDbAvmQ3EHmUN7EbtDfhf0Q4GIVEOHiKxDi4ygQ45DDEORj/FDkb6sQ5MQVUOUEEJDmCY9Q5oPzkOhExlDohLMQ6nBuUO5L8RDyRH7Q8xrrEQDIPZEWbj7RG8eNUR0lWNEdavZ</data>
+<data precision="32" endian="big" length="56">QmUK+EKQqWtClOC6QsHwGkMIDCVDNQ3JQz8Rr0NRDkJDXI14Q2ESfENtEV9DcA3+Q3kKSkN7EDJDfBQfQ30UZkOABlJDgYYiQ4gFy0OJDr9DjAjrQ42VJ0OTEMFDk3ygQ5WQwkObEnBDohP6Q6sTwkOrlLtDri6xQ7EO50O6E6RDwBNYQ8CQ5kPBDetDxx+WQ8eacEPIIs1DyRa1Q8mWckPKl1FDyxG3Q8xsUUPPlEBD1BCeQ9+wfkPgjBlD4ioBQ/QjD0QHu6tEDURdRA4+QUQkNn9EJWR3RDk5lER470w=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="39">QgwAAEG4AABBqAAAQegAAEIQAABB6AAAQagAAEHYAABBuAAAQegAAEG4AABB0AAAQgAAAEHAAABB4AAAQgwAAEHIAABCBAAAQkAAAEG4AABCKAAAQbgAAEGwAABBwAAAQpgAAEHAAABB+AAAQagAAEGoAABCGAAAQcAAAEHIAABCHAAAQfAAAEHIAABBwAAAQcAAAEGwAABB+AAA</data>
+<data precision="32" endian="big" length="56">QagAAEGwAABBwAAAQdgAAEHAAABB2AAAQfAAAEIQAABByAAAQcgAAEHIAABB+AAAQbgAAEJAAABB8AAAQngAAEHAAABCBAAAQagAAEHAAABBqAAAQgQAAEKYAABBqAAAQagAAEIAAABCQAAAQ20AAEKMAABCHAAAQbAAAEHIAABB4AAAQbAAAEHoAABBsAAAQiAAAEG4AABDVgAAQiQAAEG4AABCWAAAQhAAAEIoAABBuAAAQgQAAEH4AABB8AAAQagAAEGoAABB6AAAQdgAAEHYAABB8AAAQdAAAEHgAAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="350">
@@ -467,13 +467,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="46.95799843" mzRangeStop="918.22719939">
+<spectrumInstrument msLevel="2" mzRangeStart="77.68446751" mzRangeStop="956.55605716">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.91335"/>
-<userParam name="basePeakMz" value="294.11899235"/>
-<userParam name="basePeakIntensity" value="76.00000000"/>
-<userParam name="totIonCurrent" value="1427.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.91208"/>
+<userParam name="basePeakMz" value="342.15159042"/>
+<userParam name="basePeakIntensity" value="272.00000000"/>
+<userParam name="totIonCurrent" value="2467.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -487,10 +487,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="48">QjvU/kJEX/hC2gzVQwLwBkMExXlDFeWIQxgPJ0MfE/pDKqV6Qy+73kNBDOtDTQu9Q08dwUNeCnFDahHfQ3td6kN+F39DgYeGQ4KGFUOGhe5Di41JQ4yP20OPiARDkw87Q5QQzkOVGThDm41hQ6AWO0OikOFDo5TSQ6ggoEOrE1JDqywIQ6uTB0O2s9lDuSG3Q7ydH0PEBtRD5pzXRAMLikQwdcFER1gGRE2Ug0RXyQREWjZeRGLG2kRlSO1EZY6K</data>
+<data precision="32" endian="big" length="60">Qptec0Lvl3lDGQWXQycKCEMs5cFDNQ2PQzmk5UNMO1NDUQ4aQ1MMG0NVHvNDXw9wQ2ETiENvIBVDcvBpQ3apLUN7DOFDfgujQ4GG40OCED1DhodMQ5MRQkOUEhNDlI9DQ5oNv0OaivNDm5h+Q6ISaEOkppNDqZZ7Q6mpVUOqDk9DqxNnQ6sly0Osh41DsRQpQ7KYVUOzF19Ds416Q7Q+1EO5D7tDuZVcQ7pbfkO/DyJDxBGHQ8cSG0PHH/VDx5ttQ8kWgUPLDxdDy2/4Q98PkEPgFf9D4I41Q+ERpEP2paREFjYqRD0V70RChWNEbyOW</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="48">QeAAAEGwAABBwAAAQbgAAEHAAABCDAAAQfgAAEHoAABBqAAAQdAAAEHwAABCCAAAQegAAEG4AABB+AAAQbAAAEHYAABCZAAAQcAAAEHQAABCGAAAQjwAAEHAAABCmAAAQgAAAEIAAABByAAAQgAAAEIsAABB2AAAQagAAEJoAABBwAAAQagAAEHgAABBqAAAQhAAAEG4AABB0AAAQcgAAEHgAABB2AAAQggAAEGoAABB0AAAQagAAEHAAABBqAAA</data>
+<data precision="32" endian="big" length="60">QfgAAEHIAABB2AAAQcgAAEHgAABCIAAAQeAAAEHgAABBqAAAQfAAAEHwAABCfAAAQbgAAEHwAABB0AAAQhQAAEL2AABB0AAAQiwAAEHQAABBuAAAQykAAEIoAABBsAAAQdgAAEHwAABB8AAAQiwAAEG4AABBuAAAQagAAEIYAABDiAAAQagAAEHgAABCQAAAQcAAAEHYAABB6AAAQagAAEG4AABBuAAAQbgAAEGwAABBuAAAQcgAAEKwAABB0AAAQ0wAAEHgAABByAAAQfAAAEHgAABCggAAQeAAAEHIAABBsAAAQhAAAEHYAABByAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="351">
@@ -499,13 +499,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="49.60462297" mzRangeStop="958.21225567">
+<spectrumInstrument msLevel="2" mzRangeStart="61.37156838" mzRangeStop="982.76635020">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.92452"/>
-<userParam name="basePeakMz" value="209.07364763"/>
-<userParam name="basePeakIntensity" value="65.00000000"/>
-<userParam name="totIonCurrent" value="1521.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.92325"/>
+<userParam name="basePeakMz" value="402.17555262"/>
+<userParam name="basePeakIntensity" value="290.00000000"/>
+<userParam name="totIonCurrent" value="2883.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -519,10 +519,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="57">QkZrIkKMJ1FCj0prQqNOZkKtS21CxWNyQw95+UMQlvRDGgWlQxxdYUMh+4RDQg8yQ0MVQENLH9NDURLbQ18S5kNgIFpDYor+Q2MM8ENvE/VDdaK3Q3ykTkN9FlNDgYamQ4UINEOFhYNDhoWEQ4sJnUOLkD1DjAzKQ4yUUUOPh59DkxOOQ5OPU0OaF71DohL1Q6KU6UOq8GpDq5NXQ7kZs0PBGbZDwZeCQ8Pqj0PJl1pD0hRHQ+CLFkP7KYBEAWAWRATqvUQTC+1EKhVhRC3UpkQ4aqxEOeiCRFLMYERvKJ1Eb42W</data>
+<data precision="32" endian="big" length="67">QnV8fEKRev9CpLjeQqXjfELB6VJC6qfCQvZYzkMn52hDMwegQ0BhdENKxtdDUQfbQ10JGUNq1Q9Daw7TQ3LSyENy8e9Dew/gQ30TkEN+E1BDgYdfQ4aIa0OLhlRDjLjZQ42Oe0OPiVlDkAjfQ5CJVEOTEVFDk5EmQ5sTAkOcC7xDnY4+Q6SFZ0OoSi9DqhKlQ6sT10OrlUhDshXAQ8AVhEPBGHBDwZ4HQ8IU+UPHmaBDyJp5Q8kWeUPJLyhDyZXfQ8oW/kPLDYZDy4+MQ8xtk0PVtsRD3K4vQ99RLEPgi9ZD4ZtqQ+vJdUQOxvZEEyhWRCf/6UQyFq9EQBEsREgF9URKY8BEUmKORHWxDA==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="57">QbAAAEHYAABByAAAQbgAAEHYAABB0AAAQbAAAEGoAABB4AAAQcAAAEHIAABB6AAAQagAAEHwAABCggAAQbgAAEHYAABBwAAAQbgAAEHAAABBuAAAQbgAAEH4AABB4AAAQgQAAEHQAABBuAAAQeAAAEHYAABCFAAAQagAAEIAAABCCAAAQegAAEIAAABB8AAAQbAAAEHIAABB0AAAQegAAEGoAABBwAAAQdgAAEGwAABBuAAAQcgAAEGoAABCBAAAQdgAAEGwAABByAAAQeAAAEHIAABBqAAAQcgAAEHwAABB2AAA</data>
+<data precision="32" endian="big" length="67">QbAAAEHQAABBuAAAQgwAAEGwAABCAAAAQgAAAEG4AABB0AAAQcAAAEHQAABCFAAAQjQAAEHgAABCRAAAQfAAAEGwAABCmgAAQtoAAEJcAABCDAAAQlQAAEHIAABByAAAQbAAAEG4AABB0AAAQdAAAEMAAABCSAAAQeAAAEHIAABBwAAAQagAAEIcAABB6AAAQ3MAAEJ0AABBsAAAQhAAAEHIAABBwAAAQbAAAEI8AABBwAAAQ5EAAEHwAABB+AAAQgwAAEI4AABBsAAAQnQAAEHgAABBuAAAQgAAAEJsAABB6AAAQgwAAEIAAABB0AAAQggAAEHYAABB2AAAQdgAAELSAABCDAAAQbgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="352">
@@ -531,13 +531,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="55.47027052" mzRangeStop="929.74793809">
+<spectrumInstrument msLevel="2" mzRangeStart="49.17940401" mzRangeStop="928.53319886">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.9357"/>
-<userParam name="basePeakMz" value="294.12696051"/>
-<userParam name="basePeakIntensity" value="106.00000000"/>
-<userParam name="totIonCurrent" value="1713.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.93445"/>
+<userParam name="basePeakMz" value="402.16668354"/>
+<userParam name="basePeakIntensity" value="440.00000000"/>
+<userParam name="totIonCurrent" value="2900.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -551,10 +551,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="54">Ql3hj0KCBctCphvyQrHJ0EK8eORC4fkLQwFIKkMJDPlDFSgGQxp0okMbiHFDLvodQzMJqkM0CldDNQ2RQz8JNUNNBIdDUvASQ10gzUNiLYNDahMRQ3sNZEOB3SpDhwWMQ4uOFUOSkVhDkxBAQ5OMDEOajn5Dmw3BQ6KADUOikztDoqMcQ6iTlEOrE0JDqyx2Q7SF/EO8m85DviR/Q8NoVUPHm0VDyi7CQ9SC6kPhRqJEBQykRAwVgEQdQD9EIw8wRDjzqERARGVESg8cRE9zA0RlwFtEaG/e</data>
+<data precision="32" endian="big" length="59">QkS3tkLbsJlDAZgvQwSjS0MaWyNDLGpUQy+YV0M1DspDTQGJQ1MM2kNqF0NDbRIHQ3sO3EN8EgVDfRDKQ34YakN/DWpDf/g3Q4EOXUOGheFDi42hQ41LP0OSZGJDksKfQ5MRVEOTkZFDlJMdQ5wPWUOdCmpDnpTPQ6ISUEOikClDow/aQ6kTmEOrA9hDqxPkQ6uTEUOsozhDsI7LQ7ETwkOyE5NDuQ59Q7yay0PAFalDx48eQ8iWekPJFVZDyZi5Q8oXbEPKMsJDyw8kQ8x0IUPOepFD2JydQ+CNh0Q27FBEPR7SREj4VkRoIiA=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="54">QdAAAEHAAABBwAAAQbgAAEHYAABB4AAAQbgAAEGoAABBqAAAQbgAAEHAAABBsAAAQcAAAEIYAABB2AAAQagAAEIAAABCEAAAQagAAEIUAABB2AAAQlwAAEHoAABB0AAAQdgAAEGwAABC1AAAQbAAAEJgAABB8AAAQagAAEHIAABB0AAAQbAAAELOAABBuAAAQcAAAEKiAABB+AAAQdAAAEIgAABBsAAAQdgAAEHoAABB6AAAQegAAEG4AABB2AAAQfAAAEHoAABBsAAAQegAAEIEAABCIAAA</data>
+<data precision="32" endian="big" length="59">QeAAAEIEAABB0AAAQagAAEG4AABCBAAAQbAAAEGoAABCAAAAQdAAAEGoAABB0AAAQzkAAEGoAABCJAAAQpgAAEHIAABBsAAAQhQAAEHoAABCCAAAQfAAAEHoAABB4AAAQpQAAEIkAABB8AAAQbAAAEGwAABB2AAAQxIAAEIAAABBqAAAQgQAAEHAAABDg4AAQagAAEHoAABBwAAAQagAAEIIAABCBAAAQhAAAEK0AABBqAAAQegAAEPcAABCYAAAQeAAAEHQAABCMAAAQygAAEHAAABBsAAAQhQAAEIEAABCBAAAQdAAAEGoAAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="353">
@@ -563,13 +563,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="61.78273296" mzRangeStop="991.88167406">
+<spectrumInstrument msLevel="2" mzRangeStart="96.38917852" mzRangeStop="998.17938035">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.94688"/>
-<userParam name="basePeakMz" value="251.05201032"/>
-<userParam name="basePeakIntensity" value="69.00000000"/>
-<userParam name="totIonCurrent" value="1744.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.94562"/>
+<userParam name="basePeakMz" value="342.15172830"/>
+<userParam name="basePeakIntensity" value="354.00000000"/>
+<userParam name="totIonCurrent" value="3355.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -583,10 +583,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="57">QnchhUKuQtZCxW7JQvVUckL4fUBDDPdgQxsQoUMlD3JDNQ19QzWBUUNCC+5DUhXqQ1MR1UNaHvBDYielQ2cME0NvFH1DcBMRQ3okvUN7DVFDhBI6Q4WNdEOGhRtDiwpyQ4uPjEOMEANDjIkjQ4+G8EOQkthDk5AeQ5QTbUOUi9xDmU9GQ5qQX0OhErNDohJzQ6SuW0OoDUVDqxRvQ6uWwEOwHEFDsIs3Q7aY+EO4RHFDupjkQ8iYDkPJWFdDz2fPQ9ORX0PmYxtEAiUhRB290UQfn/1EIouYRGJsW0RkOIZEd/ht</data>
+<data precision="32" endian="big" length="78">QsDHQkLQH6BDI9kdQz8P4kNCCqFDScPNQ06Bm0NPEl1DVWOwQ17bz0NgId9DYRJgQ2sPFENy7oNDetiKQ3sOlUN8DxtDfRIIQ38eNkOADkpDgYgfQ4WM0EOGjUdDiIh4Q4uOXUONC15Djk7DQ4+JBkOTEvFDk5IjQ5QDQkOULJ1DlIyVQ5WJ00ObEKBDm4xpQ5yHfUOdEVdDoInvQ6EXn0OiEV9Doj3gQ6MUwEOjjFtDpM6dQ6sTbEOrlMpDrAOlQ6wUPEOuJj9DsRKmQ7OVtEO0jVxDvL2TQ72Fa0O+Gi9DvxEYQ8AU80PIDdRDyJvCQ8kWTkPJmA9DyxBYQ8ss9EPMc+xD1xY2Q9hs+UPgBx9D4Is7Q+EO2UP+dj1EGW4xRB1PQEQhCa5EKvK6REbweUR0rdtEeYt7</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="57">QagAAEHIAABB0AAAQdAAAEHAAABCAAAAQgwAAEI0AABB8AAAQdgAAEGwAABBqAAAQjAAAEHYAABBqAAAQdAAAEJYAABB2AAAQbAAAEKKAABBqAAAQegAAEJIAABB2AAAQdgAAEIEAABCAAAAQhgAAEHQAABCUAAAQegAAEI8AABCBAAAQfgAAEIAAABCMAAAQagAAEGwAABCBAAAQkwAAEHgAABB2AAAQbAAAEHYAABBuAAAQdgAAEIAAABBsAAAQeAAAEHIAABB0AAAQcgAAEH4AABBqAAAQfAAAEGoAABB2AAA</data>
+<data precision="32" endian="big" length="78">QcgAAEHYAABBqAAAQagAAEHIAABB4AAAQiQAAEIsAABB6AAAQbAAAEIAAABCRAAAQbgAAEGwAABB0AAAQxMAAEIcAABCngAAQigAAEHAAABB8AAAQcgAAEHgAABBuAAAQeAAAEG4AABBsAAAQcAAAEIsAABCdAAAQcgAAEI4AABB2AAAQbAAAEJIAABBwAAAQbAAAEI4AABB0AAAQegAAEJAAABB2AAAQegAAEHoAABBwAAAQ7EAAELOAABBwAAAQjAAAEIQAABCGAAAQcgAAEHAAABCCAAAQbAAAEG4AABB4AAAQfAAAEH4AABB4AAAQ46AAEKmAABCXAAAQggAAELwAABBsAAAQdgAAEIEAABChAAAQfgAAEGoAABBqAAAQbAAAEIAAABB0AAAQgQAAEHYAABB2AAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="354">
@@ -595,13 +595,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="46.83000977" mzRangeStop="737.82457247">
+<spectrumInstrument msLevel="2" mzRangeStart="56.63911824" mzRangeStop="973.34994923">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.95805"/>
-<userParam name="basePeakMz" value="259.05625180"/>
-<userParam name="basePeakIntensity" value="77.00000000"/>
-<userParam name="totIonCurrent" value="1730.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.95697"/>
+<userParam name="basePeakMz" value="342.15407217"/>
+<userParam name="basePeakIntensity" value="340.00000000"/>
+<userParam name="totIonCurrent" value="3435.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -615,10 +615,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="59">QjtR7kJ0z8JCiPwQQvYWO0L45AdDCQUFQxTpwUMeFLJDIgRuQyi4m0MvmxZDMREdQzMQU0M++75DQgz7Q0gSxUNQGMdDURTYQ1IKJ0NSMsdDUw1lQ10AM0NjGtNDbxfpQ3sRJEN8A1ZDgYczQ4ULw0OLjnZDjA5FQ4+OhkOQCFdDkw/5Q5aLgkOYkXZDmsc8Q5sYwUOenfZDnx5zQ6ERh0OiEftDoxKYQ6kXFkOrE59Dq/9sQ6wUckO5mmxDyRsiQ8mWQEPVs/FD2WMPQ94Yq0QGg19EF22QRCCkO0QlS+ZENV0XRDa2iEQ4dMY=</data>
+<data precision="32" endian="big" length="78">QmKOdUKqRHRC3RV3Qx4YokMpDUxDLvYHQzMGe0NBCgdDTQaXQ05+/kNSO0NDYRhpQ2sReEN5FPxDexA/Q3svbkN8EbRDfQ8oQ34aCEN/DDBDhg/3Q4sRmkOLg1dDjoyrQ4+HwUOQH/hDkxBdQ5V9bUOaDYBDnY02Q6EMU0OiENVDoo/uQ6aq70OplzdDqiAjQ6qVWUOq/fdDqxO5Q6uTm0OsDwNDricUQ7Ebk0OxnFNDspZ3Q7L0kEO4KXpDvJzuQ7790kPAFZNDwJT/Q8QQoUPGoEBDyJ6tQ8kWsEPJl0NDyfSVQ8oXJ0PL5E9DzHNpQ9f060PZ1sRD3peAQ9+FxEPgjZpD4ZBHQ+ISsUPlyfZD8QsaQ/FVrEP0wVhEACFlRAKD90QHge5ETb+4RFayskRyvDBEc1Zm</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="59">QeAAAEGoAABBqAAAQcAAAEHgAABCDAAAQbAAAEIEAABBuAAAQcAAAEG4AABB+AAAQcgAAEIEAABB0AAAQagAAEHIAABCHAAAQdgAAEHoAABB4AAAQfAAAEHAAABB2AAAQigAAEHoAABCmgAAQgAAAEHQAABBqAAAQhQAAEHwAABCdAAAQgwAAEHAAABBsAAAQgQAAEHQAABB+AAAQbgAAEJkAABB0AAAQbAAAEKKAABB6AAAQfgAAEGwAABB+AAAQcgAAEG4AABBqAAAQbgAAEG4AABBwAAAQagAAEGoAABBqAAAQbgAAEGwAAA=</data>
+<data precision="32" endian="big" length="78">QdAAAEHYAABBqAAAQdAAAEH4AABCogAAQbgAAEIMAABBsAAAQgAAAEHgAABB0AAAQgAAAEHgAABDOQAAQgwAAEKIAABCWAAAQegAAEHgAABB2AAAQiAAAEHQAABBuAAAQcAAAEIAAABCLAAAQegAAEGoAABBwAAAQbgAAEHAAABB6AAAQcAAAEH4AABB2AAAQagAAEIIAABDqgAAQsoAAEHYAABCEAAAQgAAAEHAAABB+AAAQgwAAEHAAABCBAAAQdgAAEKaAABB2AAAQcgAAEH4AABCHAAAQ6WAAEL6AABBqAAAQggAAEIYAABCugAAQfgAAEGoAABCAAAAQfAAAELCAABBqAAAQcAAAEIkAABBsAAAQagAAEIQAABB0AAAQcAAAEIIAABBqAAAQagAAEGwAABBqAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="355">
@@ -627,13 +627,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="62.01690192" mzRangeStop="978.22679297">
+<spectrumInstrument msLevel="2" mzRangeStart="76.20272698" mzRangeStop="813.32389610">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.96922"/>
-<userParam name="basePeakMz" value="294.12896322"/>
-<userParam name="basePeakIntensity" value="132.00000000"/>
-<userParam name="totIonCurrent" value="1728.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.96813"/>
+<userParam name="basePeakMz" value="402.18008685"/>
+<userParam name="basePeakIntensity" value="525.00000000"/>
+<userParam name="totIonCurrent" value="3447.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -647,10 +647,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="55">QngRT0LKENxC+pSPQwZx20MJCHZDFx8xQxkNwkMlDjxDMv+IQzX0dEM6fFJDO3JKQ0ozBkNR/t9DXgQCQ2ETFkNiCgtDaAiAQ2wHxUNtEaZDbxLQQ3sOD0N84fdDfRAUQ4GGcUOCCGVDh1LbQ4fUaEOLkEVDjJGrQ42HTEOPdMNDj4Z/Q5CF6kORCOpDkxCCQ5MgkEOTj75DlBLoQ5uKLUOcEYlDohMNQ6sT+0PAE1BDyHcoQ9f/8kPe3DND4J7bQ+vPF0Pyx1pEAKxFRAl5KUQJm6tEOaO+RHSOhA==</data>
+<data precision="32" endian="big" length="66">QphnzEKlfSRCpkDiQuH3tEMHuOFDCKq6QzM6Z0NCGQdDUQ0JQ3LuxkN2eHxDeu4LQ3sN5EN8EN1DfRC/Q34TCkOAhuVDgYaSQ4OJY0OHirFDigv9Q4uJgUOOjxFDj4bAQ5MQREOUi95DlrLaQ5p33kObEBJDm3ibQ6AVCEOhEBlDohGhQ6UJ9UOlb7lDqS7pQ6sTqEOrk+9DshW3Q7MeTkOzLn9Dt8FtQ74c70PAFOZDwxENQ8ckRUPHQjFDx5opQ8iS8UPJFw1DyZjlQ8oWRUPMbeFD3VJDQ96LfUPfCTBD4JARQ+EQDEPhmXFEDjkkRBHc3EQUb+REI+1ZRDOgukRAVDZES1S7</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="55">QdgAAEHIAABBsAAAQdgAAEHwAABCCAAAQmQAAEGwAABCBAAAQcAAAEHAAABBwAAAQdAAAEHYAABB2AAAQggAAEHgAABB2AAAQiAAAEHYAABByAAAQkQAAEGwAABCaAAAQfgAAEHAAABB2AAAQbgAAEGwAABByAAAQcAAAEHAAABBsAAAQhgAAEGwAABDBAAAQdAAAEJQAABBwAAAQagAAEG4AABCjAAAQmwAAEHAAABBsAAAQbAAAEHIAABCBAAAQcAAAEHIAABBsAAAQdAAAEG4AABBsAAAQgAAAA==</data>
+<data precision="32" endian="big" length="66">QbgAAEGoAABBsAAAQcAAAEHIAABB+AAAQagAAEIAAABCDAAAQdgAAEHYAABB6AAAQ3cAAEJQAABDAwAAQnQAAEI0AABB0AAAQfgAAEI4AABB+AAAQegAAEGwAABCDAAAQlQAAEH4AABB4AAAQegAAEGwAABB2AAAQbgAAEIQAABDAQAAQdgAAEGoAABBqAAAQ9IAAEMLAABCdAAAQfgAAEHAAABBsAAAQbAAAEJcAABBwAAAQgAAAEGwAABCBAAAQbAAAEQDQABC2AAAQbAAAEHYAABBsAAAQbAAAEHAAABBsAAAQeAAAEHQAABByAAAQhwAAEGwAABBwAAAQdAAAEHgAABB8AAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="356">
@@ -659,13 +659,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="46.14073591" mzRangeStop="976.87979805">
+<spectrumInstrument msLevel="2" mzRangeStart="47.21518737" mzRangeStop="944.97958524">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.98038"/>
-<userParam name="basePeakMz" value="342.15420917"/>
-<userParam name="basePeakIntensity" value="74.00000000"/>
-<userParam name="totIonCurrent" value="2167.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.9793"/>
+<userParam name="basePeakMz" value="402.17794430"/>
+<userParam name="basePeakIntensity" value="422.00000000"/>
+<userParam name="totIonCurrent" value="3621.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -679,10 +679,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="66">QjiQHUJtwYNCu2uuQuYOe0L1FNZDCv98Qw0OSEMRB+1DEwl/Qy7zJkNBHUBDQlU8Q0ns90NeENZDYZzjQ2wFkUNtC9ZDbxbaQ3sFWUN8B2JDfR/8Q335o0N+ELBDgYazQ4uPjEONBBFDjg2KQ46RckOPeklDkFbUQ5MQhkOTi1FDlBGmQ5aVOEOZYUpDmw9PQ6CnU0OiEh9DopMjQ6sTvUOrlcxDsB30Q7sVhUO8mRJDwBt/Q8GXBUPHlO5Dyer+Q8prCEPKnXlD3hzhRApXmUQWkj9EGHjCRB7IV0QgdTNEIQe8RCRonUQ1YJtENwvERELYikRDD6FEUSRjRGdxfURyPP5EdDhP</data>
+<data precision="32" endian="big" length="75">QjzcWkLB6KVCykztQwOgqkMEBHRDGDQ1Qx0p4kMlA8JDKbifQy71+0MwPnBDMw+9Q1AJ1UNUZOxDXQH8Q2EQzENhVp5DawtEQ20II0Ny8NtDeBL9Q3kSjEN7DwBDfA5cQ30QmEN+FTlDgqcjQ4eKnEOLhdBDjA4SQ5MQ3UOXDMxDmBepQ5hy/0ObhYVDnK47Q50I80OhDyhDohQXQ6KRD0OrFCtDq5UsQ7Cc2UOyDNdDsxF6Q7gV0kO9cnNDvpS1Q77/DUO/fphDwBeDQ8QRXEPHHX1Dx4rHQ8eazUPIGp1DyJnEQ8kWx0PKGBFDzHQcQ9ySb0PfmAlD4BByQ+CPiUPhm5JD4hjMQ+Im3EP93LhD/h0FQ/7FdEQItINEGfSERCeJ80RI96REbD6y</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="66">QbAAAEHQAABBuAAAQbAAAEHwAABByAAAQgAAAEIkAABB6AAAQmwAAEIAAABCKAAAQeAAAEHoAABBqAAAQpAAAEHIAABBuAAAQdAAAEIoAABBsAAAQhQAAEGoAABCFAAAQiwAAEHoAABBqAAAQgAAAEHAAABB2AAAQjQAAEHQAABB0AAAQgAAAEHwAABBqAAAQggAAEIgAABCcAAAQpQAAEKOAABBqAAAQgQAAEIQAABByAAAQmQAAEGoAABBqAAAQbgAAEJkAABByAAAQbgAAEIUAABCSAAAQcAAAEHAAABB4AAAQbgAAEH4AABB8AAAQgQAAEHoAABB0AAAQgwAAEHgAABB0AAA</data>
+<data precision="32" endian="big" length="75">QbgAAEHgAABB6AAAQbgAAEGoAABBqAAAQfAAAEIYAABCDAAAQfAAAEHQAABBuAAAQgAAAEIgAABBuAAAQgAAAEIAAABBsAAAQhQAAEIsAABB+AAAQhwAAENIAABCXAAAQsgAAEJ0AABCAAAAQfgAAEHIAABCDAAAQlAAAEHAAABCAAAAQggAAEHoAABBqAAAQegAAEGoAABBsAAAQjgAAEO6gABDEgAAQhQAAEGwAABBsAAAQeAAAEHIAABBwAAAQpgAAEGwAABCIAAAQgAAAEJUAABBuAAAQbAAAEJMAABCCAAAQ9MAAEIcAABC8AAAQegAAEJUAABCLAAAQnAAAEJoAABBsAAAQbAAAEHIAABB6AAAQhAAAEGwAABB6AAAQcAAAEHYAABBwAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="357">
@@ -691,13 +691,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="63.46131122" mzRangeStop="958.00861210">
+<spectrumInstrument msLevel="2" mzRangeStart="47.28396166" mzRangeStop="973.97558613">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.99155"/>
-<userParam name="basePeakMz" value="225.07484795"/>
-<userParam name="basePeakIntensity" value="109.00000000"/>
-<userParam name="totIonCurrent" value="2008.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="3.99047"/>
+<userParam name="basePeakMz" value="402.17420730"/>
+<userParam name="basePeakIntensity" value="455.00000000"/>
+<userParam name="totIonCurrent" value="3404.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -711,10 +711,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="65">Qn3YYkKrsyxCthAdQvIPVEMCaplDC+ilQxcHL0MmaiBDNQ49QzYwoENCCLlDSBoPQ0yIH0NPCaRDURVJQ1EnaENSGa9DUwzxQ1QJw0NhEylDaR1JQ28J2ENwG35DcQopQ3YwVUN7ENtDfQ5zQ34aJEOGhx5DjXKkQ5MQs0OTg2VDlBCnQ5bOZUObmitDnIWEQ56PjUOglSpDoRBzQ6MQekOjmxhDpAwgQ6SJCkOnmHNDqxPvQ6uTjUOt/wpDsCTXQ7JyzUPAlbxDyJ6lQ8jPJEPJm6lD0aA6Q9iakkQK/mtEHHdPRCL9MUQjGalEI/PtRCzaQ0QyU81EQqXTRGr3ekRvgI0=</data>
+<data precision="32" endian="big" length="68">Qj0ix0JVPCNCXxk+QnRfNEKYl41CpygzQtUwbkLZLW1DG+LmQz3A8kNQb9dDW3d/Q2VAyUNoEQdDbApqQ3LzUUN49KlDew4+Q3tDQEN8EktDfRFlQ30sn0OBi1BDhID+Q4WOkEOGsthDh4jQQ4iKE0OOjPJDj4anQ5MR3kOUD0JDloscQ5vcIEOhEWNDohLjQ6mUE0OrE6VDq4cQQ6uUcUOsE6lDricYQ698ykOyFYBDuB0mQ7k0/EO8nY1Dvv55Q8AVt0PAmOZDyBL8Q8kWTEPJl79DyhjcQ8qbdEPMGJlDzFvwQ8xu0EPVn+VD3xeTQ+GbNUPvsDVEAowbRAR2d0QxOVtEUAIiRHHobURzfnA=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="65">QcAAAEHYAABCAAAAQbgAAEIIAABBsAAAQdgAAEHQAABCOAAAQagAAEIMAABBqAAAQcAAAEG4AABCOAAAQgAAAEGwAABBsAAAQgAAAELaAABBuAAAQagAAEJYAABBwAAAQdgAAEJIAABB6AAAQbAAAEIMAABB8AAAQnwAAEIQAABBsAAAQbgAAEGoAABB6AAAQagAAEGwAABCLAAAQbAAAEGoAABCDAAAQfgAAEHAAABCuAAAQigAAEH4AABBuAAAQcAAAEGoAABCAAAAQcAAAEGoAABCAAAAQfgAAEHQAABBuAAAQagAAEHAAABBwAAAQbAAAEIUAABCEAAAQcgAAEGoAAA=</data>
+<data precision="32" endian="big" length="68">QggAAEG4AABB8AAAQcgAAEGoAABByAAAQbgAAEIAAABBuAAAQgAAAEIAAABB2AAAQagAAEHQAABCWAAAQjwAAEHAAABDeQAAQdgAAEIsAABC0AAAQdAAAEHwAABByAAAQegAAEHgAABBsAAAQdAAAEHIAABCiAAAQkgAAEHIAABB2AAAQdAAAEHIAABCFAAAQhwAAEPEAABCHAAAQsoAAEKKAABCEAAAQagAAEHAAABB2AAAQbgAAEH4AABCsAAAQooAAEGwAABCAAAAQ+OAAEK2AABCDAAAQhgAAEHAAABB8AAAQrQAAEHoAABBsAAAQbAAAEG4AABB4AAAQcAAAEG4AABBqAAAQagAAEHAAAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="358">
@@ -723,13 +723,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="53.60491251" mzRangeStop="999.30545393">
+<spectrumInstrument msLevel="2" mzRangeStart="112.98530354" mzRangeStop="986.26521695">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.00272"/>
-<userParam name="basePeakMz" value="342.15135976"/>
-<userParam name="basePeakIntensity" value="105.00000000"/>
-<userParam name="totIonCurrent" value="1910.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.00163"/>
+<userParam name="basePeakMz" value="402.17679828"/>
+<userParam name="basePeakIntensity" value="376.00000000"/>
+<userParam name="totIonCurrent" value="3298.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -743,10 +743,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="58">QlZrbkJsux9CqhMQQtdx6kLiC2ZDBd+kQxkEKUMbFV5DHSlfQy705EMxBblDMxCoQzUMFENCDxVDTQV+Q1AJi0NsCrVDcQ1MQ3ks4kN7D9JDfAY9Q30Nt0N9MJxDfgzCQ4KdfkOEC3FDhoTWQ4hZw0OLBzpDjSkpQ5MRC0OTj6dDmQdMQ5mOdkOek5FDohU+Q6KRkUOlCctDpUMIQ6eaiUOpDt1DqxNgQ6uWmkOsGf5Dri3YQ7R6I0O+mYRDwRHgQ8uZwUPotIND+rJxRAfHgkQMTohEFZ5JREySKERmMEVEdFlkRHnTjQ==</data>
+<data precision="32" endian="big" length="72">QuH4ekLsQglDBsjNQw8MqkMbCK9DHzdWQyNdO0MkQ3tDNQT/Qzrv40NK2YFDTQiVQ1EUJkNTEAVDWz2bQ2EA3ENhHsZDaxGMQ2tCDENy8vlDePKYQ3sObUN8DCxDfCiQQ30RikN+dHxDhg6BQ4Ztu0OHiyNDi4dsQ41G40ON+xpDkxIeQ5QSm0OUi/1DmQPMQ5yO5EOecbhDohOGQ6Ik6kOrE65Dq5RcQ6wW3UOuLh9DsZTKQ7IXukO8zyZDv3x1Q8AW7UPChwNDxx7bQ8gc5EPIl69DyRahQ8mYMEPLmmdDzHN2Q9RA8UPfiLtD4AiEQ+CcWUPhectD4hphQ+w7v0P56rBEDopgRBB8HUQsvTdENtZIRGkVrURucpVEdpD5</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="58">QgAAAEHAAABBqAAAQgQAAEI0AABBuAAAQbgAAEGoAABB8AAAQcgAAEGwAABCQAAAQhAAAEHoAABCGAAAQfgAAEIEAABB+AAAQdgAAELQAABCkgAAQjgAAEG4AABBqAAAQagAAEHYAABBqAAAQcAAAEGwAABBsAAAQoQAAEI8AABBuAAAQcgAAEGwAABCQAAAQdgAAEHIAABB0AAAQcgAAEHgAABC0gAAQhwAAEHAAABCBAAAQbAAAEGwAABBwAAAQgQAAEIcAABByAAAQdgAAEIEAABB4AAAQfgAAEIEAABB4AAAQdAAAA==</data>
+<data precision="32" endian="big" length="72">QjQAAEH4AABByAAAQfgAAEIQAABCZAAAQbgAAEHgAABBsAAAQdgAAEHgAABB0AAAQfgAAEIIAABBsAAAQcgAAEHAAABCDAAAQbAAAEIMAABB2AAAQ4oAAEIUAABCBAAAQlwAAEHAAABBsAAAQagAAEIUAABCaAAAQeAAAEHYAABCLAAAQcAAAEI0AABByAAAQbAAAEHoAABCpAAAQcAAAEOvAABCtgAAQbgAAEHYAABCDAAAQeAAAEG4AABBqAAAQgAAAEHIAABCngAAQbAAAEGoAABDvAAAQggAAEIAAABCxgAAQggAAEIkAABCIAAAQhwAAEHgAABB4AAAQhwAAEGoAABBqAAAQdgAAEHQAABBqAAAQbgAAEGoAABByAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="359">
@@ -755,13 +755,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="45.12525687" mzRangeStop="956.98641483">
+<spectrumInstrument msLevel="2" mzRangeStart="66.76159318" mzRangeStop="979.73512775">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.01388"/>
-<userParam name="basePeakMz" value="112.98413606"/>
-<userParam name="basePeakIntensity" value="99.00000000"/>
-<userParam name="totIonCurrent" value="2237.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.0128"/>
+<userParam name="basePeakMz" value="448.07489650"/>
+<userParam name="basePeakIntensity" value="2361.00000000"/>
+<userParam name="totIonCurrent" value="6850.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -775,10 +775,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="76">QjSAQ0JHoBdCYDsDQnZhtUKIKwlCwekNQuH34ULz3O1DCPSDQxHiMkMS975DHvtNQyQLvEMk7a9DLgoIQy72r0M1DSlDTgR9Q06aj0NWG5VDWx7zQ2AU8ENhF2xDZ8nRQ2kM4ENvHRJDcSJgQ3sNbkN9HshDfhoWQ4AryUOA161DgYNsQ4T5sEOMDblDjfOJQ5MQD0OVEVdDl4tSQ5mH/0OdF7FDnh6tQ6CLhEOiEUhDopX0Q6UPsEOnffVDqxL+Q6uZzUOsmTpDri3FQ7CcO0O0uxtDt1dFQ7gQFkPESxZDx/OIQ8qW1EPS/8tD4Ah1Q+DFz0Pg/X5D/WWNRAdMGkQIQxBEFwuhRB2/fUQmkkNEMQZAREB6rURLIxZEUnkmRFOrzkRb1ltEag/WRG8/IQ==</data>
+<data precision="32" endian="big" length="81">QoWF8EKM0aRCsmzPQsHonULIhIxC0u7pQuH190LpHDdC70MlQwaBq0MKLpJDHwstQy7x+kNDCCVDUQruQ1cf90NbDQJDYiigQ3njV0N7DYpDfA5OQ30UckN/JAlDgAfMQ4eARkOR/ExDko8OQ5MQTEOUFSxDl4n1Q5gOi0ObdyRDm5ISQ6IShEOrFEhDrBPzQ7CdXkOxFfNDtxzYQ7mZ90O7kjJDvc6TQ779+0PAE2tDxA8eQ8RwGkPGoghDxx4oQ8edc0PJFndDyZXYQ8sRb0PLbo1DzHAPQ81w70PPdJ1D32d1Q9+WpkPf9EBD4AmWQ+Ai1EPgichD4QlvQ+GKrUPhl49D4bExQ+IIpEPso11D/z+lRAMk7UQOczxEFQC3RBd1E0QknRJEP+/bREt9GURfC/pEcPoARHK6m0RzoBFEdO8M</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="76">QagAAEHgAABB8AAAQggAAEHIAABCEAAAQsYAAEH4AABBqAAAQdAAAEHoAABByAAAQagAAEHgAABB0AAAQegAAEIoAABCBAAAQagAAEGwAABCBAAAQcgAAEHAAABCDAAAQagAAEHIAABBwAAAQhAAAEGwAABBwAAAQegAAEGoAABCMAAAQbAAAEIIAABBsAAAQigAAEHYAABBwAAAQdAAAEHoAABB0AAAQagAAEIUAABB+AAAQcgAAEHgAABCrAAAQcgAAEHgAABBqAAAQdAAAEHYAABBuAAAQcAAAEHYAABB8AAAQbgAAEG4AABCaAAAQbgAAEHIAABB8AAAQbAAAEGwAABBwAAAQcgAAEIAAABB6AAAQeAAAEGoAABCFAAAQcgAAEHwAABCBAAAQdAAAA==</data>
+<data precision="32" endian="big" length="81">QagAAEGoAABB0AAAQfgAAEI0AABCAAAAQrIAAEGoAABB2AAAQagAAEHIAABBsAAAQeAAAEGoAABB2AAAQcAAAEIEAABB6AAAQfgAAENWAABCdAAAQtYAAEHIAABB8AAAQdAAAEHQAABBwAAAQdgAAEH4AABB0AAAQcAAAEIEAABCAAAAQswAAENnAABCAAAAQagAAEHgAABBuAAAQagAAEIQAABBsAAAQtoAAEGoAABBwAAAQdAAAEHQAABCqAAAQlwAAEO5AABClgAAQeAAAEIYAABCWAAAQbgAAEHAAABBsAAAQhQAAEI0AABFE5AAQoIAAEPBgABEGYAAQlgAAEJsAABCCAAAQkgAAEHAAABB0AAAQdgAAEIoAABBqAAAQeAAAEHIAABBuAAAQbAAAEHgAABBsAAAQcAAAEHAAABCVAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="360">
@@ -787,13 +787,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="52.58495226" mzRangeStop="925.99204561">
+<spectrumInstrument msLevel="2" mzRangeStart="63.67743993" mzRangeStop="1001.79094834">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.02505"/>
-<userParam name="basePeakMz" value="448.07674027"/>
-<userParam name="basePeakIntensity" value="685.00000000"/>
-<userParam name="totIonCurrent" value="4327.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.02398"/>
+<userParam name="basePeakMz" value="448.07663207"/>
+<userParam name="basePeakIntensity" value="22832.00000000"/>
+<userParam name="totIonCurrent" value="36751.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -807,10 +807,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="78">QlJW/kJYOtJCoF/fQqItt0KyWqVCtx5EQr/klULB6j1CxnesQsiCbkLYCs5C396jQuTc6ELyvPlC833bQvsH4UMFHTZDFQT9QxgRN0MeF81DJwqVQyj5P0Mu6rVDLxR2QzUNJUNCDwtDQkrEQ0MHh0NQCsBDUM5WQ10j1ENhBo1DbBgZQ3AXBkNw/L9DeOU3Q3sOakN8C15DgADmQ4D/d0OBgVZDgoBwQ4KSEkOENntDhoZaQ4h8qkOJfg5Din9mQ5yYMEOgi6dDohK5Q6P0hEOok/dDqxLSQ7AeLkOwkplDspmNQ7V3kEO4D7dDwBDrQ8ccfEPLGIFD1pFbQ94KIkPgCdND4CUBQ+Bvh0PgiXdD4QgkQ+GKy0P3IA5EBb/SRA5lFUQxKAxETOOpRFVzMkRlLSBEZ39+</data>
+<data precision="32" endian="big" length="172">Qn61s0KiIhtCv+YMQsHpl0LlDZ9C60qaQyMO6UMkD1lDJObaQzZITUNFDHxDURj9Q2EXK0NjBvpDZQX+Q2sVWkNu/UlDeQIGQ3sNiUN7JQtDfAoUQ30R7kN+GLBDfxRrQ4D+JkOBgYpDgf7mQ4clx0OHipdDiAIjQ4l+EkOKgy5DjQh7Q5EffEORfYxDkxFGQ5QUZ0OUPmNDlXXCQ5eRekOYDRpDnSyCQ593vkOgiTdDoK9oQ6KH1EOmj/VDqxK9Q6uVm0OtZjlDrnBYQ69T6kOwkudDs+SjQ7eKF0O6GeNDvwl1Q7/LBUPGnf1Dxx6sQ8c5mkPJFtFDyhHzQ8qE/EPKuGtDyw55Q8+3VkPQPSJD0ssgQ9NIkUPeueBD3vVUQ98G/UPfQ9JD32pSQ9+R+EPfqR5D38EYQ9/iyUPgCc9D4FbqQ+BmykPgilxD4NsRQ+EJe0PhKkxD4YpFQ+IJr0PijQpD4tljQ+Qe00PkjgtD69Z8Q/BmykP0jQtD9SsgRAM4tUQGhyBEBsFvRAw420QPqy1EEC+QRBkmF0QaHGpEHQO+RB7TjkQiDYhEJWi9RCk5tEQrQoFELWAiRDN+n0Q0P6NEQNqgRFBZEURRZvFEVV3MRFXqS0RXWgREV6fbRFztTkRd6SNEX+XWRGEkMkRjdr5EY+fRRGaLp0RnDqJEZ12ZRGi2/URo7VhEaS4DRGrznURtaWNEbbCKRG3HsURuHp5Ebi4/RG6nhkRu6+REbxG9RG9JpkRvqTZEb9/pRHBITkRwxLFEcbHDRHIWCERyOoZEcyfYRHM7gERzWrREc4qgRHQXtER0QUpEdM8SRHUhUUR2LJpEdnIJRHb55UR3MuVEd53mRHfapUR4VmREeHcxRHiMnkR4y7hEeOR7RHj3h0R5Pf9EeY0PRHpynw==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="78">QegAAEHYAABByAAAQagAAEIEAABB0AAAQvQAAEN2AABCfAAAQs4AAEHYAABBuAAAQbgAAEHAAABB0AAAQbgAAEHQAABBwAAAQjQAAEGoAABCEAAAQagAAEHYAABB0AAAQfgAAEHYAABCDAAAQagAAEIcAABB2AAAQcgAAEIoAABBqAAAQegAAEJkAABB0AAAQo4AAEIcAABCAAAAQbgAAEN7AABBuAAAQbgAAEK8AABBqAAAQdgAAEORAABCYAAAQeAAAEH4AABCvAAAQagAAEHoAABCDAAAQhQAAEG4AABCNAAAQggAAEIAAABBwAAAQigAAEHAAABBuAAAQfgAAEQrQABCUAAAQgwAAENpAABC0gAAQoYAAEHIAABBqAAAQbgAAEHAAABB+AAAQbgAAEHAAABB6AAA</data>
+<data precision="32" endian="big" length="172">QcAAAEG4AABB6AAAQ04AAEHIAABByAAAQegAAEHQAABByAAAQfAAAEG4AABB2AAAQcgAAEIoAABBsAAAQggAAEHgAABBqAAAQbgAAEHoAABCzgAAQpQAAEIMAABCAAAAQeAAAEH4AABBqAAAQagAAEG4AABB8AAAQyAAAEGwAABBqAAAQggAAEJMAABCFAAAQgwAAEIoAABBwAAAQcAAAEGwAABBwAAAQcAAAEHAAABB+AAAQgQAAEIIAABDQgAAQfAAAEH4AABB2AAAQdgAAEGoAABBqAAAQcAAAEHIAABBsAAAQhwAAEHwAABCdAAAQdAAAEMTAABB0AAAQdgAAEHIAABCdAAAQcgAAEHYAABByAAAQegAAEHgAABB+AAAQmQAAEH4AABBsAAAQbgAAEJgAABB8AAAQkgAAEayYABBuAAAQeAAAEWC4ABBwAAARVcAAEKEAABDvoAAQ3YAAEIUAABB4AAAQswAAEGoAABBuAAAQbgAAEGoAABB2AAAQdgAAEHIAABBuAAAQdgAAEIAAABBsAAAQdgAAEHgAABCAAAAQcgAAEHwAABB8AAAQgAAAEGoAABBqAAAQgAAAEHoAABBuAAAQggAAEHoAABBuAAAQhQAAEHAAABB0AAAQbgAAEHAAABCEAAAQdgAAEG4AABCCAAAQbAAAEHoAABByAAAQbAAAEHYAABCDAAAQeAAAEHYAABB6AAAQdAAAEIYAABBuAAAQkgAAEIAAABBuAAAQfgAAEH4AABB0AAAQagAAEHwAABBsAAAQhwAAEIsAABCHAAAQcgAAEKGAABBwAAAQbAAAEHYAABB0AAAQdAAAEG4AABB2AAAQegAAEGwAABBwAAAQagAAEHIAABBsAAAQdAAAEKEAABByAAAQggAAEHIAABCBAAAQcAAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="361">
@@ -819,13 +819,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="49.41162904" mzRangeStop="1002.94533977">
+<spectrumInstrument msLevel="2" mzRangeStart="49.19448241" mzRangeStop="1004.79795699">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.03622"/>
-<userParam name="basePeakMz" value="448.07600397"/>
-<userParam name="basePeakIntensity" value="4106.00000000"/>
-<userParam name="totIonCurrent" value="14477.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.03515"/>
+<userParam name="basePeakMz" value="448.07747356"/>
+<userParam name="basePeakIntensity" value="68446.00000000"/>
+<userParam name="totIonCurrent" value="103868.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -839,10 +839,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="110">QkWlgkJKcgRCUDz/Qm2tBEK2ldVCuutLQr/mhELB6elCw+SpQsXpwkLGf8NCyIt4QsyZh0Lh9hdC6udPQv/YQ0MA7gxDCFU8Qwr5jEMRDPZDEgyUQxruyEMjD+9DJ8xOQyj9ykM0CvBDQNozQ0MIAUNEDaRDRPXsQ03jDUNOEHRDTxCtQ1D8x0NRIANDUpsVQ1QNYENYHDhDXQHUQ17waUNgM7RDYQSfQ2MFU0NkC+tDZQMLQ281oUNw/clDcdypQ3sMJUN8B3xDfhwHQ38DdUOAAulDgIBaQ4EXSkOBgcJDgf+wQ4KCWkOENllDhGBTQ4cGo0OJQ+RDiX7EQ4mTk0OJ/8hDin2JQ4uqMEOMRltDjgzTQ475kkORfmxDkwwwQ5aN/UObE6ZDocnIQ6bns0OrE5xDroyKQ7XDPEO4D3pDuI9yQ7ifXUO9toNDzQnqQ86IoEPVZ/pD1/t/Q9/NJUPgCbpD4IneQ+EJ9EPhNJND4Yo9Q+IJAkPnHhtD7uX8Q/AVqEP6FMBEBc56RAbn90Qy1CNESTOTRExnZERTrPREXelSRGZXT0Rw5vBEch2gRHWYb0R6vIA=</data>
+<data precision="32" endian="big" length="352">QkTHJkJHgoBCZ1zkQoKHG0KgM4FCoZocQqkhw0K/5NtCwemeQsPjx0LIg+tC2brNQu4OqEMAastDDvfFQxWt5kMcJO1DJHLhQyrkKkMv50NDNAqDQz3SEENDBaNDRAeaQ0jXGkNM57BDThBeQ1LcmkNXgipDW8RyQ2EE5ENjB8hDaeaRQ2tNWUNsJulDby6UQ3TDkkN6C09Dew4rQ3wIzUN+45VDfwPhQ4EoS0OBN1hDgYHKQ4OVwkOE/o5DhwTcQ4gjzUOIVJ1DiHcxQ4l+0kOJwPxDic/IQ4oAPkOKfzlDjEYrQ5A41EORfh9DkfzBQ5ML6EOWAd9Dl3vTQ5jTkEOZJppDmWc5Q5yv60OcyFhDnl7OQ58zIkOgQfdDpLbCQ6WCRUOm2LVDpuP/Q6er/EOpshJDqg/oQ6sS6kOrS9BDq/IxQ60r2EOwPChDsROZQ7KhukOysVdDs523Q7WrOEO4DQdDuSYXQ7lZ2UO5iWtDujbDQ7p6ykO6vxZDvJo+Q7yv80O+AehDwKTXQ8GF3kPCNcFDw2axQ8N0KUPHH05Dx0kbQ8jMyEPI9M1DyRahQ8mQcUPLDSdDy0fvQ8tTzEPMnElDzR+kQ88JxkPP3ElD0FkaQ9CCH0PSa/pD0/ziQ9T9y0PV25FD2ebaQ9qEJEPbX5FD3jMYQ95uskPexPJD3vUiQ98IbUPfSTJD33KqQ9+HMkPfosdD37wLQ9/Y3UPgCetD4ECNQ+BTLUPgaDJD4IpZQ+DPgkPg6o9D4QmgQ+GJ2UPh9ABD4gnMQ+InwkPifJZD4os2Q+KjRkPjPMhD43pQQ+PL2UPkHkZD5CrLQ+SZQUPmLIBD55/EQ+ylLUPtptxD7oiIQ/RpbkP0mzdD9N8CQ/x6WUP9Sm9D/+k/RAI39kQC/nBEBANYRAZcr0QGZ6NEC2brRAu4k0QLzpJEDZ8QRA3pTkQQOr1EEmR0RBNNWEQTshJEGMsiRBoiqUQiIFxEI2z/RCYAr0QpItpEKXoVRCpG2EQrIQNEK3KFRDE6+0Q0k9pEN0LKRDkIh0RGA3VER3l7REgurURJAiNES0TeRFA/BERRVvxEUYqkRFNw0ERVJ4lEVZJWRFYJpkRYorREWNkURFkBb0RZ27xEWg3KRFtlf0RcAXlEXDI/RF1JO0ReDeFEXwjJRGAhg0RhCBhEYU33RGM2vURkJZ1EZfwSRGYlZkRmPydEZp/PRGazCURn1AFEaCjaRGhik0Rox4NEaNPARGlJNkRpXAVEaX+2RGoBukRqPABEamIoRGpxfkRqexZEaqu3RGrKAERq5y9EawWERGtHn0RrVb5Ea355RGvo1URsIp9EbDZsRGxNKkRsWzdEbJvjRGzDjkRs4LREbPzNRG0gUkRtNglEbVgaRG1teURt1qtEbeVqRG32pkRuip9Ebqv8RG7G7kRu7jFEbxD9RG8eTERvbttEb/iFRHBWs0RwaGxEcJCnRHEYtURxbdxEcXyTRHGLSERxphFEcdiDRHH43ERyDfJEcjuVRHJpl0RydkdEcojNRHLh80RzCDpEcyoiRHNAvURzUFNEc2aXRHOUfkRzn0NEc634RHPWE0R0FRJEdGsdRHR+mER0mcBEdKTfRHTZ3kR07+BEdS72RHU390R1TuhEdVhURHWOPUR1mK1EdaXiRHXCKkR1zyZEdd/ZRHYadUR2b1dEdnp/RHaLw0R28v9Edzw+RHdAQ0R3T3BEd3tBRHeNSUR3wKdEd9HBRHfdKUR366FEeAVARHgQKUR4KAZEeD0rRHiIMER4105EeQDmRHkTkkR5Q+dEeXBGRHl7jkR54KJEeeuFRHoCsER6MtdEekS9RHpYGkR6YvZEeoHfRHqbZUR7C5lEeyUPRHszEg==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="110">QcAAAEIgAABCCAAAQegAAEHYAABB8AAAREsAAETyoABCEAAAQwwAAEKiAABCtAAAQlgAAEJMAABBqAAAQjgAAEHAAABBqAAAQmQAAEIQAABBsAAAQdAAAEHQAABB+AAAQgwAAEGwAABBqAAAQxYAAEHoAABB8AAAQeAAAEMZAABCGAAAQdgAAEHwAABCCAAAQhQAAEHQAABBqAAAQagAAEG4AABCogAAQxMAAEHAAABBsAAAQagAAEI8AABBsAAAQigAAEL8AABBwAAAQ5QAAEKkAABBwAAAQbgAAEQ6QABCDAAAQgwAAEJYAABBsAAAQtIAAEGoAABEcQAAQjQAAELeAABCrgAAQfgAAEMBAABBqAAAQagAAEJwAABBqAAAQfAAAEHAAABB2AAAQdAAAEHoAABB8AAAQeAAAEMWAABCBAAAQkQAAEHQAABBwAAAQegAAEHYAABB8AAAQcgAAEWAUABEDgAARCKAAEIMAABDDwAAQeAAAEHgAABBuAAAQhAAAEH4AABBqAAAQhgAAEHAAABBwAAAQbgAAEGoAABCDAAAQbgAAEIkAABCDAAAQbAAAEG4AAA=</data>
+<data precision="32" endian="big" length="352">QdgAAEIAAABBqAAAQbAAAEGwAABByAAAQegAAELOAABEIEAAQfgAAELMAABBqAAAQegAAEHoAABCDAAAQbgAAEIIAABB6AAAQbgAAEIEAABCEAAAQcgAAEIIAABBsAAAQbAAAEIIAABC7AAAQfAAAEGwAABBqAAAQhgAAEIsAABBwAAAQagAAEHYAABB6AAAQegAAEGwAABCoAAAQnAAAEGwAABCwgAAQcgAAEHYAABDkAAAQbAAAEHQAABCjgAAQgAAAEHIAABCGAAAQ4iAAEGoAABB8AAAQgQAAEG4AABCcAAAQgwAAEMtAABCCAAAQgAAAEGoAABBwAAAQagAAEHAAABBwAAAQgwAAEH4AABCGAAAQdgAAEHIAABByAAAQhQAAEGwAABBqAAAQegAAEIAAABBuAAAQlwAAEHgAABByAAAQgAAAEHYAABCKAAAQgQAAEHwAABCHAAAQdAAAEHQAABBuAAAQcAAAEGoAABCMAAAQhwAAEIQAABB8AAAQagAAEHwAABB+AAAQdAAAEH4AABBwAAAQfAAAEKuAABB6AAAQgAAAEIEAABCvgAAQcgAAEJoAABB6AAAQggAAEIMAABCAAAAQhQAAEIQAABBqAAAQbAAAEHgAABByAAAQfAAAEGoAABCHAAAQagAAEIMAABBwAAAQagAAEIkAABCZAAAQrQAAEHgAABCxgAAQlQAAEIMAABCjgAAQrIAAEeFrwBC5gAAQsgAAEK4AABGM3gAQkgAAEKCAABGEHQARLKAAEG4AABDyAAAQkwAAEIQAABCQAAAQagAAEG4AABBwAAAQhAAAEIEAABCAAAAQbgAAEH4AABB+AAAQgQAAEIQAABCOAAAQgAAAEIYAABB4AAAQhgAAEGoAABBuAAAQbAAAEIQAABBuAAAQgQAAEIQAABCDAAAQhgAAEIQAABCJAAAQeAAAEHwAABByAAAQdgAAEIUAABCBAAAQbgAAEHoAABB0AAAQhwAAEIAAABBqAAAQcAAAEIkAABB+AAAQdAAAEHIAABB0AAAQagAAEHAAABB0AAAQegAAEGoAABBsAAAQbgAAEIUAABBuAAAQbAAAEHoAABCAAAAQcAAAEHoAABBqAAAQeAAAEHoAABB4AAAQcAAAEHYAABBqAAAQdgAAEG4AABCKAAAQdgAAEHoAABBwAAAQbgAAEIAAABByAAAQgAAAEG4AABBsAAAQcgAAEHQAABB+AAAQegAAEGoAABByAAAQbAAAEGwAABBqAAAQiQAAEHoAABB0AAAQdAAAEHIAABBsAAAQiAAAEHYAABBuAAAQcAAAEH4AABB0AAAQgQAAEIIAABByAAAQiwAAEGoAABCPAAAQbgAAEJEAABCCAAAQdgAAEIcAABB8AAAQeAAAEHYAABBuAAAQdAAAEIMAABBuAAAQjwAAEHoAABCFAAAQdAAAEIEAABB4AAAQgQAAEG4AABCNAAAQbgAAEIUAABBqAAAQgQAAEIMAABB+AAAQbAAAEG4AABCDAAAQfAAAEIkAABCUAAAQagAAEIYAABCDAAAQcAAAEI8AABByAAAQcAAAEGoAABCCAAAQeAAAEHgAABB0AAAQkAAAEIQAABCUAAAQcAAAEHAAABBuAAAQhgAAEGwAABCPAAAQgAAAEIQAABB6AAAQeAAAEJcAABCRAAAQdgAAEHIAABCgAAAQcAAAEIEAABCJAAAQlQAAEHAAABCEAAAQcgAAEHQAABB4AAAQgwAAEJAAABB6AAAQiwAAEHwAABCBAAAQkAAAEH4AABBwAAAQcgAAEHYAABCOAAAQcgAAEHAAABBsAAAQfAAAEIQAABCbAAAQiQAAEG4AABCNAAAQeAAAEG4AABCIAAAQgwAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="362">
@@ -851,13 +851,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="47.05894034" mzRangeStop="1001.17102990">
+<spectrumInstrument msLevel="2" mzRangeStart="47.68754694" mzRangeStop="1004.43193306">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.04738"/>
-<userParam name="basePeakMz" value="448.07568841"/>
-<userParam name="basePeakIntensity" value="7995.00000000"/>
-<userParam name="totIonCurrent" value="29249.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.04632"/>
+<userParam name="basePeakMz" value="448.07636910"/>
+<userParam name="basePeakIntensity" value="99471.00000000"/>
+<userParam name="totIonCurrent" value="151099.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -871,10 +871,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="145">Qjw8W0KAUGJCv+YcQsGis0LB6fFCw+foQsXrn0LGDCZCxnlNQsfcJELIG9xCyIRQQsqUskLMmsRCzqgxQv/Y20MA7URDAenxQwO+7EMRDAZDFgWDQxcAtkMbILFDIw9wQyQTJUM+EnBDPwq+Q0MH1kNECLlDTRD/Q04RMkNPE6BDUBKKQ1e9nENhBdVDYwOBQ2UBeUNw//NDcv90Q3Y270N4KCNDeNLuQ3wJqEN9AU1DfgjUQ38Fv0OAA/NDgIE/Q4CXdEOBgW1DgY6hQ4ICOEOCgHpDgwMjQ4Q2vUOEtW1DhwXdQ4eGPkOIhBdDiQKFQ4l+r0OJ/wBDihkzQ4p+G0OMAP9DjEjCQ4xMbkOMhBhDjfq4Q468CEOPAjZDj1wnQ5F+H0OR/etDknhYQ5MQ1kOiCj9DoxPcQ6OuhkOpjndDrrIqQ7RJskO3+rJDuA9MQ7iRkkO5D3hDvu/sQ8ea3UPQCbxD0O0BQ9LxRUPWJUJD2vRiQ96yNkPfC8ZD30dLQ9/OWUPgCbBD4FTDQ+CKC0PgshJD4Qm7Q+Eg80PhiWZD4fqDQ+IKe0PkHmVD5e1YQ/dYGUQAYbxEB8TQRBijrkQgtDJEKejJRCoQnkRCy5lERBpKREdXV0RJ6CdEVsH5RFgOJkRY9StEW4YWRFvOkURdRy5EXbsYRF8EkERh3sREYwb6RGQp5ERkUHtEZaJWRGXJvERrG+1EbV4MRG2H6ERv6V5Eb/PwRHD7ukRykixEc4ioRHXrZ0R2CHpEeJgcRHpK8g==</data>
+<data precision="32" endian="big" length="456">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</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="145">QcgAAEHoAABE0wAAQbAAAEWYmABDPAAAQ0MAAEJwAABDtIAAQkwAAEIcAABDZAAAQ1MAAEMZAABB8AAAQsQAAELyAABB6AAAQkwAAEJsAABByAAAQdgAAEK0AABCXAAAQfAAAEIEAABCEAAAQ4OAAEKIAABB0AAAQ0QAAEHgAABCcAAAQagAAEMqAABCRAAAQkgAAEMLAABCBAAAQt4AAEHAAABB0AAAQ2YAAEGwAABBwAAAQ+UAAEJQAABC6AAAQgAAAETTQABC2gAAQ0wAAEJMAABB0AAAQvYAAEHAAABDbAAAQnwAAEHwAABCZAAARLFgAEMmAABBuAAAQtoAAEGoAABC2AAAQ2UAAEHAAABBqAAAQggAAEG4AABCEAAAQlAAAEG4AABBqAAAQeAAAEHQAABB+AAAQeAAAEHwAABCBAAAQagAAEHYAABDHAAAQfAAAEJsAABCAAAAQegAAEIUAABCGAAAQgAAAEGoAABB8AAAQagAAEG4AABCCAAAQagAAEX52ABB0AAAROjgAEIMAABEmiAAQggAAEMoAABBuAAAQoQAAEIQAABB8AAAQiAAAEHQAABB+AAAQegAAEIMAABB+AAAQegAAEIAAABCKAAAQbAAAEHgAABB0AAAQbAAAEHIAABB4AAAQbAAAEG4AABByAAAQeAAAEI8AABBwAAAQagAAEG4AABB6AAAQagAAEGwAABByAAAQbgAAEGwAABBsAAAQbAAAEGwAABCUAAAQbAAAEHAAABByAAAQdAAAA==</data>
+<data precision="32" endian="big" length="456">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</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="363">
@@ -883,13 +883,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="47.17031734" mzRangeStop="1002.43239025">
+<spectrumInstrument msLevel="2" mzRangeStart="45.13664372" mzRangeStop="1004.71495002">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.05855"/>
-<userParam name="basePeakMz" value="448.07568841"/>
-<userParam name="basePeakIntensity" value="8272.00000000"/>
-<userParam name="totIonCurrent" value="33071.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.05748"/>
+<userParam name="basePeakMz" value="448.07610614"/>
+<userParam name="basePeakIntensity" value="96719.00000000"/>
+<userParam name="totIonCurrent" value="147057.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -903,10 +903,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="150">QjyuaEJ1VYdCo+QCQqv8zUK23/JCv+ZWQsHqFELD6MZCxeffQsYThkLGfL5Cx+6EQsgSpULIgkxCygjWQsqJhkLMDwxCzJcJQs6p5ELiDU1C7CSoQu4QjULyCe5C/bx5Qv/WSkMA7fdDBSfTQwcWbkMK+OxDDvKvQxEMi0MSvsJDIw6+QyQQAkMrFeZDLE3nQzZmBkM67XBDO+2IQz75O0M/DsJDQAl4Q0GXPkNCTfxDQwgOQ0QGEkNEGu5DRQlvQ0b7tUNOEL1DTxIdQ1AOIENS5YhDYQc+Q2MEw0NlA39DaBXoQ2wWYENw/21Dcv2pQ3jVeUN8CtlDfgsUQ38EJEOAAzxDgBDrQ4CB1UOBB25DgXQ2Q4GBVkOCAnZDgoJwQ4Q2XEOHBgRDiWalQ4l+LkOJ/b9Din4TQ4xHu0OMz7FDjoE2Q5F+QUOR/gNDk5NTQ5VewUObY1JDqomPQ69FM0O4DoZDuQ7QQ77DYUPDw7hDzUSyQ9ZTiUPfRylD37t3Q9/Rv0PgCbBD4GNRQ+CKHkPgqFJD4QlUQ+GJnkPiCv1D5B6GQ+SPm0PklyRD5i7AQ+c9eUPuGXRD8OLSRAXdtUQHtzlECnB3RBPv70QUZ4NEHZgBRCLfsUQkbeNELscCRDLv3ERRr8JEWAK+RFoeRkRe+GpEX3qiRGB7lkRgo7JEYd/+RGOEo0RmZkNEZo5dRGariURnfHFEZ/WJRGg/vkRpn6xEaeshRGpyEkRrIK1Ebd+9RG9i7URz3XNEdJseRHToKER2n29Ed6cWRHlZJER6HPhEepus</data>
+<data precision="32" endian="big" length="419">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</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="150">QhgAAEHIAABBuAAAQegAAEH4AABFBRAARbVoAEMAAABD8AAAQhwAAENnAABCOAAAQhAAAEP+AABCJAAAQdgAAEHYAABCnAAAQkAAAEHAAABBwAAAQegAAEHgAABBsAAAQxQAAEL2AABB6AAAQeAAAEJUAABCBAAAQxkAAEH4AABC2AAAQcgAAEIcAABCBAAAQfAAAEHwAABCMAAAQdgAAELmAABCMAAAQegAAEGwAABD5AAAQbAAAEIUAABCjgAAQowAAEPpgABCjAAAQtgAAEKQAABDMAAAQzAAAEIMAABB2AAAQbAAAEMeAABCQAAAQcgAAEMZAABB6AAARBvAAEKIAABB6AAAQ0QAAEIMAABCnAAARPcAAEMAAABCyAAAQ3wAAELEAABBuAAARNHAAEKIAABDhQAAQ6UAAEHYAABCjgAAQmgAAEIkAABCFAAAQagAAEHgAABB0AAAQcAAAEMIAABCAAAAQfgAAEHgAABBuAAAQdgAAEIEAABBsAAAQdAAAEYBQABB2AAARNFgAEJQAABEwWAAQvAAAELsAABCcAAAQfAAAELIAABB6AAAQcgAAEHoAABCGAAAQdAAAEGwAABB+AAAQbgAAEHgAABB0AAAQdAAAEIMAABBwAAAQcAAAEHoAABBuAAAQkAAAEHoAABCAAAAQhQAAEGoAABByAAAQcgAAEGoAABBuAAAQfgAAEIAAABCAAAAQagAAEHAAABCJAAAQagAAEHQAABBsAAAQcgAAEHgAABBsAAAQcgAAEGwAABBqAAAQfgAAEG4AABBuAAA</data>
+<data precision="32" endian="big" length="419">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</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="364">
@@ -915,13 +915,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="55.38946270" mzRangeStop="1004.18876369">
+<spectrumInstrument msLevel="2" mzRangeStart="47.38649953" mzRangeStop="1004.47681623">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.06972"/>
-<userParam name="basePeakMz" value="448.07521508"/>
-<userParam name="basePeakIntensity" value="8455.00000000"/>
-<userParam name="totIonCurrent" value="31937.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.06865"/>
+<userParam name="basePeakMz" value="448.07631651"/>
+<userParam name="basePeakIntensity" value="74164.00000000"/>
+<userParam name="totIonCurrent" value="113801.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -935,10 +935,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="158">Ql2Oz0J/V3NCn+i6QqjNwEK0lDNCuRhGQrzcWkK/5dZCwepIQsPl60LF6EhCxhPXQsZ+G0LH2kRCx/woQsgbbELIiFpCy/ggQswbWELMmTxCzqYiQtoOLULf3P5C4g1CQvQYh0L5qcZC/9iSQwC8xEMA7axDAerpQwLsKEMDRlpDCvehQwz3uEMQ0HlDEREgQxTbYEMa8S9DIxL0QyQDmUMo+4hDLRQYQzMPfkM49hJDPhK9Qz8O6UNADp9DQwiNQ0QJsUNFBjhDRv2bQ04Ra0NO/9BDTxEkQ1AOK0NS6B1DVJjlQ1gZEUNakDVDYQbCQ2IGFUNjBFxDZAUeQ2UBMUNmETBDcQHKQ3IR/EN2N0JDeRJzQ3wJc0N/BDlDgANJQ4AWEkOAgZlDgYEdQ4ICN0OCgRRDg/PuQ4S8OUOFOxVDhXjsQ4cF4kOIBL1DiX6pQ4n/iUOKfldDjAEFQ4xGVEON7LJDjoACQ5F+UkOUh3RDrNUxQ60bLkOzrEtDtAJbQ7XaSUO4DllDuI5WQ7j2mEO5DFlDxHrIQ8Ug0UPKeqRDzws1Q9EI6UPW1XdD3wkFQ9/HB0PgCaFD4D4vQ+BSG0PgbhRD4IoVQ+CevEPhCTND4RtsQ+GI+UPhoBtD4gkdQ+Ic4kPkHoZD/trBRAT6X0QGyHpEGm8yRB5e3kQf9nZEOjWSRELOSURUl6ZEVSwWRFXDU0RZG2hEZU5ZRGrJS0Rq+mdEay0dRGvp4kRsp2NEbLMLRG2JykRuZ5hEbvj8RG8SCERvHrNEcpBuRHL5aURzEPBEc13YRHPkXUR1FYZEdiFXRHbiAUR4a0BEeSbdRHmWrER7DBU=</data>
+<data precision="32" endian="big" length="363">Qj2Lx0Ji6d9Cs0AOQr/mmELB6QFCxel9QsiCuELOqexC2bp4QuS2wkLxh/9C8gwyQvNnjUL0DrNC9SjTQvt7N0MJ86ZDEP5dQxEMeUMSJmRDHxIxQyMRGkMmPWJDKl0dQytNhEM5X+lDPAhVQ0MI2UNEB3NDThDmQ08+MkNS2WpDYwVWQ2QEXUNlA0BDbQ74Q24QgENu+hlDb+bEQ3BJO0Nw/cpDd+JUQ3sPFkN8CsBDfIeHQ30rMEN+dD9DfwKRQ4AAxkOAfTtDgYHJQ4IA+kOEAp5DhDaAQ4RLE0OHBYJDiX49Q4n+h0OMRoNDkX34Q5H1K0OVUV5Dl/n6Q5kvrUObSadDnNu4Q527a0Oe0Y1Dn5K7Q6C1rEOhEppDowxwQ6SLcUOk26ZDp3riQ6ghpUOoSDlDqIbAQ6yO90OtRKBDrubEQ68Zj0OxahpDsl8JQ7K8BkO2NwFDtlUOQ7hcKEO5Kx1DuYtvQ7qEr0O6o/FDuttBQ7sH5kO8D69DvHIMQ73TwkO97K1Dv175Q8DoKkPFOfRDxbVKQ8hO2UPIjWJDy/27Q82di0PPVz1Dz85zQ8/f0UPQkwhD0OWNQ9FawkPRifFD0eBzQ9Lq8EPWUdFD2vy3Q9wW0kPdOxhD3sKOQ97mHEPfCHhD3xleQ99CHkPfWA1D33aYQ9+IkkPfnkND37nsQ9/UFkPf4j1D4AnFQ+Bc1kPgifFD4MGQQ+Dl5EPhCT1D4Uz6Q+Fsl0Phif1D4aeJQ+G0v0PiCb5D4mw/Q+KLqUPjbhBD5I1NQ+TLbkPl11ND5nwPQ+bpp0PqY1dD7h0wQ+5OeUPvqNBD79rfQ/BcVkPzQstD9GpwQ/VvuEP5eLhD+Yn2Q/saGUP9MZdEACLhRABYSUQAaWJEAIc0RACSYUQBd6REAZRoRAMn1kQDmPxEA7sORAZOwUQGqC9EB9xFRAg+3kQJzftECyxTRA/TJ0QQSTNEFFrbRBdJw0QX4rdEHFc5RB5vEEQjofJEJT4mRCap8UQrwZNELXpMRDHXrEQ1FN9ENUN7RDq0kkQ7ndhEQ7BlREfPn0RQhgZEUUQ0RFLdo0RTPkpEVPDKRFUkBERVddxEVdNlRFXjaURWg2ZEWBUqRFlNa0RbHXVEXWcnRF6uv0RfLlpEX2B3RGBvbERgmIFEYKeKRGCxmURgv3hEYQFDRGEkokRhoXJEYdX5RGIBMkRiJddEYmMyRGOhbkRkMjNEZJ53RGUC40RlVVZEZWr7RGXGgERmwdFEZsv4RGcTn0RnJepEZ1AYRGd6C0RnlxxEaBsIRGhXHURoX2NEaLE5RGjgIERpM5ZEaUyyRGl0AERpnZpEaa//RGnqNERqGT5EakThRGp/nURqm99EayIlRGtOdERrXapEa4xbRGuv2kRsEV9EbFNBRGxly0RsnwlEbLBvRGzA50Rsy2xEbPJRRG1F6kRtUzREbXA/RG4HHURuERFEbiiwRG5OIkRuk6NEbp47RG61r0RvEMNEb7wwRHACj0RwOgVEcE+9RHCEDERwqhREcL3TRHDf/ERxKVVEcUJuRHFWKURxZ+FEcXi4RHGat0RxqMZEcbp0RHIMWkRyRwZEcrk8RHLr0ERzJlhEczEERHOA4URzjTVEc62mRHPl2UR0BgxEdBc6RHQ/KUR0UyJEdG8kRHSJUUR0pCVEdSFCRHWFa0R1rGBEdb/4RHYMuER2Ir5EdjhtRHZUSUR2c9NEdpN5RHairER2vKBEdtTHRHb47UR3Ws1Ed2xyRHd9ckR30IZEd/DRRHgNkUR4HNhEeCy5RHhX9UR4k5xEeKE9RHiu3kR4xw1EeO38RHkRbkR5HeREeU3tRHliF0R5c1xEeX/HRHml40R5xKxEeexBRHn3XkR6C3ZEeiCnRHo39kR6UI5EenDfRHp/W0R6j7lEeqpBRHrbh0R67K9Eex6E</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="158">QgAAAEHIAABB0AAAQcAAAEIIAABB4AAAQhAAAES4oABFuTgAQwoAAEQaQABChAAAQ0cAAEKoAABCWAAAQigAAELqAABCEAAAQhwAAEO3gABCfAAAQfAAAEJQAABBsAAAQgAAAEHwAABDZAAAQegAAELQAABBwAAAQhQAAEGoAABC0gAAQdgAAEIQAABByAAAQdgAAEHYAABCCAAAQcgAAEJgAABBuAAAQnAAAEJAAABBwAAAQsoAAEHQAABDxoAAQbgAAEKEAABCJAAARAOAAEHoAABCFAAAQdAAAEJ8AABB2AAAQbAAAEHgAABDKgAAQhwAAEMwAABBqAAAQggAAEIEAABDDQAAQgQAAEGoAABBuAAAQ1AAAERYgABCXAAAQbAAAEMEAABEuoAAQ1cAAEMTAABBqAAAQfAAAEIcAABCAAAAQycAAEIoAABE1aAAQxcAAEMSAABB2AAAQ5+AAEH4AABB0AAAQogAAEHQAABBsAAAQdgAAEIIAABCAAAAQfAAAEMYAABCrAAAQfAAAEI4AABBsAAAQcgAAEI8AABB8AAAQdAAAEGoAABB8AAAQggAAEYEHABB4AAAQegAAEHAAABEooAAQoYAAESnoABCngAAQxYAAEHYAABCqgAAQfAAAEGoAABCDAAAQgwAAEGwAABB4AAAQfAAAEG4AABB2AAAQfgAAEGoAABBsAAAQcgAAEGwAABBwAAAQfAAAEGwAABCBAAAQegAAEHAAABByAAAQagAAEGoAABByAAAQdgAAEHYAABBuAAAQagAAEHYAABCGAAAQdgAAEHAAABB8AAAQiwAAEIEAABCDAAAQcgAAEGoAAA=</data>
+<data precision="32" endian="big" length="363">QbgAAEIgAABByAAAQsAAAER1AABBwAAAQ1IAAEHwAABByAAAQcAAAEH4AABB8AAAQegAAEIUAABBqAAAQoQAAEIEAABB0AAAQggAAEHYAABB6AAAQegAAEIQAABB2AAAQcgAAEHAAABB8AAAQwEAAEJEAABDQwAAQdAAAEHYAABC4gAAQegAAEHgAABB0AAAQgAAAEIIAABBwAAAQdAAAEHAAABB0AAAQpAAAEKcAABBsAAAQagAAEGoAABCuAAAQhgAAEHYAABDYAAAQcAAAEIkAABCcAAAQegAAEIUAABDJQAAQbgAAEI0AABDQwAAQdgAAEI4AABBsAAAQdAAAEIgAABByAAAQbAAAEGwAABByAAAQbAAAEG4AABBsAAAQiAAAEI4AABByAAAQagAAEHYAABCDAAAQcgAAEIAAABB2AAAQcgAAEHwAABBuAAAQagAAEHIAABCJAAAQgQAAEHoAABB4AAAQgAAAEG4AABB6AAAQlAAAEGwAABB6AAAQhAAAEGoAABCHAAAQbgAAEHQAABB8AAAQdAAAEHQAABCHAAAQbgAAEIMAABBqAAAQfAAAEHYAABB6AAAQegAAEIAAABB4AAAQagAAEIEAABBqAAAQdgAAEGoAABCKAAAQqAAAEMkAABCVAAAQmgAAEJMAABCAAAAQcAAAEIYAABCqAAAQxcAAEMRAABHkNoAQvQAAEZJ2ABCSAAAQjwAAEYmYABCGAAAQfAAAETmIABB8AAAQiwAAEQkwABBsAAAQggAAEHIAABCAAAAQbgAAEIIAABCAAAAQeAAAEGwAABB0AAAQegAAEHoAABB0AAAQcgAAEHYAABCBAAAQcgAAEHYAABBsAAAQhwAAEIUAABCBAAAQbgAAEHYAABCFAAAQcgAAEHgAABBsAAAQgQAAEIEAABCBAAAQhAAAEGwAABB2AAAQegAAEIIAABBuAAAQgwAAEHoAABB4AAAQagAAEHYAABCAAAAQagAAEHwAABB0AAAQfgAAEHIAABBsAAAQdAAAEIEAABBqAAAQfAAAEHAAABCDAAAQjQAAEHYAABB6AAAQiQAAEHwAABBqAAAQagAAEIsAABB0AAAQeAAAEG4AABBqAAAQbAAAEIIAABBqAAAQbAAAEIAAABBuAAAQcAAAEGwAABByAAAQagAAEI0AABBuAAAQegAAEG4AABBuAAAQeAAAEHAAABCMAAAQiQAAEGoAABB4AAAQcAAAEGwAABBwAAAQgAAAEHYAABB2AAAQbAAAEGoAABB0AAAQcgAAEHoAABBsAAAQbAAAEIkAABCOAAAQbAAAEG4AABB0AAAQhQAAEI8AABBsAAAQfAAAEIkAABByAAAQbgAAEHYAABCGAAAQdgAAEIsAABCJAAAQcAAAEHQAABBsAAAQgAAAEIcAABB2AAAQcAAAEHQAABB8AAAQcgAAEGwAABB+AAAQeAAAEI0AABCEAAAQbgAAEHoAABB8AAAQiQAAEHgAABCSAAAQjQAAEGwAABBsAAAQdgAAEHgAABB6AAAQigAAEH4AABBqAAAQcAAAEG4AABCSAAAQeAAAEHAAABByAAAQeAAAEHwAABCFAAAQhwAAEIQAABBwAAAQagAAEIAAABB0AAAQjwAAEG4AABBqAAAQcAAAEHoAABBwAAAQagAAEIMAABBuAAAQhAAAEH4AABCHAAAQbAAAEGoAABCFAAAQigAAEIoAABB8AAAQbAAAEHQAABBuAAAQgAAAELMAABB2AAAQfAAAEHAAABCmAAAQgQAAEHQAABB0AAAQdAAAEIIAABB6AAAQjgAAEG4AABCdAAAQcgAAEHQAABBqAAAQjQAAEHoAABB6AAAQooAAEHIAABCHAAAQcAAAEIIAABB4AAAQcgAAEHIAABBqAAAQhwAAEIsAABBwAAAQfAAAEHoAABB0AAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="365">
@@ -947,13 +947,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="50.55983369" mzRangeStop="1001.39807906">
+<spectrumInstrument msLevel="2" mzRangeStart="52.21567341" mzRangeStop="1004.58296498">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.08088"/>
-<userParam name="basePeakMz" value="448.07542545"/>
-<userParam name="basePeakIntensity" value="5826.00000000"/>
-<userParam name="totIonCurrent" value="22184.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.07982"/>
+<userParam name="basePeakMz" value="448.07547502"/>
+<userParam name="basePeakIntensity" value="39215.00000000"/>
+<userParam name="totIonCurrent" value="60790.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -967,10 +967,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="125">Qko9RUJv+aRCfiQkQn9huEKZdwFCn+o0QqkuzUK/5edCwen0QsPnnELF57tCxhbtQsZ5TkLH9ztCyBulQsiJQkLI5pFCyoxVQsyZTELQkYFC1uw5QtgZaUL2sFtDAO4+QwFhi0MB6SVDAi2sQwLrTUMK97dDDPWoQxENgkMUI2pDFRnqQyj8LUNDCGdDRQjdQ0b9DkNHt2VDThAvQ042fkNPELdDUBKyQ1kWCENhBahDYwUtQ2vfU0Nw/3NDdjaSQ3jX4EN6EMlDew09Q3wIskN+DHxDfwU1Q3+gz0OAgZNDgYHOQ4IBW0OENltDhwdmQ4eFN0OJfqRDiZKaQ4n+TEOKfhFDjEbgQ46BWkORfRxDm95DQ6AFBkOk4E1Dp6mKQ6i2UEOue7JDtH3rQ7gOg0O4jl1DuRrzQ8NQtEPIFfBDyQVSQ8mco0PVTrtD2LNbQ9/BOUPgCahD4In/Q+EJVEPhb0BD4YlxQ+OS90PosuND/0kORAB+SEQB1ltEAtrXRAX9skQPn2xEK8iWRDmzzURA9J1ERH2ERE44+kRUPx9EWILsRFnyGERbOZ9EYPibRGpSGkRrjtZEa+fQRG58akRui+BEcXCFRHIWTURyKM9EckCqRHJ+kkRzm5hEdM3SRHTarkR1zlxEdivXRHfajkR6WXo=</data>
+<data precision="32" endian="big" length="224">QlDc2UKNULhCmSzwQqxx4EKsk5ZCv+f7QsHqwELGecNCx9nvQsiB/ELchkFC8gmDQwDurEMRDrNDIn6MQyMQwEMqPRVDQwmQQ04RqkNVkP9DYwSkQ2UAZkNsHsJDcnEiQ3L78kN0SH9DdIRYQ3jZ70N66wNDew8GQ3wJSUN/BURDgCe+Q4GBLUOCgYpDhDZ3Q4bl1EOHBRlDiX5vQ4n/KEOLYpJDjEYNQ405fkOQbexDkX1IQ5Ha5EOUrnZDm7awQ5xITUOexjBDqJLWQ6sTGUOrlZhDrCG9Q7U2X0O4DdBDuJxEQ7nQHEO6AdVDu0IVQ7z4WEO9gnRDwxxwQ8aeGkPINSNDyzopQ8uKmUPNHvpD0kMDQ9KY50PTHnND1xtUQ9gvwkPZgSJD2Z9/Q97SMEPe6z1D3weQQ98l00PfhEZD37X0Q9/MQ0Pf3TZD4AmpQ+BbUkPgihpD4M0wQ+DkgkPhCUtD4YomQ+H2WkPiCK1D4omtQ+KdREPjVlhD48r9Q+Qd70PkjYdD5d1/Q+caGEPsXl1D7OgmQ+45/UP4CJlEA74XRAeD/kQHi2VECQXwRAv61kQPUh5EESAbRBMjk0QV3R9EILRDRCRCJEQkTJhEJYIMRCXLtEQvuHZEME6sRDcAqURBBYtETUgxRFB6hERRvzBEU7hIRFWKJERXLKJEV1XcRFipjERaPmVEWlxKRFyl4ERdb9BEXgWFRF/LzURgtDVEYT6HRGFN0kRijE5EYrMuRGLP/URj3U5EZZ15RGXj/0Rm+J9EZ1JqRGeALkRntSNEaHxNRGmbkkRpwoBEag1uRGo/JURqaoVEaoCjRGqmxERr/qNEbIUfRGzWEkRtEwBEbUOaRG2BbkRtzL5EbdbMRG34XkRuPTVEbumQRG8ockRvY6NEb3loRG/dnURv+3VEcBm1RHAyhURwawREcOszRHFDV0RxgoZEcakpRHHXUERyAZNEcllBRHK2KkRywUtEct/mRHMJc0RzputEc+8yRHP+00R0jaBEdNCkRHTzkUR1PFtEdWE/RHWgP0R1tBVEdijCRHaiRkR2y6BEdz7VRHdsEUR3om9Ed/31RHhKyUR4jCNEeOe+RHkoc0R5ci9EeYX3RHmoiER5zVREee1sRHoCIER6QFhEelinRHp7h0R6lbdEeqRLRHq7ykR6znlEewRQRHsRH0R7JU8=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="125">QggAAEHYAABBwAAAQfAAAEGoAABCLAAAQfgAAES1oABFf/AAQnwAAEM4AABB+AAAQ58AAEMKAABC0gAAQxIAAEIEAABCBAAAQgQAAEHYAABBuAAAQcgAAEHwAABC4gAAQeAAAEIcAABCBAAAQfAAAEKaAABB0AAAQswAAEHQAABCogAAQfAAAEOOAABCAAAAQnAAAEIYAABDu4AAQdgAAEKGAABB4AAAQhAAAEJ8AABDBwAAQgAAAEMYAABCQAAAQeAAAEIAAABB+AAAQw8AAEGoAABEAAAAQcgAAEIkAABEkwAAQowAAENVAABC1gAAQmwAAERlgABCIAAAQkwAAEMmAABC8AAAQbAAAEIcAABCBAAAQbgAAEIMAABB0AAAQagAAEHoAABBsAAAQwUAAEIcAABB4AAAQdgAAEHIAABBwAAAQfAAAEIQAABBqAAAQagAAEW2EABEOgAARIIAAEHgAABDeQAAQcgAAEIIAABB8AAAQgwAAEGwAABB6AAAQiAAAEIIAABCCAAAQggAAEIoAABByAAAQbAAAEHwAABBsAAAQggAAEGoAABB6AAAQagAAEGwAABCBAAAQcAAAEH4AABBsAAAQdAAAEHAAABB8AAAQeAAAEHAAABB2AAAQiwAAEHAAABB8AAAQbgAAEHYAAA=</data>
+<data precision="32" endian="big" length="224">QagAAEGoAABBqAAAQbgAAEG4AABCSAAARB/AAEGoAABCQAAAQ9WAAEG4AABCYAAAQkQAAEHwAABB2AAAQiAAAEHYAABC7AAAQsIAAEGwAABChAAAQbAAAEGoAABCBAAAQbAAAEIAAABByAAAQjgAAEHQAABCIAAAQfgAAEJsAABBsAAAQxoAAEG4AABCNAAAQagAAEJgAABDHQAAQkAAAEHYAABCaAAAQbgAAEGoAABClAAAQagAAEH4AABB0AAAQfgAAEG4AABByAAAQegAAEHoAABB8AAAQcAAAEJUAABB4AAAQbgAAEGwAABBuAAAQbgAAEGoAABCAAAAQbgAAEH4AABBqAAAQcAAAEHQAABBqAAAQdgAAEGwAABB4AAAQhwAAEGwAABCBAAAQiQAAEIIAABCdAAAQegAAEIsAABB2AAAQnQAAEKSAABHGS8AQkAAAEXJ4ABCFAAAQhQAAEW4iABEVoAAQbAAAEOLgABCZAAAQfgAAEIEAABB2AAAQlwAAEKgAABB2AAAQbAAAEHoAABB6AAAQdgAAEGoAABB0AAAQdgAAEHwAABCGAAAQfgAAEHwAABCJAAAQnAAAEIAAABCBAAAQagAAEGwAABByAAAQigAAEGwAABB0AAAQggAAEJYAABB0AAAQgwAAEGoAABB4AAAQdgAAEHAAABBqAAAQgAAAEGoAABB6AAAQagAAEGwAABBsAAAQbgAAEGoAABBuAAAQbAAAEGoAABByAAAQbgAAEHYAABB2AAAQbgAAEHQAABBsAAAQbgAAEGoAABB0AAAQbAAAEGoAABCDAAAQfAAAEIMAABB6AAAQbgAAEHQAABBqAAAQagAAEHIAABB8AAAQgwAAEG4AABCAAAAQeAAAEHgAABB+AAAQdgAAEG4AABCFAAAQbgAAEHwAABCCAAAQkgAAEGoAABBqAAAQeAAAEGoAABBqAAAQcAAAEGwAABBuAAAQdgAAEIkAABBqAAAQegAAEHAAABB6AAAQfAAAEHIAABBqAAAQdgAAEHoAABCCAAAQfgAAEIUAABBsAAAQcAAAEHoAABBsAAAQbgAAEIIAABCFAAAQbgAAEHgAABBwAAAQagAAEHYAABB4AAAQjgAAEIUAABCBAAAQagAAEIQAABB2AAAQhgAAEHIAABBqAAAQlwAAEHwAABBqAAAQbAAAEIkAAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="366">
@@ -979,13 +979,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="51.35653406" mzRangeStop="986.62115979">
+<spectrumInstrument msLevel="2" mzRangeStart="86.16529466" mzRangeStop="1004.73337822">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.09205"/>
-<userParam name="basePeakMz" value="448.07426840"/>
-<userParam name="basePeakIntensity" value="3368.00000000"/>
-<userParam name="totIonCurrent" value="14662.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.09098"/>
+<userParam name="basePeakMz" value="448.07589577"/>
+<userParam name="basePeakIntensity" value="28954.00000000"/>
+<userParam name="totIonCurrent" value="45908.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -999,10 +999,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="98">Qk1tF0JtXXtCj1BAQpqXP0K1PiBCv+ZGQsHqX0LD5stCxeiqQsaGyELH21RCyBqlQsiKbkLKk1tCzAeJQsyZvULOqQ5C7hIJQv/abEMA7PRDASyJQw+540MRC69DFRsDQyMN/EMn4QNDMSmAQz8P90NDBpBDRA10Q0UGU0NOEctDTxJrQ1AOT0NS4cBDWeqkQ1rfV0NhBpZDYwbWQ2aXi0No4AFDbA70Q2xIaENxAYpDcwJ0Q3MlT0N4FUVDeuM+Q3wIxkN9CKFDfgoOQ38ExkOAAi9DgIG8Q4GBPUOCdXFDgoHWQ4Q2CEOHBbpDiQXuQ4l+ykOJ/6pDin+gQ4xGcUOPAghDkX20Q58j80OmnfZDq/b2Q7OGMEO4DwNDuI6IQ7ulOkO8noRDzwvHQ8+D10PTTW9D39EnQ+AJgkPgigFD4KDrQ+EJkEPhiPND5JYNQ+TGlEP2jZ1EIntiRDLm4UQ1T6tEVk0RRFxcPERkjpJEZTHdRGj6A0RuHlBEcmKYRHL86UR2p8E=</data>
+<data precision="32" endian="big" length="197">QqxUokKuBGNCv+VQQsChxELB6rFCxngaQsiE/kLKLGRC09c7QvDPWULyCT9C9ga1QwDs/kMPQoFDEQ14QyMO60NDBm1DThD6Q1juD0NZWMZDWtMyQ15Op0NhBAVDYRb/Q2MFa0NlAoFDbvG/Q3MAvEN7DqhDfLIZQ38IvUOABJ1DgYGKQ4HjGEODAYdDg29ZQ4Q2I0OHVXJDh4UoQ4gnYUOJftFDigXoQ4r9HkOMRoNDkX0ZQ5H/CkOWi5hDl/vqQ5knj0ObtJFDnEWiQ59xI0OifqpDot4oQ6UHU0OlmAZDpeTDQ6pQgUOshBRDrnmBQ699Y0OzdItDwUkaQ8ZLkkPHQLZDx1N1Q8kR0kPNGc5DzwmRQ9DTQUPU0HBD1ufiQ961iEPe1XdD3vRjQ98FrEPfKGtD30KoQ99xHkPfxcpD39FdQ+AJt0PgSJ1D4GI4Q+CKHEPgx6ND4PAxQ+EJYEPhUIRD4YmZQ+GtWkPh1wBD4gkCQ+OEqkPjzL9D5B1nQ+TGT0PlNFxD5/ULQ+hXMkP65N1D/wqORABWsUQAtvVEBb8MRAZsqEQKpdhEDY8eRA+qIEQPy65EEiP0RBP5aEQXKKJEHQ2XRB+RukQo2QFEMbpdRDMZ0UQ++09EQkqIRETWuURLbhVET+uDRFHwTERSFRdEUnsnRFO0pURUp1VEVPogRFcP9URXc4lEWBbSRFiDdkRY795EXUamRGAlIkRgvXpEYMfQRGKjiURlBVpEZeCfRGcqFURnZPZEaBClRGgqH0RpqUlEalgyRGtEZ0RrokNEa/7ORGyMQ0RtZg5EbnfrRG63K0RvBjlEbyzERG+47URwKm9EcFBDRHBo1kRwxNJEcNo4RHEDuURxGA9EcVdURHLCe0Ry7CFEcy0zRHM4mERzQkdEc2amRHPFCUR0Jj5EdC+0RHRTe0R0vOZEdYhjRHWi+kR17+xEdhGzRHYyD0R2cEJEdqNkRHbk2ER3qjNEd/kuRHgnjUR4b7xEeKxkRHjEMUR48+pEeTOGRHmLXER5s5tEehH6RHqZ/ER7LvA=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="98">QfAAAEG4AABB2AAAQbAAAEHAAABEC0AARTQQAEJAAABDgoAAQzQAAEJMAABCfAAAQtIAAEGoAABByAAAQ0AAAEIoAABB0AAAQigAAEL0AABB4AAAQcAAAEKmAABCBAAAQagAAEGoAABB8AAAQjgAAEOLgABBuAAAQagAAEOSgABCCAAAQdgAAEHwAABCEAAAQhQAAELeAABDHAAAQfAAAEIUAABB6AAAQbAAAELGAABB2AAAQhwAAEH4AABBqAAAQqwAAEIAAABBsAAAQ4MAAEHIAABCwAAARGPAAEHAAABCYAAAQtgAAEKkAABBqAAARB+AAEIkAABC/AAAQwsAAEHwAABCrgAAQegAAEH4AABB0AAAQbAAAELYAABBuAAAQdgAAEHAAABCQAAAQgQAAEHIAABB4AAARVKAAEQngABCCAAAQ9SAAELiAABB2AAAQjQAAEIMAABByAAAQgQAAEIcAABBsAAAQcgAAEHAAABCJAAAQcAAAEG4AABBqAAAQbAAAEHQAAA=</data>
+<data precision="32" endian="big" length="197">QdgAAEHoAABCBAAAQcAAAEOvgABCQAAAQooAAEIMAABBuAAAQbAAAEIEAABB8AAAQdAAAEGwAABCLAAAQagAAEKiAABCGAAAQbAAAEG4AABB+AAAQdgAAEGwAABBsAAAQcAAAEH4AABByAAAQdgAAEJQAABB4AAAQeAAAEGoAABDNgAAQbAAAEG4AABBqAAAQhAAAEHQAABB0AAAQagAAEJEAABB6AAAQdgAAEI0AABCygAAQgQAAEHIAABCBAAAQcgAAEIIAABBwAAAQbAAAEIsAABBqAAAQhgAAEIEAABBwAAAQagAAEHYAABCYAAAQcgAAEGwAABBuAAAQagAAEG4AABCDAAAQbgAAEIIAABB8AAAQgQAAEG4AABCGAAAQeAAAEJgAABCXAAAQoQAAEIYAABCLAAAQdAAAEJUAABCXAAARuI0AEJAAABCAAAARZkYAEIQAABCDAAARZcwAEGoAABEQQAAQcgAAEIQAABDIgAAQhAAAEHYAABBqAAAQfAAAEGwAABCFAAAQdgAAEHYAABBqAAAQlAAAEIUAABB+AAAQagAAEHAAABB2AAAQbAAAEIkAABBqAAAQcgAAEGwAABBsAAAQggAAEHYAABCEAAAQbgAAEHIAABBwAAAQagAAEIUAABCGAAAQcgAAEIcAABBqAAAQbgAAEHQAABB8AAAQagAAEHIAABB2AAAQagAAEG4AABBuAAAQeAAAEHAAABBsAAAQcgAAEHAAABBuAAAQcgAAEG4AABB2AAAQdgAAEGoAABCTAAAQbAAAEHwAABB2AAAQagAAEHAAABBwAAAQgAAAEHoAABBwAAAQdgAAEIAAABCCAAAQiQAAEGoAABByAAAQeAAAEHwAABBwAAAQagAAEHIAABB0AAAQagAAEHgAABCggAAQbAAAEHgAABB0AAAQbAAAEIAAABB2AAAQagAAEHAAABCBAAAQgQAAEHIAABByAAAQegAAEIEAABCHAAAQjQAAEHoAABBsAAAQbAAAEHYAABCEAAAQagAAEIEAABB0AAAQdAAAEHQAAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="367">
@@ -1011,13 +1011,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="61.78922788" mzRangeStop="999.05256985">
+<spectrumInstrument msLevel="2" mzRangeStart="54.96423460" mzRangeStop="1001.90529117">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.10322"/>
-<userParam name="basePeakMz" value="448.07558323"/>
-<userParam name="basePeakIntensity" value="2129.00000000"/>
-<userParam name="totIonCurrent" value="9084.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.10218"/>
+<userParam name="basePeakMz" value="448.07747356"/>
+<userParam name="basePeakIntensity" value="16569.00000000"/>
+<userParam name="totIonCurrent" value="27829.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1031,10 +1031,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="83">QncoK0KrxaZCv+U3QsHqjkLD5KVCxep3QsZ4a0LIhGpCyojeQsyZoULs5SJC7hCGQvDJbULyC4FC9BDBQwDyqEMB2DdDCvj8QxETN0Mo4qhDMw/9Qz8NB0NDCG5DThRuQ1jnMENhBqBDYwWFQ2jejENwXoJDcxv7Q3WT0UN4/0VDfAj2Q3wcG0N/BqhDgAG1Q4CA10OBgZVDggDyQ4JsxEOENaBDhwYEQ4l+x0OJ/ZFDigoeQ4p8UEOLACtDjEYGQ51/z0OucKZDsRLLQ7GbQUO1WkRDteU2Q7gPfUO4jmRD3+ouQ+AJrUPgJitD4In9Q+EJW0PhH/JD4VjQQ+GKOEPiitdD5I2WQ+Yp8kP2rQND+8eSRAY92EQK4xlEDXJWRBnc00Qd2mdELJQJRCzcBkRn8IpEaClTRGnrPkRz9YhEdpGVRHe0KER5w10=</data>
+<data precision="32" endian="big" length="148">QlvbYEJpNlpCdO8dQoC4RkK4IX1CvEUkQr/nskLB6oZCyIA0Qsyzr0MIdjpDDSKeQxEOTUMnMm5DQwcgQ0qbkkNMzVxDThPcQ06wlENRatRDZAf4Q2tXNUNtHBlDeNmVQ3oIJUN7EFxDfAxlQ34QkUN+/zhDgIBsQ4GCGkOBkshDhwYDQ4l+ZkOMHxNDkX4JQ5SjGUOb/6VDnRcrQ6XRSkOne/JDqBu+Q6h6G0OuGSdDsmrMQ7X0fUO4gAJDvdTLQ8MQvEPHHYlDy7vdQ9Ax/EPX8WlD2ZtsQ97DsEPfdq9D34a/Q9/bAUPgCetD4EO9Q+BgGUPgii1D4Ql9Q+GKEEPiCdhD5CaqQ+TG9kQBGZJEAb8ERAJMckQE8KVEChrPRAwzH0QM2tREFJO1RB5/SUQn+LpEN342RDfLwEQ5DEtEPNWPRD1JPERCj/JERwIjRFH7d0RUNCdEVi45RFa0ckRX6DtEWMz4RFmZrERbYDFEW26MRFvX/URc6HxEXgP1RF5DlURffUhEYRkMRGJU5kRjwwJEZKC+RGUWIURnE2FEZ0xtRGdZ6kRn9ypEaUIURGqA+kRrAGhEaxTpRGs5JURrrlJEbE5KRGxq3ERsjhdEbVLDRG2whURuH2JEblIXRHEJzERxX8xEce7bRHIrxkRyZy1EcpzpRHOG1kRztuxEc8PDRHPjk0R0T+5EdIN4RHSgb0R0+Y9EdQcARHVpzkR1mO9EdczgRHYiHUR3rOdEeCoWRHh8jkR49YVEeZZxRHmw00R50zhEegygRHp58A==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="83">QdAAAEGoAABEA4AARNrAAEJIAABCKAAAQ6cAAENqAABCBAAAQpoAAEGoAABB2AAAQdAAAEJ4AABBqAAAQfAAAEHIAABCOAAAQeAAAEHQAABCGAAAQhwAAELkAABCeAAAQfAAAEG4AABCGAAAQbgAAEHIAABCGAAAQigAAEIMAABB8AAAQeAAAELEAABB0AAAQqgAAEOdgABCMAAAQegAAEHwAABCfAAAQ9iAAEIwAABBqAAAQdgAAEGoAABCugAAQagAAEHIAABCEAAAQcAAAEG4AABBqAAAQkAAAEIsAABB8AAARQUQAEJUAABDi4AAQ7OAAEG4AABCBAAAQsYAAEHQAABCBAAAQcAAAEHgAABCHAAAQggAAEHgAABB0AAAQdgAAEHIAABBqAAAQfAAAEG4AABCBAAAQdAAAEHoAABBwAAAQeAAAEIQAAA=</data>
+<data precision="32" endian="big" length="148">QdgAAEGoAABCDAAAQdAAAEGoAABB8AAAQiwAAEOOgABBqAAAQeAAAEHYAABBuAAAQgQAAEHYAABCVAAAQdAAAEGoAABCYAAAQbgAAEHgAABBqAAAQdgAAEH4AABCqAAAQcgAAEIUAABCPAAAQdAAAEIQAABCBAAAQngAAEIEAABCDAAAQpQAAEHIAABCGAAAQdgAAEGwAABBwAAAQbAAAEHwAABCAAAAQfAAAEHAAABCMAAAQbgAAEHwAABByAAAQbAAAEGwAABCBAAAQfgAAEHgAABB4AAAQdgAAEHAAABCFAAAQfgAAEaBcgBB+AAAQgwAAEVQkABFNOAAQ7yAAEMsAABB2AAAQdgAAEHoAABCGAAAQlAAAEI4AABBwAAAQdAAAEHoAABCUAAAQcgAAEHYAABBuAAAQdgAAEGwAABBuAAAQeAAAEHYAABB2AAAQagAAEH4AABB+AAAQdAAAEGoAABB8AAAQbgAAEGoAABByAAAQagAAEHAAABB2AAAQbAAAEGoAABB0AAAQbgAAEG4AABBsAAAQagAAEHAAABB8AAAQagAAEGoAABCDAAAQagAAEHYAABCBAAAQdAAAEHQAABB2AAAQeAAAEHYAABByAAAQdgAAEG4AABBuAAAQcAAAEHoAABB2AAAQdAAAEIIAABBuAAAQbgAAEHIAABBqAAAQdgAAEIEAABByAAAQbAAAEHgAABBuAAAQbgAAEHYAABCcAAAQcgAAEJsAABCFAAAQcAAAEIEAABBsAAAQkgAAEHYAABB4AAAQbgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="368">
@@ -1043,13 +1043,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="71.19755613" mzRangeStop="1001.00390421">
+<spectrumInstrument msLevel="2" mzRangeStart="54.31211175" mzRangeStop="1002.05424546">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.11442"/>
-<userParam name="basePeakMz" value="448.07547804"/>
-<userParam name="basePeakIntensity" value="1196.00000000"/>
-<userParam name="totIonCurrent" value="5095.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.11335"/>
+<userParam name="basePeakMz" value="448.07836764"/>
+<userParam name="basePeakIntensity" value="8981.00000000"/>
+<userParam name="totIonCurrent" value="14574.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1063,10 +1063,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="69">Qo5lJkKx+WFCv+ZYQsHqBULD5sBCxenmQsZ36ELIjytCzJmEQt/XVELuD+hC9TsMQvYK7UL/1p5DAMy6QwXir0MJRQBDDwdZQx6a/kMiDFFDKYTOQzU2p0M7PkhDQwreQ0znEkNVGttDYPIwQ2wIYENxIclDeP8TQ3wIvEN+2wNDfwWsQ4CBSkOA1uJDgYFMQ4Q15kOEYyxDhwWSQ4eGY0OJfhZDin6zQ4xGWUOa/8RDo5VlQ6XZp0OtAV5DrUYxQ61nBUO4EJ9DwJOKQ8iYDUPWTWND34hxQ+AJqUPgJMZD4IoqQ+EJWUPhip5D76eUQ/wYKkP/LiREOyTkRFWHnURoYlpEb1/yRHmlA0R6L25EekBA</data>
+<data precision="32" endian="big" length="79">Qlk/mkKgxcdCo0BqQr4FjkLB6nVCyIDgQtxUQELhQEBC8e1GQyMPP0Mo6clDLdsQQy9yjEM8gzhDQwpWQ1jszUNiiiBDbuNGQ3jiBEN8DjdDh4izQ4l/M0OOi+dDj/60Q5F+QkOig5VDpPT1Q6ruKkPGnZ1DyRKMQ9JlFEPY8qZD3wYsQ9+LNkPfm6dD37YtQ+AKCEPgiehD4LIJQ+EJgkPhHbND4YlaQ+GdPUPh+LND4ggIQ+Nyj0PjgUlD5CCEQ+TGh0PlMedD60zzQ/+wjkQJF9NEDM2JRBt6S0QeeJpENdegRDuaXUQ/wZJEQThBRFnz7URcBIxEXKBeRF8m/URgMcpEZKEeRGcCBERpAWJEajINRGweaERt+phEccIHRHNxqkRz/UZEddEgRHZHh0R4kk5EeOlZRHqDeQ==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="69">QcgAAEHIAABDPwAARDDAAEHYAABCngAAQ2IAAEIEAABDSgAAQhQAAEIIAABBqAAAQgQAAEHQAABB8AAAQagAAEG4AABBuAAAQbAAAEHwAABB0AAAQagAAEHIAABCHAAAQbAAAEGwAABBwAAAQagAAEIUAABBwAAAQcAAAEIkAABCgAAAQgQAAEGoAABDYAAAQhwAAEHwAABCAAAAQbAAAENBAABBsAAAQooAAEIYAABByAAAQagAAEGwAABBqAAAQcAAAEHoAABBsAAAQagAAEIAAABCVAAARJWAAEI4AABDPwAAQvoAAEKaAABByAAAQgwAAEGoAABBqAAAQggAAEHoAABBqAAAQagAAEIAAABBuAAA</data>
+<data precision="32" endian="big" length="79">QfgAAEGwAABBuAAAQegAAELMAABCTAAAQbAAAEHoAABBqAAAQbgAAEHIAABB4AAAQbAAAEHoAABCVAAAQdAAAEHgAABB2AAAQfgAAEKOAABBuAAAQegAAEGwAABBqAAAQpwAAEJoAABBuAAAQggAAEHwAABBqAAAQegAAEHIAABBsAAAQiwAAEIkAABCBAAARgxUAETJ4ABB+AAARKPAAEKOAABDZwAAQgAAAEIAAABCogAAQagAAEHgAABCNAAAQqgAAEHIAABB8AAAQegAAEG4AABBsAAAQfAAAEGoAABBuAAAQcgAAEGoAABB2AAAQbgAAEHAAABCAAAAQagAAEI8AABB+AAAQbgAAEHYAABBsAAAQbAAAEHwAABCGAAAQegAAEGwAABBsAAAQbAAAEG4AABBuAAAQfAAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="369">
@@ -1075,13 +1075,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="76.10352925" mzRangeStop="986.76054480">
+<spectrumInstrument msLevel="2" mzRangeStart="50.32109069" mzRangeStop="1001.98016016">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.12558"/>
-<userParam name="basePeakMz" value="448.07074468"/>
-<userParam name="basePeakIntensity" value="653.00000000"/>
-<userParam name="totIonCurrent" value="3453.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.12452"/>
+<userParam name="basePeakMz" value="448.07726319"/>
+<userParam name="basePeakIntensity" value="5263.00000000"/>
+<userParam name="totIonCurrent" value="9154.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1095,10 +1095,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="60">Qpg1AkKtG2ZCv+qFQsHqUkLF6VNCxngrQsiQHELMqvdC3wBPQunjR0MEco5DBL5PQxENpUMlDJFDJwquQ0UFckNOEMxDVYFIQ2D/3kNuaUFDcPWqQ3MFaENz8HpDeNl0Q3kD00N5G4lDeteTQ3wHYEN9CN5DfwWnQ4GBq0OICEFDiX5PQ4n+1kOKdpRDjEcwQ5UofUOWg91Dl5m6Q53050Oh4KtDomnPQ6PW40Pfg9RD35gUQ+AJDkPgiY1D4QnQQ+GH6kPiB9hEEKUyRBvuykQw1eZEM6irRDUu8EQ9MJtERNKDRHCJtkRyshFEdrCt</data>
+<data precision="32" endian="big" length="81">QklIzELB7HZCxebYQuzvA0LyEQ1DLnRaQ0D+tkNDCEpDUt+lQ1rg70Ngce5DbAqZQ27hU0Ny/0tDfAonQ35LVEN+2vhDfvKwQ4Uh1EOGsLlDiYAOQ4oEIEOMpRhDjOQoQ5AHB0ORf1dDmxluQ6RSz0OljFNDqgJlQ6onJEO2sAdDu2bXQ78aMUPAdUFDx5kPQ8mZoEPZ6e5D3od6Q9+F00PgCeRD4IpHQ+EJYEPhJmRD4YoeQ+ILAkPjfYpD5B6gQ+Qn/UPnDfBD7gm3Q/Y6WkP8wINEFlrARB7Z80Qfii5EJPofRC81sERADjpEQnqlREd38kRVPclEXydZRGMHXERjzUFEZXziRGXWlURnTtZEZ/NyRGpYS0Rr46VEcHvPRHHwvER0SWlEdUX9RHazwUR3uvNEeQuuRHntlUR5+aFEen67</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="60">QdgAAEIAAABCLAAAQ+sAAEKiAABCzAAAQroAAEHAAABCCAAAQcAAAEHAAABByAAAQcAAAEGwAABCYAAAQcgAAEIkAABCCAAAQdgAAEIEAABBqAAAQagAAEGwAABCLAAAQcgAAEG4AABB+AAAQiAAAEHIAABC5AAAQvQAAEHoAABC+gAAQfAAAEHwAABB2AAAQcgAAEJAAABB0AAAQbAAAEIQAABBqAAAQbgAAEIMAABBwAAARCNAAEL4AABCvgAAQlwAAEHgAABB8AAAQgwAAEIIAABBuAAAQbAAAEGwAABBuAAAQdAAAEHQAABB4AAA</data>
+<data precision="32" endian="big" length="81">QbAAAEKAAABCBAAAQdAAAEJMAABByAAAQbgAAEI8AABB4AAAQfgAAEHYAABB4AAAQagAAEJUAABByAAAQagAAEHQAABCCAAAQhAAAEHQAABCEAAAQbgAAEIgAABBwAAAQagAAEKYAABB8AAAQgQAAEHoAABBsAAAQgQAAEG4AABBsAAAQeAAAEI4AABB+AAAQbAAAEHAAABCBAAAQkwAAEWkeABENQAARDeAAEGoAABC1AAAQhQAAEHIAABCHAAAQpwAAEGoAABB0AAAQagAAEHIAABBqAAAQggAAEHgAABBqAAAQbAAAEHAAABBuAAAQdAAAEHwAABB4AAAQdgAAEHgAABB+AAAQagAAEGoAABBwAAAQbAAAEIUAABB2AAAQcAAAEHoAABBwAAAQbAAAEIYAABByAAAQcAAAEIQAABBuAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="370">
@@ -1107,13 +1107,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="79.95815215" mzRangeStop="984.29099172">
+<spectrumInstrument msLevel="2" mzRangeStart="96.95667288" mzRangeStop="990.27077216">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.13677"/>
-<userParam name="basePeakMz" value="448.07589879"/>
-<userParam name="basePeakIntensity" value="370.00000000"/>
-<userParam name="totIonCurrent" value="1943.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.13568"/>
+<userParam name="basePeakMz" value="448.07347649"/>
+<userParam name="basePeakIntensity" value="2850.00000000"/>
+<userParam name="totIonCurrent" value="5360.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1127,10 +1127,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="40">Qp/qk0K/5lNCwerrQsXiOULIiAhC55xJQydXhkNDBT5DTg+aQ1jkH0NgHphDYwzpQ28dyUN1o9ZDedh2Q3rmsUN/AplDgYG4Q4QIFkOFbYJDiX+QQ4xGc0OTcFhDlkWFQ57PPkOmLmBDr7d0Q7+PFUPBke9D4Am3Q+CMcUPhB81D4TXkRAh4mEQQXnVEE/CvRDdkCURAg1lEYMAiRHYSoA==</data>
+<data precision="32" endian="big" length="54">QsHp0ULyDoxC/C4YQykJrUM4Hx1DQwnmQ1fefUNcCfNDYwVwQ3MEEUN42RRDjfqFQ5F81EOSdARDpIk2Q7WmskO/qqZDwJsFQ8KeUEPHfPZDyAfPQ8yw/0PRrkJD34etQ+AJaEPgibxD4Qj/Q+EoZ0PhiP9D4geyQ+IVC0PkHlVD5wfAQ+l3N0PvslFD8oWmRAHyzEQT6NJEIZpGRDDAwUQzrBNEPvatREOrmURJQi5EXyLFRGSLXkRq4H9EbXUwRHC+SkRx3sBEcjeSRHKU5UR1GFZEd5FU</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="40">QiAAAELaAABDjYAAQagAAEIQAABB0AAAQagAAEKoAABBwAAAQdgAAEGwAABB2AAAQbAAAEHwAABBwAAAQcgAAEHgAABCuAAAQeAAAEGoAABCjgAAQkAAAEHAAABBqAAAQfAAAEG4AABBqAAAQeAAAEHIAABDuQAAQlwAAEI4AABBqAAAQdAAAEGoAABBuAAAQeAAAEGwAABBuAAAQdgAAA==</data>
+<data precision="32" endian="big" length="54">QqAAAEJwAABBqAAAQdAAAEHIAABCWAAAQhgAAEG4AABCOAAAQdgAAEJAAABCCAAAQhAAAEIMAABCCAAAQagAAEHgAABBsAAAQdAAAEIMAABBuAAAQegAAEH4AABC4gAARTIgAEPpgABDxgAAQbAAAEIwAABByAAAQagAAEIEAABBqAAAQbAAAEHYAABBsAAAQegAAEHAAABBqAAAQegAAEHgAABBsAAAQbAAAEGoAABB2AAAQgQAAEGoAABB4AAAQdgAAEI8AABCCAAAQgAAAEHgAABBsAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="371">
@@ -1139,13 +1139,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="59.99117189" mzRangeStop="920.35753881">
+<spectrumInstrument msLevel="2" mzRangeStart="66.58502944" mzRangeStop="995.17728245">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.14793"/>
-<userParam name="basePeakMz" value="96.95710882"/>
-<userParam name="basePeakIntensity" value="168.00000000"/>
-<userParam name="totIonCurrent" value="1913.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.14685"/>
+<userParam name="basePeakMz" value="448.07763134"/>
+<userParam name="basePeakIntensity" value="1695.00000000"/>
+<userParam name="totIonCurrent" value="4482.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1159,10 +1159,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="49">Qm/29kKa35RCv+bYQsDUY0LB6gpCyIMRQvQRu0L1GJtC9kUrQvt7PEMTqa5DHXTWQyjh0kM67ZpDPw7hQ0MJv0NDQYhDYwS9Q2jknUN4GBZDeP8pQ37CLEN/CspDgYFJQ4IB30OCglJDiX36Q4+HJEOQapFDrEtqQ655UEO4DyFDwHFmQ+AJckPgiqVD4QmhQ+sqX0PtTfNEA+CbRARlK0QMp2FEGlXVRCJOf0RDNglETY76RE3P+URRgiZEVv+vRGYW4g==</data>
+<data precision="32" endian="big" length="67">QoUriUKUwGpCmwbNQqO52EK/lUdCweimQvVeb0MGf7ZDCU6ZQxrfEkMcehZDH0qWQyl+kEMz/6hDNDKnQzcRZEM5jnRDO2uHQzx7dENDBvVDRBM4Q1XxR0NY6D5DYwnoQ27i/UN4AWNDeNiOQ3rWkUN7EJ5Dfuy5Q4PZH0OSAUpDknFKQ5ttgkOdcNBDnY28Q6SLnUOmdjhDvDd5Q8Cc/kPIlbND05A0Q98IQUPfhdND4AnwQ+AhI0PgiepD4JzlQ+EJxkPhjLtD4gpLQ+IaFUPiKHFD4oDwQ+KenUP3sYhELmfVRDGu+kRXdoZEX2xPRGet9ERuXpxEbp2zRHAeFkRwgqNEcOd4RHjLWQ==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="49">QbgAAEG4AABCWAAAQhQAAEMoAABCBAAAQnwAAEIEAABB2AAAQqgAAEHwAABB6AAAQhAAAEGwAABCBAAAQkAAAEHoAABBsAAAQagAAEHgAABBwAAAQagAAEHwAABCqAAAQmQAAEJcAABCdAAAQagAAEHAAABBuAAAQgAAAEJ4AABBuAAAQpQAAEJAAABCvAAAQbgAAEHYAABBsAAAQagAAEHoAABBwAAAQgQAAEGoAABB8AAAQcgAAEHoAABByAAAQeAAAA==</data>
+<data precision="32" endian="big" length="67">QdAAAEG4AABB6AAAQcgAAEHQAABCCAAAQcAAAEHoAABCCAAAQbgAAEH4AABB0AAAQbAAAEHYAABB2AAAQbgAAEHoAABBqAAAQegAAEIUAABBsAAAQbgAAEHYAABCLAAAQfgAAEHIAABBuAAAQbAAAEI0AABB2AAAQhwAAEGwAABBsAAAQagAAEHoAABBuAAAQwEAAEGwAABBqAAAQfgAAEHwAABBsAAAQeAAAEKWAABE0+AAQlgAAEP7AABByAAAQ7mAAEH4AABCGAAAQdgAAEIkAABB2AAAQcgAAEGoAABCBAAAQcgAAEG4AABB2AAAQeAAAEHoAABBuAAAQbgAAEHAAABBqAAAQbAAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="372">
@@ -1171,13 +1171,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="56.35544437" mzRangeStop="853.81632418">
+<spectrumInstrument msLevel="2" mzRangeStart="46.93698011" mzRangeStop="993.63900482">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.1591"/>
-<userParam name="basePeakMz" value="96.95839324"/>
-<userParam name="basePeakIntensity" value="264.00000000"/>
-<userParam name="totIonCurrent" value="1552.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.15802"/>
+<userParam name="basePeakMz" value="448.07810468"/>
+<userParam name="basePeakIntensity" value="1029.00000000"/>
+<userParam name="totIonCurrent" value="3094.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1191,10 +1191,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="37">QmFr+kK/5TZCweqzQsXo+0LIkutDHCQsQx0UmkMdKbRDJABRQycOaUMo4yxDOfoqQz8uxUNO/ppDXQj3Q2kKj0NqC1hDdA/NQ3kAokOBgOZDhI6aQ5GA60OSfZNDm25iQ6ZHF0Ook1FDtpJZQ7ps4EO7ZSlDyHWgQ8qZo0PZhwtD4AoWQ+CHRkPpvkxEH2KHRFV0Pw==</data>
+<data precision="32" endian="big" length="57">Qju/eEKejadCubThQsHpA0LDbaFCyIFKQt9cGULyDdVDMQHTQzk8EUNDBwRDRQbOQ0sU1ENR4RZDUwH5Q1jolENjByZDaOJUQ27fyEN454xDfuh8Q4l+jkONiEdDl6e2Q5yIQ0OeCGhDpIo0Q7KMJ0O6DDxDvxF4Q8KFikPHTcFDx5UCQ8qgfEPLETdDzpcTQ9+G+kPgCf9D4Io2Q+EJTUPhiGVEAmc6RAM3EUQOw8VEKAiMRCq8jkQx2H5EQbC8RFJdCkRY8GlEXts2RGhIxERsnSFEb+r+RHDidER2cwlEeGjl</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="37">QhQAAEIwAABDhAAAQkAAAELSAABCEAAAQbgAAEHgAABByAAAQagAAEIAAABBwAAAQeAAAEG4AABB+AAAQbgAAEHAAABBsAAAQgQAAEKeAABBuAAAQbAAAEG4AABBuAAAQgQAAEH4AABB2AAAQdAAAEHIAABBsAAAQggAAEHQAABDPQAAQcgAAEHYAABBuAAAQbgAAA==</data>
+<data precision="32" endian="big" length="57">QbAAAEIEAABCKAAAQmAAAEHAAABBqAAAQdAAAEHYAABBqAAAQbAAAEJMAABBqAAAQagAAEG4AABBwAAAQcAAAEJIAABCHAAAQdAAAEGoAABCAAAAQagAAEIMAABBwAAAQdAAAEGoAABCGAAAQdgAAEHIAABB6AAAQbAAAEHAAABBsAAAQeAAAEJIAABBqAAAQwwAAESAoABDSgAAQ2sAAEI0AABBqAAAQdgAAEIIAABBwAAAQeAAAEHQAABB6AAAQagAAEGwAABBwAAAQbgAAEHQAABBsAAAQegAAEGoAABB2AAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="373">
@@ -1203,13 +1203,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="63.14232353" mzRangeStop="1002.24754030">
+<spectrumInstrument msLevel="2" mzRangeStart="50.17105479" mzRangeStop="826.08899459">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.17027"/>
-<userParam name="basePeakMz" value="96.95888866"/>
-<userParam name="basePeakIntensity" value="204.00000000"/>
-<userParam name="totIonCurrent" value="1653.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.16918"/>
+<userParam name="basePeakMz" value="448.07573799"/>
+<userParam name="basePeakIntensity" value="941.00000000"/>
+<userParam name="totIonCurrent" value="2783.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1223,10 +1223,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="48">QnyRvUK/55dCwerzQsZ1PkLZMOlC+orQQxZcv0MuhY9DORkHQz8IAUNLy5RDTxfEQ1Au50NT715DWX39Q1rl90NdDWdDdQ55Q3glREN+2wJDgHk+Q4WPJEOHhoNDiS/TQ4mCOEORespDloLlQ5yI+0Ol8MFDqxh/Q6wT20O8mrhDxGGxQ9EC9EPfiBlD4ApuQ+CCdEPhB+JD8nwXRAJrCkQH7mtEGwJpRCEDnEQmkvJEMoAXREByikRPD0pEeo/Y</data>
+<data precision="32" endian="big" length="52">QkivKUJyh9JCpfAJQsHt60LF575C2EqcQxitKUMb/GNDJnOYQycJH0M/2dxDQwoWQ2QbbENqB7dDbuXgQ3RA+kN45XVDeuRsQ3r9aUN88uFDgH7CQ4U/u0OcnwhDpIvBQ6o0rEO8gttDwGhWQ8PDq0PHkrZDx6WpQ84ao0PVlJdD3pReQ9+InEPgCbJD4InJQ+Cj4kPhCkxD4Yx9Q+IQJEPifkVD55qYQ/uQa0QHZKtEDkjaRBDA20QVAfdEKRXdRCtCwkQwieZERiDrRE6Fsg==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="48">QbAAAEKSAABDTAAAQgQAAEHgAABB6AAAQcAAAEGoAABB8AAAQagAAEHoAABCGAAAQhgAAEGwAABB6AAAQdAAAEHwAABBqAAAQgAAAEGoAABByAAAQagAAEHoAABBwAAAQnAAAEGwAABBwAAAQhwAAEHwAABB8AAAQeAAAEHAAABCMAAAQbgAAEG4AABCmAAAQeAAAEJgAABBsAAAQagAAEGwAABB4AAAQagAAEH4AABBwAAAQeAAAEIoAABCFAAA</data>
+<data precision="32" endian="big" length="52">QagAAEH4AABB6AAAQegAAEH4AABCQAAAQbgAAEGwAABBsAAAQggAAEHgAABBwAAAQbAAAEHgAABCSAAAQcAAAEJwAABBwAAAQjAAAEH4AABBsAAAQdAAAEHAAABBuAAAQcgAAEIcAABBwAAAQbAAAEHgAABBqAAAQdAAAEIIAABCcAAAQsQAAERrQABDIgAAQgQAAEMDAABCIAAAQfgAAEKIAABBuAAAQagAAEHIAABB6AAAQdAAAEHIAABBsAAAQdgAAEIMAABBsAAAQcgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="374">
@@ -1235,13 +1235,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="71.46868744" mzRangeStop="996.19594893">
+<spectrumInstrument msLevel="2" mzRangeStart="46.53679787" mzRangeStop="999.44325285">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.18143"/>
-<userParam name="basePeakMz" value="167.03169269"/>
-<userParam name="basePeakIntensity" value="80.00000000"/>
-<userParam name="totIonCurrent" value="1465.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.18035"/>
+<userParam name="basePeakMz" value="448.07500168"/>
+<userParam name="basePeakIntensity" value="735.00000000"/>
+<userParam name="totIonCurrent" value="2972.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1255,10 +1255,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="43">Qo7v+EKXJ7xCweknQswHk0LmKyxC6TrZQuoO8UMM3RtDGKkAQycIHUNDCMFDXVsHQ131hkNjBzxDeQL+Q3klQ0N5/wBDgEoSQ4D2nEOBgWhDguCBQ4NPiUOHksNDiX3rQ4+G4EORclhDkgJdQ6760kOwAOpDuWIvQ8SfTUPLl8JD29xQQ+AJWkPhCFhECBjKRAyENEQfX0lETfmPRE+COERuh5BEc3eERHkMig==</data>
+<data precision="32" endian="big" length="60">QjolrkJDMutCSZBjQnsdW0KV9XNCweeAQs5zNUMePpFDLU26Qy18SkM/COJDQkxmQ0MJC0NEBnRDR+9OQ1EMjENjBehDboQuQ27kYkN58qtDfubvQ4eFMEOICUZDi3JcQ44DwEOQiZZDkncFQ56JWkOki2FDpo7+Q6b6w0O5igtDvAS+Q8eXBEPJZdRDynODQ9tB70PemIJD3xtyQ9+I5kPgCZpD4InBQ+EKUEPhihpD5B61Q+3Pb0PvMpJD/WlKRAtUb0QOkQlEGEZKRBucJ0QcHUpELt5LREL8bURaQ+xEZvxmRG9n90R26Z9Eedxe</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="43">QcAAAEHAAABCjgAAQiwAAEHwAABB6AAAQagAAEGoAABCAAAAQqAAAEH4AABCDAAAQgQAAEKIAABB2AAAQfAAAEHYAABB2AAAQhwAAEHQAABBwAAAQgQAAEIIAABCgAAAQmQAAEHAAABB4AAAQhAAAEHoAABCCAAAQeAAAEHgAABCDAAAQoYAAEHwAABByAAAQbgAAEHQAABByAAAQagAAEGwAABBwAAAQfAAAA==</data>
+<data precision="32" endian="big" length="60">QdAAAEHYAABCLAAAQhQAAEHIAABByAAAQagAAEHQAABB0AAAQagAAEIEAABBwAAAQowAAEHIAABB2AAAQbAAAEJgAABCDAAAQdgAAEGoAABCZAAAQcgAAEGoAABB8AAAQgQAAEHwAABCGAAAQbgAAEJEAABBqAAAQiAAAEIUAABBwAAAQwMAAEIUAABBuAAAQdAAAEJUAABBqAAAQnwAAEQ3wABDMwAAQyAAAEIQAABCEAAAQegAAEHYAABBwAAAQbgAAEGwAABCLAAAQgQAAEIAAABB6AAAQcgAAEHQAABCEAAAQcgAAEHQAABB2AAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="375">
@@ -1267,13 +1267,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="61.92059454" mzRangeStop="976.83056565">
+<spectrumInstrument msLevel="2" mzRangeStart="45.38970436" mzRangeStop="967.07419972">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.1926"/>
-<userParam name="basePeakMz" value="96.95464400"/>
-<userParam name="basePeakIntensity" value="134.00000000"/>
-<userParam name="totIonCurrent" value="1807.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.19152"/>
+<userParam name="basePeakMz" value="448.07394982"/>
+<userParam name="basePeakIntensity" value="575.00000000"/>
+<userParam name="totIonCurrent" value="2749.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1287,10 +1287,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="59">QneusEKA4r5CuSk2Qr/llELB6MdCyIGSQsn8U0Lac8xC/1+7Qw4y/0MnAk9DLih1QzL30kM7HNRDPwl3Q0oNGENOQEZDVuwAQ2jiDkNzHDRDeN0rQ3kBy0N5IstDexPkQ31CJ0OBcJBDgYKdQ4cL7kOJfKZDjobcQ5qXSUObAuZDodcaQ6wapEO3mFxDuZISQ7uATEPIE7lDyJA8Q8kX3kPKFsZDyn9BQ9A1QkPdw55D4Aj/Q+CJOUPvC/tEBcMoRAyqvkQhNQVEIt3ARC3ae0Q9ylREQ+ZcRFWwWURp8KBEcifHRHKwS0R0NSg=</data>
+<data precision="32" endian="big" length="61">QjWPD0KKWwBCjJJBQsHqI0Lh7nBC8g8nQvsOVkMC2+FDJxfuQygIvUMvHjRDPMNZQz0Xw0M/Bv1DYwhjQ2oVsUN42xlDePVzQ37YpEN+6ZhDgHDJQ4uDw0OOdNBDj4bsQ5AIjUOXCT1DpIxVQ6ULS0OvXrZDuQ8SQ7wFPkO9axpDvgviQ8Bu9UPE9npDx5TxQ8gYREPKnmFDy3dNQ881jEPZfUdD3pYgQ96mYkPfhaZD35fcQ+AJd0PgiT9D4QkbQ+GMnUPifmlD/sq0RAA4k0QQmrxEM+X8RDlqekRFjLJEUTvXRGDaP0RjLtVEbBNsRHHEwA==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="59">QiwAAEIYAABBqAAAQeAAAEMGAABCTAAAQgAAAEHAAABBqAAAQcgAAEHAAABBqAAAQbAAAEHAAABB8AAAQdgAAEHAAABCAAAAQgQAAEGwAABBsAAAQqoAAEIAAABBqAAAQgwAAEGoAABBuAAAQdgAAEIQAABBsAAAQbAAAEGoAABBwAAAQegAAEH4AABCFAAAQagAAEH4AABBqAAAQcgAAEGoAABB0AAAQagAAEIYAABCiAAAQgQAAEHoAABBsAAAQbgAAEGwAABCDAAAQdgAAEHAAABB4AAAQcAAAEHoAABBqAAAQbgAAEH4AAA=</data>
+<data precision="32" endian="big" length="61">QdgAAEHIAABB+AAAQfgAAEHAAABCGAAAQbAAAEHYAABCBAAAQdgAAEIUAABBwAAAQgQAAEHIAABCAAAAQagAAEHgAABByAAAQgwAAEI0AABBqAAAQgwAAEHwAABBqAAAQcgAAEGoAABCJAAAQbgAAEHIAABBuAAAQbAAAEHwAABBuAAAQcgAAEGoAABC7gAAQfAAAEHQAABBwAAAQfAAAEGoAABCaAAAQbgAAEKsAABCBAAARA/AAEMkAABDOAAAQpQAAEHQAABB0AAAQdgAAEHAAABByAAAQhgAAEHwAABB0AAAQbgAAEHAAABCBAAAQcAAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="376">
@@ -1299,13 +1299,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="49.89153417" mzRangeStop="951.57426420">
+<spectrumInstrument msLevel="2" mzRangeStart="48.57955327" mzRangeStop="1003.45829398">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.20377"/>
-<userParam name="basePeakMz" value="96.95035662"/>
-<userParam name="basePeakIntensity" value="117.00000000"/>
-<userParam name="totIonCurrent" value="1515.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.20268"/>
+<userParam name="basePeakMz" value="448.07710541"/>
+<userParam name="basePeakIntensity" value="458.00000000"/>
+<userParam name="totIonCurrent" value="2446.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1319,10 +1319,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="49">QkeQ7kJWP2xCv+WwQsHmlULGiNhCyIDnQswKIkMnC1FDNOl1Q1XkbENdC29DXTgpQ18UqUNi8nhDbJCYQ2zulENu6ftDcODgQ3SRwkN84CVDgYBDQ4JxVUOFj7ZDhv3VQ4eGw0OJdHJDjpisQ50Mo0Odev9DrLJqQ7gRbEO+lqhDx5W+Q8kVTUPJY7xDymh+Q9aaN0PfFYxD4An6Q+J/6kPnXNRD+SNKQ/92Y0Qhh2JELZ4qRErtdERe5p5EbQpDRG3kwQ==</data>
+<data precision="32" endian="big" length="58">QkJRdkKD71JCn45dQqfrAULB6EBCyIFtQsl4AELh+RxC/HVjQ0MIQUNRQMxDXAsSQ2MEmkNo6X5DbCB/Q27g80NwdEtDdu/VQ3kDd0N+7DNDgAMpQ4F4YkODdItDhwWQQ4f7v0OIBdtDj3sDQ4+HFEObf2FDpIt6Q6W1cEOtfuRDroz0Q7J+IEO1l+5Dx5WeQ8e30kPIEbNDyJhvQ8qai0POma1D3ylJQ9+GyUPfyvdD4AnfQ+CKOEPhB7lD4R2oQ+GNlUPilglD8AnmRCJCz0Qtm05EObhGREKzIURDeBtEcH8ERHrdVQ==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="49">QbAAAEGoAABCFAAAQuoAAEIoAABCzAAAQbAAAEHoAABCEAAAQhgAAEHAAABB6AAAQegAAEHQAABBqAAAQfAAAEHYAABB6AAAQgAAAEI4AABByAAAQfAAAEHQAABB6AAAQbAAAEIIAABBwAAAQbgAAEH4AABBqAAAQagAAEHYAABByAAAQdAAAEHIAABB0AAAQagAAEHoAABCHAAAQeAAAEGoAABBuAAAQegAAEHAAABB6AAAQcgAAEHwAABBqAAAQbAAAA==</data>
+<data precision="32" endian="big" length="58">QagAAEIMAABCDAAAQcgAAEJUAABB8AAAQagAAEHAAABCGAAAQlwAAEH4AABB+AAAQdgAAEHoAABB2AAAQfAAAEGwAABB4AAAQbgAAEIwAABB4AAAQagAAEG4AABCbAAAQagAAEHQAABBwAAAQgQAAEGwAABCIAAAQbAAAEHIAABBuAAAQcgAAEGoAABDDwAAQhQAAEGwAABBsAAAQcgAAEHoAABCCAAAQvAAAEGoAABD5QAAQnwAAELiAABCEAAAQjQAAEHoAABCFAAAQfAAAEG4AABBwAAAQcgAAEGwAABBwAAAQbAAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="377">
@@ -1331,13 +1331,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="87.89212184" mzRangeStop="958.86116784">
+<spectrumInstrument msLevel="2" mzRangeStart="49.72854756" mzRangeStop="984.60395389">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.21493"/>
-<userParam name="basePeakMz" value="96.95705378"/>
-<userParam name="basePeakIntensity" value="107.00000000"/>
-<userParam name="totIonCurrent" value="1206.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.21385"/>
+<userParam name="basePeakMz" value="448.06574536"/>
+<userParam name="basePeakIntensity" value="253.00000000"/>
+<userParam name="totIonCurrent" value="2542.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1351,10 +1351,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="41">Qq/IxELB6gNCxetCQsiAyELyB2JC+AFcQy8a+UM06ntDPOpeQ0iZX0NOCJdDcSIzQ30dWkN+2vpDhYkRQ4eS9kOKke9Di38NQ4+G+UOTlElDm26sQ551tUOk7hZDs6uEQ7Py00O+ExpDwBi/Q8GZiUPIlfNDyRqzQ8qYKkPgCRdD4BgcQ+EGkUQlwyJELZqpRDisUERD4PVEYrM2RGceqURvtx0=</data>
+<data precision="32" endian="big" length="73">QkbqCEKIh5JCnCPhQp5Q40Kx6l9DBQMMQwjlEUMeGyVDIQ3RQycqNkMtI2NDQwPsQ0WBiUNWscFDVuYhQ2MItENxJCRDcu4aQ3jks0N6WxpDew9EQ3wTWEN+6ftDgYInQ4JuHUOHhtxDiXRMQ4rboEOacA9DmpX0Q5t2aEOoGMBDqwMoQ7CP8kOxelhDs/9wQ7gSyEO9nm1Dvny9Q8CHjEPAlx1DxJ+BQ8eVikPInW1Dyp44Q9OwcEPWHp1D2OpaQ96XDUPfChpD3xfUQ9948UPfhxpD35grQ+AIakPgGr5D4ImuQ+EJG0PhnHND7MHMQ+7tZEPwm5xD+qcJRAn16EQQkNhEOXXGRDmnP0Q9vDBESj/NRFNRmERscM5EbM2HRHYmpw==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="41">QbgAAELWAABB6AAAQagAAEHQAABB6AAAQdgAAEHAAABBwAAAQggAAEG4AABByAAAQagAAEJYAABB+AAAQegAAEHwAABB+AAAQbgAAEGoAABCAAAAQdgAAEGoAABBwAAAQcgAAEG4AABBqAAAQagAAEHIAABBsAAAQggAAEIcAABB2AAAQbAAAEIkAABBqAAAQcgAAEHwAABB2AAAQiAAAEHYAAA=</data>
+<data precision="32" endian="big" length="73">QfgAAEG4AABB6AAAQfAAAEG4AABBsAAAQfAAAEHYAABCWAAAQggAAEIQAABBqAAAQagAAEHQAABB2AAAQoIAAEHwAABBqAAAQhwAAEHgAABChAAAQcAAAEH4AABB2AAAQagAAEJoAABCCAAAQdAAAEH4AABB+AAAQhgAAEHAAABBqAAAQfAAAEGwAABCCAAAQfAAAEHoAABBqAAAQbAAAEHoAABBsAAAQlwAAEHQAABB+AAAQagAAEHAAABB0AAAQiQAAEIAAABBwAAAQdgAAEIcAABBsAAAQ30AAEKAAABDBwAAQjgAAEHAAABBwAAAQcgAAEH4AABB+AAAQbAAAEHAAABBqAAAQbAAAEIAAABBqAAAQcAAAEHQAABB0AAAQgwAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="378">
@@ -1363,13 +1363,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="45.95891262" mzRangeStop="932.54655444">
+<spectrumInstrument msLevel="2" mzRangeStart="52.20410504" mzRangeStop="980.76021979">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.2261"/>
-<userParam name="basePeakMz" value="100.25251097"/>
-<userParam name="basePeakIntensity" value="171.00000000"/>
-<userParam name="totIonCurrent" value="1550.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.22502"/>
+<userParam name="basePeakMz" value="448.07847283"/>
+<userParam name="basePeakIntensity" value="251.00000000"/>
+<userParam name="totIonCurrent" value="2124.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1383,10 +1383,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="49">QjfV7UJAYdVCblZvQo+eo0LB6LNCyIFJQuH/RkL2FvRC+f10QxMqeEMcOOdDKNHWQy71J0MvHLhDThFhQ1sdLUNgHKdDYwTIQ28XiUNy72NDeOtcQ3poYUN/BndDhpC1Q4cL80OHh8hDkBj6Q5sj9UObcv5Dm36hQ7IRgkOyzypDswb7Q70dTEPD9f1DxgTjQ8gfBEPIl9pDyrB9Q94FyEPgiR1D4YjHRAoz4kQLoAxEJ5/6RDQfwkRU+axEXHaJRGki+w==</data>
+<data precision="32" endian="big" length="57">QlDRAUKG6fNC4fgnQuyVnkLw88dDAO2kQwo1xEMVg2dDG7rdQzAePUMzDgZDNYNyQ0EozENQERVDUvJQQ2sNmUNy8mpDdhfRQ45z8EOOiLlDkIctQ5WXU0OWh7VDl4l5Q5jqDEOcLMdDnnJQQ6VuVkOn4j1DqQLHQ7wEq0O8ZABDvptnQ77v6UPAcFxDwY8WQ8IP20PHlO5DyHBJQ8iZOEPQCB9D2EQiQ9+FuUPgCgtD4IrkQ+EJwEPhiPtD6CFtQ+6aK0PxO4ZECrMpRB0amEQi3VZENPzPRFBkQkRwDUtEdTCn</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="49">QbgAAEHAAABBqAAAQdgAAEK2AABDKwAAQfgAAEHQAABByAAAQcAAAEHIAABB8AAAQdAAAEHoAABB2AAAQagAAEIcAABBqAAAQdgAAEIEAABBuAAAQfAAAEIYAABCBAAAQggAAEHAAABBwAAAQagAAEHYAABCCAAAQjwAAEGoAABBuAAAQbgAAEHAAABBuAAAQcgAAEIgAABBsAAAQegAAEIMAABBsAAAQcgAAEIAAABB2AAAQcgAAEHAAABB6AAAQcgAAA==</data>
+<data precision="32" endian="big" length="57">QeAAAEHYAABCBAAAQagAAEH4AABB4AAAQegAAEHQAABBsAAAQagAAEHgAABBqAAAQcAAAEHIAABB2AAAQfAAAEJUAABB8AAAQoQAAEIwAABBwAAAQagAAEIYAABBqAAAQdgAAEIcAABB2AAAQbgAAEGoAABCjgAAQbAAAEG4AABCBAAAQgQAAEIMAABB2AAAQdAAAEJIAABB+AAAQfgAAEHQAABB4AAAQrYAAEN7AABC+AAAQoIAAEGoAABB4AAAQbgAAEIMAABBqAAAQdAAAEHYAABCKAAAQgwAAEGoAABBuAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="379">
@@ -1395,13 +1395,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="51.12671450" mzRangeStop="979.92638625">
+<spectrumInstrument msLevel="2" mzRangeStart="104.96278692" mzRangeStop="996.64035216">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.23727"/>
-<userParam name="basePeakMz" value="399.18947041"/>
-<userParam name="basePeakIntensity" value="76.00000000"/>
-<userParam name="totIonCurrent" value="1449.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.23618"/>
+<userParam name="basePeakMz" value="448.08126027"/>
+<userParam name="basePeakIntensity" value="213.00000000"/>
+<userParam name="totIonCurrent" value="1939.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1415,10 +1415,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="51">QkyBwUKB1K9CunnmQtBgNELfP7hC4fjqQwtTJUMQln5DJeAYQycH/UMpNwJDKx1iQzEDsEMzDzZDNRGZQ08EgUNbGfxDYOfLQ2Ls00N/CC1DhhGWQ4l+hkOOhUVDjpJiQ465XUOPhmZDkX5IQ5GORkOUfENDm26XQ5vtJkOeD0lDoJBuQ6ODLkOrDStDrBiEQ7OEWUOzkURDx5hBQ8mdUkPKFX1DzaCOQ/f7hUQVd/VEIj/4RCKCa0QokQBENoFXRELupERQQZtEdPtK</data>
+<data precision="32" endian="big" length="59">QtHs8kLUqrlDG/3QQyR2KEMnB/xDKw79Qz8GaUNZHORDYwMMQ3LxiUN48aJDeSNWQ3mipEOOhrVDjwPcQ5AbLkOXhV9Dm3fPQ5v5DUOecttDnvo7Q59WwkOij2JDpQsdQ6kAykO7/ndDvJxhQ71yrkO+Al9DwBb3Q8dnsEPHmQ5DyBf4Q8jOS0PJF6hDymoeQ8qd2kPLlJRDzHUsQ84L2EPOH+tD1303Q96blEPgCmdD4Qv8Q/VLaUP+JpdEGQEkRBsFV0QdtOFEHgWWRCAgukQg6gVELGwQRGFC30RjGiJEdbnZRHaVWUR5KPw=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="51">QfgAAEHIAABCDAAAQgQAAEGoAABCBAAAQcAAAEG4AABByAAAQkgAAEG4AABBsAAAQdAAAEG4AABBqAAAQdAAAEGwAABB2AAAQbgAAEJgAABByAAAQdgAAEJwAABBqAAAQegAAEHYAABB2AAAQbgAAEHQAABCDAAAQdAAAEG4AABCKAAAQegAAEGoAABB8AAAQbAAAEHYAABCmAAAQcAAAEGwAABBuAAAQagAAEG4AABBqAAAQcgAAEGwAABBqAAAQcgAAEIIAABBuAAA</data>
+<data precision="32" endian="big" length="59">QegAAEHYAABCLAAAQdgAAEJ8AABBqAAAQcAAAEHoAABB6AAAQngAAEG4AABCAAAAQcAAAEIEAABCRAAAQagAAEJ4AABCWAAAQcgAAEHoAABB0AAAQbAAAEHwAABBuAAAQiwAAEIAAABByAAAQcgAAEHIAABB4AAAQgwAAEHIAABB4AAAQagAAEHAAABBsAAAQagAAEGoAABBsAAAQagAAEIUAABBuAAAQdgAAENVAABCKAAAQgAAAEHYAABByAAAQagAAEGwAABB+AAAQhwAAEGwAABBqAAAQigAAEGwAABBqAAAQcAAAEG4AAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="380">
@@ -1427,13 +1427,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="57.39987322" mzRangeStop="999.44494654">
+<spectrumInstrument msLevel="2" mzRangeStart="96.96184117" mzRangeStop="781.54336024">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.24843"/>
-<userParam name="basePeakMz" value="275.05127925"/>
-<userParam name="basePeakIntensity" value="58.00000000"/>
-<userParam name="totIonCurrent" value="1485.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.24735"/>
+<userParam name="basePeakMz" value="448.07700022"/>
+<userParam name="basePeakIntensity" value="153.00000000"/>
+<userParam name="totIonCurrent" value="1665.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1447,10 +1447,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="51">QmWZeEKljo9Cv+UvQsHpVELGiQFC1/o0QuH15kMWXUlDHKePQx0luEMnCuZDMw5xQ0UUkkNIwZ9DfAeNQ4IIMEOFcN5DhpHOQ4cJS0OHhxBDiYaQQ42Rx0OOCjlDjoRGQ49yEkORwoZDk5nbQ5SHLkOYB4JDm20qQ6GXZkOirWhDp+8UQ6sUckO2lWVDwJjbQ8RVOkPIGNpDyCmeQ95GYkPgBgFD4g0ERAjsG0QPXItED4qVRBV+c0QWi1dELvLkREu7YkRpGo1Eedx6</data>
+<data precision="32" endian="big" length="47">QsHsdkLGkdBCx6BKQuHrAkMEMl9DBkPLQwyDKEMnCqxDLvS3Qza4P0NFCBNDXQoqQ2VfikNvHE9DcvIoQ3sPrEOCB75Dh4BlQ4j6VEOPh9lDl4ZFQ5eqQkOabpZDm3oxQ5xt00OiGL1DpIqqQ6d5f0OxH5ZDvICxQ8Btp0PCFvlDyJTZQ8kXLkPZB45D34t7Q9+fO0PgCdtD4I0OQ+EH6UPhiXFD6BcwQ/Sh4kQCuH5EGecJRDByjkRDYsY=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="51">QcAAAEHAAABCHAAAQiQAAEIEAABBwAAAQfAAAEHYAABCBAAAQhgAAEGoAABBqAAAQegAAEHQAABCEAAAQbAAAEIEAABCBAAAQegAAEHAAABCaAAAQagAAEHAAABCVAAAQcgAAEHwAABB8AAAQdAAAEI4AABBqAAAQbAAAEIAAABByAAAQfAAAEHIAABBwAAAQfgAAEIQAABBuAAAQbgAAEHgAABBqAAAQbgAAEHgAABBwAAAQggAAEHYAABBqAAAQeAAAEHgAABB+AAA</data>
+<data precision="32" endian="big" length="47">QgAAAEG4AABB8AAAQdgAAEHAAABBqAAAQiwAAEIcAABB6AAAQbAAAEHAAABB2AAAQcAAAEJAAABCHAAAQagAAEHYAABBsAAAQgwAAEIAAABDCQAAQbAAAEHoAABB8AAAQagAAEHwAABCSAAAQfgAAEIMAABBsAAAQdAAAEHIAABByAAAQagAAEHQAABBqAAAQfAAAEMZAABC/AAAQiQAAEHAAABBsAAAQcgAAEHQAABBuAAAQeAAAEHYAAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="381">
@@ -1459,13 +1459,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="91.94316912" mzRangeStop="829.31475015">
+<spectrumInstrument msLevel="2" mzRangeStart="54.35177429" mzRangeStop="943.95841850">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.25962"/>
-<userParam name="basePeakMz" value="285.04457875"/>
-<userParam name="basePeakIntensity" value="75.00000000"/>
-<userParam name="totIonCurrent" value="1539.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.25852"/>
+<userParam name="basePeakMz" value="303.05213313"/>
+<userParam name="basePeakIntensity" value="470.00000000"/>
+<userParam name="totIonCurrent" value="2358.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1479,10 +1479,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="54">Qrfi50LB6UFC7haLQvoMeUMH/qxDC3NxQw2ZZ0MhFptDIZyEQycH20Mu8qFDMzAnQzTbl0M678VDR9vRQ1kIWUNa8fVDYBT5Q2MH8kNuEuZDcwFSQ3buHEOFbe1DhwAUQ4eGDUOJhf9DipexQ46FtUOQkgpDkw4dQ5SHGUOXh+BDnJKVQ6J4QUOiidpDo3yuQ6OIQkOjv+RDpJToQ6UVa0O0mzRDt8bDQ8IWSUPCmvhDyRUeQ9dwE0P1Cw1EAZobRAIdTUQEEZNEGq+bRCXm7ERF8xZET1Ql</data>
+<data precision="32" endian="big" length="61">QlloOEJmu5dCiLQEQsVuzkLTSb9DBcubQxdLykMclq5DVg3NQ3j26EOAAAZDhwSSQ4mHNUOKdH1DjoMiQ4+GGUOTWQlDlA7nQ5eGrEOYB8tDmIgMQ5pzk0Oai1NDm3bNQ5yHvUOecbFDoanhQ6KHxkO3NXBDuonPQ8iZuEPJMelDyZvVQ8sUokPLI6BD0o7uQ9KuIEPfhWJD4Am8Q+CKwkPgmxxD4QuHQ+Gao0PiF+dD4n1sQ/CjUkP04ABD+DyJRAAz1kQCcthEBbUERAzOX0QZeilEI+bERCec5kQuN1JENV+bRDfjyERTRIFEXw2aRGv9Vw==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="54">QbgAAEGwAABB0AAAQggAAEHIAABBsAAAQcgAAEHwAABByAAAQfgAAEI8AABBqAAAQcgAAEHgAABBuAAAQeAAAEG4AABB6AAAQigAAEGwAABCFAAAQiAAAEHAAABCBAAAQagAAEIcAABByAAAQpYAAEH4AABB2AAAQbAAAEGwAABB2AAAQagAAEH4AABB8AAAQcAAAEHIAABBsAAAQggAAEHwAABCBAAAQagAAEGoAABBsAAAQgQAAEIAAABBwAAAQegAAEG4AABB2AAAQegAAEHgAABB0AAA</data>
+<data precision="32" endian="big" length="61">QcgAAEGoAABB0AAAQagAAEHoAABBuAAAQcAAAEG4AABBsAAAQrAAAEHAAABB6AAAQcgAAEIIAABCKAAAQbAAAEHwAABB8AAAQ+sAAEIAAABByAAAQgQAAEGwAABCDAAAQbAAAEHYAABBqAAAQigAAEGoAABBuAAAQcAAAEHYAABCYAAAQeAAAEIEAABB8AAAQcgAAEGoAABC9AAAQlgAAEIwAABCngAAQdgAAEHQAABB6AAAQdAAAEGwAABB+AAAQcAAAEGoAABB8AAAQdAAAEGoAABB2AAAQeAAAEHwAABCDAAAQdAAAEGoAABBuAAAQfgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="382">
@@ -1491,13 +1491,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="79.08965734" mzRangeStop="947.61157236">
+<spectrumInstrument msLevel="2" mzRangeStart="73.57193593" mzRangeStop="955.84632394">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.27078"/>
-<userParam name="basePeakMz" value="275.05358678"/>
-<userParam name="basePeakIntensity" value="131.00000000"/>
-<userParam name="totIonCurrent" value="1943.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.26972"/>
+<userParam name="basePeakMz" value="303.05606912"/>
+<userParam name="basePeakIntensity" value="365.00000000"/>
+<userParam name="totIonCurrent" value="2250.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1511,10 +1511,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="65">Qp4t6EKp+ipCyoCzQtgZ/0Lh921C/9vRQy7zIkMxAhhDMwLXQzT1ukNL0PVDVOwDQ1keCUNlYsRDcOaGQ3iM5kN5HdtDegN1Q4CG7UOBD9dDgYeHQ4fMykOIcSlDiYbcQ4oH4UOOhXpDj4egQ5By+kOVfbxDlYwTQ5YCx0OWjFNDm22kQ6OKLUOqfiFDqpc3Q60mCkOvGexDsQ5rQ7PwTEO/ZC1DwZVTQ8afN0PHncVDyJu/Q8ogbkPKmkFD0h/oQ+AHeUPhCgdD4spOQ/e7aEP4w6dEAdTTRARB5kQYiDpEIHxuRDksLkQ+rJdEQ9WpRE4s20RX2mVEZ6OsRGpDXURs5yQ=</data>
+<data precision="32" endian="big" length="58">QpMk1UKoU15C4fpxQuaMkkMJkcxDJjzPQycIYkMtTXFDNUJBQz0h80Nw8I1DcvL3Q3j0Y0N9JoNDiYZBQ4sOCkOMxgRDjoWdQ4+KWEOQigpDl4ctQ5gHiEObdbNDm9sFQ56SUEOhANJDowVLQ6OK30OkjTFDqQMVQ6sVB0OtexJDtpwuQ8aJkUPHFYtDx5g3Q8mYkkPKoDVDywtkQ9FtlkPSg6ZD3xjoQ9+TP0PgCiRD4It3Q+DIMkPhCjtD4hPsQ/6s7UP/GpFEAZj8RAzho0QW6LlEI1YARDfB/UQ35TREVziMRG72Kg==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="65">QagAAEHoAABBuAAAQiAAAEHYAABBqAAAQdAAAEG4AABByAAAQagAAEHAAABB0AAAQegAAEHAAABBwAAAQcgAAEIYAABB2AAAQcgAAEG4AABCDAAAQegAAEHoAABDAwAAQoAAAELIAABBsAAAQdgAAEHAAABByAAAQfAAAEH4AABBqAAAQcAAAEG4AABB8AAAQbgAAEGoAABB4AAAQcgAAEHYAABBsAAAQdAAAEIQAABCJAAAQcgAAEHAAABB2AAAQbAAAEHgAABBwAAAQbAAAEIQAABB0AAAQbgAAEHIAABCAAAAQcgAAEHIAABBsAAAQdAAAEHQAABB8AAAQgQAAEHYAAA=</data>
+<data precision="32" endian="big" length="58">QdgAAEG4AABCZAAAQbgAAEHIAABBqAAAQjAAAEG4AABB6AAAQcgAAEHYAABB8AAAQcAAAEHAAABB0AAAQcAAAEGwAABCVAAAQfAAAEIgAABDtoAAQoAAAEKEAABB6AAAQfAAAEGwAABBwAAAQhQAAEGoAABBwAAAQjgAAEHIAABCFAAAQgwAAEGwAABCJAAAQgwAAEHYAABB2AAAQcgAAEHIAABBwAAAQgAAAEMwAABB6AAAQcgAAEJkAABB8AAAQegAAEIcAABBwAAAQagAAEG4AABBwAAAQagAAEHYAABBsAAAQbgAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="383">
@@ -1523,13 +1523,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="112.98473688" mzRangeStop="968.00688704">
+<spectrumInstrument msLevel="2" mzRangeStart="89.45532746" mzRangeStop="984.66663633">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.28198"/>
-<userParam name="basePeakMz" value="285.05177283"/>
-<userParam name="basePeakIntensity" value="114.00000000"/>
-<userParam name="totIonCurrent" value="1626.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.28088"/>
+<userParam name="basePeakMz" value="303.06022141"/>
+<userParam name="basePeakIntensity" value="268.00000000"/>
+<userParam name="totIonCurrent" value="1762.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1543,10 +1543,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="48">QuH4L0LpIFVC9wytQvoNBUMAzixDDThYQxEWY0MoDDhDKz0tQzMAPEM4fblDO6B6Q0obMkNPEqNDWQ+dQ18NR0Ny7/hDdQF7Q4ASDkOBubhDiYf7Q4mU0kOKB6tDjoagQ5HyKEOVmOtDl4dLQ5gHBkOcla1DooaHQ6TJPUOmFWBDs9DlQ7b+5kO8A/JDvv69Q8efHUPLKTpDy5XDQ9Il+UPYDQFD2CMcQ9rfVEPf9b1EI5CvREB6+URikflEcgBx</data>
+<data precision="32" endian="big" length="43">QrLpIULB6aZCxs0DQsoCRULh+jBC6BSfQvItUkMM+W9DJwggQ18OGkNyvQxDh4WqQ4kCh0OJhY9Djoa2Q5AJIkOXh7VDmAeUQ5hzWkOaCWpDmnQUQ51uJEOeeCJDook3Q6MIp0OjiS1DpQsMQ6WKzUO2nytDxmkaQ9uqLUPfFTRD34daQ+AKe0Pgjd9D4KpdQ+EFu0PhhrFEBjrwRAgu9UQervFEIyHWRHYqqg==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="48">QpoAAEHAAABBsAAAQiwAAEGwAABBqAAAQgQAAEG4AABCEAAAQegAAEHAAABBuAAAQhQAAEIAAABCGAAAQggAAEIYAABCKAAAQdAAAEIkAABCigAAQgwAAEHAAABC5AAAQfAAAEGoAABCMAAAQeAAAEIUAABChAAAQcAAAEGoAABByAAAQgQAAEJQAABB+AAAQcgAAEGoAABByAAAQhQAAEGoAABBqAAAQbgAAEGoAABByAAAQeAAAEHwAABB8AAA</data>
+<data precision="32" endian="big" length="43">QdAAAEH4AABBuAAAQfAAAEJIAABByAAAQcAAAEHAAABB0AAAQgwAAEHYAABB+AAAQegAAEJ4AABB+AAAQbgAAEOGAABCKAAAQbgAAEGwAABB6AAAQcgAAEIMAABByAAAQagAAEIgAABBsAAAQhQAAEG4AABBwAAAQbgAAEGoAABBwAAAQsoAAEK2AABB6AAAQvIAAEKGAABBwAAAQiwAAEH4AABCAAAAQbAAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="384">
@@ -1555,13 +1555,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="46.48722261" mzRangeStop="1000.00694274">
+<spectrumInstrument msLevel="2" mzRangeStart="59.59719080" mzRangeStop="945.41604394">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.29313"/>
-<userParam name="basePeakMz" value="285.03602149"/>
-<userParam name="basePeakIntensity" value="90.00000000"/>
-<userParam name="totIonCurrent" value="1352.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.29205"/>
+<userParam name="basePeakMz" value="303.05196012"/>
+<userParam name="basePeakIntensity" value="133.00000000"/>
+<userParam name="totIonCurrent" value="1513.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1575,10 +1575,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="47">Qjny6kKPzNRC7eGJQwIRZ0MXDvVDF2exQxkEZkM+VjBDSpG+Q0wUrUNYJJdDWQw1Q2LwA0NzBdpDfQFEQ30VjEOBemVDiYmqQ42G0UOOFxRDjoScQ5eH4EOYhK1DmTyQQ5tQEEObcc1DopobQ6ObeEOy/vhDsxRrQ7WOikPLGlZDzDz/Q9j22EPfjEFD4AsRQ+Lh2EP9KWREBhF9RBdkXUQhjflEMmd6REh6OURKaUpEUwQoRFWaY0R6AHI=</data>
+<data precision="32" endian="big" length="49">Qm5jhkJ17cNCoA0nQsM3IULp+8FDAZKBQwH/skMMTY5DDjipQxkGoUMe3f9DJvSbQ1udJENehVBDYrvxQ3LxL0N46/FDhHQAQ4WA6EOJh/lDil36Q5IP80OXhqdDngFGQ554l0Ohgi9DswUkQ7kBhkO/mEZDypVlQ8uLyEPSkORD3fwUQ+AIwkPgeupD4Iz5Q+EH+EPiBHVD4prKRAjd4UQRd+pEGJbhRCDH4UQyVTxEVACVRF0O8ERjVLREZjQuRGxaoA==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="47">QfAAAEGwAABCDAAAQeAAAEG4AABCDAAAQeAAAEHwAABBsAAAQfAAAEGoAABB4AAAQdgAAEHQAABBqAAAQgAAAEHAAABBsAAAQjwAAEGoAABCtAAAQggAAEHYAABBqAAAQdAAAEHIAABB0AAAQbAAAEIcAABB4AAAQagAAEHQAABB4AAAQggAAEGoAABCEAAAQhQAAEGoAABByAAAQbAAAEHIAABByAAAQhQAAEIEAABBuAAAQagAAEHYAAA=</data>
+<data precision="32" endian="big" length="49">QgQAAEHwAABBwAAAQagAAEHoAABB4AAAQdgAAEG4AABCZAAAQagAAEHAAABBwAAAQcAAAEHwAABBsAAAQkQAAEIoAABBwAAAQagAAEHYAABBqAAAQgAAAEMFAABBsAAAQcAAAEHYAABCBAAAQcAAAEGoAABB8AAAQgwAAEHQAABB0AAAQo4AAEIAAABBsAAAQkQAAEHIAABB6AAAQagAAEHYAABByAAAQegAAEGoAABBsAAAQfAAAEHQAABB6AAAQagAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="385">
@@ -1587,13 +1587,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="80.40677781" mzRangeStop="825.53414767">
+<spectrumInstrument msLevel="2" mzRangeStart="50.28549973" mzRangeStop="917.14467940">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.3043"/>
-<userParam name="basePeakMz" value="195.98009346"/>
-<userParam name="basePeakIntensity" value="45.00000000"/>
-<userParam name="totIonCurrent" value="1070.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.30322"/>
+<userParam name="basePeakMz" value="448.06869054"/>
+<userParam name="basePeakIntensity" value="89.00000000"/>
+<userParam name="totIonCurrent" value="1443.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1607,10 +1607,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="38">QqDQRULL69RCz3E6QxDxmUMSUp5DIRsLQy70XUMv8/JDNBHPQ0MIdENDbAZDQ/rnQ08ZFENVnkVDaxd8Q38jPkOAiIhDh5GQQ4r8i0OLCKRDjIyzQ46FaEOVkpRDoHW+Q6OK4UOorOxDsdo/Q7nvb0PAFdBDxxnvQ+CErkPgncBED9cORCvGo0QuH2VEQskcREluTkROYi8=</data>
+<data precision="32" endian="big" length="43">QkkkWkJYxJZDDuvNQy7yy0ND+P1DbRI5Q3ATwkNy87FDkRBkQ5JyTEOXhkJDmAdcQ5i2KEOiEg9DqxaKQ62E9UOyNpNDswOTQ7WOrUO3FYFDyRnqQ81PJ0PemVND3w6tQ987LEPgCMtD4IxUQ+EIGEPhhdBD4gPqQ+SPmEP13y1EBp+JRAkdbEQtf61ERC52RE7Yn0RU1OdEW8wPRF/IjkRiOdNEYnmJRGVJQg==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="38">QdAAAEIQAABBwAAAQggAAEHAAABB8AAAQbgAAEG4AABB2AAAQbgAAEHIAABCNAAAQfAAAEIQAABCAAAAQegAAEHQAABCDAAAQegAAEIYAABBuAAAQeAAAEIMAABB+AAAQfAAAEH4AABB2AAAQfgAAEHAAABBsAAAQbAAAEGoAABBqAAAQegAAEHIAABBqAAAQcgAAEHoAAA=</data>
+<data precision="32" endian="big" length="43">QcAAAEHoAABByAAAQbAAAEIAAABCGAAAQhAAAEJcAABBuAAAQagAAEKKAABB6AAAQegAAEIEAABBsAAAQcAAAEHoAABCGAAAQcAAAEIQAABBwAAAQcgAAEGoAABB2AAAQdgAAEKyAABCjgAAQqAAAEKUAABBwAAAQlgAAEG4AABBqAAAQbAAAEHAAABByAAAQcAAAEHoAABByAAAQdAAAEGwAABB2AAAQagAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="386">
@@ -1619,13 +1619,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="53.54544769" mzRangeStop="1001.06333207">
+<spectrumInstrument msLevel="2" mzRangeStart="49.20371982" mzRangeStop="961.64204887">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.31548"/>
-<userParam name="basePeakMz" value="345.09535360"/>
-<userParam name="basePeakIntensity" value="43.00000000"/>
-<userParam name="totIonCurrent" value="905.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.31438"/>
+<userParam name="basePeakMz" value="448.07978766"/>
+<userParam name="basePeakIntensity" value="165.00000000"/>
+<userParam name="totIonCurrent" value="1284.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1639,10 +1639,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="36">QlYuikLLbrJC6AcjQwSUBUMG9P5DGQQtQyQOOkMxCQVDaWzYQ4GGQUODiQJDhYnCQ5WY30OWBmpDo/K9Q6yMNUOzBW9DvJOaQ74X8kPJFT9Dy5ofQ86mUEPXgtlD4ApbQ+CM+kPq7nlD+nQrQ/s2hEQPAyBEEhpLRBlN0kQkedhERFhmRG+jVURwiKpEekQO</data>
+<data precision="32" endian="big" length="39">QkTQnEJGz0BCg74/QoSho0KcKDxCxeYDQzV+Q0NODnZDcCHPQ3Lsw0N8HrpDhpT+Q4wZAEOOg6tDlUe/Q6F+IkOliw5Drpt5Q7AgeEOzBYpDuoTSQ7yZuUPIFgxD35FdQ+AKNkPgjcpD4Ql7Q+GITkPiDVdD4osXQ/i8+UQDlC5EF+frRB01ckQi6sNEOKCcRFCZIURZ8StEcGkX</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="36">QbAAAEGwAABByAAAQfgAAEGoAABBsAAAQhAAAEGwAABCCAAAQggAAEHIAABB2AAAQcgAAEHYAABBqAAAQiwAAEHYAABBqAAAQagAAEHAAABB2AAAQbAAAEG4AABBsAAAQcgAAEGwAABBsAAAQbgAAEGoAABBsAAAQcAAAEHYAABB8AAAQbgAAEGoAABBqAAA</data>
+<data precision="32" endian="big" length="39">QagAAEGoAABB6AAAQagAAEGwAABCBAAAQcgAAEHoAABBsAAAQhAAAEHAAABBsAAAQcAAAEHoAABB6AAAQfAAAEHYAABBsAAAQagAAEIEAABBsAAAQagAAEIAAABCRAAAQyUAAEJoAABCsgAAQdgAAEHAAABByAAAQcAAAEIUAABBwAAAQcgAAEGwAABB4AAAQbAAAEIgAABB8AAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="387">
@@ -1651,13 +1651,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="55.77798645" mzRangeStop="958.71622814">
+<spectrumInstrument msLevel="2" mzRangeStart="67.01079822" mzRangeStop="980.84970159">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.32667"/>
-<userParam name="basePeakMz" value="55.77798645"/>
-<userParam name="basePeakIntensity" value="41.00000000"/>
-<userParam name="totIonCurrent" value="1122.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.32555"/>
+<userParam name="basePeakMz" value="448.07068907"/>
+<userParam name="basePeakIntensity" value="130.00000000"/>
+<userParam name="totIonCurrent" value="1576.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1671,10 +1671,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="41">Ql8cqEKUuA1Cr/IpQr/l7ELB/+JC3DVlQvYLyEMATnZDDChOQxUOKkMu9LtDM/++Q1A6UENR+8hDYCw5Q2gzzENrDXRDa822Q4GHnEOFiUFDig2QQ48F00OPiHNDmwU5Q6LKokOpD5VDqXBAQ7EZrkOz7llDw0GtQ8Vw10PGylFDyZyMQ8qWVEPnQ2VECtqHRAw1E0QPOoFEJtYhREc7i0Rvrdc=</data>
+<data precision="32" endian="big" length="52">QoYFh0KIu3pCmfOEQsHf1ELTWI1C4fiEQukcN0MMJgRDEBjdQ0MLQUND9+NDT5+YQ3DkL0ODiQRDi4ZrQ4+Fs0ORDodDkXo0Q5GyWUOTelpDm3RsQ55xX0OkKzdDssN+Q7ymekO/B6xDwmf5Q8eZjUPKR3tD04h9Q9mRNUPeCnJD4AkMQ+CMcUPhB4VD4YBURAIZqkQDEhZEFIFXRCVIHEQmE4ZENasGRELDw0RFiQNET1NWRE925ERYD6tEWWHaRFw9xURlV2hEawa0RHU2Yg==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="41">QiQAAEG4AABB2AAAQcgAAEHgAABBuAAAQbAAAEHoAABBuAAAQhAAAEGwAABBqAAAQcgAAEHoAABB8AAAQcAAAEIcAABBwAAAQiAAAEIAAABB4AAAQfgAAEIcAABB6AAAQbgAAEGwAABBuAAAQcAAAEH4AABByAAAQgAAAEHoAABBuAAAQdgAAEGoAABB2AAAQegAAEGwAABB+AAAQagAAEGwAAA=</data>
+<data precision="32" endian="big" length="52">QcgAAEHAAABByAAAQcgAAEHQAABCLAAAQfAAAEIAAABB6AAAQbgAAEGwAABByAAAQggAAEHYAABBqAAAQgQAAEHAAABByAAAQagAAEHoAABCMAAAQeAAAEHoAABCAAAAQcAAAEHIAABBsAAAQjwAAEG4AABB6AAAQcAAAEHAAABDAgAAQhAAAEK+AABBsAAAQcAAAEHAAABBuAAAQcAAAEHIAABBqAAAQiAAAEGwAABBsAAAQbgAAEGoAABB8AAAQegAAEHAAABB0AAAQagAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="388">
@@ -1683,13 +1683,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="51.67352334" mzRangeStop="965.58131288">
+<spectrumInstrument msLevel="2" mzRangeStart="65.23736239" mzRangeStop="991.51601694">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.33783"/>
-<userParam name="basePeakMz" value="116.55614497"/>
-<userParam name="basePeakIntensity" value="156.00000000"/>
-<userParam name="totIonCurrent" value="1783.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.33672"/>
+<userParam name="basePeakMz" value="449.09851961"/>
+<userParam name="basePeakIntensity" value="75.00000000"/>
+<userParam name="totIonCurrent" value="1473.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1703,10 +1703,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="59">Qk6xsEKgKe9C0OOZQuH3v0LmJeVC6Ry/Qvxkr0MBDl5DD4lGQx9T90MlFbhDJxMyQy70P0NEB/tDRgYJQ3XEcEN46qdDgYdqQ4QMDEOJfytDiYq/Q44Ph0OXh1tDnfdlQ6J/ckOjLoZDo4iXQ6OXP0Omlx9DqfBPQ6uQb0OsqOVDsJGtQ7KGl0O1luxDupdgQ7+E1EO/mMFDxO+PQ8iYWEPIxcdDyZYjQ+AIj0PtJdBD9TFUQ/lG2UP5rbtEBOG0RAZRAkQJ8SREETH7RBOhTUQUFnJEF+tCRBjNT0ROnixEVVxSRFr/S0RxZTQ=</data>
+<data precision="32" endian="big" length="51">QoJ5iEK+Za1C5fjgQu4N3UMB+95DNPpTQ0ocmkNPE+lDUy2hQ2/7vkNy8xpDc++rQ3YGh0N7DXxDfvCXQ4z9pEOXhs5DmkPQQ5zxAkOddTNDn2qaQ6Xzz0Oo9iRDrJIDQ7xyQkPEECBDx49vQ80JE0PSjXND10SXQ9gEX0PY2idD3xQyQ99oX0PgC2JD4IycQ+EFwkPhE+tD4ZekQ+KPREPkg8pEAgDMRBotQ0QxMR1EQh6TREIzxkRRxdJEWBKrRFzQG0RtAY9Ed+EG</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="59">QcAAAEHwAABCCAAAQhgAAEIgAABDHAAAQfAAAEHQAABB2AAAQdgAAEG4AABBwAAAQcAAAEHgAABBqAAAQgwAAEI0AABCfAAAQcgAAEHQAABB2AAAQagAAEGoAABCLAAAQdgAAEGoAABBqAAAQcAAAEGoAABB6AAAQbAAAEHoAABBsAAAQbAAAEIkAABBuAAAQeAAAEHAAABBsAAAQdgAAEHAAABCGAAAQdgAAEIAAABB0AAAQeAAAEHoAABBuAAAQcgAAEH4AABB2AAAQbAAAEHYAABBuAAAQcgAAEHwAABBsAAAQdgAAEIQAAA=</data>
+<data precision="32" endian="big" length="51">QbgAAEHIAABCEAAAQbgAAEHAAABB6AAAQcgAAEHIAABByAAAQbAAAEH4AABBqAAAQcgAAEIUAABBwAAAQdgAAEG4AABB6AAAQdAAAEIgAABBwAAAQbgAAEHYAABB2AAAQeAAAEI4AABCHAAAQcgAAEHYAABBqAAAQcgAAEHYAABByAAAQagAAEJwAABClgAAQgAAAEHwAABB4AAAQggAAEHAAABBqAAAQegAAEHAAABB+AAAQfAAAEGoAABBwAAAQigAAEGoAABBsAAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="389">
@@ -1715,13 +1715,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="94.23623804" mzRangeStop="904.45391829">
+<spectrumInstrument msLevel="2" mzRangeStart="51.89336323" mzRangeStop="971.22676588">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.349"/>
-<userParam name="basePeakMz" value="287.05549874"/>
-<userParam name="basePeakIntensity" value="70.00000000"/>
-<userParam name="totIonCurrent" value="1346.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.34788"/>
+<userParam name="basePeakMz" value="449.10989274"/>
+<userParam name="basePeakIntensity" value="125.00000000"/>
+<userParam name="totIonCurrent" value="1763.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1735,10 +1735,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="46">Qrx49ELfK4dDG2C6QycC+kM+DoNDWRPwQ1z0hkNfDFhDaLloQ27sjUNzOiVDdeMzQ4GHA0OFiDtDh7ZfQ4mD2EOKka9DjoSfQ4+HG0OVcrZDloM3Q5wXrUOekxJDnrFXQ6UqBkOrlR5DrKVdQ7MCkkO5mAJDu/93Q7+W+0PHmTBDyBtAQ8mdGkPKmBRDy5BVQ9Px7UPfi4BD4I2cQ+GeKEQJy0NEC4MCRBQDoUQbnwhEQaTBRGIdDQ==</data>
+<data precision="32" endian="big" length="55">Qk+SzkJT6Z5CVjqbQo+5ykKQjfBCmTMhQsrVqEMG6xpDGAg2Q0mRwUNy8SZDcx4+Q3jzfkODghdDhYofQ4aCQkOJLtZDjAvbQ4+H+UOQiDxDkwzRQ5t23kOc9L9DrbCNQ7R9bUO2nslDvASKQ7yDF0O9dd9Dvmz/Q8AZOkPIDTFDySGnQ8mVlUPKmUNDy5QQQ9Fr90PcUuBD3g8EQ98E80PgCW9D4I4RQ+CpjkPhBCND4RLXQ+GXv0PiF5tD4pTTQ/y2skQ3mUxEVbq0RF/ZCURgCoxEcfefRHLOgw==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="46">QfgAAEGwAABBsAAAQdAAAEHAAABBqAAAQdAAAEIoAABCKAAAQbAAAEHYAABCCAAAQogAAEHYAABBwAAAQgQAAEGwAABBwAAAQowAAEGoAABBwAAAQbAAAEGoAABB6AAAQdAAAEIAAABB2AAAQdAAAEG4AABBuAAAQjQAAEG4AABBsAAAQdgAAEHwAABCAAAAQagAAEGwAABCIAAAQbgAAEHYAABByAAAQgAAAEIUAABCAAAAQdgAAA==</data>
+<data precision="32" endian="big" length="55">QcAAAEHwAABB6AAAQbgAAEGwAABB6AAAQbAAAEIgAABB0AAAQjAAAEKEAABBsAAAQggAAEGwAABBqAAAQdgAAEHIAABBqAAAQjQAAEIQAABB4AAAQcgAAEHIAABB4AAAQhAAAEIEAABB+AAAQbgAAEHAAABB4AAAQcgAAEHYAABBsAAAQkAAAEH4AABBwAAAQdAAAEHYAABB8AAAQhAAAELIAABC+gAAQbgAAEHwAABCJAAAQfgAAEGwAABBqAAAQhQAAEHIAABBqAAAQbgAAEGoAABBqAAAQhQAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="390">
@@ -1747,13 +1747,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="56.66770301" mzRangeStop="890.24186652">
+<spectrumInstrument msLevel="2" mzRangeStart="50.49784278" mzRangeStop="994.94482705">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.36018"/>
-<userParam name="basePeakMz" value="732.72411293"/>
-<userParam name="basePeakIntensity" value="54.00000000"/>
-<userParam name="totIonCurrent" value="1547.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.35905"/>
+<userParam name="basePeakMz" value="449.10852374"/>
+<userParam name="basePeakIntensity" value="73.00000000"/>
+<userParam name="totIonCurrent" value="1719.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1767,10 +1767,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="58">QmKrukJ5nPpCwe3xQuIYGkLs8qdDGoiMQylKU0MvH9pDMQY4Qzmi7ENLlklDTntfQ1nWDENdBIlDXhWYQ2MFe0NqZJpDbhDsQ3MP6kNzKTtDdwmMQ4KOQEODGrxDhpI7Q4dpdUOJiNZDi2yUQ450jEOQiblDlYt9Q5iyPUOdc4ZDnpJeQ6CC2UOuAINDrpVkQ7zYa0PCgqNDwpkFQ8Tf3EPJnZdDyq0fQ8sQckPQhrxD1m46Q9gBjEPbVotD4I37Q+Hgc0QE8DpEB1gXRBPDmkQ07wFENy5YRD6d30RHNNFEWWpARF6Pew==</data>
+<data precision="32" endian="big" length="59">Qkn9ykJoF7pCiZiTQpOACELh8Y9C/ElgQwEVhUMGRFlDIn0pQzT2lEM3BLhDVQCGQ2vsaUNy1gZDcvReQ4AdeEOHkvtDiwteQ42C8kOQCBlDlMo8Q5nKxUOaH+FDmm9UQ5yJXEOdeCtDnuzIQ58Q70Oxe6NDtZOnQ7aOuEO30ytDuZF7Q8mfKEPLjGlDzh3zQ88RR0PQGrhD3hAxQ98IRkPfm4ND4AuPQ+CN5EPhBWBD4RdvQ+IEYEPiftFD9kR3RBEz4kQS19NEF19pRB0au0Qud9lERvF4RFBsBkRW1olEaP60RGqcf0R4vHg=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="58">QcgAAEG4AABBuAAAQegAAEHYAABBsAAAQbAAAEHAAABCCAAAQagAAEHIAABB4AAAQbgAAEHoAABBqAAAQdgAAEHwAABBsAAAQgQAAEHQAABByAAAQagAAEIEAABBuAAAQbgAAEIYAABBuAAAQbgAAEG4AABBsAAAQgwAAEGwAABB2AAAQbAAAEHwAABBqAAAQgQAAEHAAABB4AAAQcgAAEG4AABBuAAAQdAAAEHgAABB6AAAQbgAAEIkAABCBAAAQgwAAEHIAABB4AAAQdAAAEG4AABCWAAAQbgAAEGwAABB6AAAQagAAA==</data>
+<data precision="32" endian="big" length="59">QcgAAEHAAABBsAAAQhAAAEIYAABB2AAAQcgAAEGoAABBsAAAQdAAAEHYAABB0AAAQbAAAEHIAABCUAAAQdAAAEIMAABCAAAAQagAAEGoAABByAAAQgQAAEG4AABCFAAAQcAAAEGwAABB0AAAQegAAEHAAABB0AAAQiAAAEIEAABB+AAAQbgAAEH4AABB6AAAQfAAAEG4AABB8AAAQfAAAEHwAABCPAAAQpIAAEJ8AABBuAAAQhgAAEIQAABBqAAAQcgAAEHwAABByAAAQcAAAEGwAABB4AAAQagAAEHAAABByAAAQagAAEGoAAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="391">
@@ -1779,13 +1779,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="52.31179286" mzRangeStop="964.72206890">
+<spectrumInstrument msLevel="2" mzRangeStart="62.70869224" mzRangeStop="950.07134090">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.37135"/>
-<userParam name="basePeakMz" value="174.95608903"/>
-<userParam name="basePeakIntensity" value="110.00000000"/>
-<userParam name="totIonCurrent" value="1270.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.37022"/>
+<userParam name="basePeakMz" value="242.93815572"/>
+<userParam name="basePeakIntensity" value="139.00000000"/>
+<userParam name="totIonCurrent" value="1293.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1799,10 +1799,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="44">QlE/R0LAKfBC409JQupvG0Lq8NJDBIzDQxL1GkMXC/9DIwweQykRd0Mu9MJDNgMvQzgawUNlGLJDav/RQ3T88EN/CW5Dg423Q4UTLkOFmkBDiY7qQ5aTPUOblYFDpo7rQ6dWeUOnpstDqf3AQ7OSjEO+HF9Dxhb3Q8eWfEPKGDtDypikQ9SULkPdz8ZD34vuQ+pGBEPvjYlECiFERBC0S0Q1KBpEONQOREZaNkRxLjY=</data>
+<data precision="32" endian="big" length="40">QnrVs0J9NwBCm20DQrd8J0LB7PVCxZhJQspNrkMSahJDXA75Q2YepENy8CtDeOtOQ4ZR8UOKyZdDkIhcQ5h1rkObeHNDnnn5Q7KXyUOzcYFDvwvIQ785qEPB9sJDyyXbQ9FsYkPfhwtD4ApxQ+CNakPhCiND4ZKKQ+GwgEP7PZxED3wjRDEkzUQzSfNEN2CMRECfBkRU8VtEZq4eRG2EkQ==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="44">QgQAAEHAAABB6AAAQgQAAEIUAABCBAAAQbgAAEHgAABCCAAAQgAAAELcAABBwAAAQegAAEHIAABB2AAAQegAAEHQAABCCAAAQegAAEHgAABBqAAAQdAAAEHAAABBqAAAQagAAEHoAABB2AAAQfgAAEGoAABB2AAAQggAAEHAAABB0AAAQcgAAEIAAABByAAAQbgAAEG4AABBqAAAQfAAAEGoAABBsAAAQbgAAEHQAAA=</data>
+<data precision="32" endian="big" length="40">QbAAAEHwAABBqAAAQdAAAEHAAABB0AAAQcAAAEHgAABBsAAAQdAAAEMLAABBqAAAQcAAAEHoAABChAAAQbgAAEJYAABByAAAQgAAAEHwAABB0AAAQagAAEGwAABB8AAAQegAAEI8AABCaAAAQjQAAEHwAABCJAAAQagAAEGoAABB6AAAQbAAAEHoAABBqAAAQfAAAEG4AABCAAAAQcAAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="392">
@@ -1811,13 +1811,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="45.08498011" mzRangeStop="954.24465047">
+<spectrumInstrument msLevel="2" mzRangeStart="66.07615856" mzRangeStop="806.70084265">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.38252"/>
-<userParam name="basePeakMz" value="174.95676272"/>
-<userParam name="basePeakIntensity" value="108.00000000"/>
-<userParam name="totIonCurrent" value="1083.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.38138"/>
+<userParam name="basePeakMz" value="242.94104079"/>
+<userParam name="basePeakIntensity" value="92.00000000"/>
+<userParam name="totIonCurrent" value="1528.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1831,10 +1831,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="38">QjRXBULB5yBC4fkwQve3e0MAMPtDDMTtQx4vTUMnAQVDJxBiQychqkMtXydDLvTuQ0gG30OFh8pDh4hQQ5CKwkOWHVpDmXM3Q5mN2kOcH0NDnhn+Q6kTWEOyFphDtBTFQ7hK6EPHmddDyJkSQ8kV1UPJmzdDzGwsRAaDm0QQv+JEFODfRBvVv0QsGeNEMpYCRDQ1eERuj6g=</data>
+<data precision="32" endian="big" length="48">QoQm/kKIxIlCm3KGQrRTLELh+ulC9/bkQxF/yUMnCIlDLvUTQ1UCO0Nm6UNDcvDoQ4G28EOD9ttDhwFzQ4w8ZUORw69DlXerQ5qT1EOcdfhDnKqVQ6Vz+kO1FjtDwHPrQ8CMsUPCDMlDxlEZQ8cI7kPHFzdDyKLJQ8mXrUPKF3FDy5rwQ9mBWEPb/xVD35Q7Q+AJ4EPgjRdD4J/LQ+5IVEQD6EBECIFoRA45MUQOpU9EIK0+RCXYKkQyv9hESazb</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="38">QcgAAEHQAABB4AAAQeAAAEHQAABB6AAAQcAAAEGoAABBwAAAQegAAEGoAABC2AAAQgQAAEHYAABByAAAQagAAEGoAABCBAAAQbgAAEGoAABB2AAAQcgAAEHgAABCAAAAQagAAEIUAABCFAAAQcgAAEHIAABCEAAAQcAAAEHoAABBwAAAQdAAAEGoAABBwAAAQeAAAEGoAAA=</data>
+<data precision="32" endian="big" length="48">QbAAAEGwAABBuAAAQcAAAEJgAABCDAAAQdgAAEHIAABCJAAAQdAAAEHQAABCuAAAQfgAAEHoAABBwAAAQbAAAEGoAABCFAAAQbgAAEHAAABBsAAAQfgAAEHAAABCGAAAQbgAAEHQAABB8AAAQjwAAEHoAABBuAAAQbgAAEHQAABCDAAAQbAAAEIMAABCpgAAQqYAAEIMAABBwAAAQagAAEHgAABCAAAAQbAAAEGoAABBqAAAQgQAAEHwAABB+AAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="393">
@@ -1843,13 +1843,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="52.42227076" mzRangeStop="912.66069025">
+<spectrumInstrument msLevel="2" mzRangeStart="48.44923792" mzRangeStop="912.04873358">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.39368"/>
-<userParam name="basePeakMz" value="112.98574706"/>
-<userParam name="basePeakIntensity" value="47.00000000"/>
-<userParam name="totIonCurrent" value="1335.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.39255"/>
+<userParam name="basePeakMz" value="448.07231944"/>
+<userParam name="basePeakIntensity" value="71.00000000"/>
+<userParam name="totIonCurrent" value="1587.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1863,10 +1863,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="49">QlGwaEJmmcFChM4gQozDMkKrZxJCy8uCQuH4tEL9ya1DEd8vQxLr1UMkDHxDRt0cQ040LUNTELJDWRwXQ1m3a0Ny9G9DeN9MQ3pEIEN7Eu9Dgo5jQ4Uc3EOFhf9Dh3yCQ4uNHkOOEBxDjwUXQ5NYx0OZcFdDm5H9Q52St0Omk+VDp5NTQ6+x8UOv3bhDx5c8Q8mZU0PKl+JDy6dSQ+G3AEQBlK1ECto4RCDSuEQtqWRERtnTREw7t0RRSAJEXZQcRGQqSQ==</data>
+<data precision="32" endian="big" length="54">QkHMBUKDvKlCwU2dQsHtfELG3zlDAfo1QwQfEUMIAlBDCqQDQw78y0NZQ5JDbLp4Q20UYENy8EtDc/qMQ3jyVEN7Ii9Di0bkQ44xVEOOiJ1DkWY5Q5t4s0Oeci1DnvlgQ6PHb0Okin1DqJsOQ6sS0UO56TlDxwXIQ8eGf0PJGStDyZn2Q8prjUPM5gVD2I5HQ+AJQkPgkHdD4QN8Q+GYOkPhqNpD4hr0Q/hqu0QEAB1EB/g9RCOWyEQl5uREJlpvRDJK/kQ2LiBEQd8sREtTVURMtgpEZAMe</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="49">QeAAAEHYAABBsAAAQdAAAEH4AABBwAAAQjwAAEHIAABBsAAAQbgAAEHYAABB6AAAQfgAAEGoAABBwAAAQcgAAEHAAABBqAAAQcgAAEHYAABB+AAAQbAAAEHoAABCFAAAQegAAEIMAABBwAAAQegAAEHwAABB8AAAQfAAAEIcAABB0AAAQfAAAEGoAABCFAAAQdgAAEG4AABB6AAAQagAAEHYAABB6AAAQcAAAEGoAABByAAAQbgAAEHYAABBwAAAQdgAAA==</data>
+<data precision="32" endian="big" length="54">QeAAAEGoAABBqAAAQiwAAEHYAABCAAAAQdAAAEHAAABBuAAAQbgAAEGoAABB4AAAQggAAEJQAABBuAAAQdgAAEGoAABB8AAAQagAAEG4AABCJAAAQgwAAEHQAABCDAAAQagAAEG4AABBqAAAQcgAAEHQAABB0AAAQcAAAEI8AABBsAAAQgwAAEH4AABB4AAAQo4AAEJgAABCCAAAQjAAAEGoAABBwAAAQfAAAEHoAABBqAAAQiQAAEHIAABCCAAAQcgAAEHAAABBqAAAQbgAAEHAAABB0AAA</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="394">
@@ -1875,13 +1875,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="55.92399084" mzRangeStop="912.92401275">
+<spectrumInstrument msLevel="2" mzRangeStart="65.37872790" mzRangeStop="997.89807027">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.40485"/>
-<userParam name="basePeakMz" value="174.95207978"/>
-<userParam name="basePeakIntensity" value="101.00000000"/>
-<userParam name="totIonCurrent" value="1161.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.40372"/>
+<userParam name="basePeakMz" value="242.94315135"/>
+<userParam name="basePeakIntensity" value="91.00000000"/>
+<userParam name="totIonCurrent" value="1500.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1895,10 +1895,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="38">Ql+yK0KUHYZCqHgJQsHq0ELQL8hC8W2rQwz100MbPEtDILZvQy7zvEM7Ep1DWyCkQ1wdY0NgGXRDbhOqQ4BkZkODEjdDhBOJQ4gMN0ORfThDlyMeQ6ALmEOnmIVDqyVWQ7St0UO1fDFDuBF3Q7loQEO64Z1Dx5h5Q8iZH0PJlbVDypDCQ9itNkQEVpdEEy/RRFbd6URkOyM=</data>
+<data precision="32" endian="big" length="52">QoLB6UKObClCt7r8QsXk0kLJnHJC4f6pQuIjDUMiG99DPQr+Qz9HeUNc+FRDXhsUQ2EHtUNw4INDcq72Q3LxckNz7elDePaKQ4GBokOZcd1Dm3exQ5uFu0OecbJDpXnNQ6cK7UOo9cZDq4o4Q7MRPkO5cUhDvG0PQ7x5m0O9bORDx51ZQ8gZLUPIkSxDyZUNQ8oaREPRbdZD0a75Q9Oh40PgCJRD4QLkQ+MIUEQNx3ZEL0vXRDTZVEQ8RgJEPx1ORFUfH0Ri3OVEaBemRHl5eg==</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="38">QgwAAEHgAABCBAAAQiAAAEGoAABB4AAAQeAAAEHgAABBwAAAQsoAAEHQAABBuAAAQdAAAEHQAABCAAAAQbgAAEHYAABB6AAAQcAAAEHQAABCFAAAQhQAAEHYAABBuAAAQfAAAEGoAABBsAAAQdAAAEIAAABCAAAAQo4AAEGwAABBuAAAQbgAAEGwAABB0AAAQbAAAEIUAAA=</data>
+<data precision="32" endian="big" length="52">QcAAAEHIAABBsAAAQcAAAEHIAABCMAAAQdAAAEHQAABBwAAAQfAAAEHoAABCIAAAQegAAEHAAABBwAAAQrYAAEHIAABCbAAAQagAAEHYAABBsAAAQcgAAEHwAABCGAAAQdgAAEHAAABCGAAAQagAAEG4AABBuAAAQbAAAEHoAABCEAAAQcgAAEHAAABByAAAQhQAAEGoAABCNAAAQdAAAEHQAABCCAAAQagAAEIAAABBqAAAQcgAAEGoAABBuAAAQdAAAEGoAABBsAAAQeAAAA==</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="395">
@@ -1907,13 +1907,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="95.95037973" mzRangeStop="945.11485783">
+<spectrumInstrument msLevel="2" mzRangeStart="90.60552510" mzRangeStop="982.59672385">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.41602"/>
-<userParam name="basePeakMz" value="327.05843626"/>
-<userParam name="basePeakIntensity" value="48.00000000"/>
-<userParam name="totIonCurrent" value="1527.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.41488"/>
+<userParam name="basePeakMz" value="405.23832220"/>
+<userParam name="basePeakIntensity" value="80.00000000"/>
+<userParam name="totIonCurrent" value="1416.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1927,10 +1927,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="57">Qr/mmELF6khCzJoqQt5/FELh+JRC7fm0QwNF8UMS9nxDFvYiQykVbEMu9QdDPZH4Q0cWbUNPOnhDVJGJQ1roxUNbFdhDYhH7Q2UYmUNp8dFDeRfbQ34gLkOCmV9DiIzqQ4qtE0OLCzhDjXHtQ42GK0OQm1FDkYyBQ5STOUOYj+VDm24XQ50ZhUOhjpNDot+sQ6OHe0OpkhFDuJszQ70bKUO+E1pDwJohQ8GXAkPCEetDx5eKQ8mbtEPKFshDy5W2Q81z1kPpLb9D9OhiRBPNNUQdiplEKCdlRDDTtURb57NEbEda</data>
+<data precision="32" endian="big" length="47">QrU2B0K1XHhCwhHnQuH9LEL5M9BC/Kz3Qwg4vkMYfIBDG6ZoQzOWhkNPB5JDcvGzQ3wPOUN9FeFDhbeUQ4bMp0OXiKNDm3bNQ5uEckOffYZDsmFhQ7Jy50O5GhJDv5ltQ8CT3kPBRiRDxlVbQ8eY6EPHrztDyBi7Q8qegUPScCJD4AoWQ+CMrEPhCEND4SPQQ+RIZ0P+KVZEAAK8RAr7lEQPgrpEIGsGRCIf1UQ54+NEVB3VRGzf6UR1pjE=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="57">QfAAAEH4AABB8AAAQgQAAEHIAABB2AAAQcAAAEHYAABBwAAAQeAAAEH4AABB2AAAQcAAAEHAAABByAAAQbAAAEHYAABBqAAAQegAAEG4AABB2AAAQbAAAEIEAABB+AAAQdgAAEHAAABCFAAAQdgAAEHQAABBwAAAQdgAAEIIAABBwAAAQagAAEG4AABBwAAAQkAAAEGwAABCGAAAQdgAAEHIAABB+AAAQcgAAEGoAABBqAAAQcgAAEHAAABBuAAAQigAAEHgAABBqAAAQeAAAEGoAABBwAAAQbgAAEHIAABBsAAA</data>
+<data precision="32" endian="big" length="47">QagAAEHwAABB8AAAQagAAEHQAABByAAAQcAAAEHAAABBsAAAQdgAAEIQAABClAAAQbAAAEGwAABByAAAQbgAAEG4AABB2AAAQagAAEHYAABBsAAAQiAAAEG4AABBuAAAQigAAEGoAABB8AAAQpQAAEHQAABBsAAAQqAAAEGoAABCgAAAQdAAAEIIAABB4AAAQagAAEG4AABB2AAAQhwAAEIMAABB2AAAQcgAAEGoAABB0AAAQbgAAEG4AAA=</data>
 </intenArrayBinary>
 </spectrum>
 <spectrum id="396">
@@ -1939,13 +1939,13 @@
 <acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1">
 <acquisition acqNumber="1"/>
 </acqSpecification>
-<spectrumInstrument msLevel="2" mzRangeStart="68.57052313" mzRangeStop="947.72507508">
+<spectrumInstrument msLevel="2" mzRangeStart="70.57632374" mzRangeStop="958.01461018">
 <cvParam cvLabel="PSI" accession="PSI:1000037" name="Polarity" value="-"/>
 <cvParam cvLabel="PSI" accession="PSI:1000036" name="ScanMode" value="MSMSScan"/>
-<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.42718"/>
-<userParam name="basePeakMz" value="112.98374652"/>
-<userParam name="basePeakIntensity" value="76.00000000"/>
-<userParam name="totIonCurrent" value="1243.00000000"/>
+<cvParam cvLabel="PSI" accession="PSI:1000038" name="TimeInMinutes" value="4.42605"/>
+<userParam name="basePeakMz" value="448.08483663"/>
+<userParam name="basePeakIntensity" value="68.00000000"/>
+<userParam name="totIonCurrent" value="1223.00000000"/>
 </spectrumInstrument>
 </spectrumSettings>
 <precursorList count="1">
@@ -1959,10 +1959,10 @@
 </precursorList>
 </spectrumDesc>
 <mzArrayBinary>
-<data precision="32" endian="big" length="43">QokkHEKPsr1CplPcQuH3rkMICTVDFNbEQy70lUM7G5RDSR84Q1EdMENnSgBDhxRBQ4mVh0OOB0pDjxGXQ5JLskOVlK5DmxWSQ6WUjkOpA9xDqZUoQ6uV5UOylNJDtpUfQ7gbPEO5lQRDvo2JQ7+ZkEPBlnhDxx4LQ8eZ60PIlnhDyZ23Q9AackPd7HhD6aoNQ/UNjUQQ+dBEIHSKRCekJUQ9uYdEZgvqRGzuaA==</data>
+<data precision="32" endian="big" length="44">Qo0nFEKh2DVCpGFcQrpjgELh+PxDCuUIQxJUQUM4VxNDP0Y8Q1rqu0Ny8aRDePReQ4FSUUOLce9Dj4dfQ5aHzUOXA5hDmHQRQ5t1/kOlbrxDrEnEQ6+QxkOwl/RDvJ3cQ77AUkO/H6JDx5kjQ8gWx0PJnjZDy5ofQ9ISYUPa8ylD4ArcQ+CJXUQQZ/xEG5UpRCsDFEQtrjhEWkjYRF5RAERfK0ZEYTf7RGo3R0RvgO8=</data>
 </mzArrayBinary>
 <intenArrayBinary>
-<data precision="32" endian="big" length="43">QgAAAEGoAABCBAAAQpgAAEIEAABBuAAAQdgAAEHIAABB+AAAQeAAAEHQAABCBAAAQbAAAEHoAABB4AAAQggAAEIAAABB0AAAQcAAAEGwAABByAAAQhQAAEG4AABB2AAAQdgAAEGwAABBuAAAQcgAAEG4AABBuAAAQegAAEIUAABCcAAAQagAAEHIAABCAAAAQfAAAEGwAABB4AAAQdAAAEGoAABB8AAAQbAAAA==</data>
+<data precision="32" endian="big" length="44">QdAAAEHoAABB4AAAQhQAAEIEAABBsAAAQeAAAEGwAABB0AAAQbgAAEIQAABB4AAAQcgAAEHQAABCAAAAQcgAAEGoAABB0AAAQlgAAEHIAABB2AAAQgAAAEHwAABBuAAAQbgAAEGwAABBqAAAQbAAAEHIAABB0AAAQgAAAEGwAABCiAAAQagAAEGwAABBuAAAQbgAAEHYAABB2AAAQfAAAEHIAABByAAAQbgAAEIAAAA=</data>
 </intenArrayBinary>
 </spectrum>
 </spectrumList>
