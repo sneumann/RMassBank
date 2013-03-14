@@ -2,124 +2,13 @@
 ##This should work on any PC
 
 library(RMassBank)
-############################
-############################
-##CURRENTLY TRYING TO GET THIS TO WORK:
-############################
-############################
-
-##
-## More example data
-##
-## http://www.casmi-contest.org/challenges-cat1-2.shtml
-## Challenge3 MSMSneg10_Challenge3 MSMSneg20_Challenge3 MSMSneg30_Challenge3 MSMSneg40_Challenge3
-##    4 individuelle Rohdatenfiles
-##    Modus "mH" !
-## http://www.casmi-contest.org/solutions-cat1-2.shtml
-## Glucolesquerellin
-
-##
-## Overwrite parameters in spectraList
-## 
-## getOption("RMassBank")$spectraList
-
-## spectraList:
-##  # First scan: CID 20
-## - mode: CID
-##   ces: 20
-##   ce: 20
-##   res: 7500
-
-## xr <- system.file("microtofq/MSMSpos20_6.mzML", package="msdata", includeMsn=TRUE)
   
   ################################################################################## 
   ################################################################################## 
   ################################################################################## 
   ################################################################################## 
   ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
-  ################################################################################## 
 
-XCMStoRMB <- function(msmsXCMSspecs, cpdID, MS1 = NA){
-	ret <- list()
-	ret$foundOK <- 1
-	
-	##Write nothing in the parents
-	ret$parentscan <- 1
-	ret$parentHeader <- matrix(0, ncol = 20, nrow = 1)
-	rownames(ret$parentHeader) <-1
-	colnames(ret$parentHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-									"mergedResultStartScanNum", "mergedResultEndScanNum")
-	ret$parentHeader[1,1:3] <- 1
-	ret$parentHeader[1,4:20] <- 0
-	ret$parentHeader <- as.data.frame(ret$parentHeader)
-	
-	##Write the peaks into the childscans
-	ret$childScans <- 2
-	ret$childHeader <- matrix(0, ncol = 20, nrow = 1)
-	rownames(ret$childHeader) <- 2
-	colnames(ret$childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-									"mergedResultStartScanNum", "mergedResultEndScanNum")
-	ret$childHeader[1,1:2] <- ret$childScans
-	ret$childHeader[1,3] <- 2
-	ret$childHeader[1,4] <- length(msmsXCMSspecs[,1])
-	ret$childHeader[1,5] <- 0 ##Does this matter?
-	ret$childHeader[1,6] <- median(msmsXCMSspecs[,4])
-	ret$childHeader[1,7] <- msmsXCMSspecs[which.max(msmsXCMSspecs[,7]),1]
-	ret$childHeader[1,8] <- max(msmsXCMSspecs[,7])
-	ret$childHeader[1,9] <- 0 ##Does this matter?
-	ret$childHeader[1,10] <- 0 ##Does this matter?
-	ret$childHeader[1,11] <- min(msmsXCMSspecs[,1])
-	ret$childHeader[1,12] <- max(msmsXCMSspecs[,1])
-	ret$childHeader[1,13] <- 1 
-	ret$childHeader[1,14] <- findMz(cpdID)[[3]]
-	ret$childHeader[1,15] <- 1 ##Will be changed for different charges
-	ret$childHeader[1,16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. WorkarmsmsXCMS@files[1]ound?
-	ret$childHeader[1,17:20] <- 0 ##Will be changed if merge is wanted
-	ret$childHeader <- as.data.frame(ret$childHeader)
-	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
-	colnames(ret$parentPeak) <- c("mz","int")
-	ret$peaks <- list()
-	ret$peaks[[1]] <- matrix(nrow = length(msmsXCMSspecs[,1]), ncol = 2)
-	colnames(ret$peaks[[1]]) <- c("mz","int")
-	ret$peaks[[1]][,1] <- msmsXCMSspecs[,1]
-	ret$peaks[[1]][,2] <- msmsXCMSspecs[,7]
-	ret$mz <- findMz(cpdID)
-	ret$formula <- findFormula(cpdID)
-	return(ret)
-}
 
 ##This uses an already created template for the settings
 ##Change path or settings at own risk
@@ -130,7 +19,7 @@ loadRmbSettings(system.file("XCMSinput/mysettings.ini",package="RMassBank"))
 ##Load Compoundlist
 ##Get the spec into specsXCMS
 msmsList <- newMsmsWorkspace()
-fileList <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin", full.names=TRUE)[2:5]
+fileList <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin", full.names=TRUE)[2:3]
 msmsList@files <- fileList
 loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
 
@@ -142,80 +31,106 @@ rmbo$spectraList <- list(
        ce="10eV",
        res=12000),
   list(mode="CID",
-       ces="20eV",
-       ce="20eV",
+      ces="20eV",
+      ce="20eV",
        res=12000),
   list(mode="CID",
        ces="30eV",
        ce="30eV",
-       res=12000),
-  list(mode="CID",
-       ces="40eV",
-       ce="40eV",
-       res=12000)
+       res=12000)#,
+#  list(mode="CID",
+#       ces="40eV",
+#       ce="40eV",
+#       res=12000)
   )
-
+options("RMassBank" = rmbo)
 
 #####WORKFLOW STEPS 1 to 8
 
 ########
 ##STEP 1
 ########
+print("Step 1")
+handSpecs <- matrix(0,4,2)
+handSpecs[,1] <- c(274.986685367956, 259.012401087427, 95.9493025990907, 96.9573002472772)
+handSpecs[,2] <- c(357,761, 2821, 3446)
+hand <- list()
+hand[[1]] <- handSpecs
+mode="mH"
+msmsList <- findMsMsHRperX.workflow(msmsList, mode="mH", method="centWave", peakwidth=c(5,10),
+												prefilter=c(3,200), ppm=25, snthr=5)
+msmsList@files <- msmsList@files[1]
 
-#msmsListspecs <- findMsMsHRperxcms.workflow(msmsList@files, mode="mH", method="centWave", peakwidth=c(5,10),
-#												prefilter=c(3,200), ppm=25, snthr=5)
-#msmsList@specs <- lapply(msmsList,XCMStoRMB, 2184)
-#names(msmsList@specs) <- findName(2184)
+########
+##STEP 2 
+########
+print("Step 2")
+mode = "mH"
+msmsList@analyzedSpecs <- lapply(msmsList@specs, function(spec) {
+				  s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="preliminary" )
+				  return(s)
+			  })
+			  
+########
+##STEP 3
+########
+print("Step 3")
+msmsList@aggregatedSpecs <- aggregateSpectra(msmsList@analyzedSpecs)
 
+########
+##STEP 4
+########
+print("Step 4")
+recal <- makeRecalibration(msmsList@aggregatedSpecs, mode)
+msmsList@rc <- recal$rc
+msmsList@rc.ms1 <- recal$rc.ms1
+msmsList@recalibratedSpecs <- recalibrateSpectra(mode, msmsList@specs, w = msmsList)
 
-#################
-##STEP 1 MANUALLY, BECAUSE IT CAN'T FIND A FITTING PSEUDOSPECTRUM OF THE SECOND FILE?
-#################
-	fileName <- msmsList@files[2] 
-	splitfn <- strsplit(fileName,'_')
-    splitsfn <- splitfn[[1]]
-    cpdID <- as.numeric(splitsfn[[length(splitsfn)-1]])
-	
-	parentMass <- findMz(cpdID)$mzCenter
-	RT <- findRt(cpdID)$RT * 60
-	mzabs <- 0.1
-	
-	getRT <- function(xa) {
-		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
-	}
-	##
-	## MS
-	##
-	
-	##
-	## MSMS
-	##
-	xrmsms <- xcmsRaw(fileName, includeMSn=TRUE)
+# p <- as.data.frame(msmsList@specs[[1]]$peaks)
+# rc <- msmsList@rc
+# Fix the column names so our
+# prediction functions choose the right
+# rows. 
+# colnames(p) <- c("mzFound", "int")
+# drecal <- predict(rc, newdata= p)
+# Problem: Too many warnings
 
-	## Where is the wanted isolation ?
-	precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
+########
+##STEP 5
+########
+print("Step 5")
+msmsList@analyzedRcSpecs <- lapply(msmsList@recalibratedSpecs, function(spec){
+		s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="recalibrated", cut=0, cut_ratio=0 )
+		return(s)
+	})
+ for(f in msmsList@files)
+msmsList@analyzedRcSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
 
-	## Fake MS1 from MSn scans
-	xrmsmsAsMs <- msn2xcms(xrmsms)
+########
+##STEP 6
+########
+print("Step 6")
+msmsList@aggregatedRcSpecs <- aggregateSpectra(msmsList@analyzedRcSpecs, addIncomplete=TRUE)
+msmsList@aggregatedRcSpecs$peaksUnmatchedC <- cleanElnoise(msmsList@aggregatedRcSpecs$peaksUnmatched)
 
-	## Fake s simplistic xcmsSet
-	xsmsms <-  xcmsSet (files=fileName,
-					method="MS1")
+########
+##STEP 7
+########
+print("Step 7")
+msmsList@reanalyzedRcSpecs <- reanalyzeFailpeaks(msmsList@aggregatedRcSpecs, custom_additions="N2O", mode=mode)
 
-	peaks(xsmsms) <- findPeaks(xrmsmsAsMs, method="centWave", peakwidth=c(5,10),
-                         prefilter=c(3,200), ppm=25,
-                         snthr=5, verbose.columns=T)
+########
+##STEP 8
+########
+print("Step 8")
+msmsList@refilteredRcSpecs <- filterMultiplicity(msmsList@reanalyzedRcSpecs, archivename=NA, mode)
+msmsList@refilteredRcSpecs$peaksOK <- msmsList@refilteredRcSpecs$peaksFiltered
+msmsList@refilteredRcSpecs$peaksReanOK <- msmsList@refilteredRcSpecs$peaksFilteredReanalysis
 
-	## Get pspec 
-	pl <- peaks(xsmsms)[,c("mz", "rt")]
-	candidates <- which( pl[,"mz"] < parentMass + mzabs & pl[,"mz"] > parentMass - mzabs
-						& pl[,"rt"] < RT * 1.1 & pl[,"rt"] > RT * 0.9 )
-	
-	anmsms <- xsAnnotate(xsmsms)
-	anmsms <- groupFWHM(anmsms)
+############
+##MBWORKFLOW
+############
 
-	## Now find the pspec for Chelidonine
-	psp <- which(sapply(anmsms@pspectra, function(x) {candidates %in% x}))
-	
-	## Alternative: Spectrum closest to MS1
-	##psp <- which.min(getRT(anmsms) - actualRT)
+mbList <- newMbWorkspace(msmsList)
+mbList <- loadInfolists(mbList, system.file("XCMSinput/infolists2", package = "RMassBank"))
+mbList <- mbWorkflow(mbList)
