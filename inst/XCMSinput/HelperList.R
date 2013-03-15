@@ -57,7 +57,7 @@ handSpecs[,2] <- c(357,761, 2821, 3446)
 hand <- list()
 hand[[1]] <- handSpecs
 mode="mH"
-msmsList <- findMsMsHRperX.workflow(msmsList, mode="mH", method="centWave", peakwidth=c(5,10),
+msmsList <- findMsMsHRperX.workflow(msmsList, hand, mode="mH", method="centWave", peakwidth=c(5,10),
 												prefilter=c(3,200), ppm=25, snthr=5)
 msmsList@files <- msmsList@files[1]
 
