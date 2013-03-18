@@ -88,7 +88,7 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 }
 
 #' @export
-findMsMsHRperX.workflow <- function(w, handSpecs = NA, mode="pH", mzabs=0.1, method="centWave",
+findMsMsHRperX.workflow <- function(w, mode="pH", mzabs=0.1, method="centWave",
 								peakwidth=c(5,12), prefilter=c(0,0),
 								ppm=25, snthr=2, MS1 = NA) {
 	w@specs <- list()
@@ -102,8 +102,9 @@ findMsMsHRperX.workflow <- function(w, handSpecs = NA, mode="pH", mzabs=0.1, met
 							ppm = ppm, snthr = snthr, MS1 = MS1)
 							return(spec)
 	}				)
-	w@specs[[1]] <- toRMB(specs,handSpecs,cpdID,mode=mode)
+	w@specs[[1]] <- toRMB(specs,cpdID,mode=mode)
 	names(w@specs) <- basename(as.character(w@files[1]))
+	w@files <- w@files[1]
 	return(w)
 }
 
@@ -331,11 +332,14 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA)
 }
 
 #' @export
-toRMB <- function(msmsXCMSspecs = NA, handSpecs = NA, cpdID, mode="pH", MS1spec = NA){
-	if(is.na(msmsXCMSspecs) && is.na(handSpecs)){
-			stop("You need at least one type of readable spectrum!")
+toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
+	if(is.na(msmsXCMSspecs)){
+			stop("You need a readable spectrum!")
 	}
-	numScan <- length(c(msmsXCMSspecs,handSpecs)) - any(is.na(c(msmsXCMSspecs,handSpecs)))
+	if(is.na(cpdID)){
+			stop("Please supply the compoundID!")
+	}
+	numScan <- length(msmsXCMSspecs)
 	ret <- list()
 	ret$foundOK <- 1
 	ret$parentscan <- 1
@@ -366,38 +370,57 @@ toRMB <- function(msmsXCMSspecs = NA, handSpecs = NA, cpdID, mode="pH", MS1spec 
 	##Write the peaks into the childscans
 	ret$childScans <- 2:(numScan+1)
 	ret$childHeader <- matrix(0, ncol = 20, nrow = numScan)
-	if(!is.na(msmsXCMSspecs)){
-		childHeader1 <- t(sapply(msmsXCMSspecs, function(spec){
-			header <- vector()
-			header[3] <- 2
-			header[4] <- length(spec[,1])
-			header[5] <- 0 ##Does this matter?
-			header[6] <- median(spec[,4])
-			header[7] <- spec[which.max(spec[,7]),1]
-			header[8] <- max(spec[,7])
-			header[9] <- 0 ##Does this matter?
-			header[10] <- 0 ##Does this matter?
-			header[11] <- min(spec[,1])
-			header[12] <- max(spec[,1]) 
-			header[13] <- 1
-			header[14] <- findMz(cpdID)[[3]]
-			header[15] <- -1 ##Will be changed for different charges
-			header[16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. Workaround? msmsXCMS@files[1]
-			header[17:20] <- 0 ##Will be changed if merge is wanted
-			return(header)
+	childHeader <- t(sapply(msmsXCMSspecs, function(spec){
+		header <- vector()
+		header[3] <- 2
+		header[4] <- length(spec[,1])
+		header[5] <- 0 ##Does this matter?
+		header[6] <- median(spec[,4])
+		header[7] <- spec[which.max(spec[,7]),1]
+		header[8] <- max(spec[,7])
+		header[9] <- 0 ##Does this matter?
+		header[10] <- 0 ##Does this matter?
+		header[11] <- min(spec[,1])
+		header[12] <- max(spec[,1]) 
+		header[13] <- 1
+		header[14] <- findMz(cpdID)[[3]]
+		header[15] <- -1 ##Will be changed for different charges
+		header[16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. Workaround? msmsXCMS@files[1]
+		header[17:20] <- 0 ##Will be changed if merge is wanted
+		return(header)
 		}))
-		peaksXCMS <- lapply (msmsXCMSspecs, function(specs){
+		childHeader[,1:2] <- 2:(length(msmsXCMSspecs)+1)
+	
+	
+	ret$childHeader <- as.data.frame(childHeader)
+	rownames(ret$childHeader) <- 2:(numScan+1)
+	colnames(ret$childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
+									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
+									"mergedResultStartScanNum", "mergedResultEndScanNum")
+	
+	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
+	colnames(ret$parentPeak) <- c("mz","int")
+	ret$parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
+	ret$peaks <- list()
+	ret$peaks <- lapply (msmsXCMSspecs, function(specs){
 									peaks <- matrix(nrow = length(specs[,1]), ncol = 2)
 									colnames(peaks) <- c("mz","int")
 									peaks[,1] <- specs[,1]
 									peaks[,2] <- specs[,7]
 									return(peaks)
 								})
-		childHeader1[,1:2] <- 2
-	} else{ childHeader1 <- NULL
-	peaksHand <- NULL}
-	if(!is.na(handSpecs)){
-	childHeader2 <- t(sapply(handSpecs, function(spec){
+	ret$mz <- findMz(cpdID,mode=mode)
+	ret$id <- cpdID
+	ret$formula <- findFormula(cpdID)
+	return(ret)
+}
+
+#' @export
+addHand <- function(w, handSpecs){
+	
+	cpdID <- w@specs[[1]]$id
+	childHeaderAddition <- t(sapply(handSpecs, function(spec){
 			header <- vector()
 			header[3] <- 2
 			header[4] <- length(spec[,1])
@@ -416,31 +439,25 @@ toRMB <- function(msmsXCMSspecs = NA, handSpecs = NA, cpdID, mode="pH", MS1spec 
 			header[17:20] <- 0 ##Will be changed if merge is wanted
 			return(header)
 		}))
-		childHeader2[,1:2] <- 2
+		childHeaderAddition[,1:2] <- (dim(w@specs[[1]]$childHeader)[1]+1):(dim(w@specs[[1]]$childHeader)[1]+length(handSpecs))
 		peaksHand <- lapply (handSpecs, function(specs){
 								peaks <- matrix(nrow = length(specs[,1]), ncol = 2)
 								colnames(peaks) <- c("mz","int")
 								peaks <- specs
 								return(peaks)
 							})
-		} else{ childHeader2 <- NULL
-		peaksHand <- NULL}
-	
-	ret$childHeader <- as.data.frame(rbind(childHeader1,childHeader2))
-	rownames(ret$childHeader) <- 2:(numScan+1)
-	colnames(ret$childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-									"mergedResultStartScanNum", "mergedResultEndScanNum")
-	
-	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
-	colnames(ret$parentPeak) <- c("mz","int")
-	ret$parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
-	ret$peaks <- list()
-	ret$peaks <- c(peaksXCMS,peaksHand)
-	ret$mz <- findMz(cpdID,mode=mode)
-	ret$id <- cpdID
-	ret$formula <- findFormula(cpdID)
-	return(ret)
-	
+		colnames(childHeaderAddition) <- colnames(w@specs[[1]]$childHeader)
+		rownames(childHeaderAddition) <- childHeaderAddition[,1]
+		w@specs[[1]]$childHeader <- rbind(w@specs[[1]]$childHeader,childHeaderAddition)
+		w@specs[[1]]$peaks <- c(w@specs[[1]]$peaks, peaksHand)
+		return(w)
+}
+
+#' @export
+addMB <- function(w, fileName){
+	mb <- parseMassBank(fileName)
+	peaklist <- list()
+	peaklist[[1]] <- mb@compiled_ok[[1]][["PK$PEAK"]][,1:2]
+	w <- addHand(w,peaklist[[1]])
+	return(w)
 }

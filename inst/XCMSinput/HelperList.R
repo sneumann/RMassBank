@@ -50,6 +50,7 @@ options("RMassBank" = rmbo)
 ########
 ##STEP 1
 ########
+
 print("Step 1")
 handSpecs <- matrix(0,4,2)
 handSpecs[,1] <- c(274.986685367956, 259.012401087427, 95.9493025990907, 96.9573002472772)
@@ -57,9 +58,10 @@ handSpecs[,2] <- c(357,761, 2821, 3446)
 hand <- list()
 hand[[1]] <- handSpecs
 mode="mH"
-msmsList <- findMsMsHRperX.workflow(msmsList, hand, mode="mH", method="centWave", peakwidth=c(5,10),
+msmsList <- findMsMsHRperX.workflow(msmsList, mode="mH", method="centWave", peakwidth=c(5,10),
 												prefilter=c(3,200), ppm=25, snthr=5)
-msmsList@files <- msmsList@files[1]
+#msmsList <- addHand(msmsList,hand)
+#msmsList <- addMB(msmsList,"record/Fukuyama_Univ/FU000001.txt")
 
 ########
 ##STEP 2 

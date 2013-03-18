@@ -1,0 +1,219 @@
+% \VignetteIndexEntry{RMassBank2 walkthrough}
+% \VignettePackage{rcdk}
+% \VignetteKeywords{}
+%% To generate the Latex code
+%library(RMassBank)
+%Rnwfile<- file.path("RMassBank2.Rnw")
+%Sweave(Rnwfile,pdf=TRUE,eps=TRUE,stylepath=TRUE,driver=RweaveLatex())
+
+
+\documentclass[letterpaper, 11pt]{article}
+
+\usepackage{times}
+\usepackage{url}
+\usepackage[pdftex,bookmarks=true]{hyperref}
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\funcarg}[1]{{\texttt{#1}}}
+
+\newcommand{\Rvar}[1]{{\texttt{#1}}}
+
+\newcommand{\rclass}[1]{{\textit{#1}}}
+
+<<echo=FALSE>>=
+options(width=74)
+#library(xtable)
+@
+\parindent 0in
+\parskip 1em
+
+\begin{document}
+
+\title{RMassBank for XCMS: The workflow by example}
+\author{Erik M\"uller}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+\Rpackage{RMassBank} is a two-part computational mass spectrometry workflow:
+\begin{itemize}
+	\item In a first step, MSMS spectra of compounds are extracted(using XCMS) from raw LC-MS data files, 
+      the MSMS spectra are recalibrated using assigned fragment formulas, and effectively 
+      denoised by using only annotated peaks (plus peaks which can be manually added.)
+	\item In the second step, the processed, recalibrated, cleaned data is prepared for 
+      submission to a MassBank database. Compounds are first automatically annotated using 
+      information from the Chemical Translation Service (CTS). After manually checking and 
+      fixing the annotations, the information is compiled together with the spectral data
+      into MassBank records, which can then be uploaded to a MassBank database.
+\end{itemize}
+
+This vignette describes basic usage with the workflow for XCMS or manual peaklists. The package is
+flexible and allows for different advanced use cases. Examples of specialized
+applications of \Rpackage{RMassBank} are available at the \Rpackage{RMassBank}
+message board hosted by the Metabolomics-Forum:
+\url{http://www.metabolomics-forum.com/viewforum.php?f=29}.
+
+\section{Installation and loading}
+
+The library is available from Bioconductor (\url{http://www.bioconductor.org}).
+In addition to the library itself, it is required to install the OpenBabel
+chemical toolkit, available from \url{http://www.openbabel.org} for various
+platforms (or via Linux package distribution systems).
+
+The library is loaded as follows
+
+<<>>=
+library(RMassBank)
+@ 
+
+\section{Input files}
+
+\subsection{LC/MS data}
+
+\Rpackage{RMassBank} handles high-resolution LC/MS spectra in mzML or mzdata format in
+centroid\footnote{The term "centroid" here refers to any kind of data which are
+not in profile mode, i.e. don't have continuous m/z data. It does not refer to
+the (mathematical) centroid peak, i.e. the area-weighted mass peak.} or in
+profile mode.
+Data in the examples was acquired using an QTOF instrument.
+
+In the standard workflow, the file names are used to identify a
+compound: file names must be in the format \funcarg{xxxxxxxx\_1234\_xxx.mzXML},
+where the xxx parts denote anything and the 1234 part denotes the compound ID in
+the compound list (see below). Advanced and alternative uses can be implemented;
+consult the implementation of \Rvar{msms\_workflow}  and \Rvar{findMsMsHRperX.direct} for
+more information.
+
+\section{The workflow}
+
+\subsection{Options}
+
+In the first part of the workflow, spectra are extracted from the files and processed. In the following example, we will process the Glulesquerellin spectra from the provided files.
+
+For the workflow to work correctly, a settings file (generated as above and edited accordingly) before must be loaded first.
+<<echo=TRUE,eval=TRUE>>=
+loadRmbSettings(system.file("XCMSinput/mysettings.ini",package="RMassBank"))
+@
+
+You can edit the options manually inside of R if you want to. Here it changes them according to the test data, so RMassBank won't analyze the given 2 spectra too much.
+
+<<>>=
+rmbo <- getOption("RMassBank")
+rmbo$spectraList <- list(
+  list(mode="CID",
+       ces="10eV",
+       ce="10eV",
+       res=12000),
+  list(mode="CID",
+      ces="20eV",
+      ce="20eV",
+       res=12000))
+options("RMassBank" = rmbo)
+@
+
+\subsection{Mass spectrometry workflow}
+
+First, a workspace for the \Rvar{msmsWorkflow} must be created:
+<<>>=
+msmsList <- newMsmsWorkspace()
+@
+
+The full paths of the files must be loaded into the container in the array
+\Rvar{files}:
+
+<<>>=
+files <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin", full.names=TRUE)[2:3]
+basename(files)
+# To make the workflow faster here, we use only 2 compounds:
+msmsList@files <- files
+@
+
+Note the position of the compound IDs in the filenames. Historically, the "\Rvar{pos}" at the end was used to denote the polarity; it is obsolete now, but the ID must be terminated with an underscore.
+
+Additionally, the compound list must be loaded using \Rfunction{loadList}:
+
+<<>>=
+loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
+@
+
+This creates a variable \Rvar{compoundList} in the global environment, which stores the compound data.
+Now, we can start the complete workflow to extract [M-H]- spectral data. The
+workflow standard workflow consists of 8 steps.
+
+The argument \funcarg{archivename} specifies the prefix under which to store the analyzed result
+files. The argument \funcarg{mode} specifies the processing mode: \Rvar{pH} (positive H) 
+specifies [M+H]+, \Rvar{pNa} specifies [M+Na]+, \Rvar{pM} specifies [M]+, \Rvar{mH} and
+\Rvar{mFA} specify [M-H]- and [M+FA]-, respectively. (I apologize for the naming of \Rvar{pH}
+which has absolutely nothing to do with chemical \textit{pH} values.)
+
+Basically, this runs through the entire workflow, which is explained in more detail below:
+\begin{itemize}
+	\item Step 1: The MS2-Spectra(and optionally the MS1-spectrum) are extracted and peakpicked using XCMS. You can hand over different parameters for the \Rfunction{findPeaks} function of XCMS to filter out different peaks. The found pseudospectra are stored in the array \Rvar{specs}.
+	\item Step 2: A molecular formula fit is attempted for every peak, using the molecular formula of the parent compound as limiting formula, using the function \Rfunction{analyzeMsMs}. The results are stored in the array \Rvar{analyzedSpecs}.
+	\item Step 3: The analyzed spectra from the array \Rvar{analyzedSpecs} are aggregated into the list \Rvar{aggregatedSpecs}. This uses the function \Rfunction{aggregateSpectra}.
+	\item Step 4: Using the function \Rfunction{recalibrateSpectra}, a recalibration curve is calculated from the peaks in \Rvar{aggregatedSpecs}, and all spectra from \Rvar{specs} are recalibrated using this curve. The result is stored in \Rvar{recalibratedSpecs}. The recalibration curve is stored in \Rvar{rc}.
+	\item Step 5: The recalibrated spectra (\Rvar{recalibratedSpecs}) are re-analyzed with \Rfunction{analyzeMsMs} and the results stored in \Rvar{analyzedRcSpecs}.
+	\item Step 6: The reanalyzed recalibrated spectra are aggregated with \Rfunction{aggregateSpectra} into \Rvar{aggregatedRcSpecs}. Unmatched peaks in \Rvar{aggregatedRcSpecs} are cleaned from known electronic noise using \Rfunction{cleanElnoise}. A backup copy of all present results is saved as \funcarg{archivename}\Rvar{.RData}.
+	\item Step 7: Using \Rfunction{reanalyzeFailpeaks}, all unmatched peaks from spectra in \Rvar{aggregatedRcSpecs} are reanalyzed, allowing $N_2O$ as additional elements (to account for oxidation products and $N_2$ adducts). The results are stored in \Rvar{reanalyzedRcSpecs}. A backup copy of all present results is saved as \funcarg{archivename}\Rvar{\_RA.RData}
+	\item Step 8: The function \Rfunction{filterMultiplicity} is applied to the peaks: Peaks which occur only once in all analyzed spectra of a compound are eliminated. The filtered list is stored under \Rvar{refilteredSpecs}, and a final version of all results is saved as \funcarg{archivename}\Rvar{\_RF.RData}. Additionally, \Rfunction{filterMultiplicity} creates a CSV file with a list of (relatively) high-intensity unassigned peaks with the name \funcarg{archivename}\Rvar{\_Failpeaks.csv}, which should be manually checked. Peaks to include must be marked with OK = 1.
+\end{itemize}
+
+Step 1 still has to be done manually(will be changed).
+<<eval=TRUE>>=
+msmsList <- findMsMsHRperX.workflow(msmsList, mode="mH", method="centWave", peakwidth=c(5,10),
+												prefilter=c(3,200), ppm=25, snthr=5)
+@
+
+After Step 1 you can optionally read in peaks that you've chosen by hand with \Rfunction{addHand}. The format of those peaks has to be a list of matrices with X rows and 2 columns(mz and int), where, X is the number of peaks. If you do this, don't forget to edit the spectralist in the options before!
+
+<<eval=FALSE>>=
+handSpecs <- matrix(0,4,2)
+handSpecs[,] <- c(274.986685367956, 259.012401087427, 95.9493025990907, 96.9573002472772, 357,761, 2821, 3446)
+handPeaksList <- list()
+handPeaksList[[1]] <- handSpecs
+msmsList <- addHand(msmsList,handPeaksList)
+@
+
+You can also read in additional Massbank-Records using the function \Rfunction{addMB}. It is still advisable to edit the options accordingly.
+
+<<eval=FALSE>>=
+msmsList <- addMB(msmsList,"path_to_record/record")
+@
+
+Steps 2 to 8 can be done using the normal workflow from RMassBank.
+<<eval=TRUE,fig=TRUE>>=
+msmsList <- msmsWorkflow(msmsList, mode="mH", steps=c(2:8))
+@
+
+With the little data we have, the recalibration curve doesn't look very nice, but with enough files($\geq$15) and peaks it should look like a normal recalibration curve.
+
+If you are experimenting with novel datasets which might give errors, it is
+advised to run the workflow step by step. This is because if an error occurs, you will 
+lose all intermediate results from the workflow, which might complicate
+finding the errors. (E.g., if you process steps 2-4 and an error occurs in step
+3, you will lose the results from step 2.) 
+<<eval=FALSE>>=
+	w <- msmsWorkflow(w, mode="pH", steps=2)
+	w <- msmsWorkflow(w, mode="pH", steps=3)
+	# etc.
+@
+
+You can run the mbWorkflow normally.
+
+\section{Session information}
+
+<<eval=TRUE>>=
+mbList <- newMbWorkspace(msmsList)
+mbList <- loadInfolists(mbList, system.file("XCMSinput/infolists2", package = "RMassBank"))
+mbList <- mbWorkflow(mbList)
+@
+
+<<>>=
+sessionInfo()
+@
+
+\end{document}
+

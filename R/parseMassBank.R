@@ -154,7 +154,7 @@ parseMassBank <- function(Files){
 					}
 					PKannotation <- as.data.frame(PKannotation, stringsAsFactors = FALSE)
 					PKannotation[] <- lapply(PKannotation, type.convert)
-					colnames(PKannotation) <- c("m/z", "num", "{formula", "mass", "error(ppm)}")
+					colnames(PKannotation) <- c("mz", "num", "{formula", "mass", "error(ppm)}")
 					PKannotation$"{formula" <- as.character(PKannotation$"{formula")
 				}
 				mb@compiled_ok[[i]][['PK$ANNOTATION']] <- PKannotation
@@ -171,7 +171,7 @@ parseMassBank <- function(Files){
 				}
 				PKPeak <- as.data.frame(PKPeak, stringsAsFactors = FALSE)
 				PKPeak[] <- lapply(PKPeak, type.convert)
-				colnames(PKPeak) <- c("m/z", "int.", "rel.int")
+				colnames(PKPeak) <- c("mz", "int", "rel.int")
 			}
 	
 		mb@compiled_ok[[i]][['PK$PEAK']] <- PKPeak	
