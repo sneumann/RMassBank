@@ -127,7 +127,7 @@ The full paths of the files must be loaded into the container in the array
 <<>>=
 files <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin", full.names=TRUE)[2:3]
 basename(files)
-# To make the workflow faster here, we use only 2 compounds:
+# To make the workflow faster here, we use only 2 MS/MS files:
 msmsList@files <- files
 @
 
@@ -136,7 +136,7 @@ Note the position of the compound IDs in the filenames. Historically, the "\Rvar
 Additionally, the compound list must be loaded using \Rfunction{loadList}:
 
 <<>>=
-loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
+loadList(system.file("XCMSinput/compoundList.csv",package="RMassBank"))
 @
 
 This creates a variable \Rvar{compoundList} in the global environment, which stores the compound data.
@@ -151,7 +151,7 @@ which has absolutely nothing to do with chemical \textit{pH} values.)
 
 Basically, this runs through the entire workflow, which is explained in more detail below:
 \begin{itemize}
-	\item Step 1: The MS2-Spectra(and optionally the MS1-spectrum) are extracted and peakpicked using XCMS. You can hand over different parameters for the \Rfunction{findPeaks} function of XCMS to filter out different peaks. The found pseudospectra are stored in the array \Rvar{specs}.
+	\item Step 1: The MS2-Spectra(and optionally the MS1-spectrum) are extracted and peakpicked using XCMS. You can pass different parameters for the \Rfunction{findPeaks} function of XCMS to detect actual peaks. Then, CAMERA processes the peak lists and creates pseudospectra (or compound spectra). The obtained pseudospectra are stored in the array \Rvar{specs}.
 	\item Step 2: A molecular formula fit is attempted for every peak, using the molecular formula of the parent compound as limiting formula, using the function \Rfunction{analyzeMsMs}. The results are stored in the array \Rvar{analyzedSpecs}.
 	\item Step 3: The analyzed spectra from the array \Rvar{analyzedSpecs} are aggregated into the list \Rvar{aggregatedSpecs}. This uses the function \Rfunction{aggregateSpectra}.
 	\item Step 4: Using the function \Rfunction{recalibrateSpectra}, a recalibration curve is calculated from the peaks in \Rvar{aggregatedSpecs}, and all spectra from \Rvar{specs} are recalibrated using this curve. The result is stored in \Rvar{recalibratedSpecs}. The recalibration curve is stored in \Rvar{rc}.
@@ -203,13 +203,13 @@ finding the errors. (E.g., if you process steps 2-4 and an error occurs in step
 
 You can run the mbWorkflow normally.
 
-\section{Session information}
-
 <<eval=TRUE>>=
 mbList <- newMbWorkspace(msmsList)
 mbList <- loadInfolists(mbList, system.file("XCMSinput/infolists2", package = "RMassBank"))
 mbList <- mbWorkflow(mbList)
 @
+
+\section{Session information}
 
 <<>>=
 sessionInfo()

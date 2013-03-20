@@ -26,7 +26,7 @@ loadRmbSettings(system.file("XCMSinput/mysettings.ini",package="RMassBank"))
 msmsXCMS <- newMsmsWorkspace()
 filesXCMS <- system.file("XCMSinput/Chelidonine_666_pos.mzData",package="RMassBank") 
 msmsXCMS@files <- filesXCMS
-loadList(system.file("XCMSinput/Chelidonine.csv",package="RMassBank"))
+loadList(system.file("XCMSinput/compoundList.csv",package="RMassBank"))
 
 ##Set the options correctly
 rmbo <- getOption("RMassBank")
