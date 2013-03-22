@@ -836,8 +836,11 @@ makeRecalibration <- function(spec, mode)
 {
 	if(is.null(spec))
 		stop("No spectra present to generate recalibration curve.")
+
+	if(length(spec$peaksMatched$formulaCount)==0)
+		stop("No peaks matched to generate recalibration curve.")
 	
-	rcdata <- spec$peaksMatched[spec$peaksMatched$formulaCount==1,]
+	rcdata <- spec$peaksMatched[spec$peaksMatched$formulaCount==1,,drop=FALSE]
 	ms1data <- recalibrate.addMS1data(spec, mode, 15)
 	rcdata <- rbind(rcdata, ms1data)
 	rcdata$dmz <- rcdata$mzFound - rcdata$mzCalc
