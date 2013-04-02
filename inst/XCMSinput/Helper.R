@@ -28,6 +28,14 @@ filesXCMS <- system.file("XCMSinput/Chelidonine_666_pos.mzData",package="RMassBa
 msmsXCMS@files <- filesXCMS
 loadList(system.file("XCMSinput/compoundList.csv",package="RMassBank"))
 
+msmsHand <- newMsmsWorkspace()
+filesHand <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin.+(csv)$", full.names=TRUE)
+msmsHand@files <- filesHand
+
+msmsMB <- newMsmsWorkspace()
+filesMB <- "C:/Users/Erik/Downloads/JP000001.txt"
+msmsMB@files <- filesMB
+
 ##Set the options correctly
 rmbo <- getOption("RMassBank")
 rmbo$annotations$entry_prefix <- 'IH'
@@ -47,8 +55,9 @@ options("RMassBank" = rmbo)
 ##STEP 1
 ########
 
-msmsXCMS <- findMsMsHRperX.workflow(msmsXCMS)
-
+msmsXCMS <- msmsWorkflow(msmsXCMS,steps=1, method="xcms")
+msmsHand <- msmsWorkflow(msmsHand,steps=1, method="peaklist")
+#msmsMB	 <- msmsWorkflow(msmsMB,steps=1,method="MassBank")
 
 ########
 ##STEP 2 
@@ -65,7 +74,7 @@ msmsXCMS@analyzedSpecs <- lapply(msmsXCMS@specs, function(spec) {
 ########
 
 msmsXCMS@aggregatedSpecs <- aggregateSpectra(msmsXCMS@analyzedSpecs)
-
+print("Step 3")
 ########
 ##STEP 4
 ########
@@ -93,14 +102,14 @@ msmsXCMS@analyzedRcSpecs <- lapply(msmsXCMS@recalibratedSpecs, function(spec){
 	})
  for(f in msmsXCMS@files)
 msmsXCMS@analyzedRcSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
-
+print("Step 5")
 ########
 ##STEP 6
 ########
 
 msmsXCMS@aggregatedRcSpecs <- aggregateSpectra(msmsXCMS@analyzedRcSpecs, addIncomplete=TRUE)
 msmsXCMS@aggregatedRcSpecs$peaksUnmatchedC <- cleanElnoise(msmsXCMS@aggregatedRcSpecs$peaksUnmatched)
-
+print("Step 6")
 ########
 ##STEP 7
 ########

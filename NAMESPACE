@@ -1,7 +1,7 @@
 export(RmbDefaultSettings)
 export(RmbSettingsTemplate)
 export(add.formula)
-export(addHand)
+export(addPeaksManually)
 export(addMB)
 export(addPeaks)
 export(aggregateSpectra)

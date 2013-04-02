@@ -417,10 +417,8 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 }
 
 #' @export
-addHand <- function(w, handSpecs){
-	
-	cpdID <- w@specs[[1]]$id
-	childHeaderAddition <- t(sapply(handSpecs, function(spec){
+addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
+	childHeaderAddition <- t(sapply(handSpec, function(spec){
 			header <- vector()
 			header[3] <- 2
 			header[4] <- length(spec[,1])
@@ -439,25 +437,57 @@ addHand <- function(w, handSpecs){
 			header[17:20] <- 0 ##Will be changed if merge is wanted
 			return(header)
 		}))
-		childHeaderAddition[,1:2] <- (dim(w@specs[[1]]$childHeader)[1]+1):(dim(w@specs[[1]]$childHeader)[1]+length(handSpecs))
-		peaksHand <- lapply (handSpecs, function(specs){
-								peaks <- matrix(nrow = length(specs[,1]), ncol = 2)
-								colnames(peaks) <- c("mz","int")
-								peaks <- specs
-								return(peaks)
-							})
-		colnames(childHeaderAddition) <- colnames(w@specs[[1]]$childHeader)
-		rownames(childHeaderAddition) <- childHeaderAddition[,1]
-		w@specs[[1]]$childHeader <- rbind(w@specs[[1]]$childHeader,childHeaderAddition)
-		w@specs[[1]]$peaks <- c(w@specs[[1]]$peaks, peaksHand)
+	##Set colnames and rownames
+	colnames(childHeaderAddition) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
+										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
+										"mergedResultStartScanNum", "mergedResultEndScanNum")
+	##Convert the manual peaklists
+	peaksHand <- lapply (handSpec, function(specs){
+							peaks <- matrix(nrow = length(specs[,1]), ncol = 2)
+							colnames(peaks) <- c("mz","int")
+							peaks <- specs
+							return(peaks)
+						})
+	
+	##Where do the peaks and the header need to be added?
+	pos <- sapply(w@specs,function(spec){cpdID %in% spec$id})
+	##If the compound for the cpdID isn't in specs yet, add a new spectrum
+	if(length(pos) == 0){
+		pos <- length(w@specs) + 1
+		childHeaderAddition[,1:2] <- 1
+		w@specs[[pos]] <- list()
+		w@specs[[pos]]$foundOK <- 1
+		w@specs[[pos]]$parentscan <- 1
+		w@specs[[pos]]$parentHeader <- matrix(0, ncol = 20, nrow = 1)
+		rownames(w@specs[[pos]]$parentHeader) <- 1
+		colnames(w@specs[[pos]]$parentHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
+									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
+									"mergedResultStartScanNum", "mergedResultEndScanNum")
+		w@specs[[pos]]$parentHeader[1,1:3] <- 1
+		w@specs[[pos]]$parentHeader[1,4:20] <- 0
+		w@specs[[pos]]$childScans <- 1
+		w@specs[[pos]]$childHeader <- childHeaderAddition
+		w@specs[[pos]]$parentPeak <- matrix(nrow = 1, ncol = 2)
+		colnames(w@specs[[pos]]$parentPeak) <- c("mz","int")
+		w@specs[[pos]]$parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
+		w@specs[[pos]]$peaks <- peaksHand
+		w@specs[[pos]]$mz <- findMz(cpdID,mode=mode)
+		w@specs[[pos]]$id <- cpdID
+		w@specs[[pos]]$formula <- findFormula(cpdID)
+	} else { pos <- which(pos)
+			w@specs[[pos]]$childHeader <- rbind(w@specs[[pos]]$childHeader,childHeaderAddition)
+			w@specs[[pos]]$peaks <- c(w@specs[[pos]]$peaks, peaksHand) }
+		
 		return(w)
 }
 
 #' @export
-addMB <- function(w, fileName){
+addMB <- function(w, cpdID, fileName, mode){
 	mb <- parseMassBank(fileName)
 	peaklist <- list()
 	peaklist[[1]] <- mb@compiled_ok[[1]][["PK$PEAK"]][,1:2]
-	w <- addHand(w,peaklist[[1]])
+	w <- addPeaksManually(w, cpdID, peaklist[[1]], mode)
 	return(w)
 }
