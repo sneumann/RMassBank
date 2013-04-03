@@ -1,7 +1,7 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 1.2.0
+Version: 1.3.0
 Author: Michael Stravs, Emma Schymanski
 Maintainer: Michael Stravs, Emma Schymanski <massbank@eawag.ch>
 Description: Workflow to process tandem MS files and build MassBank records.
