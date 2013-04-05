@@ -950,7 +950,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   # Could be automatised from DESCRIPTION file?
   mbdata[["MS$DATA_PROCESSING"]] <- c(
     getOption("RMassBank")$annotations$ms_dataprocessing,
-	list("WHOLE" = paste("RMassBank", packageVersion("RMassBank"))
+	list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
     )
   
   # Annotation:
