@@ -945,9 +945,12 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   mbdata[["MS$FOCUSED_ION"]] <- ms_fi
 
   # the data processing tag :)
+  # Change by Tobias:
+  # I suggest to add here the current version number of the clone due to better distinction between different makes of MB records
+  # Could be automatised from DESCRIPTION file?
   mbdata[["MS$DATA_PROCESSING"]] <- c(
     getOption("RMassBank")$annotations$ms_dataprocessing,
-    list("WHOLE" = "RMassBank")
+	list("WHOLE" = paste("RMassBank", packageVersion("RMassBank"))
     )
   
   # Annotation:
@@ -1037,12 +1040,15 @@ compileRecord <- function(spec, mbdata, refiltered, additionalPeaks = NULL)
         getOption("RMassBank")$annotations$internal_id_fieldname
       # The fields are named differently in MB record definitions v.1 and 2.
       # Therefore, the title is composed slightly differently (with the same result.)
+	  # Change by Tobias:
+	  # I suggest to include fragmentation mode here for information
       if(getOption("RMassBank")$use_version == 2)
       {
         mbrecord[["RECORD_TITLE"]] <- paste(
           mbrecord[["CH$NAME"]][[1]],
           mbrecord[["AC$INSTRUMENT_TYPE"]],
           mbrecord[["AC$MASS_SPECTROMETRY"]][["MS_TYPE"]],
+          mbrecord[["AC$MASS_SPECTROMETRY"]][["FRAGMENTATION_MODE"]],
           mbrecord[["RECORD_TITLE_CE"]],
           paste("R=",mbrecord[["AC$MASS_SPECTROMETRY"]][["RESOLUTION"]], sep='' ),
           mbrecord[["MS$FOCUSED_ION"]][["PRECURSOR_TYPE"]],
