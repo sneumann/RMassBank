@@ -1,0 +1,28 @@
+\name{parseMassBank}
+\alias{parseMassBank}
+\title{MassBank-record Parser}
+\usage{
+  parseMassBank(Files)
+}
+\arguments{
+  \item{Files}{A path to the plaintext-record that should
+  be read}
+}
+\value{
+  The \code{mbWorkspace} that the plaintext-record creates.
+}
+\description{
+  Can parse MassBank-records(only V2)
+}
+\examples{
+\dontrun{
+		parseMassBank("filepath_to_records/RC00001.txt")
+}
+}
+\author{
+  Erik Mueller
+}
+\seealso{
+  \code{\link{validate}}
+}
+
