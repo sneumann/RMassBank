@@ -1,0 +1,25 @@
+\name{smiles2mass}
+\alias{smiles2mass}
+\title{Calculate the mass from a SMILES-String}
+\usage{
+  smiles2mass(SMILES)
+}
+\arguments{
+  \item{SMILES}{A String-object representing a SMILES}
+}
+\value{
+  The calculated mass of the given SMILES-Formula
+}
+\description{
+  Uses a SMILES-String to calculate the mass using
+  rcdk-integrated functions.
+}
+\examples{
+\dontrun{
+		smiles2mass("CC(=O)NC(C(O)1)C(O)C(OC(O2)C(O)C(OC(O3)C(O)C(O)C(O)C(CO)3)C(O)C(CO)2)C(CO)O1")
+}
+}
+\author{
+  Erik Mueller
+}
+
