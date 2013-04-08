@@ -88,27 +88,6 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 }
 
 #' @export
-findMsMsHRperX.workflow <- function(w, mode="pH", mzabs=0.1, method="centWave",
-								peakwidth=c(5,12), prefilter=c(0,0),
-								ppm=25, snthr=2, MS1 = NA) {
-	w@specs <- list()
-	splitfn <- strsplit(w@files,'_')
-	splitsfn <- splitfn[[1]]
-	cpdID <- as.numeric(splitsfn[2])
-	
-	specs <- lapply(w@files, function(fileName){ 
-							spec <- findMsMsHRperxcms.direct(fileName, cpdID, mode=mode, mzabs = mzabs, method = method,
-							peakwidth = peakwidth, prefilter = prefilter, 
-							ppm = ppm, snthr = snthr, MS1 = MS1)
-							return(spec)
-	}				)
-	w@specs[[1]] <- toRMB(specs,cpdID,mode=mode)
-	names(w@specs) <- basename(as.character(w@files[1]))
-	w@files <- w@files[1]
-	return(w)
-}
-
-#' @export
 findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", mzabs=0.1, method="centWave",
 								peakwidth=c(5,12), prefilter=c(0,0),
 								ppm=25, snthr=2, MS1 = NA) {
