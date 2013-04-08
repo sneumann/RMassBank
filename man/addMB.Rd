@@ -1,0 +1,38 @@
+\name{addMB}
+\alias{addMB}
+\title{MassBank-record Addition}
+\usage{
+  addMB(w, cpdID, fileName, mode)
+}
+\arguments{
+  \item{w}{The msmsWorkspace that the peaklist should be
+  added to.}
+
+  \item{cpdID}{The compoundID of the compound that has been
+  used for the record}
+
+  \item{fileName}{The path to the record}
+
+  \item{mode}{The ionization mode that has been used to
+  create the record}
+}
+\value{
+  The \code{msmsWorkspace} with the additional peaklist
+  from the record
+}
+\description{
+  Adds the peaklist of a MassBank-Record to the specs of an
+  msmsWorkspace
+}
+\examples{
+\dontrun{
+		addMB("filepath_to_records/RC00001.txt")
+}
+}
+\author{
+  Erik Mueller
+}
+\seealso{
+  \code{\link{addPeaksManually}}
+}
+
