@@ -45,7 +45,7 @@ test.PrecursorType <- function(){
 test.smilesvsexactmass <- function(){
 	Mass_Calculated_Through_Smiles <- smiles2mass(RMassBank.env$mb[[RMassBank.env$testnumber]]@compiled_ok[[1]][['CH$SMILES']])
 	Exact_Mass <- RMassBank.env$mb[[RMassBank.env$testnumber]]@compiled_ok[[1]][['CH$EXACT_MASS']]
-	checkEquals(Mass_Calculated_Through_Smiles, Exact_Mass, Exact_Mass/100)
+	checkEquals(Mass_Calculated_Through_Smiles, Exact_Mass, tolerance = Exact_Mass/100)
 }
 
 test.sumintensities <- function(){

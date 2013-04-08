@@ -1,20 +1,36 @@
 #' Validate a record against a set of RUnit tests
 #' 
-#' Validates a plaintext-MassBankrecord. The Unit Tests to be used
+#' Validates a plaintext-MassBankrecord, or recursively all records
+#' below a directory. The Unit Tests to be used
 #' are installed in RMassBank/
 #' 
 #' @aliases validate
-#' @usage validate(File)
-#' @param File The filepath to the plaintext-records
+#' @usage validate(path)
+#' @param path The filepath to a single record, or a directory to search recursively
+#' @examples
+#' \dontrun{
+#' validate("/tmp/MassBank/OpenData/record/")
+#' }
 #' @export
-validate <- function(File){
+validate <- function(path) {
+
+        if (!require(ontoCAT)) {
+          error("Package ontoCAT missing. Validation requires package ontoCAT and RUnit")
+        }
+
+        if (!require(RUnit)) {
+          error("Package RUnit missing. Validation requires package ontoCAT and RUnit")
+        }
+
 	# Is the argument a directory?
 	# If yes, list the files
 	RMassBank.env$Instrument_List <- .getInstruments()
 	RMassBank.env$testnumber <- 1
-	if(file.info(File[1])$isdir){
-	    Files <- list.files(path = File, full.names = TRUE)
-	} else {Files <- File}
+	if(file.info(path[1])$isdir){
+	    Files <- list.files(path = path,
+                                recursive=TRUE, 
+                                full.names = TRUE)
+	} else {Files <- path}
 	# Parsing with the help the parseMassBank-function
 	RMassBank.env$mb <- lapply(Files,parseMassBank)
 	# Test RMassBank Objects with RUnit
