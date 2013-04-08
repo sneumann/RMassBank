@@ -36,7 +36,7 @@ archiveResults <- function(w, fileName)
 #' workflow.
 #' 
 #' @usage msmsWorkflow(w, mode = "pH", steps = c(1:8), confirmMode = FALSE,
-#' 			newRecalibration = TRUE, useRtLimit = TRUE, archivename = NA)
+#' 			newRecalibration = TRUE, useRtLimit = TRUE, archivename = NA, readMethod, findPeaksArgs)
 #' @param w A \code{msmsWorkspace} to work with.
 #' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
@@ -49,12 +49,19 @@ archiveResults <- function(w, fileName)
 #' 			to reuse the currently stored curve (\code{FALSE}, useful e.g. for adduct-processing runs.) 
 #' @param useRtLimit Whether to enforce the given retention time window.
 #' @param archivename The prefix under which to store the analyzed result files.
+#' @param readMethod Several methods are available to get peak lists from the files.
+#'        Currently supported are "mzR", "xcms", "MassBank" and "peaklist".
+#'        The first two read MS/MS raw data, and differ in the strategy 
+#'        used to extract peaks. MassBank will read existing records, 
+#'        so that e.g. a recalibration can be performed, and "peaklist" 
+#'        just requires a CSV with two columns and the column header "mz", "int".
+#' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
 #' @return The processed \code{msmsWorkspace}.
 #' @seealso \code{\link{msmsWorkspace-class}}
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export
 msmsWorkflow <- function(w, mode="pH", steps=c(1:8),confirmMode = FALSE, newRecalibration = TRUE, 
-		useRtLimit = TRUE, archivename=NA)
+		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs)
 {
     .checkMbSettings()
     
@@ -68,30 +75,82 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8),confirmMode = FALSE, newReca
   # Step 1: acquire all MSMS spectra from files
   if(1 %in% steps)
   {
-	nProg <- 0
-	message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
-	pb <- txtProgressBar(0,nLen,0, style=3, file=stderr())
-    w@specs <- lapply(w@files, function(fileName) {
+	if(readMethod == "mzR"){
+		nProg <- 0
+		message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
+		pb <- txtProgressBar(0,nLen,0, style=3, file=stderr())
+		w@specs <- lapply(w@files, function(fileName) {
+			
+			# Find compound ID
+			splitfn <- strsplit(fileName,'_')
+			splitsfn <- splitfn[[1]]
+			cpdID <- splitsfn[[length(splitsfn)-1]]
+			# Retrieve spectrum data
+			spec <- findMsMsHR(fileName, cpdID, mode, confirmMode, useRtLimit)
+			spec$id <- cpdID
+			spec$formula <- findFormula(cpdID)
+			gc()
 		
-		# Find compound ID
-        splitfn <- strsplit(fileName,'_')
-        splitsfn <- splitfn[[1]]
-        cpdID <- splitsfn[[length(splitsfn)-1]]
-        # Retrieve spectrum data
-        spec <- findMsMsHR(fileName, cpdID, mode, confirmMode, useRtLimit)
-        spec$id <- cpdID
-        spec$formula <- findFormula(cpdID)
-        gc()
+			# Progress:
+			nProg <<- nProg + 1
+			setTxtProgressBar(pb, nProg)
 		
-		# Progress:
-		nProg <<- nProg + 1
-		setTxtProgressBar(pb, nProg)
+			return(spec)
+		} )
+		names(w@specs) <- basename(as.character(w@files))
+		# close progress bar
+		close(pb)
+	}
+	
+	if(readMethod == "xcms"){
+		splitfn <- strsplit(w@files,'_')
+		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[2]))})
+		files <- list()
+		wfiles <- vector()
+			for(i in 1:length(unique(cpdIDs))) {
+			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
+			files[[i]] <- w@files[indices]
+		}
 		
-        return(spec)
-      } )
-      names(w@specs) <- basename(as.character(w@files))
-	  # close progress bar
-	  close(pb)
+		w@files <- sapply(files,function(files){return(files[1])})
+		
+		specs <- list()
+		
+		for(i in 1:length(unique(cpdIDs))){
+			for(j in 1:length(files[[i]])){
+				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs)
+			}
+			w@specs[[i]] <- toRMB(specs, unique(cpdIDs)[i], mode=mode)
+		}
+		names(w@specs) <- basename(as.character(w@files))
+	}
+	
+	if(readMethod == "MassBank"){
+		for(i in 1:length(w@files)){
+			w <- addMB(w, w@files[i], mode)
+		}
+		names(w@specs) <- basename(as.character(w@files))
+	}
+		
+	if(readMethod == "peaklist"){
+		splitfn <- strsplit(w@files,'_')
+		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[2]))})
+		files <- list()
+		wfiles <- vector()
+		for(i in 1:length(unique(cpdIDs))) {
+			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
+			files[[i]] <- w@files[indices]
+			}
+			
+			peaklist <- list()
+			
+			for(i in 1:length(w@files)){
+				peaklist[[1]] <- read.csv(w@files[i], header = TRUE)
+				w <- addPeaksManually(w, cpdIDs[i], peaklist, mode=mode)
+			}
+			w@files <- sapply(files,function(files){return(files[1])})
+			names(w@specs) <- basename(as.character(w@files))
+	}
   }
   # Step 2: first run analysis before recalibration
   if(2 %in% steps)

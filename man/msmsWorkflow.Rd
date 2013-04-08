@@ -4,7 +4,7 @@
 \usage{
   msmsWorkflow(w, mode = "pH", steps = c(1:8), confirmMode
     = FALSE, newRecalibration = TRUE, useRtLimit = TRUE,
-    archivename = NA)
+    archivename = NA, readMethod, findPeaksArgs)
 }
 \arguments{
   \item{w}{A \code{msmsWorkspace} to work with.}
@@ -30,6 +30,18 @@
 
   \item{archivename}{The prefix under which to store the
   analyzed result files.}
+
+  \item{readMethod}{Several methods are available to get
+  peak lists from the files.  Currently supported are
+  "mzR", "xcms", "MassBank" and "peaklist".  The first two
+  read MS/MS raw data, and differ in the strategy used to
+  extract peaks. MassBank will read existing records, so
+  that e.g. a recalibration can be performed, and
+  "peaklist" just requires a CSV with two columns and the
+  column header "mz", "int".}
+
+  \item{findPeaksArgs}{A list of arguments that will be
+  handed to the xcms-method findPeaks via do.call}
 }
 \value{
   The processed \code{msmsWorkspace}.
