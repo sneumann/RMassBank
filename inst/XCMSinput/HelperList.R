@@ -19,7 +19,7 @@ loadRmbSettings(system.file("XCMSinput/mysettings.ini",package="RMassBank"))
 ##Load Compoundlist
 ##Get the spec into specsXCMS
 msmsList <- newMsmsWorkspace()
-fileList <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin", full.names=TRUE)[2:3]
+fileList <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin.+(csv)$", full.names=TRUE)[2:3]
 msmsList@files <- fileList
 loadList(system.file("XCMSinput/compoundList.csv",package="RMassBank"))
 
@@ -58,8 +58,9 @@ handSpecs[,2] <- c(357,761, 2821, 3446)
 hand <- list()
 hand[[1]] <- handSpecs
 mode="mH"
-msmsList <- findMsMsHRperX.workflow(msmsList, mode="mH", method="centWave", peakwidth=c(5,10),
-												prefilter=c(3,200), ppm=25, snthr=5)
+msmsList <- msmsWorkflow(msmsList,steps=1, method="xcms")
+stop("LOL")
+
 #msmsList <- addHand(msmsList,hand)
 #msmsList <- addMB(msmsList,"record/Fukuyama_Univ/FU000001.txt")
 
