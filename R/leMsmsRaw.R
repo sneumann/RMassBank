@@ -249,21 +249,25 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs) 
 
 	## Fake MS1 from MSn scans
 	xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
-
+	
+	#xrs <- split(msn2xcms(xrmsms), f=xrmsms@msnCollisionEnergy)
+	
 	## Fake s simplistic xcmsSet
 	xsmsms <-  xcmsSet (files=fileName,
 					method="MS1")
-
+	
+	#peakslist <- lapply(xrs, function(x){do.call(findPeaks, c(findPeaksArgs, x)}))
+	
 	peaks(xsmsms) <- do.call(findPeaks,c(findPeaksArgs, object = xrmsmsAsMs))
+	#lapply(peakslist, function(x) {})
 	
 	## Get pspec 
 	pl <- peaks(xsmsms)[,c("mz", "rt")]
 
-        ## Best: find precursor peak
+    ## Best: find precursor peak
 	candidates <- which( pl[,"mz"] < parentMass + mzabs & pl[,"mz"] > parentMass - mzabs
 						& pl[,"rt"] < RT * 1.1 & pl[,"rt"] > RT * 0.9 )
 
-        
 	anmsms <- xsAnnotate(xsmsms)
 	anmsms <- groupFWHM(anmsms)
     
@@ -275,8 +279,6 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs) 
 
     ## 3rd Best: find pspec closest to RT from spreadsheet
 	##psp <- which.min( abs(abs(getRT(anmsms) - RT) )
-	print(candidates)
-	
 	return(getpspectra(anmsms, psp))
 }
 
