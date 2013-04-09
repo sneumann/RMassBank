@@ -75,7 +75,7 @@ In the first part of the workflow, spectra are extracted from the files and proc
 
 For the workflow to work correctly, a settings file (generated as and edited accordingly) must be loaded first.
 <<echo=TRUE,eval=TRUE>>=
-loadRmbSettings(system.file("XCMSInput/mysettings.ini",package="RMassBank"))
+loadRmbSettings(system.file("mysettings.ini",package="RMassBank"))
 @
 
 The settings have to contain the same parameters as the mzR-method would for the workflow.
@@ -91,7 +91,8 @@ The full paths of the files must be loaded into the container in the array
 \Rvar{files}:
 
 <<>>=
-msmsList@files <- list.files(system.file("spectra.Glucolesquerellin", package = "RMassBankData"), "Glucolesquerellin.*mzData", full.names=TRUE)[2:3]
+msmsList@files <- list.files(system.file("spectra", package = "RMassBankData"), 
+                             "Glucolesquerellin.*mzData", full.names=TRUE)
 @
 
 Note the position of the compound IDs in the filenames. Historically, the "\Rvar{pos}" at the end was used to denote the polarity; it is obsolete now, but the ID must be terminated with an underscore.
@@ -100,7 +101,7 @@ If you have multiple files for one compound, you have to give them the same ID, 
 Additionally, the compound list must be loaded using \Rfunction{loadList}:
 
 <<>>=
-loadList(system.file("XCMSinput/compoundList.csv",package="RMassBank"))
+loadList(system.file("list/PlantDataset.csv",package="RMassBankData"))
 @
 
 Basically, the changes to the workflow using XCMS can be described as follows:

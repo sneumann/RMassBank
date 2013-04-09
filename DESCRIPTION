@@ -17,7 +17,7 @@ Depends:
 Imports:
     XML,RCurl
 Suggests:
-    gplots,RMassBankData,xcms (>= 1.37.1),
+    gplots,RMassBankData (>= 0.99.3), xcms (>= 1.37.1),
     CAMERA,
     ontoCAT,
     RUnit
