@@ -15,11 +15,11 @@
 validate <- function(path) {
 
         if (!require(ontoCAT)) {
-          error("Package ontoCAT missing. Validation requires package ontoCAT and RUnit")
+          stop("Package ontoCAT missing. Validation requires package ontoCAT and RUnit")
         }
 
         if (!require(RUnit)) {
-          error("Package RUnit missing. Validation requires package ontoCAT and RUnit")
+          stop("Package RUnit missing. Validation requires package ontoCAT and RUnit")
         }
 
 	# Is the argument a directory?
