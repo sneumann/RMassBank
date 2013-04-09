@@ -61,7 +61,7 @@ archiveResults <- function(w, fileName)
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export
 msmsWorkflow <- function(w, mode="pH", steps=c(1:8),confirmMode = FALSE, newRecalibration = TRUE, 
-		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs)
+		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA)
 {
     .checkMbSettings()
     
@@ -114,10 +114,9 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8),confirmMode = FALSE, newReca
 		
 		w@files <- sapply(files,function(files){return(files[1])})
 		
-		specs <- list()
-		
 		for(i in 1:length(unique(cpdIDs))){
-			for(j in 1:length(files[[i]])){
+			specs <- list()
+			for(j in 1:length(files[[i]])){	
 				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs)
 			}
 			w@specs[[i]] <- toRMB(specs, unique(cpdIDs)[i], mode=mode)
@@ -125,12 +124,12 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8),confirmMode = FALSE, newReca
 		names(w@specs) <- basename(as.character(w@files))
 	}
 	
-	if(readMethod == "MassBank"){
-		for(i in 1:length(w@files)){
-			w <- addMB(w, w@files[i], mode)
-		}
-		names(w@specs) <- basename(as.character(w@files))
-	}
+	##if(readMethod == "MassBank"){
+	##	for(i in 1:length(w@files)){
+	##		w <- addMB(w, w@files[i], mode)
+	##	}
+	##	names(w@specs) <- basename(as.character(w@files))
+	##}
 		
 	if(readMethod == "peaklist"){
 		splitfn <- strsplit(w@files,'_')
