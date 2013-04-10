@@ -1,0 +1,125 @@
+% \VignetteIndexEntry{RMassBank non-standard usage}
+% \VignettePackage{rcdk}
+% \VignetteKeywords{}
+%% To generate the Latex code
+%library(RMassBank)
+%Rnwfile<- file.path("RMassBankNonstandard.Rnw")
+%Sweave(Rnwfile,pdf=TRUE,eps=TRUE,stylepath=TRUE,driver=RweaveLatex())
+
+
+\documentclass[letterpaper, 11pt]{article}
+
+\usepackage{times}
+\usepackage{url}
+\usepackage[pdftex,bookmarks=true]{hyperref}
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\funcarg}[1]{{\texttt{#1}}}
+
+\newcommand{\Rvar}[1]{{\texttt{#1}}}
+
+\newcommand{\rclass}[1]{{\textit{#1}}}
+
+<<echo=FALSE>>=
+options(width=74)
+#library(xtable)
+@
+\parindent 0in
+\parskip 1em
+
+\begin{document}
+
+\title{RMassBank: Non-standard usage}
+\author{Michael Stravs}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+<<echo=FALSE>>=
+library("RMassBank")
+library("RMassBankData")
+library("gplots")
+@
+
+
+This vignette assumes you are familiar with the standard usage of
+\Rpackage{RMassBank}, which is documented in
+<<eval=FALSE>>=
+vignette("RMassBank")
+@
+
+\section{Skipping recalibration}
+
+For instances where recalibration is not wanted, e.g. there is
+not enough data, or the user wants to use non-recalibrated
+data, recalibration can be deactivated. To do this, the \code{recalibrator}
+entry in the settings must be set to \code{recalibrate.identity}. This can be
+done in the settings file directly (preferred):
+
+\begin{verbatim}
+# [...]
+recalibrator:
+    MS1: recalibrate.identity
+    MS2: recalibrate.identity
+# [...]
+\end{verbatim}
+
+Or, alternatively, the settings can be adapted directly via R code.
+<<>>=
+RmbDefaultSettings()
+rmbo <- getOption("RMassBank")
+rmbo$recalibrator <- list(
+		"MS1" = "recalibrate.identity",
+		"MS2" = "recalibrate.identity"
+	)
+options("RMassBank" = rmbo)
+@
+
+To show the results of using a non-recalibrated workflow, we load a workspace
+with pre-processed data:
+
+<<>>=
+w <- loadMsmsWorkspace(system.file("results/pH_narcotics_RF.RData", 
+				package="RMassBankData"))
+@
+
+The stored recalibration curve:
+<<fig=TRUE,echo=FALSE>>=
+currentRecal <- w@rc
+hist2d(currentRecal$x, currentRecal$y, col=c("white", heat.colors(12)))
+x <- seq(range(currentRecal$x)[[1]], range(currentRecal$x)[[2]])
+predY <- predict(currentRecal, newdata=x)
+lines(x, predY)	
+@
+
+Some example peaks to show the effect of recalibration:
+<<>>=
+w@recalibratedSpecs[[1]]$parentPeak[30:33,]
+w@recalibratedSpecs[[1]]$peaks[[1]][15:18,]
+@
+
+Now reprocess the recalibration step with \code{recalibration.identity}:
+
+<<fig=TRUE>>=
+w <- msmsWorkflow(w, steps=4)
+@
+
+The recalibration graph shows that the recalibration "curve" will do no
+recalibration. To verify, we can show the same peaks as before:
+
+<<>>=
+w@recalibratedSpecs[[1]]$parentPeak[30:33,]
+w@recalibratedSpecs[[1]]$peaks[[1]][15:18,]
+@
+
+\section{Session information}
+
+<<>>=
+sessionInfo()
+@
+
+\end{document}
+

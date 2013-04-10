@@ -1,9 +1,12 @@
 \name{recalibrate}
 \alias{recalibrate}
+\alias{recalibrate.identity}
 \alias{recalibrate.loess}
 \title{Predefined recalibration functions.}
 \usage{
   recalibrate.loess(rcdata)
+
+  recalibrate.identity(rcdata)
 }
 \arguments{
   \item{rcdata}{A data frame with at least the columns
@@ -20,10 +23,16 @@
   GAM fit.
 }
 \details{
-  Provides a Loess fit (\code{recalibrate.loess}) to a
-  given recalibration parameter. If MS and MS/MS data
-  should be fit together, recalibrate.loess provides good
-  default settings for Orbitrap instruments.
+  \code{recalibrate.loess()} provides a Loess fit
+  (\code{recalibrate.loess}) to a given recalibration
+  parameter. If MS and MS/MS data should be fit together,
+  recalibrate.loess provides good default settings for
+  Orbitrap instruments.
+
+  \code{recalibrate.identity()} returns a
+  non-recalibration, i.e. a predictor which predicts 0 for
+  all input values. This can be used if the user wants to
+  skip recalibration in the RMassBank workflow.
 
   \code{recalibrate()} itself is only a dummy function and
   does not do anything.
