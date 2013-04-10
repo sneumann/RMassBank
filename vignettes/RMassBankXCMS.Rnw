@@ -73,12 +73,24 @@ library(RMassBankData)
 
 In the first part of the workflow, spectra are extracted from the files and processed. In the following example, we will process the Glulesquerellin spectra from the provided files.
 
-For the workflow to work correctly, a settings file (generated as and edited accordingly) must be loaded first.
+For the workflow to work correctly, we use the default settings, and modify then to match the data acquisition method. The settings have to contain the same parameters as the mzR-method would for the workflow.
+
 <<echo=TRUE,eval=TRUE>>=
-loadRmbSettings(system.file("mysettings.ini",package="RMassBank"))
+RmbDefaultSettings() 
+rmbo <- getOption("RMassBank")
+rmbo$spectraList <- list(
+  list(mode="CID", ces="10eV", ce="10eV", res=12000),
+  list(mode="CID", ces="20eV", ce="20eV", res=12000)
+)
+
+rmbo$annotations$instrument <- "Bruker micrOTOFq"
+rmbo$annotations$instrument_type <- "LC-ESI-QTOF"
+
+options("RMassBank" = rmbo)
+
+
 @
 
-The settings have to contain the same parameters as the mzR-method would for the workflow.
 
 \subsection{XCMS-workflow}
 
@@ -91,7 +103,8 @@ The full paths of the files must be loaded into the container in the array
 \Rvar{files}:
 
 <<>>=
-msmsList@files <- list.files(system.file("spectra", package = "RMassBankData"), 
+msmsList@files <- list.files(system.file("spectra.Glucolesquerellin", 
+                                         package = "RMassBankData"), 
                              "Glucolesquerellin.*mzData", full.names=TRUE)
 @
 
@@ -133,6 +146,22 @@ The readMethod name for this is "peaklist"
 	msmsPeaklist@files <- list.files(system.file("spectra.Glucolesquerellin", package = "RMassBankData"), "Glucolesquerellin.*csv", full.names=TRUE)
 	msmsPeaklist <- msmsWorkflow(msmsPeaklist, steps=1:8, mode="mH", readMethod="peaklist")
 @
+
+\subsection{Export the records}
+
+This section is just to debug the record creation with XCMS, and hence very terse.
+
+
+<<>>=
+mb <- newMbWorkspace(msmsList)
+## Step 
+mb <- mbWorkflow(mb, steps=c(3,4), 
+                 infolist_path=list.files(system.file("infolists", package = "RMassBankData"), 
+                   "PlantDataset.csv", full.names=TRUE))
+@
+
+
+
 
 \section{Session information}
 
