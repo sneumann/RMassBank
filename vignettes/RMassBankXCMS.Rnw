@@ -124,13 +124,18 @@ Please note that "findPeaksArgs" has to be a list with the list elements named a
 For example, if you want to use centWave with a peakwidth from 5 to 10 and 25 ppm, findPeaksArgs would look like this:
 
 <<eval=TRUE>>=
-	Args <- list(method="centWave", peakwidth=c(5,12), prefilter=c(0,0), ppm=25, snthr=2)
+	Args <- list(method="centWave", 
+                     peakwidth=c(5,12), 
+                     prefilter=c(0,0), 
+                     ppm=25, snthr=2)
 @
 
 If you want to utilize XCMS for Step 1 of the workflow, you have to set the readMethod-parameter to "xcms" and - if you don't want to use standard values for findPeaks - pass on findPeaksArgs to the workflow.
 
 <<eval=TRUE>>=
-	msmsList <- msmsWorkflow(msmsList, steps=1:8, mode="mH", readMethod="xcms", findPeaksArgs = Args)
+	msmsList <- msmsWorkflow(msmsList, steps=1:8, 
+                                 mode="mH", readMethod="xcms", 
+                                 findPeaksArgs = Args)
 @
 
 You can of course run the rest of the workflow as usual, by - like here - setting steps to 1:8
@@ -143,8 +148,11 @@ The readMethod name for this is "peaklist"
 
 <<eval=FALSE>>=
 	msmsPeaklist <- newMsmsWorkspace()
-	msmsPeaklist@files <- list.files(system.file("spectra.Glucolesquerellin", package = "RMassBankData"), "Glucolesquerellin.*csv", full.names=TRUE)
-	msmsPeaklist <- msmsWorkflow(msmsPeaklist, steps=1:8, mode="mH", readMethod="peaklist")
+	msmsPeaklist@files <- list.files(system.file("spectra.Glucolesquerellin", 
+                                                     package = "RMassBankData"), 
+                                         "Glucolesquerellin.*csv", full.names=TRUE)
+	msmsPeaklist <- msmsWorkflow(msmsPeaklist, steps=1:8, 
+                                     mode="mH", readMethod="peaklist")
 @
 
 \subsection{Export the records}
@@ -155,7 +163,8 @@ This section is just to debug the record creation with XCMS, and hence very ters
 <<>>=
 mb <- newMbWorkspace(msmsList)
 mb <- resetInfolists(mb)
-mb <- loadInfolist(mb,system.file("infolists/PlantDataset.csv", package = "RMassBankData"))
+mb <- loadInfolist(mb,system.file("infolists/PlantDataset.csv", 
+                                  package = "RMassBankData"))
 ## Step 
 mb <- mbWorkflow(mb, steps=3:4)
 @
