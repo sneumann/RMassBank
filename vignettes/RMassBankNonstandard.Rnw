@@ -87,21 +87,18 @@ w <- loadMsmsWorkspace(system.file("results/pH_narcotics_RF.RData",
 @
 
 The stored recalibration curve:
-<<fig=TRUE,echo=FALSE>>=
-currentRecal <- w@rc
-hist2d(currentRecal$x, currentRecal$y, col=c("white", heat.colors(12)))
-x <- seq(range(currentRecal$x)[[1]], range(currentRecal$x)[[2]])
-predY <- predict(currentRecal, newdata=x)
-lines(x, predY)	
+<<fig=TRUE>>=
+plotRecalibration(w)
 @
 
 Some example peaks to show the effect of recalibration:
 <<>>=
-w@recalibratedSpecs[[1]]$parentPeak[30:33,]
-w@recalibratedSpecs[[1]]$peaks[[1]][15:18,]
+w@recalibratedSpecs[[1]]$parentPeak[30:32,]
+w@recalibratedSpecs[[1]]$peaks[[1]][15:17,]
 @
 
-Now reprocess the recalibration step with \code{recalibration.identity}:
+Now reprocess the recalibration step with the
+above set \code{recalibration.identity}:
 
 <<fig=TRUE>>=
 w <- msmsWorkflow(w, steps=4)
@@ -111,8 +108,8 @@ The recalibration graph shows that the recalibration "curve" will do no
 recalibration. To verify, we can show the same peaks as before:
 
 <<>>=
-w@recalibratedSpecs[[1]]$parentPeak[30:33,]
-w@recalibratedSpecs[[1]]$peaks[[1]][15:18,]
+w@recalibratedSpecs[[1]]$parentPeak[30:32,]
+w@recalibratedSpecs[[1]]$peaks[[1]][15:17,]
 @
 
 \section{Session information}

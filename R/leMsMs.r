@@ -905,13 +905,11 @@ makeRecalibration <- function(spec, mode)
 	{
 		rcdata$recalfield <- rcdata$dppm
 		ms1data$recalfield <- ms1data$dppm
-		ylab.plot <- expression(paste(delta, "ppm"))
 	}
 	else
 	{
 		rcdata$recalfield <- rcdata$dmz
 		ms1data$recalfield <- ms1data$dmz
-		ylab.plot <- expression(paste(delta, "m/z"))
 	}
 	
 	# generate recalibration model
@@ -924,65 +922,83 @@ makeRecalibration <- function(spec, mode)
 	# plot the model
 	par(mfrow=c(2,2))
 	if(nrow(rcdata)>0)
-	{
-		plot(recalfield ~ mzFound, data=rcdata,
-				xlab = "m/z", ylab = ylab.plot, main="MS2 scatterplot")
-		RcModelMz <- seq(min(spec$peaksMatched$mzFound), max(spec$peaksMatched$mzFound), by=0.2)
-		RcModelRecal <- predict(rc, newdata= data.frame(mzFound =RcModelMz))
-		RcModelRecalMs1 <- predict(rc.ms1, newdata= data.frame(mzFound =RcModelMz))
-		lines(RcModelMz, RcModelRecal, col="blue")
-		lines(RcModelMz, RcModelRecalMs1, col="yellow")
-		if((length(unique(rcdata$mzFound))>1) & 
-				(length(unique(rcdata$recalfield))>1))
-		{
-			if(require(gplots))
-			{
-				
-				hist2d(rcdata$mzFound, rcdata$recalfield, 
-						col=c("white", heat.colors(12)), xlab="m/z", 
-						ylab = ylab.plot, main="MS2 density")
-				lines(RcModelMz, RcModelRecal, col="blue")
-				lines(RcModelMz, RcModelRecalMs1, col="yellow")
-			}
-			else
-			{
-				message("Package gplots not installed. The recalibration density plot will not be displayed.")
-				message("To install gplots: install.packages('gplots')")
-			}
-		}
-	}
+		plotRecalibration.direct(rcdata, rc, rc.ms1, "MS2", 
+				range(spec$peaksMatched$mzFound))
 	if(nrow(ms1data)>0)
-	{
-		plot(recalfield ~ mzFound, data=ms1data,
-				xlab = "m/z", ylab = ylab.plot,main="MS1 scatterplot")
-		RcModelMz <- seq(min(ms1data$mzFound), max(ms1data$mzFound), by=0.2)
-		RcModelRecal <- predict(rc.ms1, newdata= data.frame(mzFound =RcModelMz))
-		RcModelRecalMs2 <- predict(rc, newdata= data.frame(mzFound =RcModelMz))
-		lines(RcModelMz, RcModelRecal, col="blue")
-		lines(RcModelMz, RcModelRecalMs2, col="red")
-		# Bug fixed: if only 1 ms1 row is available,
-		# the program fails
-		if((length(unique(ms1data$mzFound))>1) & 
-				(length(unique(ms1data$recalfield))>1))
-		{
-			if(require(gplots))
-			{
-				hist2d(ms1data$mzFound, ms1data$recalfield, 
-						col=c("white", heat.colors(12)), xlab="m/z", 
-						ylab = ylab.plot, main="MS1 density")
-				lines(RcModelMz, RcModelRecal, col="blue")
-				lines(RcModelMz, RcModelRecalMs2, col="red")
-			}
-			else
-			{
-				message("Package gplots not installed. The recalibration density plot will not be displayed.")
-				message("To install gplots: install.packages('gplots')")
-			}
-		}
-		
-	}
+		plotRecalibration.direct(ms1data, rc, rc.ms1, "MS1",
+				range(ms1data$mzFound))
 	# Return the computed recalibration curves
 	return(list(rc=rc, rc.ms1=rc.ms1))
+}
+
+
+
+#' Plot the recalibration graph.
+#' 
+#' @aliases plotRecalibration plotRecalibration.direct
+#' @usage plotRecalibration(w)
+#' 
+#' 		plotRecalibration.direct(rcdata, rc, rc.ms1, title, mzrange)
+#' 
+#' @param w The workspace to plot the calibration graph from
+#' @param rcdata A data frame with columns \code{recalfield} and \code{mzFound}.
+#' @param rc Predictor for MS2 data
+#' @param rc.ms1 Predictor for MS1 data
+#' @param title Prefix for the graph titles
+#' @param mzrange m/z value range for the graph
+#' 
+#' @author Michele Stravs, Eawag <michael.stravs@@eawag.ch>
+#' @export
+plotRecalibration <- function(w)
+{
+	spec <- w@aggregatedSpecs
+	
+	rcdata <- data.frame(mzFound = w@rc$x, recalfield = w@rc$y)
+	ms1data <- data.frame(mzFound = w@rc.ms1$x, recalfield = w@rc.ms1$y)
+	
+	par(mfrow=c(2,2))
+	if(nrow(rcdata)>0)
+		plotRecalibration.direct(rcdata, w@rc, w@rc.ms1, "MS2", 
+				range(spec$peaksMatched$mzFound))
+	if(nrow(ms1data)>0)
+		plotRecalibration.direct(ms1data, w@rc, w@rc.ms1, "MS1",
+				range(ms1data$mzFound))
+	
+}
+
+#' @export 
+plotRecalibration.direct <- function(rcdata, rc, rc.ms1, title, mzrange)
+{
+	if(getOption("RMassBank")$recalibrateBy == "dppm")
+		ylab.plot <- expression(paste(delta, "ppm"))
+	else
+		ylab.plot <- expression(paste(delta, "m/z"))	
+	
+	plot(recalfield ~ mzFound, data=rcdata,
+			xlab = "m/z", ylab = ylab.plot, main=paste(title, "scatterplot"))
+	RcModelMz <- seq(mzrange[[1]], mzrange[[2]], by=0.2)
+	RcModelRecal <- predict(rc, newdata= data.frame(mzFound =RcModelMz))
+	RcModelRecalMs1 <- predict(rc.ms1, newdata= data.frame(mzFound =RcModelMz))
+	lines(RcModelMz, RcModelRecal, col="blue")
+	lines(RcModelMz, RcModelRecalMs1, col="yellow")
+	if((length(unique(rcdata$mzFound))>1) & 
+			(length(unique(rcdata$recalfield))>1))
+	{
+		if(require(gplots))
+		{
+			
+			hist2d(rcdata$mzFound, rcdata$recalfield, 
+					col=c("white", heat.colors(12)), xlab="m/z", 
+					ylab = ylab.plot, main=paste(title, "density"))
+			lines(RcModelMz, RcModelRecal, col="blue")
+			lines(RcModelMz, RcModelRecalMs1, col="yellow")
+		}
+		else
+		{
+			message("Package gplots not installed. The recalibration density plot will not be displayed.")
+			message("To install gplots: install.packages('gplots')")
+		}
+	}
 }
 
 
@@ -1723,5 +1739,5 @@ recalibrate.loess <- function(rcdata)
 #' @export 
 recalibrate.identity <- function(rcdata)
 {
-	return(lm(recalfield ~ 0, data=dataset))
+	return(lm(recalfield ~ 0, data=rcdata))
 }
