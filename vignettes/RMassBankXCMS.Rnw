@@ -154,10 +154,10 @@ This section is just to debug the record creation with XCMS, and hence very ters
 
 <<>>=
 mb <- newMbWorkspace(msmsList)
+mb <- resetInfolists(mb)
+mb <- loadInfolist(mb,system.file("infolists/PlantDataset.csv", package = "RMassBankData"))
 ## Step 
-mb <- mbWorkflow(mb, steps=1:8, 
-                 infolist_path=list.files(system.file("infolists", package = "RMassBankData"), 
-                   "PlantDataset.csv", full.names=TRUE))
+mb <- mbWorkflow(mb, steps=3:4)
 @
 
 

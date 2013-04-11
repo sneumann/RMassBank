@@ -248,38 +248,40 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs) 
 	precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
 
 	## Fake MS1 from MSn scans
-	xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
+	## xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
 	
-	#xrs <- split(msn2xcms(xrmsms), f=xrmsms@msnCollisionEnergy)
-	
+	xrs <- split(msn2xcmsRaw(xrmsms), f=xrmsms@msnCollisionEnergy)
 	## Fake s simplistic xcmsSet
-	xsmsms <-  xcmsSet (files=fileName,
-					method="MS1")
+	xsmsms <- as.list(replicate(length(xrs),xcmsSet(files=fileName,
+					method="MS1")))
+	candidates <- list()
+	anmsms <- list()
+	psp <- list()
+	spectra <- list()
 	
-	#peakslist <- lapply(xrs, function(x){do.call(findPeaks, c(findPeaksArgs, x)}))
-	
-	peaks(xsmsms) <- do.call(findPeaks,c(findPeaksArgs, object = xrmsmsAsMs))
-	#lapply(peakslist, function(x) {})
-	
-	## Get pspec 
-	pl <- peaks(xsmsms)[,c("mz", "rt")]
+	for(i in 1:length(xrs)){
+		peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
+		## Get pspec 
+		pl <- peaks(xsmsms[[i]])[,c("mz", "rt")]
 
-    ## Best: find precursor peak
-	candidates <- which( pl[,"mz"] < parentMass + mzabs & pl[,"mz"] > parentMass - mzabs
+		## Best: find precursor peak
+		candidates[[i]] <- which( pl[,"mz"] < parentMass + mzabs & pl[,"mz"] > parentMass - mzabs
 						& pl[,"rt"] < RT * 1.1 & pl[,"rt"] > RT * 0.9 )
-
-	anmsms <- xsAnnotate(xsmsms)
-	anmsms <- groupFWHM(anmsms)
+		print(paste("Candidates:",candidates[[i]]))
+		anmsms[[i]] <- xsAnnotate(xsmsms[[i]])
+		anmsms[[i]] <- groupFWHM(anmsms[[i]])
     
-	## Now find the pspec for compound
-	psp <- which(sapply(anmsms@pspectra, function(x) {candidates %in% x}))
+		## Now find the pspec for compound
+		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates %in% x}))
+		print(paste("Pseudospectra:",psp[[i]])) 
+		## 2nd best: Spectrum closest to MS1
+		##psp <- which.min( abs(getRT(anmsms) - actualRT))
 
-    ## 2nd best: Spectrum closest to MS1
-	##psp <- which.min( abs(getRT(anmsms) - actualRT))
-
-    ## 3rd Best: find pspec closest to RT from spreadsheet
-	##psp <- which.min( abs(abs(getRT(anmsms) - RT) )
-	return(getpspectra(anmsms, psp))
+		## 3rd Best: find pspec closest to RT from spreadsheet
+		##psp <- which.min( abs(abs(getRT(anmsms) - RT) )
+		spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
+	}
+	return(spectra)
 }
 
 # Finds the EIC for a mass trace with a window of x ppm.

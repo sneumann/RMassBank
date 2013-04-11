@@ -116,10 +116,10 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8),confirmMode = FALSE, newReca
 		
 		for(i in 1:length(unique(cpdIDs))){
 			specs <- list()
-			for(j in 1:length(files[[i]])){	
+			for(j in 1:length(files[[i]])){
 				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs)
 			}
-			w@specs[[i]] <- toRMB(specs, unique(cpdIDs)[i], mode=mode)
+			w@specs[[i]] <- toRMB(unlist(specs, recursive = FALSE), unique(cpdIDs)[i], mode=mode)
 		}
 		names(w@specs) <- basename(as.character(w@files))
 	}
