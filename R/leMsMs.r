@@ -1723,5 +1723,5 @@ recalibrate.loess <- function(rcdata)
 #' @export 
 recalibrate.identity <- function(rcdata)
 {
-	return(lm(recalfield ~ 0, data=dataset))
+	return(lm(recalfield ~ 0, data=rcdata))
 }
