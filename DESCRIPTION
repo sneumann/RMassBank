@@ -2,8 +2,14 @@ Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
 Version: 1.3.0
-Author: Michael Stravs, Emma Schymanski
-Maintainer: Michael Stravs, Emma Schymanski <massbank@eawag.ch>
+Authors@R: c( person(given = "Michael A.", family = "Stravs", email =
+    "michael.stravs@eawag.ch", role=c("aut", "cre")), person(given = "Emma L.",
+    family = "Schymanski", email = "emma.schymanski@eawag.ch", role=c("aut")),
+    person(given = "Steffen", family = "Neumann", role = "aut", email =
+    "sneumann@ipb-halle.de"), person(given = "Erik", family = "Muller", role =
+    "aut", email = "erik.mueller@student.uni-halle.de"), person(given =
+    "Tobias", family = "Schulze", role = "ctb", email =
+    "tobias.schulze@ufz.de") )
 Description: Workflow to process tandem MS files and build MassBank records.
     Functions include automated extraction of tandem MS spectra, formula
     assignment to tandem MS fragments, recalibration of tandem MS spectra with
@@ -17,7 +23,8 @@ Depends:
 Imports:
     XML,RCurl
 Suggests:
-    gplots,RMassBankData (>= 0.99.3), xcms (>= 1.37.1),
+    gplots,RMassBankData (>= 0.99.3),
+    xcms (>= 1.37.1),
     CAMERA,
     ontoCAT,
     RUnit
