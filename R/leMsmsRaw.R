@@ -451,7 +451,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 	childHeaderAddition <- t(sapply(handSpec, function(spec){
 			header <- vector()
-			header[3] <- 2
+			header[1:3] <- 2
 			header[4] <- length(spec[,1])
 			header[5] <- 0 ##Does this matter?
 			header[6] <- findRt(cpdID)$RT * 60
@@ -498,8 +498,9 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 									"mergedResultStartScanNum", "mergedResultEndScanNum")
 		w@specs[[pos]]$parentHeader[1,1:3] <- 1
 		w@specs[[pos]]$parentHeader[1,4:20] <- 0
+		w@specs[[pos]]$parentHeader <- as.data.frame(w@specs[[pos]]$parentHeader)
 		w@specs[[pos]]$childScans <- 1
-		w@specs[[pos]]$childHeader <- childHeaderAddition
+		w@specs[[pos]]$childHeader <- as.data.frame(childHeaderAddition)
 		w@specs[[pos]]$parentPeak <- matrix(nrow = 1, ncol = 2)
 		colnames(w@specs[[pos]]$parentPeak) <- c("mz","int")
 		w@specs[[pos]]$parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
