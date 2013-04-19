@@ -55,8 +55,8 @@ vignette("RMassBank")
 
 For instances where recalibration is not wanted, e.g. there is
 not enough data, or the user wants to use non-recalibrated
-data, recalibration can be deactivated. To do this, the \code{recalibrator}
-entry in the settings must be set to \code{recalibrate.identity}. This can be
+data, recalibration can be deactivated. To do this, the \Rfunction{recalibrator}
+entry in the settings must be set to \Rfunction{recalibrate.identity}. This can be
 done in the settings file directly (preferred):
 
 \begin{verbatim}
@@ -98,7 +98,7 @@ w@recalibratedSpecs[[1]]$peaks[[1]][15:17,]
 @
 
 Now reprocess the recalibration step with the
-above set \code{recalibration.identity}:
+above set \Rfunction{recalibration.identity}:
 
 <<fig=TRUE>>=
 w <- msmsWorkflow(w, steps=4)
