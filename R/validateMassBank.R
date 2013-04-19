@@ -1,8 +1,12 @@
-#' Validate a record against a set of RUnit tests
+#' Validate MassBank records with a set of Unit tests
 #' 
-#' Validates a plaintext-MassBankrecord, or recursively all records
-#' below a directory. The Unit Tests to be used
-#' are installed in RMassBank/
+#' Validates a plain text MassBank record, or recursively all
+#' records within a directory. The Unit Tests to be used are
+#' installed in RMassBank/inst/unitTests and currently include 
+#' checks for NAs, peaks versus precursor, precursor mz, 
+#' precursor type, SMILES vs exact mass, total intensities and
+#' title versus type. The validation report is saved as 
+#' "report.html" in the working directory.
 #' 
 #' @aliases validate
 #' @usage validate(path)
