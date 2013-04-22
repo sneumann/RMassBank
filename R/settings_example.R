@@ -187,7 +187,25 @@ NULL
   # Default is 2 (peak occurs at least twice)
   # Set this to 1 if you want to turn this option off.
   # Set this to anything > 2 if you want harder filtering
-  multiplicityFilter = 2
+  multiplicityFilter = 2,
+	# Define the title format.
+	# You can use all entries from MassBank records as tokens
+	# plus the additional token RECORD_TITLE_CE, which is a shortened
+	# version of the collision energy specifically for use in the title.
+	# Every line is one entry and must have one token in curly brackets
+	# e.g. {CH$NAME} or {AC$MASS_SPECTROMETRY: MS_TYPE} plus optionally
+	# additional text in front or behind e.g.
+	# R={AC$MASS_SPECTROMETRY: RESOLUTION}
+	# If this is not specified, it defaults to a title of the format
+	# "Dinotefuran; LC-ESI-QFT; MS2; CE: 35%; R=35000; [M+H]+"
+  titleFormat = c(
+		  "{CH$NAME}",
+		  "{AC$INSTRUMENT_TYPE}",
+		  "{AC$MASS_SPECTROMETRY: MS_TYPE}",
+		  "CE: {RECORD_TITLE_CE}",
+		  "R={AC$MASS_SPECTROMETRY: RESOLUTION}",
+		  "{MS$FOCUSED_ION: PRECURSOR_TYPE}"
+  )
   )
 
 # Writes a file with sample settings which the user can adjust with his values.
