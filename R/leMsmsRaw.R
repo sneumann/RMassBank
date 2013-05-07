@@ -213,6 +213,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 #' @param cpdID The compoundID of the compound that has been used for the file
 #' @param mode The ionization mode that has been used for the spectrum represented by the peaklist
 #' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
+#' @param plots A parameter that determines whether the spectra should be plotted or not
 #' @return The \code{msmsWorkspace} with the additional peaklist added to the right spectrum
 #' @seealso \code{\link{msmsWorkflow}}
 #' @author Erik Mueller
@@ -222,7 +223,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 #'      psp <- findMsMsHRperxcms.direct(fileList,2184)
 #' }
 #' @export
-findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs) {
+findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs, plots = FALSE) {
 	
 	require(CAMERA)
 	require(xcms)
@@ -279,6 +280,9 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs) 
 
 		## 3rd Best: find pspec closest to RT from spreadsheet
 		##psp <- which.min( abs(abs(getRT(anmsms) - RT) )
+		if((plots == TRUE) && (length(psp[[i]]) > 0)){
+			plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(findMz(cpdID)[[1]], findMz(cpdID)[[3]]), maxlabel=10)
+		}
 		spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
 	}
 	return(spectra)

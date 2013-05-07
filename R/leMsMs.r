@@ -56,12 +56,13 @@ archiveResults <- function(w, fileName)
 #'        so that e.g. a recalibration can be performed, and "peaklist" 
 #'        just requires a CSV with two columns and the column header "mz", "int".
 #' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
+#' @param plots A parameter that determines whether the spectra should be plotted or not (This parameter is only used for the xcms-method)
 #' @return The processed \code{msmsWorkspace}.
 #' @seealso \code{\link{msmsWorkspace-class}}
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export
-msmsWorkflow <- function(w, mode="pH", steps=c(1:8),confirmMode = FALSE, newRecalibration = TRUE, 
-		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA)
+msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
+		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA, plots = FALSE)
 {
     .checkMbSettings()
     
@@ -116,8 +117,30 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8),confirmMode = FALSE, newReca
 		
 		for(i in 1:length(unique(cpdIDs))){
 			specs <- list()
+			specsNull <- list()
+			specsNotNull <- list()
 			for(j in 1:length(files[[i]])){
-				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs)
+				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs, plots)	
+				specsNull[[j]] <- vector()
+				specsNotNull[[j]] <- vector()
+				for(k in 1:length(specs[[j]]))
+					if(is.null(specs[[j]][[k]])){
+						specsNull[[j]] <- c(specsNull[[j]],k)
+					} else {specsNotNull <- c(specsNotNull[[j]],k)}
+			}
+			
+			if(length(specsNotNull) == 0){
+				stop("Couldn't find any peaks that fit criteria")
+			}
+			
+			##This replaces the specs that are missing with specs already present
+			##Couldn't think of a better solution
+			for(j in length(specsNull)){
+				warning("A spectrum has been replaced because XCMS couldn't find any fitting peaks")
+				for(k in specsNull[[j]]){
+					print(specsNotNull[[j]][1])
+					specs[[j]][[k]] <- specs[[j]][[specsNotNull[[j]][1]]]
+				}
 			}
 			w@specs[[i]] <- toRMB(unlist(specs, recursive = FALSE), unique(cpdIDs)[i], mode=mode)
 		}
