@@ -386,27 +386,40 @@ gatherData <- function(id)
     # Actually retrieve data from CTS (see the webaccess scripts)
     infos <- getCtsRecord(inchikey_split)
     
-    storedName <- infos$Name
+    storedName <- infos$Chemical.Name
     # Check if the name was found. If yes, OK. Otherwise, search again using
     # the DB name as start
     dataUsed <- "smiles"
-    if(nrow(infos$names) == 0 | length(infos$names) == 0)
+    if(is.null(infos$names))
       dataUsed <- "dbname"
-    if(storedName %in% c('Unknown','None'))
+    if(storedName == "error")
       dataUsed <- "dbname"
   }
 
+  ##SMILES NOT IN CTS ANYMORE?
+  ##
+  ##
+  ##
+  ##
+  ##
+  ##
+  ##
+  ##
+  ##
+  ##
+  ##
+  ##
   # if dataUsed is "dbname" here, this means that the SMILES code was not sufficient
   # and therefore we re-search starting from the DB name.
-  if(dataUsed == "dbname")
-  {
-    infos <- getCtsRecord(dbname, from="name")
-    inchikey_split <- infos$inchikey
-    # In this case, get the SMILES directly from the CTS record! It must match the
-    # InChI key to have consistency.
-    if(length(infos$smiles)>0)
-      smiles <- infos$smiles[[1]]
-  }
+  #if(dataUsed == "dbname")
+  #{
+  #  infos <- getCtsRecord(dbname, from="name")
+  #  inchikey_split <- infos$InChIKey
+  #  # In this case, get the SMILES directly from the CTS record! It must match the
+  #  # InChI key to have consistency.
+  # if(length(infos$smiles)>0)
+  #    smiles <- infos$smiles[[1]]
+  #}
   
   # Get ChemSpider ID from Cactvs, because it doesn't work properly from CTS
   csid <- getCactus(inchikey_split, 'chemspider_id')
@@ -414,7 +427,7 @@ gatherData <- function(id)
   # Name sorting: use the highest-ranking name from CTS
   # Also add one IUPAC nomenclature as name.
   # Note: only use the CTS name if it has a score of >= 1!
-  if(nrow(infos$names) > 0 & length(infos$names)>0)
+  if(!is.null(infos$names))
   {
     topName <- infos$names[which.max(infos$names[,"score"]),]
     if(topName$score< 1)
@@ -426,7 +439,7 @@ gatherData <- function(id)
       topNameN <- character(0)
 
   
-  if(length(infos$iupac) == 0)
+  if(!is.null(infos$iupac))
     iupacName <- character(0)
   else
     iupacName <- infos$iupac[[1]]
@@ -465,19 +478,19 @@ gatherData <- function(id)
   mbdata[['CH$FORMULA']] <- formula
   mbdata[['CH$EXACT_MASS']] <- mass
   mbdata[['CH$SMILES']] <- smiles
-  mbdata[['CH$IUPAC']] <- infos$inchi
+  mbdata[['CH$IUPAC']] <- infos$InchI.Code
   
   # Add all CH$LINK fields present in the compound datasets
   link <- list()
-  if(length(infos$cas)>0) {
-    if (infos$cas[[1]] != "") link[["CAS"]] <- infos$cas[[1]]
-    if(dbcas %in% infos$cas) link[["CAS"]] <- dbcas
+  if(length(infos$CAS)>0) {
+    if (infos$CAS[[1]] != "") link[["CAS"]] <- infos$CAS[[1]]
+    if(dbcas %in% infos$CAS) link[["CAS"]] <- dbcas
   }
-  if(length(infos$chebi)>0) if(infos$chebi[[1]] != "") link[["CHEBI"]] <- infos$chebi[[1]]
-  if(infos$hmdb[[1]] != "") link[["HMDB"]] <- infos$hmdb[[1]]
-  if(length(infos$kegg)>0) if(infos$kegg[[1]] != "") link[["KEGG"]] <- infos$kegg[[1]]
-  if(infos$lipidmap[[1]] != "") link[["LIPIDMAPS"]] <- infos$lipidmap[[1]]
-  if(length(infos$cid)>0) if(infos$cid[[1]] != "") link[["PUBCHEM"]] <- paste("CID:",infos$cid[[1]],sep='')
+  if(length(infos$ChEBI)>0) if(infos$ChEBI[[1]] != "") link[["CHEBI"]] <- infos$ChEBI[[1]]
+  if(infos$HMDB[[1]] != "") link[["HMDB"]] <- infos$HMDB[[1]]
+  if(length(infos$KEGG)>0) if(infos$KEGG[[1]] != "") link[["KEGG"]] <- infos$kegg[[1]]
+  if(infos$LipidMAPS[[1]] != "") link[["LIPIDMAPS"]] <- infos$LipidMAPS[[1]]
+  if(length(infos$PubChem.CID)>0) if(infos$PubChem.CID[[1]] != "") link[["PUBCHEM"]] <- paste("CID:",infos$PubChem.CID[[1]],sep='')
   link[["INCHIKEY"]] <- inchikey_split
   if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid)))
   mbdata[['CH$LINK']] <- link

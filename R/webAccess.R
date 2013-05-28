@@ -138,64 +138,60 @@ getCtsRecord <- function(key, from = "inchikey",
   to = c("cas","hmdb","kegg","sid","chebi","inchi","lipidmap","smiles","cid",
          "inchikey","mass","formula","iupac","names"))
 {
+	require(devtools)
+	require(RJSONIO)
+	#install_github(repo = "CTSgetR", username = "dgrapov")
+	require(CTSgetR)
   # checks
   if(from %in% c("", "None", "Unknown", "Not available"))
     return(NA)
-  # compose the URL
-  baseUrl <- "http://uranus.fiehnlab.ucdavis.edu:8080/cts/massLookup/masstransform?format=xml&extension=xml"
-  term <- paste(baseUrl,
-                "&from=", URLencode(from),
-                "&ids=", URLencode(key),
-                sep='')
-  toTerm <- paste(to, collapse="&to=")
-  term <- paste(term, "&to=", toTerm, sep='')
-  # retrieve the document from CTS and parse it to XML
-  ret <-  getURL(term)
-  xml <- xmlParseDoc(ret,asText=TRUE)
-  # retrieve the result set (the first one)
-  res <- getNodeSet(xml, "/compoundResultSets/compoundResultSet")
-  res <- res[[1]]
-  children <- xmlChildren(res)
-  # eliminate the useless empty text nodes
-  children <- children[names(children)[which(names(children)!="text")]]
-  childrenPlain <- lapply(children, xmlValue)
-  childrenProc <- childrenPlain
+	
+	ChemSpID<-CTSgetR(key,from="InChIKey",to="ChemSpider",parallel=FALSE)
+	CTS.options<-CTS.options()[2:10]
+	CTS.options # see options
+	id<-ChemSpID
+	childrenProc<-sapply(1:length(CTS.options), function(i)
+	{
+		cat(CTS.options[i],"\n")
+		CTSgetR(id=id,to=CTS.options[i],from="ChemSpider")
+	})
+	print(childrenProc)
   # Postprocess:
   # Split CAS, SID, CID, IUPAC
   # (don't split names yet, since we don't have a good rule. - and , 
   # are both problematic here)
  
   tosplit <- c("cas", "sid", "cid", "iupac", "smiles", "kegg", "chebi")
-  for(var in tosplit)
-  {
-    if(!is.null(childrenProc[[var]]))
-    {
-      childrenProc[[var]] <- strsplit(childrenProc[[var]], ", ", fixed=TRUE)
-      childrenProc[[var]] <- unlist(lapply(childrenProc[[var]],
-        function(x) sub("^ *([^ ]+) *$", "\\1", x)))
-    }
-  }
+  #for(var in tosplit)
+  #{
+  #  if(childrenProc[[var]] != "error")
+  #  {
+  #    childrenProc[[var]] <- strsplit(childrenProc[[var]], ", ", fixed=TRUE)
+  #    childrenProc[[var]] <- unlist(lapply(childrenProc[[var]],
+  #      function(x) sub("^ *([^ ]+) *$", "\\1", x)))
+  #  } 
+  #}
   # Try to handle names in a graceful way
-  if(!is.null(childrenProc$names))
-  {
+  #if(!is.null(childrenProc$names))
+  #{
     # add final comma and space to match the last name correctly
-    names <- paste(childrenProc$names, ", ", sep='')
-    matches.list <- gregexpr(" (.*?) - (-*[0-9]+), ", names, perl=TRUE)
-    matches <- regmatches(names, matches.list )[[1]]
-    matches <- t(sapply(matches, function(match)
-    {
-      match.name <- sub(" (.*?) - (-*[0-9]+), ", "\\1", match)
-      match.score <- as.integer(sub(" (.*?) - (-*[0-9]+), ", "\\2", match))
-      return(list(name=match.name, score=match.score))
-    }, USE.NAMES=FALSE))
-    childrenProc$names <- matches
+  #  names <- paste(childrenProc$names, ", ", sep='')
+  #  matches.list <- gregexpr(" (.*?) - (-*[0-9]+), ", names, perl=TRUE)
+  #  matches <- regmatches(names, matches.list )[[1]]
+  #  matches <- t(sapply(matches, function(match)
+  #  {
+  #    match.name <- sub(" (.*?) - (-*[0-9]+), ", "\\1", match)
+  #    match.score <- as.integer(sub(" (.*?) - (-*[0-9]+), ", "\\2", match))
+  #   return(list(name=match.name, score=match.score))
+  #  }, USE.NAMES=FALSE))
+  #  childrenProc$names <- matches
     # " (.*?) - (-*[0-9]+), "
-  }
+  #}
 
   # Check and fix CAS (eliminate the 12-34-5CHEBI and NIKKAJI stuff)
-  if(!is.null(childrenProc$cas))
+  if(!is.null(childrenProc$CAS))
   {
-    childrenProc$cas <- childrenProc$cas[which(grepl("^[-0-9]+$", childrenProc$cas))]
+    childrenProc$CAS <- childrenProc$CAS[which(grepl("^[-0-9]+$", childrenProc$CAS))]
   }
   return(childrenProc)
 }

@@ -281,7 +281,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs, 
 		## 3rd Best: find pspec closest to RT from spreadsheet
 		##psp <- which.min( abs(abs(getRT(anmsms) - RT) )
 		if((plots == TRUE) && (length(psp[[i]]) > 0)){
-			plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(findMz(cpdID)[[1]], findMz(cpdID)[[3]]), maxlabel=10)
+			plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
 		}
 		spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
 	}
