@@ -142,8 +142,8 @@ getCtsRecord <- function(key, from = "inchikey",
 	require(RJSONIO)
 	#install_github(repo = "CTSgetR", username = "dgrapov")
 	require(CTSgetR)
-  # checks
-  if(from %in% c("", "None", "Unknown", "Not available"))
+	# checks
+	if(from %in% c("", "None", "Unknown", "Not available"))
     return(NA)
 	
 	ChemSpID<-CTSgetR(key,from="InChIKey",to="ChemSpider",parallel=FALSE)
@@ -156,6 +156,12 @@ getCtsRecord <- function(key, from = "inchikey",
 		CTSgetR(id=id,to=CTS.options[i],from="ChemSpider")
 	})
 	print(childrenProc)
+	
+	require(RJSON)
+	urlInchi <- paste("http://cts.fiehnlab.ucdavis.edu/service/compound/", key, sep='')
+	JSONstring <- getURL(urlInchi)
+	Content <- fromJSON(JSONstring, method = "C", unexpected.escape = "error" )
+	#print(Content)
   # Postprocess:
   # Split CAS, SID, CID, IUPAC
   # (don't split names yet, since we don't have a good rule. - and , 
@@ -193,5 +199,6 @@ getCtsRecord <- function(key, from = "inchikey",
   {
     childrenProc$CAS <- childrenProc$CAS[which(grepl("^[-0-9]+$", childrenProc$CAS))]
   }
-  return(childrenProc)
+  print(Content)
+  return(Content)
 }

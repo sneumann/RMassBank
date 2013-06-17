@@ -385,17 +385,20 @@ gatherData <- function(id)
     inchikey_split <- strsplit(inchikey, "=", fixed=TRUE)[[1]][[2]]
     # Actually retrieve data from CTS (see the webaccess scripts)
     infos <- getCtsRecord(inchikey_split)
-    
-    storedName <- infos$Chemical.Name
     # Check if the name was found. If yes, OK. Otherwise, search again using
     # the DB name as start
     dataUsed <- "smiles"
-    if(is.null(infos$names))
-      dataUsed <- "dbname"
+    if(is.null(infos$synonyms))
+        dataUsed <- "dbname"
+	else 
+		storedName <- infos$synonyms[[3]]$name
     if(storedName == "error")
       dataUsed <- "dbname"
   }
-
+	for(i in 1:length(infos$externalIds)){
+		if(infos$externalIds[[i]][1] == "Pubchem CID")
+			infos$PubChem <- infos$externalIds[[i]][2]
+	}
   ##SMILES NOT IN CTS ANYMORE?
   ##
   ##
@@ -427,22 +430,25 @@ gatherData <- function(id)
   # Name sorting: use the highest-ranking name from CTS
   # Also add one IUPAC nomenclature as name.
   # Note: only use the CTS name if it has a score of >= 1!
-  if(!is.null(infos$names))
+  if(!is.null(infos$synonyms))
   {
-    topName <- infos$names[which.max(infos$names[,"score"]),]
-    if(topName$score< 1)
-        topNameN <- character(0)
-    else
-        topNameN <- topName$name
+    ## There aren't any more scores for the names!
+	topNameN <- infos$synonyms[[2]]$name
+    ##if(topName$score< 1)
+    ##    topNameN <- character(0)
+    ##else
+    ##    topNameN <- topName$name
+    iupacName <- infos$synonyms[[1]]$name
   }
   else
       topNameN <- character(0)
 
   
-  if(!is.null(infos$iupac))
-    iupacName <- character(0)
-  else
-    iupacName <- infos$iupac[[1]]
+  ##if(!is.null(infos$iupac))
+  ##  iupacName <- character(0)
+  #else
+  #  iupacName <- infos$iupac[[1]]
+  
   
   # Eliminate duplicate names from our list of 3
   names <- as.list(unique(c(topNameN, storedName, iupacName)))
@@ -478,7 +484,7 @@ gatherData <- function(id)
   mbdata[['CH$FORMULA']] <- formula
   mbdata[['CH$EXACT_MASS']] <- mass
   mbdata[['CH$SMILES']] <- smiles
-  mbdata[['CH$IUPAC']] <- infos$InchI.Code
+  mbdata[['CH$IUPAC']] <- infos$inchicode
   
   # Add all CH$LINK fields present in the compound datasets
   link <- list()
@@ -487,17 +493,17 @@ gatherData <- function(id)
     if(dbcas %in% infos$CAS) link[["CAS"]] <- dbcas
   }
   if(length(infos$ChEBI)>0) if(infos$ChEBI[[1]] != "") link[["CHEBI"]] <- infos$ChEBI[[1]]
-  if(infos$HMDB[[1]] != "") link[["HMDB"]] <- infos$HMDB[[1]]
+  if(length(infos$HMDB)>0) if(infos$HMDB[[1]] != "") link[["HMDB"]] <- infos$HMDB[[1]]
   if(length(infos$KEGG)>0) if(infos$KEGG[[1]] != "") link[["KEGG"]] <- infos$kegg[[1]]
-  if(infos$LipidMAPS[[1]] != "") link[["LIPIDMAPS"]] <- infos$LipidMAPS[[1]]
-  if(length(infos$PubChem.CID)>0) if(infos$PubChem.CID[[1]] != "") link[["PUBCHEM"]] <- paste("CID:",infos$PubChem.CID[[1]],sep='')
+  if(length(infos$LipidMAPS)>0) if(infos$LipidMAPS[[1]] != "") link[["LIPIDMAPS"]] <- infos$LipidMAPS[[1]]
+  if(length(infos$PubChem)>0) if(infos$PubChem[[1]] != "") link[["PUBCHEM"]] <- paste("CID:",infos$PubChem[[1]],sep='')
   link[["INCHIKEY"]] <- inchikey_split
   if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid)))
   mbdata[['CH$LINK']] <- link
   
   mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
   mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
-
+	print(mbdata)
   return(mbdata)  
 } # function gather.mbdata
 

@@ -273,7 +273,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs, 
 		anmsms[[i]] <- groupFWHM(anmsms[[i]])
     
 		## Now find the pspec for compound
-		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates %in% x}))
+		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][1] %in% x}))
 		print(paste("Pseudospectra:",psp[[i]])) 
 		## 2nd best: Spectrum closest to MS1
 		##psp <- which.min( abs(getRT(anmsms) - actualRT))
