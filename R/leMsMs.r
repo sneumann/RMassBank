@@ -117,30 +117,8 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		
 		for(i in 1:length(unique(cpdIDs))){
 			specs <- list()
-			specsNull <- list()
-			specsNotNull <- list()
 			for(j in 1:length(files[[i]])){
 				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs, plots)	
-				specsNull[[j]] <- vector()
-				specsNotNull[[j]] <- vector()
-				for(k in 1:length(specs[[j]]))
-					if(is.null(specs[[j]][[k]])){
-						specsNull[[j]] <- c(specsNull[[j]],k)
-					} else {specsNotNull <- c(specsNotNull[[j]],k)}
-			}
-			
-			if(length(specsNotNull) == 0){
-				stop("Couldn't find any peaks that fit criteria")
-			}
-			
-			##This replaces the specs that are missing with specs already present
-			##Couldn't think of a better solution
-			for(j in length(specsNull)){
-				warning("A spectrum has been replaced because XCMS couldn't find any fitting peaks")
-				for(k in specsNull[[j]]){
-					print(specsNotNull[[j]][1])
-					specs[[j]][[k]] <- specs[[j]][[specsNotNull[[j]][1]]]
-				}
 			}
 			w@specs[[i]] <- toRMB(unlist(specs, recursive = FALSE), unique(cpdIDs)[i], mode=mode)
 		}
@@ -306,7 +284,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 #' \item{list("id")}{ 
 #' 		The compound ID (inherited from \code{msmsdata})}
 #' \item{list("mode")}{
-#' 		processing mode} $
+#' 		processing mode} 
 #' \item{list("parentHeader")}{ 
 #' 		Parent spectrum header data (ex \code{msmsdata})} 
 #' \item{list("parentMs")}{ 

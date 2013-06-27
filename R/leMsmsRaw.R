@@ -253,8 +253,8 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs, 
 	
 	xrs <- split(msn2xcmsRaw(xrmsms), f=xrmsms@msnCollisionEnergy)
 	## Fake s simplistic xcmsSet
-	xsmsms <- as.list(replicate(length(xrs),xcmsSet(files=fileName,
-					method="MS1")))
+	setReplicate <- xcmsSet(files=fileName, method="MS1")
+	xsmsms <- as.list(replicate(length(xrs),setReplicate))
 	candidates <- list()
 	anmsms <- list()
 	psp <- list()
@@ -350,6 +350,17 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA)
 #' }
 #' @export
 toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
+	
+	ret <- list()
+	ret$mz <- findMz(cpdID,mode=mode)
+	ret$id <- cpdID
+	ret$formula <- findFormula(cpdID)
+	print(paste("Length of msmsXCMSspecs:",length(msmsXCMSspecs)))
+	if(length(msmsXCMSspecs) == 0){
+		ret$foundOK <- FALSE
+		print("blabla")
+		return(ret)
+	}
 	if(is.na(msmsXCMSspecs)){
 			stop("You need a readable spectrum!")
 	}
@@ -357,11 +368,12 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 			stop("Please supply the compoundID!")
 	}
 	numScan <- length(msmsXCMSspecs)
-	ret <- list()
-	ret$foundOK <- 1
+
+	
+	ret$foundOK <- TRUE
 	ret$parentscan <- 1
 	ret$parentHeader <- matrix(0, ncol = 20, nrow = 1)
-	rownames(ret$parentHeader) <-1
+	rownames(ret$parentHeader) <- 1
 	colnames(ret$parentHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
 									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
 									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
@@ -427,9 +439,6 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 									peaks[,2] <- specs[,7]
 									return(peaks)
 								})
-	ret$mz <- findMz(cpdID,mode=mode)
-	ret$id <- cpdID
-	ret$formula <- findFormula(cpdID)
 	return(ret)
 }
 
