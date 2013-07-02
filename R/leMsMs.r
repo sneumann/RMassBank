@@ -105,7 +105,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	
 	if(readMethod == "xcms"){
 		splitfn <- strsplit(w@files,'_')
-		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[2]))})
+		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[length(splitted)-1]))})
 		files <- list()
 		wfiles <- vector()
 			for(i in 1:length(unique(cpdIDs))) {
@@ -175,7 +175,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(3 %in% steps)
   {
 	message("msmsWorkflow: Step 3. Aggregate all spectra")
-    w@aggregatedSpecs <- aggregateSpectra(w@analyzedSpecs)
+    w@aggregatedSpecs <- aggregateSpectra(w@analyzedSpecs, addIncomplete=TRUE)
   }
   # Step 4: recalibrate all m/z values in raw spectra
   if(4 %in% steps)

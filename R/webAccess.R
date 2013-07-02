@@ -138,26 +138,26 @@ getCtsRecord <- function(key, from = "inchikey",
   to = c("cas","hmdb","kegg","sid","chebi","inchi","lipidmap","smiles","cid",
          "inchikey","mass","formula","iupac","names"))
 {
-	require(devtools)
+	#require(devtools)
 	require(RJSONIO)
 	#install_github(repo = "CTSgetR", username = "dgrapov")
-	require(CTSgetR)
+	#require(CTSgetR)
 	# checks
-	if(from %in% c("", "None", "Unknown", "Not available"))
-    return(NA)
+	if(from %in% c("", "None", "Unknown", "Not available")){
+    return(NA)}
 	
-	ChemSpID<-CTSgetR(key,from="InChIKey",to="ChemSpider",parallel=FALSE)
-	CTS.options<-CTS.options()[2:10]
-	CTS.options # see options
-	id<-ChemSpID
-	childrenProc<-sapply(1:length(CTS.options), function(i)
-	{
-		cat(CTS.options[i],"\n")
-		CTSgetR(id=id,to=CTS.options[i],from="ChemSpider")
-	})
-	print(childrenProc)
+	#ChemSpID<-CTSgetR(key,from="InChIKey",to="ChemSpider",parallel=FALSE)
+	#CTS.options<-CTS.options()[2:10]
+	#CTS.options # see options
+	#id<-ChemSpID
+	#childrenProc<-sapply(1:length(CTS.options), function(i)
+	#{
+	#	cat(CTS.options[i],"\n")
+	#	CTSgetR(id=id,to=CTS.options[i],from="ChemSpider")
+	#})
+	#print(childrenProc)
 	
-	require(RJSON)
+	#require(RJSON)
 	urlInchi <- paste("http://cts.fiehnlab.ucdavis.edu/service/compound/", key, sep='')
 	JSONstring <- getURL(urlInchi)
 	Content <- fromJSON(JSONstring, method = "C", unexpected.escape = "error" )
@@ -195,10 +195,10 @@ getCtsRecord <- function(key, from = "inchikey",
   #}
 
   # Check and fix CAS (eliminate the 12-34-5CHEBI and NIKKAJI stuff)
-  if(!is.null(childrenProc$CAS))
-  {
-    childrenProc$CAS <- childrenProc$CAS[which(grepl("^[-0-9]+$", childrenProc$CAS))]
-  }
+  #if(!is.null(childrenProc$CAS))
+  #{
+    #childrenProc$CAS <- childrenProc$CAS[which(grepl("^[-0-9]+$", childrenProc$CAS))]
+  #}
   print(Content)
   return(Content)
 }

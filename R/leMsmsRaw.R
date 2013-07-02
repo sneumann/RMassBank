@@ -223,7 +223,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 #'      psp <- findMsMsHRperxcms.direct(fileList,2184)
 #' }
 #' @export
-findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs, plots = FALSE) {
+findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE) {
 	
 	require(CAMERA)
 	require(xcms)
@@ -244,7 +244,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs, 
 	## MSMS
 	##
 	xrmsms <- xcmsRaw(fileName, includeMSn=TRUE)
-
+	print("File read")
 	## Where is the wanted isolation ?
 	precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
 
@@ -259,6 +259,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs, 
 	anmsms <- list()
 	psp <- list()
 	spectra <- list()
+	whichmissing <- vector()
 	
 	for(i in 1:length(xrs)){
 		peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
@@ -283,7 +284,14 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs, 
 		if((plots == TRUE) && (length(psp[[i]]) > 0)){
 			plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
 		}
+		if(length(psp[[i]]) != 0){
 		spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
+		} else {whichmissing <- c(whichmissing,i)}
+	}
+	if(length(spectra) != 0){
+		for(i in whichmissing){
+			spectra[[i]] <- matrix(0,2,7)
+		}
 	}
 	return(spectra)
 }
@@ -413,7 +421,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		header[12] <- max(spec[,1]) 
 		header[13] <- 1
 		header[14] <- findMz(cpdID)[[3]]
-		header[15] <- -1 ##Will be changed for different charges
+		header[15] <- 1 ##Will be changed for different charges
 		header[16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. Workaround? msmsXCMS@files[1]
 		header[17:20] <- 0 ##Will be changed if merge is wanted
 		return(header)

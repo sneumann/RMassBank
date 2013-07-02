@@ -383,6 +383,7 @@ gatherData <- function(id)
   {
     # Split the "InChiKey=" part off the key
     inchikey_split <- strsplit(inchikey, "=", fixed=TRUE)[[1]][[2]]
+	print(inchikey_split)
     # Actually retrieve data from CTS (see the webaccess scripts)
     infos <- getCtsRecord(inchikey_split)
     # Check if the name was found. If yes, OK. Otherwise, search again using
@@ -451,7 +452,7 @@ gatherData <- function(id)
   
   
   # Eliminate duplicate names from our list of 3
-  names <- as.list(unique(c(topNameN, storedName, iupacName)))
+  names <- as.list(unique(c(dbname, storedName, iupacName)))
   
   
   # Start to fill the MassBank record.
@@ -477,6 +478,7 @@ gatherData <- function(id)
   mbdata[["COMMENT"]][["ID"]] = id
   # here compound info starts
   mbdata[['CH$NAME']] <- names
+  print(mbdata[['CH$NAME']])
   # Currently we use a fixed value for Compound Class, since there is no useful
   # convention of what should go there and what shouldn't, and the field is not used
   # in search queries.
@@ -503,7 +505,7 @@ gatherData <- function(id)
   
   mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
   mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
-	print(mbdata)
+  print(mbdata)
   return(mbdata)  
 } # function gather.mbdata
 
