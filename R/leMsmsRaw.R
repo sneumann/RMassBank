@@ -229,7 +229,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	require(xcms)
 	parentMass <- findMz(cpdID)$mzCenter
 	RT <- findRt(cpdID)$RT * 60
-	mzabs <- 0.1
+	mzabs <- 0.01
 	
 	getRT <- function(xa) {
 		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
@@ -269,13 +269,19 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		## Best: find precursor peak
 		candidates[[i]] <- which( pl[,"mz"] < parentMass + mzabs & pl[,"mz"] > parentMass - mzabs
 						& pl[,"rt"] < RT * 1.1 & pl[,"rt"] > RT * 0.9 )
+                
 		print(paste("Candidates:",candidates[[i]]))
 		anmsms[[i]] <- xsAnnotate(xsmsms[[i]])
 		anmsms[[i]] <- groupFWHM(anmsms[[i]])
-    
+
+                closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt"]  ) )
+                
 		## Now find the pspec for compound
-		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][1] %in% x}))
+                ## CRASH if no candidates!
+		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
+                
 		print(paste("Pseudospectra:",psp[[i]])) 
+
 		## 2nd best: Spectrum closest to MS1
 		##psp <- which.min( abs(getRT(anmsms) - actualRT))
 
@@ -390,6 +396,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 	##Write nothing in the parents if there is no MS1-spec
 	if(is.na(MS1spec)){
 		ret$parentHeader[1,4:20] <- 0
+                ret$parentHeader[1,6] <- NA
 	} else { ##Else use the MS1spec spec to write everything into the parents
 		ret$parentHeader[1,4] <- length(MS1spec[,1])
 		ret$parentHeader[1,5] <- 0
@@ -406,7 +413,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 	
 	##Write the peaks into the childscans
 	ret$childScans <- 2:(numScan+1)
-	ret$childHeader <- matrix(0, ncol = 20, nrow = numScan)
+
 	childHeader <- t(sapply(msmsXCMSspecs, function(spec){
 		header <- vector()
 		header[3] <- 2
@@ -435,6 +442,10 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
 									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
 									"mergedResultStartScanNum", "mergedResultEndScanNum")
+        if (is.na(ret$parentHeader[1,"retentionTime"])) {
+          ## Overwrite MS1 RT with average from MS2 
+          ret$parentHeader[1,"retentionTime"] <- median(ret$childHeader[, "retentionTime"])
+        }
 	
 	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
 	colnames(ret$parentPeak) <- c("mz","int")
