@@ -38,3 +38,4 @@ Collate:
     'deprofile.R'
     'RmbWorkspace.R'
     'tools.R'
+    'parseMassBank.R' 'validateMassBank.R' 'zzz.R'
