@@ -1488,8 +1488,20 @@ filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TR
 	   fp_tot$OK <- character(0)
 	   fp_tot$name <- character(0)
    }
+   # Select the columns for output into the failpeaks file
     fp_tot <- fp_tot[,c("OK", "name", "cpdID", "scan", "mzFound", "formula", "mzCalc", "dppm", "dbe", "mz", "int",
                  "formulaCount", "parentScan", "aMax", "mzCenter")]
+ 	# Select the correct precursor scans. This serves to filter the list
+	# for the cases where multiple workspaces were combined after step 7
+	# with combineMultiplicities.
+	# Note that this has drawbacks. Leaving the "duplicates" in would make it more easy
+	# to identify legitimate unformulaed peaks. We might experiment by marking them up
+	# somehow. 
+	precursors <- unlist(lapply(specs$specFound, function(s) s$parentHeader$acquisitionNum))
+	fp_tot <- fp_tot[
+			fp_tot$parentScan %in% precursors
+			,]
+
     
     peaksOK <- peaksFiltered[
                       peaksFiltered$formulaMultiplicity > (multiplicityFilter - 1),]
@@ -1654,3 +1666,9 @@ recalibrate.loess <- function(rcdata)
 	return(loess(recalfield ~ mzFound, data=rcdata, family=c("symmetric"),
 					degree = 1, span=0.25, surface="direct" ))
 }
+
+## #' @export
+## recalibrate.identity <- function(rcdata)
+## {
+## 
+## }

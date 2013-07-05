@@ -1,0 +1,31 @@
+\name{CTS.externalIdSubset}
+\alias{CTS.externalIdSubset}
+\title{Select a subset of external IDs from a CTS record.}
+\usage{
+  CTS.externalIdSubset(data, database)
+}
+\arguments{
+  \item{data}{The complete CTS record as retrieved by
+  \code{\link{getCtsRecord}}.}
+
+  \item{database}{The database for which keys should be
+  returned.}
+}
+\value{
+  Returns an array of all external identifiers stored in
+  the record for the given database.
+}
+\description{
+  Select a subset of external IDs from a CTS record.
+}
+\examples{
+\dontrun{
+# Return all CAS registry numbers stored for benzene.
+data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
+cas <- CTS.externalIdSubset(data, "CAS")
+}
+}
+\author{
+  Michele Stravs, Eawag <stravsmi@eawag.ch>
+}
+

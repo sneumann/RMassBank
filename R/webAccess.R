@@ -1,4 +1,4 @@
-#' @import XML RCurl
+#' @import XML RCurl rjson
 NULL
 ## library(XML)
 ## library(RCurl)
@@ -103,99 +103,132 @@ getPcId <- function(search)
 # CTS starts with "CHEBI:" instead of just the number, the XML output)
 # Also, there is no ChemSpider ID in the XML output, unfortunately.
 
+
+
+
+
+
+
+
 #' Retrieve information from CTS
 #' 
-#' Retrieves chemical information about a compound from Chemical Translation
-#' Service (CTS) from a known identifier.
+#' Retrieves a complete CTS record from the InChI key.
 #' 
+#' @usage getCtsRecord(key)
 #' 
-#' @usage getCtsRecord(key, from = "inchikey", to = c("cas", "hmdb", "kegg",
-#' "sid", "chebi", "inchi", "lipidmap", "smiles", "cid", "inchikey", "mass",
-#' "formula", "iupac", "names"))
-#' @param key The search term (or key).
-#' @param from The format of the key. Allowed are \code{"cas", "hmdb", "kegg",
-#' "sid", "chebi", "inchi", "lipidmap", "smiles", "cid", "inchikey", "mass",
-#' "formula", "iupac", "name"}.
-#' @param to The list of result types which should be returned. Allowed are
-#' \code{"cas", "hmdb", "kegg", "sid", "chebi", "inchi", "lipidmap", "smiles",
-#' "cid", "inchikey", "mass", "formula", "iupac", "name"}.
-#' @return Returns a named list with the values of the results. The list item
-#' \code{"names"} is a matrix with columns \code{"name", "score"}, with
-#' \code{score} being an indicator of the reliability of the name assignment.
-#' @note The return values are not 100% reliable, e.g. a known bug returns
-#' "ChEBI" for the \code{chebi} entry instead of the actual ChEBI code in some
-#' instances.
-#' @author Michael Stravs
-#' @seealso \code{\link{getCactus}},\code{\link{getPcId}}
+#' @param key The InChI key. 
+#' @return Returns a list with all information from CTS: \code{inchikey, 
+#' 	inchicode, formula, exactmass} contain single values. \code{synonyms} contains
+#' an unordered list of scored synonyms (\code{type, name, score}, where \code{type}
+#' indicates either a normal name or a specific IUPAC name, see below).
+#'  \code{externalIds} contains an unordered list of identifiers of the compound in 
+#' various databases (\code{name, value}, where \code{name} is the database name and
+#' \code{value} the identifier in that database.)
+#' 
+#' @note Currently, the CTS results are still incomplete; the name scores are all 0,
+#' formula and exact mass return zero.
 #' @references Chemical Translation Service:
-#' \url{http://uranus.fiehnlab.ucdavis.edu:8080/cts/homePage}
+#' \url{http://cts.fiehnlab.ucdavis.edu}
+#' 
 #' @examples
 #' 
-#' getCtsRecord("benzene", "name")
+#' data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
+#' # show all synonym "types"
+#' types <- unique(unlist(lapply(data$synonyms, function(i) i$type)))
+#' \dontrun{print(types)}
 #' 
+#' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
 #' @export
-getCtsRecord <- function(key, from = "inchikey", 
-  to = c("cas","hmdb","kegg","sid","chebi","inchi","lipidmap","smiles","cid",
-         "inchikey","mass","formula","iupac","names"))
+getCtsRecord <- function(key)
 {
-  # checks
-  if(from %in% c("", "None", "Unknown", "Not available"))
-    return(NA)
-  # compose the URL
-  baseUrl <- "http://uranus.fiehnlab.ucdavis.edu:8080/cts/massLookup/masstransform?format=xml&extension=xml"
-  term <- paste(baseUrl,
-                "&from=", URLencode(from),
-                "&ids=", URLencode(key),
-                sep='')
-  toTerm <- paste(to, collapse="&to=")
-  term <- paste(term, "&to=", toTerm, sep='')
-  # retrieve the document from CTS and parse it to XML
-  ret <-  getURL(term)
-  xml <- xmlParseDoc(ret,asText=TRUE)
-  # retrieve the result set (the first one)
-  res <- getNodeSet(xml, "/compoundResultSets/compoundResultSet")
-  res <- res[[1]]
-  children <- xmlChildren(res)
-  # eliminate the useless empty text nodes
-  children <- children[names(children)[which(names(children)!="text")]]
-  childrenPlain <- lapply(children, xmlValue)
-  childrenProc <- childrenPlain
-  # Postprocess:
-  # Split CAS, SID, CID, IUPAC
-  # (don't split names yet, since we don't have a good rule. - and , 
-  # are both problematic here)
- 
-  tosplit <- c("cas", "sid", "cid", "iupac", "smiles", "kegg", "chebi")
-  for(var in tosplit)
-  {
-    if(!is.null(childrenProc[[var]]))
-    {
-      childrenProc[[var]] <- strsplit(childrenProc[[var]], ", ", fixed=TRUE)
-      childrenProc[[var]] <- unlist(lapply(childrenProc[[var]],
-        function(x) sub("^ *([^ ]+) *$", "\\1", x)))
-    }
-  }
-  # Try to handle names in a graceful way
-  if(!is.null(childrenProc$names))
-  {
-    # add final comma and space to match the last name correctly
-    names <- paste(childrenProc$names, ", ", sep='')
-    matches.list <- gregexpr(" (.*?) - (-*[0-9]+), ", names, perl=TRUE)
-    matches <- regmatches(names, matches.list )[[1]]
-    matches <- t(sapply(matches, function(match)
-    {
-      match.name <- sub(" (.*?) - (-*[0-9]+), ", "\\1", match)
-      match.score <- as.integer(sub(" (.*?) - (-*[0-9]+), ", "\\2", match))
-      return(list(name=match.name, score=match.score))
-    }, USE.NAMES=FALSE))
-    childrenProc$names <- matches
-    # " (.*?) - (-*[0-9]+), "
-  }
+	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/compound/"
+	data <- getURL(paste0(baseURL,key))
+	r <- fromJSON(data)
+	if(length(r) == 1)
+		if(r == "You entered an invalid InChIKey")
+			return(list())
+	return(r)
+}
 
-  # Check and fix CAS (eliminate the 12-34-5CHEBI and NIKKAJI stuff)
-  if(!is.null(childrenProc$cas))
-  {
-    childrenProc$cas <- childrenProc$cas[which(grepl("^[-0-9]+$", childrenProc$cas))]
-  }
-  return(childrenProc)
+#' Convert a single ID to another using CTS.
+#' 
+#' @usage getCtsKey(query, from = "Chemical Name", to = "InChIKey")
+#' @param query ID to be converted
+#' @param from Type of input ID
+#' @param to Desired output ID 
+#' @return An unordered array with the resulting converted key(s). 
+#' 
+#' @examples 
+#' 	k <- getCtsKey("benzene", "Chemical Name", "InChIKey")
+#' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
+#' @export
+getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
+{
+	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/convert"
+	url <- paste(baseURL, from, to, query, sep='/')
+	data <- getURL(URLencode(url))
+	r <- fromJSON(data)
+	if(length(r) == 0)
+		return(FALSE)
+	else
+	{
+		# read out the results in simplest form:
+		results <- unlist(lapply(r, function(row) row$result))
+		return(results)
+	}
+}
+
+#' Select a subset of external IDs from a CTS record.
+#' 
+#' @usage CTS.externalIdSubset(data, database)
+#' @param data The complete CTS record as retrieved by \code{\link{getCtsRecord}}. 
+#' @param database The database for which keys should be returned. 
+#' @return Returns an array of all external identifiers stored in the record for the
+#' given database.
+#' 
+#' @examples 
+#' 
+#' \dontrun{
+#' # Return all CAS registry numbers stored for benzene.
+#' data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
+#' cas <- CTS.externalIdSubset(data, "CAS")
+#' } 
+#' 
+#' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
+#' @export
+CTS.externalIdSubset <- function(data, database)
+{
+	select <- which(unlist(lapply(data$externalIds, function(id)
+							{
+								id[["name"]] == database
+							})))
+	keyEntries <- data$externalIds[select]
+	keys <- unlist(lapply(keyEntries, function(e) e[["value"]]))
+}
+
+#' Find all available databases for a CTS record
+#' 
+#' @usage CTS.externalIdTypes(data)
+#' @param data The complete CTS record as retrieved by \code{\link{getCtsRecord}}.  
+#' @return Returns an array of all database names for which there are external 
+#' identifiers stored in the record.
+#' 
+#' @examples 
+#' 
+#' \dontrun{
+#' # Return all databases for which the benzene entry has
+#' # links in the CTS record.
+#' 
+#' data <- getCTS("UHOVQNZJYSORNB-UHFFFAOYSA-N")
+#' databases <- CTS.externalIdTypes(data)
+#' } 
+#' 
+#' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
+#' @export
+CTS.externalIdTypes <- function(data)
+{
+	unique(unlist(lapply(data$externalIds, function(id)
+							{
+								id[["name"]]
+							})))
 }
