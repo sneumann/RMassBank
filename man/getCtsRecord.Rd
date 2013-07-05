@@ -2,51 +2,41 @@
 \alias{getCtsRecord}
 \title{Retrieve information from CTS}
 \usage{
-  getCtsRecord(key, from = "inchikey", to = c("cas",
-    "hmdb", "kegg", "sid", "chebi", "inchi", "lipidmap",
-    "smiles", "cid", "inchikey", "mass", "formula",
-    "iupac", "names"))
+  getCtsRecord(key)
 }
 \arguments{
-  \item{key}{The search term (or key).}
-
-  \item{from}{The format of the key. Allowed are
-  \code{"cas", "hmdb", "kegg", "sid", "chebi", "inchi",
-  "lipidmap", "smiles", "cid", "inchikey", "mass",
-  "formula", "iupac", "name"}.}
-
-  \item{to}{The list of result types which should be
-  returned. Allowed are \code{"cas", "hmdb", "kegg", "sid",
-  "chebi", "inchi", "lipidmap", "smiles", "cid",
-  "inchikey", "mass", "formula", "iupac", "name"}.}
+  \item{key}{The InChI key.}
 }
 \value{
-  Returns a named list with the values of the results. The
-  list item \code{"names"} is a matrix with columns
-  \code{"name", "score"}, with \code{score} being an
-  indicator of the reliability of the name assignment.
+  Returns a list with all information from CTS:
+  \code{inchikey, inchicode, formula, exactmass} contain
+  single values. \code{synonyms} contains an unordered list
+  of scored synonyms (\code{type, name, score}, where
+  \code{type} indicates either a normal name or a specific
+  IUPAC name, see below).  \code{externalIds} contains an
+  unordered list of identifiers of the compound in various
+  databases (\code{name, value}, where \code{name} is the
+  database name and \code{value} the identifier in that
+  database.)
 }
 \description{
-  Retrieves chemical information about a compound from
-  Chemical Translation Service (CTS) from a known
-  identifier.
+  Retrieves a complete CTS record from the InChI key.
 }
 \note{
-  The return values are not 100% reliable, e.g. a known bug
-  returns "ChEBI" for the \code{chebi} entry instead of the
-  actual ChEBI code in some instances.
+  Currently, the CTS results are still incomplete; the name
+  scores are all 0, formula and exact mass return zero.
 }
 \examples{
-getCtsRecord("benzene", "name")
+data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
+# show all synonym "types"
+types <- unique(unlist(lapply(data$synonyms, function(i) i$type)))
+\dontrun{print(types)}
 }
 \author{
-  Michael Stravs
+  Michele Stravs, Eawag <stravsmi@eawag.ch>
 }
 \references{
   Chemical Translation Service:
-  \url{http://uranus.fiehnlab.ucdavis.edu:8080/cts/homePage}
-}
-\seealso{
-  \code{\link{getCactus}},\code{\link{getPcId}}
+  \url{http://cts.fiehnlab.ucdavis.edu}
 }
 

@@ -107,6 +107,7 @@ NULL
   annotations = list(
     authors = "Nomen Nescio, The Unseen University",
     copyright = "Copyright (C) XXX",
+    publication = "",
     license = "CC BY-SA",
     instrument = "LTQ Orbitrap XL Thermo Scientific",
     instrument_type = "LC-ESI-ITFT",
