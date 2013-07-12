@@ -9,10 +9,12 @@ Authors@R: c(
     "michael.stravs@eawag.ch", role=c("aut")), person(given = "Emma L.",
     family = "Schymanski", email = "emma.schymanski@eawag.ch", role=c("aut")),
     person(given = "Steffen", family = "Neumann", role = "aut", email =
-    "sneumann@ipb-halle.de"), person(given = "Erik", family = "Muller", role =
+    "sneumann@ipb-halle.de"), person(given = "Erik", family = "Mueller", role =
     "aut", email = "erik.mueller@student.uni-halle.de"), person(given =
     "Tobias", family = "Schulze", role = "ctb", email =
     "tobias.schulze@ufz.de") )
+Author: Michael Stravs, Emma Schymanski, Steffen Neumann, Erik Mueller, with contributions from Tobias Schulze
+Maintainer: RMassBank at Eawag <massbank@eawag.ch>
 Description: Workflow to process tandem MS files and build MassBank records.
     Functions include automated extraction of tandem MS spectra, formula
     assignment to tandem MS fragments, recalibration of tandem MS spectra with
