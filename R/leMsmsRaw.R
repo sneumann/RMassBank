@@ -444,7 +444,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 									"mergedResultStartScanNum", "mergedResultEndScanNum")
         if (is.na(ret$parentHeader[1,"retentionTime"])) {
           ## Overwrite MS1 RT with average from MS2 
-          ret$parentHeader[1,"retentionTime"] <- median(ret$childHeader[, "retentionTime"])
+          ret$parentHeader[1,"retentionTime"] <- median(ret$childHeader[which(ret$childHeader[,"retentionTime"] != 0), "retentionTime"])
         }
 	
 	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
