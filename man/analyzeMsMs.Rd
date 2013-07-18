@@ -48,7 +48,7 @@
   \code{msmsdata}).} \item{list("mzrange")}{ The maximum
   m/z range over all child spectra.} \item{list("id")}{ The
   compound ID (inherited from \code{msmsdata})}
-  \item{list("mode")}{ processing mode} $
+  \item{list("mode")}{ processing mode}
   \item{list("parentHeader")}{ Parent spectrum header data
   (ex \code{msmsdata})} \item{list("parentMs")}{ Parent
   spectrum (ex \code{msmsdata}) in matrix format}

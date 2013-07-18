@@ -1,6 +1,6 @@
 \name{validate}
 \alias{validate}
-\title{Validate a record against a set of RUnit tests}
+\title{Validate MassBank records with a set of Unit tests}
 \usage{
   validate(path)
 }
@@ -9,9 +9,13 @@
   directory to search recursively}
 }
 \description{
-  Validates a plaintext-MassBankrecord, or recursively all
-  records below a directory. The Unit Tests to be used are
-  installed in RMassBank/
+  Validates a plain text MassBank record, or recursively
+  all records within a directory. The Unit Tests to be used
+  are installed in RMassBank/inst/unitTests and currently
+  include checks for NAs, peaks versus precursor, precursor
+  mz, precursor type, SMILES vs exact mass, total
+  intensities and title versus type. The validation report
+  is saved as "report.html" in the working directory.
 }
 \examples{
 \dontrun{

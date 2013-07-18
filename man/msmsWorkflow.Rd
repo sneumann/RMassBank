@@ -42,6 +42,10 @@
 
   \item{findPeaksArgs}{A list of arguments that will be
   handed to the xcms-method findPeaks via do.call}
+
+  \item{plots}{A parameter that determines whether the
+  spectra should be plotted or not (This parameter is only
+  used for the xcms-method)}
 }
 \value{
   The processed \code{msmsWorkspace}.

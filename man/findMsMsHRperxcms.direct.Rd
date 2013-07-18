@@ -17,6 +17,9 @@
 
   \item{findPeaksArgs}{A list of arguments that will be
   handed to the xcms-method findPeaks via do.call}
+
+  \item{plots}{A parameter that determines whether the
+  spectra should be plotted or not}
 }
 \value{
   The \code{msmsWorkspace} with the additional peaklist

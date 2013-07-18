@@ -150,11 +150,8 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 			}
 			w@files <- sapply(files,function(files){return(files[1])})
 			names(w@specs) <- basename(as.character(w@files))
-	}
-  }
-			names(w@specs) <- basename(as.character(w@files))
 		}
- }
+  }
   # Step 2: first run analysis before recalibration
   if(2 %in% steps)
   {

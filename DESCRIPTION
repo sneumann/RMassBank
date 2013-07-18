@@ -44,3 +44,4 @@ Collate:
     'RmbWorkspace.R'
     'validateMassBank.R'
     'zzz.R'
+    'tools.R'
