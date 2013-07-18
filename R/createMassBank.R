@@ -1095,35 +1095,16 @@ compileRecord <- function(spec, mbdata, refiltered, additionalPeaks = NULL)
       # Here is the right place to fix the name of the INTERNAL ID field.
       names(mbrecord[["COMMENT"]])[[which(names(mbrecord[["COMMENT"]]) == "ID")]] <-
         getOption("RMassBank")$annotations$internal_id_fieldname
-      # The fields are named differently in MB record definitions v.1 and 2.
-      # Therefore, the title is composed slightly differently (with the same result.)
+	  # get mode parameter (for accession number generation) depending on version 
+	  # of record definition
 	  # Change by Tobias:
 	  # I suggest to include fragmentation mode here for information
       if(getOption("RMassBank")$use_version == 2)
-      {
-        mbrecord[["RECORD_TITLE"]] <- paste(
-          mbrecord[["CH$NAME"]][[1]],
-          mbrecord[["AC$INSTRUMENT_TYPE"]],
-          mbrecord[["AC$MASS_SPECTROMETRY"]][["MS_TYPE"]],
-          mbrecord[["AC$MASS_SPECTROMETRY"]][["FRAGMENTATION_MODE"]],
-          mbrecord[["RECORD_TITLE_CE"]],
-          paste("R=",mbrecord[["AC$MASS_SPECTROMETRY"]][["RESOLUTION"]], sep='' ),
-          mbrecord[["MS$FOCUSED_ION"]][["PRECURSOR_TYPE"]],
-          sep="; ")
         mode <- mbrecord[["AC$MASS_SPECTROMETRY"]][["ION_MODE"]]
-      }
       else
-      {
-        mbrecord[["RECORD_TITLE"]] <- paste(
-          mbrecord[["CH$NAME"]][[1]],
-          mbrecord[["AC$INSTRUMENT_TYPE"]],
-          mbrecord[["AC$ANALYTICAL_CONDITION"]][["MS_TYPE"]],
-          paste("CE: ", mbrecord[["RECORD_TITLE_CE"]], sep=''),
-          paste("R=",mbrecord[["AC$ANALYTICAL_CONDITION"]][["RESOLUTION"]], sep='' ),
-          mbrecord[["MS$FOCUSED_ION"]][["PRECURSOR_TYPE"]],
-          sep="; ")
         mode <- mbrecord[["AC$ANALYTICAL_CONDITION"]][["MODE"]]
-      }
+	  # Generate the title and then delete the temprary RECORD_TITLE_CE field used before
+	  mbrecord[["RECORD_TITLE"]] <- .parseTitleString(mbrecord)
       mbrecord[["RECORD_TITLE_CE"]] <- NULL
       # Calculate the accession number from the options.
       shift <- getOption("RMassBank")$accessionNumberShifts[[spec$mode]]
@@ -1134,6 +1115,102 @@ compileRecord <- function(spec, mbdata, refiltered, additionalPeaks = NULL)
       return(mbrecord)
   })
 }
+
+#' Parse record title
+#' 
+#' Parses a title for a single MassBank record using the title format
+#' specified in the option titleFormat. Internally used, not exported.
+#' 
+#' If the option is not set, a standard title format is used (for record definition
+#' version 1 or 2).
+#' 
+#' @usage .parseTitleString(mbrecord)
+#' @param mbrecord A MassBank record in list format, as returned from
+#' 	\code{\link{gatherSpectrum}}.
+#' @return A string with the title.
+#' @author Michael Stravs, Eawag
+#' @seealso \code{\link{compileRecord}}
+#' @references MassBank record format:
+#' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
+#' @examples
+#' \dontrun{
+#' 		# used in compileRecord()
+#' 		title <- .parseTitleString(mbrecord)
+#' }
+#' 
+#' 
+#' 
+.parseTitleString <- function(mbrecord)
+{
+	
+	varlist <- getOption("RMassBank")$titleFormat
+	
+	# Set the standard title format.
+	if(is.null(varlist))
+	{
+		if(getOption("RMassBank")$use_version == 2)
+		{
+			varlist <- c(
+					"{CH$NAME}",
+					"{AC$INSTRUMENT_TYPE}",
+					"{AC$MASS_SPECTROMETRY: MS_TYPE}",
+					"CE: {RECORD_TITLE_CE}",
+					"R={AC$MASS_SPECTROMETRY: RESOLUTION}",
+					"{MS$FOCUSED_ION: PRECURSOR_TYPE}"
+			)
+		}
+		else
+		{
+			varlist <- c(
+					"{CH$NAME}",
+					"{AC$INSTRUMENT_TYPE}",
+					"{AC$ANALYTICAL_CONDITION: MS_TYPE}",
+					"CE: {RECORD_TITLE_CE}",
+					"R={AC$ANALYTICAL_CONDITION: RESOLUTION}",
+					"{MS$FOCUSED_ION: PRECURSOR_TYPE}"
+			)
+		}
+	}
+	
+	# Extract a {XXX} argument from each title section.
+	# check that every title has one and only one match
+	args <- regexec("\\{(.*)\\}", varlist)
+	arglist <- regmatches(varlist, args)
+	if(any(unlist(lapply(arglist, length)) != 2))
+		stop("Title format is incorrectly specified: a section with not exactly 1 parameters")
+	
+	parsedVars <- lapply(varlist, function(var)
+			{
+				# Extract the specified parameter inside the {}.
+				# I.e. from a string like "R={BLA: BLUB}" return "BLA: BLUB"
+				args <- regexec("\\{(.*)\\}", var)
+				arg <- regmatches(var, args)[[1]][[2]]
+				
+				# Split the parameter by colon if necessary
+				splitVar <- strsplit(arg, ": ")[[1]]
+				# Read the parameter value from the record
+				if(length(splitVar) == 2)
+					replaceVar <- mbrecord[[splitVar[[1]]]][[splitVar[[2]]]]
+				else if(length(splitVar) ==  1)
+					replaceVar <- mbrecord[[splitVar]]
+				else
+					stop(paste(
+									"Title format is incorrectly specified:", var)
+					)
+				# Fix problems: NULL returns
+				if(is.null(replaceVar))
+					replaceVar <- ""
+				# Fix problems: Names will have >= 1 match. Take the first
+				if(length(replaceVar) > 1)
+					replaceVar <- replaceVar[[1]]
+				# Substitute the parameter value into the string
+				parsedVar <- sub("\\{(.*)\\}", replaceVar, var)	
+				return(parsedVar)
+			})
+	title <- paste(parsedVars, collapse="; ")
+	return(title)
+}
+
 
 # This converts the tree-like list (as obtained e.g. from compileRecord())
 # into a plain text array, which can then be dumped to a file suitable for 
