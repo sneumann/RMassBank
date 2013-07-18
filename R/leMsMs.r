@@ -152,6 +152,9 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 			names(w@specs) <- basename(as.character(w@files))
 	}
   }
+			names(w@specs) <- basename(as.character(w@files))
+		}
+ }
   # Step 2: first run analysis before recalibration
   if(2 %in% steps)
   {
@@ -895,8 +898,11 @@ makeRecalibration <- function(spec, mode)
 {
 	if(is.null(spec))
 		stop("No spectra present to generate recalibration curve.")
+
+	if(length(spec$peaksMatched$formulaCount)==0)
+		stop("No peaks matched to generate recalibration curve.")
 	
-	rcdata <- spec$peaksMatched[spec$peaksMatched$formulaCount==1,]
+	rcdata <- spec$peaksMatched[spec$peaksMatched$formulaCount==1,,drop=FALSE]
 	ms1data <- recalibrate.addMS1data(spec, mode, 15)
 	rcdata <- rbind(rcdata, ms1data)
 	rcdata$dmz <- rcdata$mzFound - rcdata$mzCalc
@@ -1563,8 +1569,20 @@ filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TR
 	   fp_tot$OK <- character(0)
 	   fp_tot$name <- character(0)
    }
+   # Select the columns for output into the failpeaks file
     fp_tot <- fp_tot[,c("OK", "name", "cpdID", "scan", "mzFound", "formula", "mzCalc", "dppm", "dbe", "mz", "int",
                  "formulaCount", "parentScan", "aMax", "mzCenter")]
+ 	# Select the correct precursor scans. This serves to filter the list
+	# for the cases where multiple workspaces were combined after step 7
+	# with combineMultiplicities.
+	# Note that this has drawbacks. Leaving the "duplicates" in would make it more easy
+	# to identify legitimate unformulaed peaks. We might experiment by marking them up
+	# somehow. 
+	precursors <- unlist(lapply(specs$specFound, function(s) s$parentHeader$acquisitionNum))
+	fp_tot <- fp_tot[
+			fp_tot$parentScan %in% precursors
+			,]
+
     
     peaksOK <- peaksFiltered[
                       peaksFiltered$formulaMultiplicity > (multiplicityFilter - 1),]
