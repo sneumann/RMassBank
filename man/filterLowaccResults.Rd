@@ -2,13 +2,17 @@
 \alias{filterLowaccResults}
 \title{Filter peaks with low accuracy}
 \usage{
-  filterLowaccResults(peaks, mode = "fine")
+  filterLowaccResults(peaks, mode="fine", filterSettings =
+    getOption("RMassBank")$filterSettings)
 }
 \arguments{
   \item{peaks}{A data frame with at least the columns
   \code{mzFound} and \code{dppm}.}
 
   \item{mode}{\code{coarse} or \code{fine}, see below.}
+
+  \item{filterSettings}{Settings for filtering. For
+  details, see documentation of \code{\link{analyzeMsMs}}}
 }
 \value{
   A \code{list(TRUE = goodPeakDataframe, FALSE =

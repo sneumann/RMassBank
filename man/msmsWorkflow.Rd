@@ -2,9 +2,11 @@
 \alias{msmsWorkflow}
 \title{RMassBank mass spectrometry pipeline}
 \usage{
-  msmsWorkflow(w, mode = "pH", steps = c(1:8), confirmMode
-    = FALSE, newRecalibration = TRUE, useRtLimit = TRUE,
-    archivename = NA, readMethod, findPeaksArgs)
+  msmsWorkflow(w, mode="pH", steps=c(1:8), confirmMode =
+    FALSE, newRecalibration = TRUE, useRtLimit = TRUE,
+    archivename=NA, readMethod = "mzR", findPeaksArgs = NA,
+    plots = FALSE, precursorscan.cf = FALSE, settings =
+    getOption("RMassBank"))
 }
 \arguments{
   \item{w}{A \code{msmsWorkspace} to work with.}
@@ -46,6 +48,16 @@
   \item{plots}{A parameter that determines whether the
   spectra should be plotted or not (This parameter is only
   used for the xcms-method)}
+
+  \item{precursorscan.cf}{Whether to fill precursor scans.
+  To be used with files which for some reasons do not
+  contain precursor scan IDs in the mzML, e.g. AB Sciex
+  converted files.}
+
+  \item{settings}{Options to be used for processing.
+  Defaults to the options loaded via
+  \code{\link{loadRmbSettings}} et al. Refer to there for
+  specific settings.}
 }
 \value{
   The processed \code{msmsWorkspace}.

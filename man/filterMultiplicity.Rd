@@ -2,8 +2,9 @@
 \alias{filterMultiplicity}
 \title{filterMultiplicity}
 \usage{
-  filterMultiplicity(specs, archivename = NA, mode = "pH",
-    recalcBest = TRUE)
+  filterMultiplicity(specs, archivename=NA, mode="pH",
+    recalcBest = TRUE, multiplicityFilter =
+    getOption("RMassBank")$multiplicityFilter)
 }
 \arguments{
   \item{specs}{aggregatedSpecs object whose peaks should be
@@ -20,6 +21,10 @@
   solution if you have many compounds with e.g. fluorine
   atoms, which often have multiple assigned formulas per
   peak and might occasionally lose peaks because of that.}
+
+  \item{multiplicityFilter}{Threshold for the multiplicity
+  filter. If set to 1, no filtering will apply (minimum 1
+  occurrence of peak). 2 equals minimum 2 occurrences etc.}
 }
 \value{
   A list object with values: \item{peaksOK}{ Peaks with

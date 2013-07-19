@@ -184,6 +184,9 @@ NULL
   recalibrator = list(
 	MS1 = "recalibrate.loess",
 	MS2 = "recalibrate.loess"),
+# Window width to look for MS1 peaks to recalibrate (in ppm)
+	recalibrateMS1Window= 15,
+
   # Define the multiplicity filtering level
   # Default is 2 (peak occurs at least twice)
   # Set this to 1 if you want to turn this option off.
@@ -206,7 +209,30 @@ NULL
 		  "CE: {RECORD_TITLE_CE}",
 		  "R={AC$MASS_SPECTROMETRY: RESOLUTION}",
 		  "{MS$FOCUSED_ION: PRECURSOR_TYPE}"
-  )
+  ),
+# Define filter settings.
+# For Orbitrap, settings of 15 ppm in low mass range, 10 ppm in high
+# mass range, m/z = 120 as mass range division and 5 ppm for recalibrated
+# data overall are recommended. 
+  filterSettings = list(
+		  	ppmHighMass = 15,
+  			ppmLowMass = 10,
+		  massRangeDivision= 120,
+		  ppmFine= 5,
+		  prelimCut= 1e4,
+		  prelimCutRatio= 0,
+		  fineCut= 0,
+		  fineCutRatio= 0,
+		  specOkLimit= 1e4,
+		  dbeMinLimit= -0.5,
+		  satelliteMzLimit= 0.5,
+		  satelliteIntLimit= 0.05
+  	),
+	
+	findMsMsRawSettings = list(
+			ppmFine= 10,
+			mzCoarse= 0.5,
+			fillPrecursorScan= FALSE)
   )
 
 # Writes a file with sample settings which the user can adjust with his values.

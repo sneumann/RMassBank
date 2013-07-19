@@ -5,13 +5,29 @@
 \title{Extract MS/MS spectra for specified precursor}
 \usage{
   findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0,
-    useRtLimit = TRUE, dppm=10)
+    useRtLimit = TRUE, ppmFine =
+    getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+    mzCoarse =
+    getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+    fillPrecursorScan =
+    getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+    rtMargin = getOption("RMassBank")$rtMargin, deprofile =
+    getOption("RMassBank")$deprofile)
 
   findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine,
-    rtLimits = NA, maxCount = NA, headerCache = NA)
+    rtLimits = NA, maxCount = NA, headerCache = NA,
+    fillPrecursorScan = FALSE, deprofile =
+    getOption("RMassBank")$deprofile)
 
   findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode
-    = 0, useRtLimit = TRUE, dppm=10, limit.coarse=0.5)
+    = 0, useRtLimit = TRUE, ppmFine =
+    getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+    mzCoarse =
+    getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+    fillPrecursorScan =
+    getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+    rtMargin = getOption("RMassBank")$rtMargin, deprofile =
+    getOption("RMassBank")$deprofile)
 }
 \arguments{
   \item{fileName}{The file to open and search the MS2
@@ -25,16 +41,22 @@
 
   \item{mz}{The mass to use for spectrum search.}
 
-  \item{dppm}{The limit in ppm to use for fine limit (see
-  below) calculation.}
+  \item{ppmFine}{The limit in ppm to use for fine limit
+  (see below) calculation.}
 
-  \item{limit.coarse}{The coarse limit to use for locating
+  \item{mzCoarse}{The coarse limit to use for locating
   potential MS2 scans: this tolerance is used when finding
   scans with a suitable precursor ion value.}
 
   \item{limit.fine}{The fine limit to use for locating MS2
   scans: this tolerance is used when locating an
   appropriate analyte peak in the MS1 precursor spectrum.}
+
+  \item{limit.coarse}{Parameter in \code{findMsMsHR.mass}
+  corresponding to \code{mzCoarse}.  (The parameters are
+  distinct to clearly conceptually distinguish
+  findMsMsHR.mass (a standalone useful function) from the
+  cpdID based functions (workflow functions).)}
 
   \item{mode}{The processing mode (determines which
   ion/adduct is searched): \code{"pH", "pNa", "pM", "mH",
@@ -61,6 +83,16 @@
   return. One spectra group consists of all data-dependent
   scans from the same precursor whose precursor mass
   matches the specified search mass.}
+
+  \item{fillPrecursorScan}{If \code{TRUE}, the precursor
+  scan will be filled from MS1 data.  To be used for data
+  where the precursor scan is not stored in the raw data.}
+
+  \item{rtMargin}{The retention time tolerance to use.}
+
+  \item{deprofile}{Whether deprofiling should take place,
+  and what method should be used (cf.
+  \code{\link{deprofile}})}
 }
 \value{
   For \code{findMsMsHR} and \code{findMsMsHR.direct}: A
@@ -86,7 +118,14 @@
 }
 \details{
   Different versions of the function get the data from
-  different sources.
+  different sources. Note that findMsMsHR and
+  findMsMsHR.direct differ mainly in that findMsMsHR opens
+  a file whereas findMsMs.direct uses an open file handle -
+  both are intended to be used in a full process which
+  involves compound lists etc. In contrast, findMsMsHR.mass
+  is a low-level function which uses the mass directly for
+  lookup and is intended for use as a standalone function
+  in unrelated applications.
 }
 \examples{
 \dontrun{

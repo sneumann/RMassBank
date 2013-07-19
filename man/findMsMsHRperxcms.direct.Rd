@@ -2,8 +2,8 @@
 \alias{findMsMsHRperxcms.direct}
 \title{Read in mz-files using XCMS}
 \usage{
-  findMsMsHRperxcms.direct(fileName, cpdID, mode,
-    findPeaksArgs)
+  findMsMsHRperxcms.direct(fileName, cpdID, mode="pH",
+    findPeaksArgs = NULL, plots = FALSE)
 }
 \arguments{
   \item{fileName}{The path to the mz-file that should be

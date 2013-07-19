@@ -9,15 +9,30 @@ NULL
 #' Extracts MS/MS spectra from LC-MS raw data for a specified precursor, specified
 #' either via the RMassBank compound list (see \code{\link{loadList}}) or via a mass.
 #' 
-#' Different versions of the function get the data from different sources.
+#' Different versions of the function get the data from different sources. Note that 
+#' 		findMsMsHR and findMsMsHR.direct differ mainly in that findMsMsHR opens a file
+#' 		whereas findMsMs.direct uses an open file handle - both are intended to be used
+#' 		in a full process which involves compound lists etc. In contrast, findMsMsHR.mass
+#' 		is a low-level function which uses the mass directly for lookup and is intended for
+#' 		use as a standalone function in unrelated applications.
 #' 
-#' @usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE, dppm=10)
-#' 
+#' @usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
+#' 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+#' 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+#' 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+#' 		rtMargin = getOption("RMassBank")$rtMargin,
+#' 		deprofile = getOption("RMassBank")$deprofile)
+#' 		
 #' 		findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-#' 		headerCache = NA)
-#' 
-#' 		findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode = 0,
-#'  	useRtLimit = TRUE, dppm=10, limit.coarse=0.5)
+#' 		headerCache = NA, fillPrecursorScan = FALSE,
+#' 		deprofile = getOption("RMassBank")$deprofile)
+#'
+#' findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
+#'			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+#'			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+#'			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+#'			rtMargin = getOption("RMassBank")$rtMargin,
+#'			deprofile = getOption("RMassBank")$deprofile)
 #' 
 #' @aliases findMsMsHR.mass findMsMsHR.direct findMsMsHR
 #' @param fileName The file to open and search the MS2 spectrum in.
@@ -25,13 +40,16 @@ NULL
 #' @param cpdID The compound ID in the compound list (see \code{\link{loadList}})
 #' 			to use for formula lookup.
 #' @param mz The mass to use for spectrum search.
-#' @param dppm The limit in ppm to use for fine limit (see below) calculation.
-#' @param limit.coarse The coarse limit to use for locating potential MS2 scans:
+#' @param ppmFine The limit in ppm to use for fine limit (see below) calculation.
+#' @param mzCoarse The coarse limit to use for locating potential MS2 scans:
 #'			this tolerance is used when finding scans with a suitable precursor
 #' 			ion value.  
 #' @param limit.fine The fine limit to use for locating MS2 scans: this tolerance
 #' 			is used when locating an appropriate analyte peak in the MS1 precursor
-#' 			spectrum.
+#' 			spectrum. 
+#' @param limit.coarse Parameter in \code{findMsMsHR.mass} corresponding to \code{mzCoarse}.
+#' 			(The parameters are distinct to clearly conceptually distinguish findMsMsHR.mass
+#' 			(a standalone useful function) from the cpdID based functions (workflow functions).)
 #' @param mode The processing mode (determines which ion/adduct is searched):
 #' 			\code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-). 
@@ -47,6 +65,11 @@ NULL
 #' @param maxCount The maximal number of spectra groups to return. One spectra group
 #' 			consists of all data-dependent scans from the same precursor whose precursor
 #' 			mass matches the specified search mass.
+#' @param fillPrecursorScan If \code{TRUE}, the precursor scan will be filled from MS1 data.
+#' 			To be used for data where the precursor scan is not stored in the raw data.
+#' @param rtMargin	The retention time tolerance to use.
+#' @param deprofile	Whether deprofiling should take place, and what method should be
+#' 			used (cf. \code{\link{deprofile}}) 
 #' @return	For \code{findMsMsHR} and \code{findMsMsHR.direct}: A "spectrum set", a list with items:
 #' 			\item{foundOK}{\code{TRUE} if a spectrum was found, \code{FALSE} otherwise.
 #' 				Note: if \code{FALSE}, all other values can be missing!}
@@ -76,36 +99,55 @@ NULL
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @seealso findEIC
 #' @export
-findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE, dppm=10)
+findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
+		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+		rtMargin = getOption("RMassBank")$rtMargin,
+		deprofile = getOption("RMassBank")$deprofile)
 {
 	
 	# access data directly for finding the MS/MS data. This is done using
 	# mzR.
 	msRaw <- openMSfile(fileName)
-	ret <- findMsMsHR.direct(msRaw, cpdID, mode, confirmMode, useRtLimit, dppm)
+	ret <- findMsMsHR.direct(msRaw, cpdID, mode, confirmMode, useRtLimit, ppmFine, mzCoarse, fillPrecursorScan,
+				rtMargin, deprofile)
 	mzR::close(msRaw)
 	return(ret)
 }
 
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-		headerCache = NA)
+		headerCache = NA, fillPrecursorScan = FALSE,
+		deprofile = getOption("RMassBank")$deprofile)
 {
 	eic <- findEIC(msRaw, mz, limit.fine, rtLimits)
 	#	if(!is.na(rtLimits))
 	#	{  
 	#		eic <- subset(eic, rt >= rtLimits[[1]] & rt <= rtLimits[[2]])
 	#	}
-	if(!is.na(headerCache))
+	if(!all(is.na(headerCache)))
 		headerData <- headerCache
 	else
 		headerData <- as.data.frame(header(msRaw))
+	
+	if(fillPrecursorScan == TRUE)
+	{
+		# reset the precursor scan number. first set to NA, then
+		# carry forward the precursor scan number from the last parent scan
+		headerData$precursorScanNum <- NA
+		headerData[which(headerData$msLevel == 1),"precursorScanNum"] <-
+				headerData[which(headerData$msLevel == 1),"acquisitionNum"]
+		headerData[,"precursorScanNum"] <- .locf(headerData[,"precursorScanNum"])
+		# Clear the actual MS1 precursor scan number again
+		headerData[which(headerData$msLevel == 1),"precursorScanNum"] <- 0
+	}
 	
 	# Find MS2 spectra with precursors which are in the allowed 
 	# scan filter (coarse limit) range
 	findValidPrecursors <- headerData[
 			(headerData$precursorMZ > mz - limit.coarse) &
-			(headerData$precursorMZ < mz + limit.coarse),]
+					(headerData$precursorMZ < mz + limit.coarse),]
 	# Find the precursors for the found spectra
 	validPrecursors <- unique(findValidPrecursors$precursorScanNum)
 	# check whether the precursors are real: must be within fine limits!
@@ -138,17 +180,17 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			{
 				masterHeader <- headerData[headerData$acquisitionNum == masterScan,]
 				childHeaders <- headerData[(headerData$precursorScanNum == masterScan) 
-					& (headerData$precursorMZ > mz - limit.coarse) 
-					& (headerData$precursorMZ < mz + limit.coarse) ,]
+								& (headerData$precursorMZ > mz - limit.coarse) 
+								& (headerData$precursorMZ < mz + limit.coarse) ,]
 				childScans <- childHeaders$acquisitionNum
 				
 				msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
 				# if deprofile option is set: run deprofiling
-				deprofile.setting <- getOption("RMassBank")$deprofile
+				deprofile.setting <- deprofile
 				if(!is.na(deprofile.setting))
 					msPeaks <- deprofile.scan(
 							msPeaks, method = deprofile.setting, noise = NA, colnames = FALSE
-							)
+					)
 				colnames(msPeaks) <- c("mz","int")
 				msmsPeaks <- lapply(childHeaders$seqNum, function(scan)
 						{
@@ -180,7 +222,12 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 }
 
 #' @export
-findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, dppm=10, limit.coarse=0.5)
+findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
+			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+			rtMargin = getOption("RMassBank")$rtMargin,
+			deprofile = getOption("RMassBank")$deprofile)
 {
   # for finding the peak RT: use the gauss-fitted centwave peak
   # (centroid data converted with TOPP is necessary. save as
@@ -190,17 +237,19 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
   # find cpd m/z
   mzLimits <- findMz(cpdID, mode)
   mz <- mzLimits$mzCenter
-  limit.fine <- ppm(mz, dppm, p=TRUE)
+  limit.fine <- ppm(mz, ppmFine, p=TRUE)
   if(!useRtLimit)
 	  rtLimits <- NA
   else
   {
-	  rtMargin <- getOption("RMassBank")$rtMargin
 	  dbRt <- findRt(cpdID)
 	  rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
   }
-  spectra <- findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits, confirmMode + 1)
+  spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,NA
+  	,fillPrecursorScan, deprofile)
   spectra[[confirmMode + 1]]$mz <- mzLimits
+  spectra[[confirmMode + 1]]$id <- cpdID
+  spectra[[confirmMode + 1]]$formula <- findFormula(cpdID)
   return(spectra[[confirmMode + 1]])
 }
 
@@ -208,7 +257,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 #' 
 #' Picks peaks from mz-files and returns the pseudospectra that CAMERA creates with the help of XCMS
 #'
-#' @usage findMsMsHRperxcms.direct(fileName, cpdID, mode, findPeaksArgs)
+#' @usage findMsMsHRperxcms.direct(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE) 
 #' @param fileName The path to the mz-file that should be read
 #' @param cpdID The compoundID of the compound that has been used for the file
 #' @param mode The ionization mode that has been used for the spectrum represented by the peaklist

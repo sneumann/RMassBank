@@ -3,9 +3,11 @@
 \alias{reanalyzeFailpeaks}
 \title{Reanalyze unmatched peaks}
 \usage{
-  reanalyzeFailpeaks(specs, custom_additions, mode)
+  reanalyzeFailpeaks(specs, custom_additions, mode,
+    filterSettings = getOption("RMassBank")$filterSettings)
     reanalyzeFailpeak(custom_additions, mass, cpdID,
-    counter, pb = NULL, mode)
+    counter, pb = NULL, mode, filterSettings =
+    getOption("RMassBank")$filterSettings)
 }
 \arguments{
   \item{specs}{An \code{aggregatedRcSpecs} object (after
@@ -28,6 +30,9 @@
 
   \item{pb}{A txtProgressBar object to display progress on.
   No progress is displayed if NULL.}
+
+  \item{filterSettings}{Settings for filtering data. Refer
+  to\code{\link{analyzeMsMs}} for settings.}
 }
 \value{
   The returning list contains two tables:

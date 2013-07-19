@@ -3,10 +3,12 @@
 \alias{plotRecalibration.direct}
 \title{Plot the recalibration graph.}
 \usage{
-  plotRecalibration(w)
+  plotRecalibration(w, recalibrateBy =
+    getOption("RMassBank")$recalibrateBy)
 
   plotRecalibration.direct(rcdata, rc, rc.ms1, title,
-    mzrange)
+    mzrange, recalibrateBy =
+    getOption("RMassBank")$recalibrateBy)
 }
 \arguments{
   \item{w}{The workspace to plot the calibration graph
@@ -22,6 +24,10 @@
   \item{title}{Prefix for the graph titles}
 
   \item{mzrange}{m/z value range for the graph}
+
+  \item{recalibrateBy}{Whether recalibration was done by
+  ppm ("ppm") or by m/z ("mz").  Important only for graph
+  labeling here.}
 }
 \description{
   Plot the recalibration graph.
