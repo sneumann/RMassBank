@@ -6,7 +6,7 @@
     FALSE, newRecalibration = TRUE, useRtLimit = TRUE,
     archivename=NA, readMethod = "mzR", findPeaksArgs = NA,
     plots = FALSE, precursorscan.cf = FALSE, settings =
-    getOption("RMassBank"))
+    getOption("RMassBank"), analyzeMethod = "formula")
 }
 \arguments{
   \item{w}{A \code{msmsWorkspace} to work with.}
@@ -58,6 +58,9 @@
   Defaults to the options loaded via
   \code{\link{loadRmbSettings}} et al. Refer to there for
   specific settings.}
+
+  \item{analyzeMethod}{The "method" parameter to pass to
+  \code{\link{analyzeMsMs}}.}
 }
 \value{
   The processed \code{msmsWorkspace}.

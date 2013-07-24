@@ -1,8 +1,20 @@
 \name{analyzeMsMs}
 \alias{analyzeMsMs}
+\alias{analyzeMsMs.formula}
+\alias{analyzeMsMs.intensity}
 \title{Analyze MSMS spectra}
 \usage{
   analyzeMsMs(msmsPeaks, mode="pH", detail=FALSE,
+    run="preliminary", filterSettings =
+    getOption("RMassBank")$filterSettings, spectraList =
+    getOption("RMassBank")$spectraList, method="formula")
+
+  analyzeMsMs.formula(msmsPeaks, mode="pH", detail=FALSE,
+    run="preliminary", filterSettings =
+    getOption("RMassBank")$filterSettings, spectraList =
+    getOption("RMassBank")$spectraList)
+
+  analyzeMsMs.intensity(msmsPeaks, mode="pH", detail=FALSE,
     run="preliminary", filterSettings =
     getOption("RMassBank")$filterSettings, spectraList =
     getOption("RMassBank")$spectraList)
@@ -64,6 +76,15 @@
 
   \item{spectraList}{The list of MS/MS spectra present in
   each data block. As also defined in the settings file.}
+
+  \item{method}{Selects which function to actually use for
+  data evaluation. The default "formula" runs a full
+  analysis via formula assignment to fragment peaks. The
+  alternative setting "intensity" calls a "mock"
+  implementation which circumvents formula assignment and
+  filters peaks purely based on intensity cutoffs and the
+  satellite filtering. (In this case, the ppm and dbe
+  related settings in filterSettings are ignored.)}
 }
 \value{
   \item{list("foundOK")}{ Boolean. Whether or not child
