@@ -229,7 +229,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	require(xcms)
 	parentMass <- findMz(cpdID)$mzCenter
 	RT <- findRt(cpdID)$RT * 60
-	mzabs <- 0.01
+	mzabs <- 0.1
 	
 	getRT <- function(xa) {
 		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
