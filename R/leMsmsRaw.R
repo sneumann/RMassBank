@@ -247,10 +247,16 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
   }
   spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,NA
   	,fillPrecursorScan, deprofile)
-  spectra[[confirmMode + 1]]$mz <- mzLimits
-  spectra[[confirmMode + 1]]$id <- cpdID
-  spectra[[confirmMode + 1]]$formula <- findFormula(cpdID)
-  return(spectra[[confirmMode + 1]])
+  # check whether a) spectrum was found and b) enough spectra were found
+  if(length(spectra) < (confirmMode + 1))
+    sp <- list(foundOK = FALSE)
+  else
+    sp <- spectra[[confirmMode + 1]]
+  
+  sp$mz <- mzLimits
+  sp$id <- cpdID
+  sp$formula <- findFormula(cpdID)
+  return(sp)
 }
 
 #' Read in mz-files using XCMS

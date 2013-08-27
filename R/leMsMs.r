@@ -118,7 +118,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		} )
 		names(w@specs) <- basename(as.character(w@files))
 		# close progress bar
-		close(pb)
+		do.call(progressbar, list(object=pb, close=TRUE))
 	}
 	
 	if(readMethod == "xcms"){
@@ -189,7 +189,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 			  })
 	  for(f in w@files)
 		  w@analyzedSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
-	  close(pb)
+	  do.call(progressbar, list(object=pb, close=TRUE))
   }
   # Step 3: aggregate all spectra
   if(3 %in% steps)
@@ -235,7 +235,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
       )
     for(f in w@files)
       w@analyzedRcSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
-	close(pb)
+  do.call(progressbar, list(object=pb, close=TRUE))
   }
   # Step 6: aggregate recalibrated results
   if(6 %in% steps)
@@ -254,7 +254,9 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   {
 	message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
     w@reanalyzedRcSpecs <- reanalyzeFailpeaks(
-			w@aggregatedRcSpecs, custom_additions="N2O", mode=mode)
+			w@aggregatedRcSpecs, custom_additions="N2O", mode=mode,
+				filterSettings=settings$filterSettings,
+				progressbar=progressbar)
     if(!is.na(archivename))
       archiveResults(w, paste(archivename, "_RA.RData", sep=''), settings)
   }
@@ -1556,7 +1558,7 @@ reanalyzeFailpeaks <- function(specs, custom_additions, mode, filterSettings =
   specs$peaksMatchedReanalysis <- specs$peaksReanalyzed[
 		  !is.na(specs$peaksReanalyzed$reanalyzed.dppm),]
   
-  close(pb)
+  do.call(progressbar, list(object=pb, close=TRUE))
   return(specs)
 }
 

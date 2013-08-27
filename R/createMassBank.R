@@ -1019,7 +1019,20 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   # These two entries will be thrown out later, but they are necessary to build the
   # record title and the accession number.
   mbdata[["RECORD_TITLE_CE"]] <- msmsdata$info$ces #formatted collision energy
-  mbdata[["SUBSCAN"]] <- msmsdata$scan - spec$parentHeader$acquisitionNum #relative scan
+  # Mode of relative scan calculation: by default it is calculated relative to the
+  # parent scan. If a corresponding option is set, it will be calculated from the first
+  # present child scan in the list.
+  relativeScan <- "fromParent"
+  if(!is.null(getOption("RMassBank")$recomputeRelativeScan))
+	  if(getOption("RMassBank")$recomputeRelativeScan == "fromFirstChild")
+		  relativeScan <- "fromFirstChild"
+  if(relativeScan == "fromParent")
+	  mbdata[["SUBSCAN"]] <- msmsdata$scan - spec$parentHeader$acquisitionNum #relative scan
+  else if(relativeScan == "fromFirstChild")
+  {
+	  firstChild <- min(unlist(lapply(spec,function(d) d$header$acquisitionNum)))
+	  mbdata[["SUBSCAN"]] <- msmsdata$scan - firstChild + 1
+  }
   return(mbdata)
 }
 
