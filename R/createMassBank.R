@@ -453,7 +453,7 @@ gatherData <- function(id)
 	}
 	else
 	{
-		iupacName <-infos$synonyms[[ipreferred]][["name"]]
+		iupacName <-infos$synonyms[[ipreferred[[1]]]][["name"]]
 	}
 	# Eliminate duplicate names from our list of 3
 	names <- as.list(unique(c(dbname, iupacName)))
