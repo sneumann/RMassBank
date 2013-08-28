@@ -83,6 +83,8 @@ rmbo$spectraList <- list(
   list(mode="CID", ces="20eV", ce="20eV", res=12000)
 )
 
+rmbo$filterSettings$prelimCut <- 0
+
 rmbo$annotations$instrument <- "Bruker micrOTOFq"
 rmbo$annotations$instrument_type <- "LC-ESI-QTOF"
 
