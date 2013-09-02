@@ -322,15 +322,15 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		pl <- peaks(xsmsms[[i]])[,c("mz", "rt")]
 
 		## Best: find precursor peak
-		candidates[[i]] <- which( pl[,"mz"] < parentMass + mzabs & pl[,"mz"] > parentMass - mzabs
-						& pl[,"rt"] < RT * 1.1 & pl[,"rt"] > RT * 0.9 )
+		candidates[[i]] <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
+						& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
                 
 		print(paste("Candidates:",candidates[[i]]))
 		anmsms[[i]] <- xsAnnotate(xsmsms[[i]])
 		anmsms[[i]] <- groupFWHM(anmsms[[i]])
 
         if(length(candidates[[i]]) > 0)
-		closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt"]  ) )
+		closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]  ) )
         else(closestCandidate <- 1)
 		## Now find the pspec for compound
 		
