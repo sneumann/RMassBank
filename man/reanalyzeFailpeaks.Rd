@@ -4,7 +4,8 @@
 \title{Reanalyze unmatched peaks}
 \usage{
   reanalyzeFailpeaks(specs, custom_additions, mode,
-    filterSettings = getOption("RMassBank")$filterSettings)
+    filterSettings = getOption("RMassBank")$filterSettings,
+    progressbar = "progressBarHook")
     reanalyzeFailpeak(custom_additions, mass, cpdID,
     counter, pb = NULL, mode, filterSettings =
     getOption("RMassBank")$filterSettings)
@@ -28,8 +29,15 @@
   \item{counter}{Current peak index (used exclusively for
   the progress indicator)}
 
-  \item{pb}{A txtProgressBar object to display progress on.
-  No progress is displayed if NULL.}
+  \item{pb}{A progressbar object to display progress on, as
+  passed by \code{reanalyzeFailpeaks} to
+  \code{reanalyzeFailpeak}. No progress is displayed if
+  NULL.}
+
+  \item{progressbar}{The progress bar callback to use. Only
+  needed for specialized applications. Cf. the
+  documentation of \code{\link{progressBarHook}} for
+  usage.}
 
   \item{filterSettings}{Settings for filtering data. Refer
   to\code{\link{analyzeMsMs}} for settings.}
