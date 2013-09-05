@@ -2113,6 +2113,17 @@ recalibrate <- function()
 #' @export
 recalibrate.loess <- function(rcdata)
 {
+  span <- 0.25
+  # ex XCMS (permission by Steffen): heuristically decide on loess vs linear
+  mingroups <- nrow(rcdata[!is.na(rcdata$mzFound),])
+  if(mingroups < 4)
+  {
+    warning("recalibrate.loess: Not enough data points, omitting recalibration")
+    return(recalibrate.identity(rcdata))
+  } else if (mingroups*span < 4) {
+    span <- 4/mingroups
+    warning("recalibrate.loess: Span too small, resetting to ", round(span, 2))
+  }
 	return(loess(recalfield ~ mzFound, data=rcdata, family=c("symmetric"),
 					degree = 1, span=0.25, surface="direct" ))
 }
