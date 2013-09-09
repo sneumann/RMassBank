@@ -2068,6 +2068,10 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 #' which predicts 0 for all input values. This can be used if the user wants to
 #' skip recalibration in the RMassBank workflow.
 #' 
+#' #' \code{recalibrate.mean()} and \code{recalibrate.linear()} are simple recalibrations
+#' which return a constant shift or a linear recalibration. They will be only useful
+#' in particular cases.
+#' 
 #' \code{recalibrate()} itself is only a dummy function and does not do anything.
 #' 
 #' Alternatively other functions can be defined. Which functions are used for recalibration
@@ -2075,10 +2079,14 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 #' \code{recalibrator: MS1} value is irrelevant, since for a common curve generated with
 #' the function specified in \code{recalibrator: MS2} will be used.)
 #' 
-#' @aliases recalibrate.loess recalibrate recalibrate.identity
+#' @aliases recalibrate.loess recalibrate recalibrate.identity recalibrate.mean recalibrate.linear
 #' @usage recalibrate.loess(rcdata)
 #' 
 #' 		recalibrate.identity(rcdata)
+#' 
+#' 		recalibrate.mean(rcdata)
+#' 
+#' 		recalibrate.linear(rcdata)
 #' 
 #' @param rcdata A data frame with at least the columns \code{recalfield} and
 #' 			\code{mzFound}. \code{recalfield} will usually contain delta(ppm) or
@@ -2118,6 +2126,17 @@ recalibrate <- function()
 #' @export
 recalibrate.loess <- function(rcdata)
 {
+  span <- 0.25
+  # ex XCMS (permission by Steffen): heuristically decide on loess vs linear
+  mingroups <- nrow(rcdata[!is.na(rcdata$mzFound),])
+  if(mingroups < 4)
+  {
+    warning("recalibrate.loess: Not enough data points, omitting recalibration")
+    return(recalibrate.identity(rcdata))
+  } else if (mingroups*span < 4) {
+    span <- 4/mingroups
+    warning("recalibrate.loess: Span too small, resetting to ", round(span, 2))
+  }
 	return(loess(recalfield ~ mzFound, data=rcdata, family=c("symmetric"),
 					degree = 1, span=0.25, surface="direct" ))
 }
@@ -2126,6 +2145,18 @@ recalibrate.loess <- function(rcdata)
 recalibrate.identity <- function(rcdata)
 {
 	return(lm(recalfield ~ 0, data=rcdata))
+}
+
+#' @export 
+recalibrate.mean <- function(rcdata)
+{
+  return(lm(recalfield ~ 1, data=rcdata))
+}
+
+#' @export 
+recalibrate.linear <- function(rcdata)
+{
+  return(lm(recalfield ~ mzFound, data=rcdata))
 }
 
 #' Standard progress bar hook.
