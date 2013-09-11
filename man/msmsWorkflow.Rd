@@ -6,7 +6,8 @@
     FALSE, newRecalibration = TRUE, useRtLimit = TRUE,
     archivename=NA, readMethod = "mzR", findPeaksArgs = NA,
     plots = FALSE, precursorscan.cf = FALSE, settings =
-    getOption("RMassBank"), analyzeMethod = "formula")
+    getOption("RMassBank"), analyzeMethod = "formula",
+    progressbar = "progressBarHook")
 }
 \arguments{
   \item{w}{A \code{msmsWorkspace} to work with.}
@@ -61,6 +62,11 @@
 
   \item{analyzeMethod}{The "method" parameter to pass to
   \code{\link{analyzeMsMs}}.}
+
+  \item{progressbar}{The progress bar callback to use. Only
+  needed for specialized applications.  Cf. the
+  documentation of \code{\link{progressBarHook}} for
+  usage.}
 }
 \value{
   The processed \code{msmsWorkspace}.

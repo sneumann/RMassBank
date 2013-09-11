@@ -42,7 +42,8 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @usage msmsWorkflow(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
 #' 		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA, plots = FALSE,
 #' 		precursorscan.cf = FALSE,
-#' 		settings = getOption("RMassBank"), analyzeMethod = "formula")
+#' 		settings = getOption("RMassBank"), analyzeMethod = "formula",
+#' 		progressbar = "progressBarHook")
 #' @param w A \code{msmsWorkspace} to work with.
 #' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
@@ -69,6 +70,8 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @param settings Options to be used for processing. Defaults to the options loaded via
 #' 			\code{\link{loadRmbSettings}} et al. Refer to there for specific settings.
 #' @param analyzeMethod The "method" parameter to pass to \code{\link{analyzeMsMs}}.
+#' @param progressbar The progress bar callback to use. Only needed for specialized applications.
+#' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
 #' @return The processed \code{msmsWorkspace}.
 #' @seealso \code{\link{msmsWorkspace-class}}
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -1206,7 +1209,12 @@ makeRecalibration <- function(spec, mode,
 	
 	rcdata <- spec$peaksMatched[spec$peaksMatched$formulaCount==1,,drop=FALSE]
 	ms1data <- recalibrate.addMS1data(spec, mode, recalibrateMS1Window)
-	rcdata <- rbind(rcdata, ms1data)
+
+	if (recalibrateMS1 != "none") {
+          ## Add m/z values from MS1 to calibration datapoints
+          rcdata <- rbind(rcdata, ms1data)
+        }
+        
 	rcdata$dmz <- rcdata$mzFound - rcdata$mzCalc
 	ms1data$dmz <- ms1data$mzFound - ms1data$mzCalc
 	
@@ -1477,7 +1485,7 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' 
 #' @aliases reanalyzeFailpeaks reanalyzeFailpeak
 #' @usage reanalyzeFailpeaks(specs, custom_additions, mode, filterSettings =
-#' 				getOption("RMassBank")$filterSettings)
+#' 				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook")
 #' reanalyzeFailpeak(custom_additions, mass, cpdID, counter, pb = NULL, mode,
 #' 				filterSettings = getOption("RMassBank")$filterSettings)
 #' @param specs An \code{aggregatedRcSpecs} object (after the electronic noise
@@ -1488,7 +1496,11 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' @param cpdID Compound ID of this spectrum.
 #' @param counter Current peak index (used exclusively for the progress
 #' indicator)
-#' @param pb A txtProgressBar object to display progress on. No progress is displayed if NULL.
+#' @param pb A progressbar object to display progress on, as passed by
+#'  \code{reanalyzeFailpeaks} to \code{reanalyzeFailpeak}. No progress 
+#' is displayed if NULL.
+#' @param progressbar The progress bar callback to use. Only needed for specialized
+#'  applications.	Cf. the documentation of \code{\link{progressBarHook}} for usage.
 #' @param filterSettings Settings for filtering data. Refer to\code{\link{analyzeMsMs}} for settings.
 #' @return The returning list contains two tables: 
 #' \item{peaksReanalyzed}{All reanalyzed peaks with or without matching formula.}
@@ -2116,7 +2128,37 @@ recalibrate.identity <- function(rcdata)
 	return(lm(recalfield ~ 0, data=rcdata))
 }
 
-
+#' Standard progress bar hook.
+#' 
+#' This function provides a standard implementation for the progress bar in RMassBank.
+#' 
+#' RMassBank calls the progress bar function in the following three ways:
+#' \code{pb <- progressBarHook(object=NULL, value=0, min=0, max=LEN)}
+#' to create a new progress bar.
+#' \code{pb <- progressBarHook(object=pb, value= VAL)}
+#' to set the progress bar to a new value (between the set \code{min} and \code{max})
+#' \code{progressBarHook(object=pb, close=TRUE)}
+#' to close the progress bar. (The actual calls are performed with \code{do.call}, 
+#' e.g. 
+#' \code{progressbar <- "progressBarHook"
+#' pb <- do.call(progressbar, list(object=pb, value= nProg))
+#' }. See the source code for details.)
+#' 
+#' To substitute the standard progress bar for an alternative implementation (e.g. for
+#' use in a GUI), the developer can write his own function which behaves in the same way
+#' as \code{progressBarHook}, i.e. takes the same parameters and can be called in the 
+#' same way. 
+#'  
+#' @param object An identifier representing an instance of a progress bar. 
+#' @param value The new value to assign to the progress indicator
+#' @param min The minimal value of the progress indicator
+#' @param max The maximal value of the progress indicator
+#' @param close If \code{TRUE}, the progress bar is closed.
+#' @return Returns a progress bar instance identifier (i.e. an identifier
+#' 		which can be used as \code{object} in subsequent calls.) 
+#' 
+#' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
+#' @export
 progressBarHook <- function(object = NULL, value = 0, min = 0, max = 100, close = FALSE)
 {
 	if(is.null(object))
