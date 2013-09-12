@@ -299,7 +299,6 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	## MSMS
 	##
 	xrmsms <- xcmsRaw(fileName, includeMSn=TRUE)
-	print("File read")
 	## Where is the wanted isolation ?
 	precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
 
@@ -317,7 +316,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	whichmissing <- vector()
 	
 	for(i in 1:length(xrs)){
-		peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
+		devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
 
                 if (nrow(peaks(xsmsms[[i]])) == 0) {
                   spectra[[i]] <- matrix(0,2,7)
@@ -331,9 +330,8 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		candidates[[i]] <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
 						& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
                 
-		print(paste("Candidates:",candidates[[i]]))
-		anmsms[[i]] <- xsAnnotate(xsmsms[[i]])
-		anmsms[[i]] <- groupFWHM(anmsms[[i]])
+		devnull <- capture.output(anmsms[[i]] <- xsAnnotate(xsmsms[[i]]))
+		devnull <- capture.output(anmsms[[i]] <- groupFWHM(anmsms[[i]]))
 
         if(length(candidates[[i]]) > 0)
 		closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]  ) )
@@ -341,7 +339,6 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		## Now find the pspec for compound
 		
 		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))       
-		print(paste("Pseudospectra:",psp[[i]]))
 
 		## 2nd best: Spectrum closest to MS1
 		##psp <- which.min( abs(getRT(anmsms) - actualRT))
