@@ -916,9 +916,6 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   peaks$dppm <- round(peaks$dppm, 2)
   peaks$mzCalc <- round(peaks$mzCalc, 4)
   peaks$int <- round(peaks$int, 1)
-  # I actually have no idea what the "num" entry in the annotation data
-  # is supposed to mean.
-  peaks$num <- 1
   # copy the peak table to the annotation table. (The peak table will then be extended
   # with peaks from the global "additional_peaks" table, which can be used to add peaks
   # to the spectra by hand.
@@ -971,7 +968,12 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
     "pM" = "+",
     "mM" = "-")
   type <- formula_tag[[spec$mode]]
-  annotation$formula <- paste(annotation$formula, type, sep='')
+  
+  annotator <- getOption("RMassBank")$annotator
+  if(is.null(annotator))
+    annotator <- "annotator.default"
+  
+  
   
   # Here, the relative intensity is recalculated using the newly added additional
   # peaks from the peak list. Therefore, we throw superfluous peaks out again.
@@ -980,9 +982,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   annotation$intrel <- floor(annotation$int / max(peaks$int) * 999)
   annotation <- annotation[annotation$intrel >= 1,]
   
-  # Select the right columns and name them correctly for output.
-  annotation <- annotation[,c("mzSpec", "num", "formula", "mzCalc", "dppm")]
-  colnames(annotation) <- c("m/z", "num", "{formula", "mass", "error(ppm)}")
+  annotation <- do.call(annotator, list(annotation= annotation, type=type))
   
   # Create the "lower part" of the record.  
   mbdata <- list()
@@ -1005,8 +1005,13 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   # Change by Tobias:
   # I suggest to add here the current version number of the clone due to better distinction between different makes of MB records
   # Could be automatised from DESCRIPTION file?
+  if(getOption("RMassBank")$use_rean_peaks)
+      processingComment <- list("REANALYZE" = "Peaks with additional N2/O included")
+  else
+      processingComment <- list()
   mbdata[["MS$DATA_PROCESSING"]] <- c(
     getOption("RMassBank")$annotations$ms_dataprocessing,
+    processingComment,
     list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
     )
   
@@ -1129,6 +1134,40 @@ compileRecord <- function(spec, mbdata, refiltered, additionalPeaks = NULL)
   })
 }
 
+
+
+#' Generate peak annotation from peaklist
+#' 
+#' Generates the PK$ANNOTATION entry from the peaklist obtained. This function is
+#' overridable by using the "annotator" option in the settings file.
+#' 
+#' @param annotation A peak list to be annotated. Contains columns:
+#' \code{"cpdID","formula","mzFound" ,"scan","mzCalc","dppm",
+#'      "dbe","mz","int","formulaCount","parentScan","fM_factor","dppmBest",
+#'     "formulaMultiplicity","intrel","mzSpec"}
+#' 
+#' @param type The ion type to be added to annotated formulas ("+" or "-" usually)
+#' 
+#' @return The annotated peak table. Table \code{colnames()} will be used for the
+#' 		titles (preferrably don't use spaces in the column titles; however no format is
+#' 		strictly enforced by the MassBank data format.
+#' 
+#' @examples 
+#' \dontrun{
+#' annotation <- annotator.default(annotation)
+#' }
+#' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
+#' @export
+annotator.default <- function(annotation, type)
+{
+  
+  annotation$formula <- paste(annotation$formula, type, sep='')
+  # Select the right columns and name them correctly for output.
+  annotation <- annotation[,c("mzSpec","formula", "formulaCount", "mzCalc", "dppm")]
+  colnames(annotation) <- c("m/z", "tentative_formula", "formula_count", "mass", "error(ppm)")
+  return(annotation)
+}
+
 #' Parse record title
 #' 
 #' Parses a title for a single MassBank record using the title format
@@ -1184,6 +1223,7 @@ compileRecord <- function(spec, mbdata, refiltered, additionalPeaks = NULL)
 			)
 		}
 	}
+  
 	
 	# Extract a {XXX} argument from each title section.
 	# check that every title has one and only one match
