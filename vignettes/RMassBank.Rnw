@@ -29,9 +29,10 @@ options(width=74)
 \parskip 1em
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \title{RMassBank: The workflow by example}
-\author{Michael Stravs}
+\author{Michael Stravs, Emma Schymanski}
 \maketitle
 \tableofcontents
 \newpage
@@ -40,7 +41,7 @@ options(width=74)
 
 \Rpackage{RMassBank} is a two-part computational mass spectrometry workflow:
 \begin{itemize}
-	\item In a first step, MSMS spectra of compounds are extracted from raw LC-MS data files, 
+	\item In the first step, MSMS spectra of compounds are extracted from raw LC-MS data files, 
       the MSMS spectra are recalibrated using assigned fragment formulas, and effectively 
       denoised by using only annotated peaks (plus peaks which can be manually added.)
 	\item In the second step, the processed, recalibrated, cleaned data is prepared for 
@@ -59,7 +60,7 @@ message board hosted by the Metabolomics-Forum:
 \section{Installation and loading}
 
 The library is available from Bioconductor (\url{http://www.bioconductor.org}).
-In addition to the library itself, it is required to install the OpenBabel
+In addition to the library itself, it is recommended to install the OpenBabel
 chemical toolkit, available from \url{http://www.openbabel.org} for various
 platforms (or via Linux package distribution systems).
 
@@ -87,7 +88,7 @@ the (mathematical) centroid peak, i.e. the area-weighted mass peak.} or in
 profile mode.
 Data in the examples was acquired using an LTQ Orbitrap XL instrument in profile
 mode, and converted from profile-mode RAW into centroid-mode mzML
-using MSConvertGUI from the ProteoWiz toolsuite. The settings were as shown in the 
+using MSConvertGUI from ProteoWizard. The settings were as shown in the 
 screenshot below (note the "Peak Picking" filter.)
 
 \begin{figure}[htbp]
@@ -140,7 +141,7 @@ A settings template file, to be edited by hand, can be generated using
 RmbSettingsTemplate("mysettings.ini")
 @
 
-where \funcarg{mysettings.ini} is the file which will be generated. This file
+where \funcarg{mysettings.ini} is the file that will be generated. This file
 should then be edited. Important settings are:
 \begin{itemize}
     \item \funcarg{deprofile}: Whether to use a deprofiling algorithm to work
@@ -157,10 +158,10 @@ should then be edited. Important settings are:
 	\item \funcarg{use\_version}: which MassBank data format to use. The default is the newer version 2; alternatively, the (deprecated) version 1 can be specified for MassBank servers running old versions of the server software.
 	\item \funcarg{use\_rean\_peaks}: Whether or not peaks from reanalysis should be used (see below for details.)
 	\item \funcarg{add\_annotation}: Whether or not fragments should be annotated
-	with the (putative) molecular formula in MassBank records.
+	with the (tentative) molecular formula in MassBank records.
 	\item \funcarg{annotations}: A list of annotation data used in the MassBank records.
 	\begin{itemize}
-		\item \funcarg{authors}, \funcarg{copyright}, \funcarg{license}, \funcarg{instrument}, \funcarg{instrument\_type}, %
+		\item \funcarg{authors}, \funcarg{copyright}, \funcarg{publication}, \funcarg{license}, \funcarg{instrument}, \funcarg{instrument\_type}, %
 		 \funcarg{compound\_class}: values for the corresponding MassBank fields
 		\item \funcarg{confidence\_comment}: A commentary field about "compound confidence" which is added like "COMMENT: CONFIDENCE standard compound" in the MassBank record.
 		\item \funcarg{internal\_id\_fieldname}: The name for an internal ID field in the MassBank record where to store the compound ID (in the compound list). For \funcarg{internal\_id\_fieldname} = "MY\_ID", the ID will be stored like "COMMENT: MY\_ID 1234".
@@ -171,7 +172,8 @@ should then be edited. Important settings are:
 		In addition to the tags specified here, MS\$DATA\_PROCESSING:
 		WHOLE RMassBank will be added (corresponding to a list("WHOLE" = "RMassBank") entry for this option.)
 	\end{itemize}
-	\item \funcarg{spectraList}: The list of data-dependent scans triggered by a MS1 scan in their order; used for annotation of MassBank records. See the template file for description.
+	\item \funcarg{annotator}: For advanced users: option to select your own custom annotator. Check ?annotator.default and the source code for details.
+  \item \funcarg{spectraList}: The list of data-dependent scans triggered by a MS1 scan in their order; used for annotation of MassBank records. See the template file for description.
     \item \funcarg{accessionNumberShifts}: A list defining the starting points
     for generating MassBank record accession numbers. RMassBank generates
     2-letter + 6-digit accession numbers. The 2-letter code is defined by
@@ -203,6 +205,54 @@ should then be edited. Important settings are:
     recalibration and appears to work well for pure MS1 datapoints. However,
     common recalibration for MS1 and MS2 appears to be the best option in
     general.
+  \item \funcarg{multiplicityFilter}: Define the multiplicity filtering level. Default is 2, a value of 1 is off (no filtering) and >2 is harsher filtering.
+  \item \funcarg{titleFormat}: The title of MassBank records is a mini-summary 
+  of the record, for example "Dinotefuran; LC-ESI-QFT; MS2; CE: 35\%; R=35000; [M+H]+". 
+  By default, the first compound name \Rvar{CH\$NAME}, instrument type 
+  \Rvar{AC\$INSTRUMENT\_TYPE}, MS/MS type \Rvar{AC\$MASS\_SPECTROMETRY: MS\_TYPE}, 
+  collision energy \Rvar{RECORD\_TITLE\_CE}, resolution \Rvar{AC\$MASS\_SPECTROMETRY: RESOLUTION} 
+  and precursor \Rvar{MS\$FOCUSED\_ION: PRECURSOR\_TYPE} are used. If alternative 
+  information is relevant to differentiate acquired spectra, the title should be adjusted.
+  For example, many TOFs do not have a resolution setting. See MassBank documentation for more.
+    \item \funcarg{filterSettings}: A list of settings that affect the MS/MS processing.
+	\begin{itemize}
+		\item \funcarg{ppmHighMass}, \funcarg{ppmLowMass}: values for pre-processing, 
+    prior to recalibration. The default settings (for e.g. Orbitrap) is 10 ppm 
+    for high mass range, 15 ppm for low mass range (defined by \Rvar{massRangeDivision})
+		\item \funcarg{massRangeDivision}: The m/z value defining the split between 
+    \Rvar{ppmHighMass} and \Rvar{ppmLowMass} above. The default m/z 120 is 
+    recommended for Orbitraps.
+		\item \funcarg{ppmFine}: This defines the ppm cut-off post recalibration. 
+    The default value of 5 ppm is recommended for Orbitraps.
+		\item \funcarg{prelimCut}, \funcarg{prelimCutRatio}: Intensity cut-off and cut-off ratio 
+    (in \% of the most intense peak) for pre-processing. Affects peak selection 
+    for the recalibration only. Careful: the default 1e4 for Orbitrap LTQ positive could 
+    remove all peaks for TOF data and will remove too many peaks for Orbitrap LTQ 
+    negative mode spectra!
+		\item \funcarg{specOKLimit}: MS/MS must have at least one peaks above this limit 
+    present to be processed. 
+  	\item \funcarg{dbeMinLimit}: The minimum allowable ring and double bond equivalent (DBE) 
+    allowed for assigned formulas. Assumes maximum valences for elements with multiple 
+    possible valences. Default is -0.5 (accounting for fragment peaks being ions).
+  	\item \funcarg{satelliteMzLimit}, \funcarg{satelliteIntLimit}: Cut-off m/z and 
+    intensity values for satellite peak removal. All peaks within the m/z (default 0.5) 
+    and intensity ratio (default 0.05 or 5 \%) of the respective peak will be removed. 
+    Applicable to Fourier Transform instruments (e.g. Orbitrap).
+	\end{itemize}
+  \item \funcarg{findMsMsRawSettings}: Parameters for adjusting the raw data retrieval.
+    \begin{itemize}
+		\item \funcarg{ppmFine}: The ppm error to look for the precursor in the MS1 (parent) 
+    spectrum. Default is 10 ppm for Orbitrap.
+    \item \funcarg{mzCoarse}: The error to search for the precursor specification in the 
+    MS2 spectrum. This is often only saved to 2 decimal places and thus inaccurate and 
+    may also depend on the isolation window. 
+    The default settings (for e.g. Orbitrap) is m/z=0.5 for \Rvar{mzCoarse}.
+		\item \funcarg{fillPrecursorScan}: The default value (FALSE) assumes all 
+    necessary precursor information was available in the mzML file. A setting of 
+    TRUE tries to fill in the precursor data if it is missing. Only tested on 
+    one case-study so far.
+    \end{itemize}
+
 \end{itemize}
 
 See also the manpage \Rvar{?RmbSettings} for a description of all RMassBank
@@ -227,7 +277,7 @@ visually less appealing since they have all hydrogen atoms explicit, and CACTUS
 is only a backup solution.)
 
 
-First, a workspace for the \Rvar{msmsWorkflow} must be created:
+First, create a workspace for the \Rvar{msmsWorkflow}:
 <<>>=
 w <- newMsmsWorkspace()
 @
@@ -299,7 +349,14 @@ w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename =
 				"pH_narcotics")
 @
 
-If you are experimenting with novel datasets which might give errors, it is
+The recalibration can also be plotted at a later stage:
+
+<<>>=
+plotRecalibration(w)
+@
+
+
+If you are experimenting with new datasets which might give errors, it is
 advised to run the workflow step by step. This is because if an error occurs, you will 
 lose all intermediate results from the workflow, which might complicate
 finding the errors. (E.g., if you process steps 2-4 and an error occurs in step
@@ -311,6 +368,15 @@ finding the errors. (E.g., if you process steps 2-4 and an error occurs in step
 	# etc.
 @
 
+It can be useful to check if any data is retrieved at step 1:
+<<eval=FALSE>>=
+lapply(w@specs,function(s) s$foundOK)
+@
+
+To check the progress through the workflow, call e.g.:
+<<eval=FALSE>>=
+findProgress(w)
+@
 
 Note that usually a recalibration curve should be done which >15 compounds, and
 it will become smoother with more compounds. To show the curve found with the
@@ -409,6 +475,11 @@ the formula, the exact mass, SMILES code, InChI standard code, InChI standard ke
 which must be fixed by hand: 2 near-identical names in the infolist; a very high ChemSpider 
 ID where a lower one exists (which is "better"), a ChEBI entry saying "ChEBI" instead of the
 actual ChEBI code.
+
+CAUTION: At this stage the compound name is taken from the user-provided 
+compound list and one IUPAC entry from CTS. Please check your compound list carefully!
+The original naming system from CTS 
+will be reinstated once the scoring system is re-included in the new services.
 
 After fixing the CSV infolist, it should be copied into the infolist folder and the infolist
 reloaded:
