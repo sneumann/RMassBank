@@ -215,8 +215,8 @@ NULL
 # mass range, m/z = 120 as mass range division and 5 ppm for recalibrated
 # data overall are recommended. 
   filterSettings = list(
-		  	ppmHighMass = 15,
-  			ppmLowMass = 10,
+		  	ppmHighMass = 10,
+  			ppmLowMass = 15,
 		  massRangeDivision= 120,
 		  ppmFine= 5,
 		  prelimCut= 1e4,

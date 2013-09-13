@@ -880,8 +880,8 @@ filterLowaccResults <- function(peaks, mode="fine", filterSettings  = getOption(
   if(is.null(filterSettings))
   {
 	  filterSettings <- list(
-			ppmHighMass = 15,
-	  		ppmLowMass = 10,
+			ppmHighMass = 10,
+	  		ppmLowMass = 15,
 	  		massRangeDivision = 120,
 	  		ppmFine = 5)
   }
