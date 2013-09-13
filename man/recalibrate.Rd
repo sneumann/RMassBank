@@ -1,12 +1,18 @@
 \name{recalibrate}
 \alias{recalibrate}
 \alias{recalibrate.identity}
+\alias{recalibrate.linear}
 \alias{recalibrate.loess}
+\alias{recalibrate.mean}
 \title{Predefined recalibration functions.}
 \usage{
   recalibrate.loess(rcdata)
 
   recalibrate.identity(rcdata)
+
+  recalibrate.mean(rcdata)
+
+  recalibrate.linear(rcdata)
 }
 \arguments{
   \item{rcdata}{A data frame with at least the columns
@@ -33,6 +39,11 @@
   non-recalibration, i.e. a predictor which predicts 0 for
   all input values. This can be used if the user wants to
   skip recalibration in the RMassBank workflow.
+
+  #' \code{recalibrate.mean()} and
+  \code{recalibrate.linear()} are simple recalibrations
+  which return a constant shift or a linear recalibration.
+  They will be only useful in particular cases.
 
   \code{recalibrate()} itself is only a dummy function and
   does not do anything.
