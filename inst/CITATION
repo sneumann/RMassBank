@@ -6,19 +6,22 @@
 
 citHeader("To cite package 'RMassBank' in publications use:")
 
-year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
+year <- 2013
 
-citEntry(entry="unpublished",
+citEntry(entry="article",
 		title = "Automatic Recalibration and Processing of Tandem Mass Spectra using Formula Annotation.",
 		author = personList(as.person("Michael A. Stravs"),
 				as.person("Emma L. Schymanski"),
 				as.person("Heinz Singer"),
 				as.person("Juliane Hollender")),
-		year = year,
-		note = "in preparation",
+		year = 2013,
+		journal = "Journal of Mass Spectrometry",
+		volume = 48, 
+		number = 1,
+		pages = 89--99,
 		
 		textVersion =
-				paste("M. A. Stravs, E. L. Schymanski, H. Singer, J. Hollender, ",
-						"Automatic Recalibration and Processing of Tandem Mass Spectra using Formula Annotation. ",
-						year,", ",
-						"in preparation.", sep=""))
+				paste("M. A. Stravs, E. L. Schymanski, H. Singer, J. Hollender", year,
+						"Automatic Recalibration and Processing of Tandem Mass Spectra using Formula Annotation",
+						"Journal of Mass Spectrometry", "48(1)",
+						"89-99.", sep=", "))
