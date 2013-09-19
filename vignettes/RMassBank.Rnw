@@ -229,7 +229,7 @@ should then be edited. Important settings are:
     for the recalibration only. Careful: the default 1e4 for Orbitrap LTQ positive could 
     remove all peaks for TOF data and will remove too many peaks for Orbitrap LTQ 
     negative mode spectra!
-		\item \funcarg{specOKLimit}: MS/MS must have at least one peaks above this limit 
+		\item \funcarg{specOKLimit}: MS/MS must have at least one peak above this limit 
     present to be processed. 
   	\item \funcarg{dbeMinLimit}: The minimum allowable ring and double bond equivalent (DBE) 
     allowed for assigned formulas. Assumes maximum valences for elements with multiple 
@@ -249,8 +249,8 @@ should then be edited. Important settings are:
     The default settings (for e.g. Orbitrap) is m/z=0.5 for \Rvar{mzCoarse}.
 		\item \funcarg{fillPrecursorScan}: The default value (FALSE) assumes all 
     necessary precursor information was available in the mzML file. A setting of 
-    TRUE tries to fill in the precursor data if it is missing. Only tested on 
-    one case-study so far.
+    TRUE tries to fill in the precursor data scan number if it is missing.  
+    Only tested on one case-study so far.
     \end{itemize}
 
 \end{itemize}
@@ -351,7 +351,7 @@ w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename =
 
 The recalibration can also be plotted at a later stage:
 
-<<>>=
+<<eval=FALSE>>=
 plotRecalibration(w)
 @
 
