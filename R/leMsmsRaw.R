@@ -282,7 +282,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	
 	require(CAMERA)
 	require(xcms)
-	parentMass <- findMz(cpdID)$mzCenter
+	parentMass <- findMz(cpdID, mode=mode)$mzCenter
 	RT <- findRt(cpdID)$RT * 60
 	mzabs <- 0.1
 	
@@ -300,12 +300,12 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	##
 	xrmsms <- xcmsRaw(fileName, includeMSn=TRUE)
 	## Where is the wanted isolation ?
-	precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
+	##precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
 
 	## Fake MS1 from MSn scans
 	## xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
 	
-	xrs <- split(msn2xcmsRaw(xrmsms), f=xrmsms@msnCollisionEnergy)
+	suppressWarnings(xrs <- split(msn2xcmsRaw(xrmsms), f=xrmsms@msnCollisionEnergy))
 	## Fake s simplistic xcmsSet
 	setReplicate <- xcmsSet(files=fileName, method="MS1")
 	xsmsms <- as.list(replicate(length(xrs),setReplicate))
@@ -314,10 +314,12 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	psp <- list()
 	spectra <- list()
 	whichmissing <- vector()
-	
+	print(cpdID)
 	for(i in 1:length(xrs)){
-		devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
-
+		peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
+		#devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
+		print(i)
+		
                 if (nrow(peaks(xsmsms[[i]])) == 0) {
                   spectra[[i]] <- matrix(0,2,7)
                   next 
@@ -329,27 +331,28 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		## Best: find precursor peak
 		candidates[[i]] <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
 						& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
-                
+        print(candidates[[i]])
 		devnull <- capture.output(anmsms[[i]] <- xsAnnotate(xsmsms[[i]]))
 		devnull <- capture.output(anmsms[[i]] <- groupFWHM(anmsms[[i]]))
 
-        if(length(candidates[[i]]) > 0)
-		closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]  ) )
-        else(closestCandidate <- 1)
-		## Now find the pspec for compound
-		
-		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))       
+        if(length(candidates[[i]]) > 0){
+		closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]))
+		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
+		}
+        else{psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )}
+		## Now find the pspec for compound       
 
 		## 2nd best: Spectrum closest to MS1
 		##psp <- which.min( abs(getRT(anmsms) - actualRT))
 
 		## 3rd Best: find pspec closest to RT from spreadsheet
-		##psp <- which.min( abs(abs(getRT(anmsms) - RT) )
+		##psp <- which.min( abs(getRT(anmsms) - RT) )
 		if((plots == TRUE) && (length(psp[[i]]) > 0)){
 			plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
 		}
 		if(length(psp[[i]]) != 0){
 		spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
+		print(spectra[[i]][,c("mz","rt")])
 		} else {whichmissing <- c(whichmissing,i)}
 	}
 	if(length(spectra) != 0){
@@ -427,10 +430,8 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 	ret$mz <- findMz(cpdID,mode=mode)
 	ret$id <- cpdID
 	ret$formula <- findFormula(cpdID)
-	print(paste("Length of msmsXCMSspecs:",length(msmsXCMSspecs)))
 	if(length(msmsXCMSspecs) == 0){
 		ret$foundOK <- FALSE
-		print("blabla")
 		return(ret)
 	}
 	if(is.na(msmsXCMSspecs)){
