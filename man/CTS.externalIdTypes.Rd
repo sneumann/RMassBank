@@ -1,0 +1,30 @@
+\name{CTS.externalIdTypes}
+\alias{CTS.externalIdTypes}
+\title{Find all available databases for a CTS record}
+\usage{
+  CTS.externalIdTypes(data)
+}
+\arguments{
+  \item{data}{The complete CTS record as retrieved by
+  \code{\link{getCtsRecord}}.}
+}
+\value{
+  Returns an array of all database names for which there
+  are external identifiers stored in the record.
+}
+\description{
+  Find all available databases for a CTS record
+}
+\examples{
+\dontrun{
+# Return all databases for which the benzene entry has
+# links in the CTS record.
+
+data <- getCTS("UHOVQNZJYSORNB-UHFFFAOYSA-N")
+databases <- CTS.externalIdTypes(data)
+}
+}
+\author{
+  Michele Stravs, Eawag <stravsmi@eawag.ch>
+}
+

@@ -1,5 +1,6 @@
 # Script for writing MassBank files
 
+#testtest change
 #' Load MassBank compound information lists
 #' 
 #' Loads MassBank compound information lists (i.e. the lists which were created
@@ -164,7 +165,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   {
       mbdata_ids <- lapply(mb@aggregatedRcSpecs$specFound, function(spec) spec$id)
 	  
-	  message("mbWorkflow: Step 1")
+	  message("mbWorkflow: Step 1. Gather info from CTS")
 	  
       # Which IDs are not in mbdata_archive yet?
       new_ids <- setdiff(as.numeric(unlist(mbdata_ids)), mb@mbdata_archive$id)
@@ -181,7 +182,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # Otherwise, continue!
   if(2 %in% steps)
   {
-	message("mbWorkflow: Step 2")
+	message("mbWorkflow: Step 2. Export infolist (if required)")
     if(length(mb@mbdata)>0)
     {
       mbdata_mat <- flatten(mb@mbdata)
@@ -196,7 +197,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # Step 3: Take the archive data (in table format) and reformat it to MassBank tree format.
   if(3 %in% steps)
   {
-	message("mbWorkflow: Step 3")
+	message("mbWorkflow: Step 3. Data reformatting")
     mb@mbdata_relisted <- apply(mb@mbdata_archive, 1, readMbdata)
   }
   # Step 4: Compile the spectra! Using the skeletons from the archive data, create
@@ -204,7 +205,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # Also, assign accession numbers based on scan mode and relative scan no.
   if(4 %in% steps)
   {
-	  message("mbWorkflow: Step 4")
+	  message("mbWorkflow: Step 4. Spectra compilation")
 	  mb@compiled <- mapply(
 			  function(r, refiltered) {
 				  message(paste("Compiling: ", r$name, sep=""))
@@ -228,7 +229,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # flat-text string arrays (basically, into text-file style, but still in memory)
   if(5 %in% steps)
   {
-	message("mbWorkflow: Step 5")
+	message("mbWorkflow: Step 5. Flattening records")
     mb@mbfiles <- lapply(mb@compiled_ok, function(c) lapply(c, toMassbank))
   }
   # Step 6: For all OK records, generate a corresponding molfile with the structure
@@ -236,14 +237,14 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # is still in memory only, not yet a physical file)
   if(6 %in% steps)
   {
-	message("mbWorkflow: Step 6")
+	message("mbWorkflow: Step 6. Generate molfiles")
     mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(c[[1]][["CH$SMILES"]]))
   }
   # Step 7: If necessary, generate the appropriate subdirectories, and actually write
   # the files to disk.
   if(7 %in% steps)
   {
-	message("mbWorkflow: Step 7")
+	message("mbWorkflow: Step 7. Generate subdirs and export")
     dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "moldata", sep='/'),recursive=TRUE)
     dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "recdata", sep='/'),recursive=TRUE)
     for(cnt in 1:length(mb@compiled_ok))
@@ -253,7 +254,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # to attribute substances to their corresponding structure molfiles.
   if(8 %in% steps)
   {
-	message("mbWorkflow: Step 8")
+	message("mbWorkflow: Step 8. Create list.tsv")
     makeMollist(mb@compiled_ok)
   }
   return(mb)
@@ -360,132 +361,184 @@ createMolfile <- function(id_or_smiles, fileName = FALSE)
 #' @export
 gatherData <- function(id)
 { 
-  .checkMbSettings()
-  
-  # Get all useful information from the local "database" (from the CSV sheet)
-  smiles <- findSmiles(id)
-  mass <- findMass(smiles)
-  dbcas <- findCAS(id)
-  dbname <- findName(id)
-  if(is.na(dbname)) dbname <- ""
-  formula <- findFormula(id)
-  # Convert SMILES to InChI key via Cactvs. CTS doesn't "interpret" the SMILES per se,
-  # it just matches identical known SMILES, so we need to convert to a "searchable" and
-  # standardized format beforehand.
-  inchikey <- getCactus(smiles, 'stdinchikey')
-  dataUsed <- "dbname"
-  storedName <- character(0)
-  
-  # Check whether we found a useful inchikey. If not, we will have to use the database
-  # name as search criterion.
-  if(!is.na(inchikey))
-  {
-    # Split the "InChiKey=" part off the key
-    inchikey_split <- strsplit(inchikey, "=", fixed=TRUE)[[1]][[2]]
-    # Actually retrieve data from CTS (see the webaccess scripts)
-    infos <- getCtsRecord(inchikey_split)
-    
-    storedName <- infos$Name
-    # Check if the name was found. If yes, OK. Otherwise, search again using
-    # the DB name as start
-    dataUsed <- "smiles"
-    if(nrow(infos$names) == 0 | length(infos$names) == 0)
-      dataUsed <- "dbname"
-    if(storedName %in% c('Unknown','None'))
-      dataUsed <- "dbname"
-  }
-
-  # if dataUsed is "dbname" here, this means that the SMILES code was not sufficient
-  # and therefore we re-search starting from the DB name.
-  if(dataUsed == "dbname")
-  {
-    infos <- getCtsRecord(dbname, from="name")
-    inchikey_split <- infos$inchikey
-    # In this case, get the SMILES directly from the CTS record! It must match the
-    # InChI key to have consistency.
-    if(length(infos$smiles)>0)
-      smiles <- infos$smiles[[1]]
-  }
-  
-  # Get ChemSpider ID from Cactvs, because it doesn't work properly from CTS
-  csid <- getCactus(inchikey_split, 'chemspider_id')
-  
-  # Name sorting: use the highest-ranking name from CTS
-  # Also add one IUPAC nomenclature as name.
-  # Note: only use the CTS name if it has a score of >= 1!
-  if(nrow(infos$names) > 0 & length(infos$names)>0)
-  {
-    topName <- infos$names[which.max(infos$names[,"score"]),]
-    if(topName$score< 1)
-        topNameN <- character(0)
-    else
-        topNameN <- topName$name
-  }
-  else
-      topNameN <- character(0)
-
-  
-  if(length(infos$iupac) == 0)
-    iupacName <- character(0)
-  else
-    iupacName <- infos$iupac[[1]]
-  
-  # Eliminate duplicate names from our list of 3
-  names <- as.list(unique(c(topNameN, storedName, iupacName)))
-  
-  
-  # Start to fill the MassBank record.
-  # The top 4 entries will not go into the final record; they are used to identify
-  # the record and also to facilitate manual editing of the exported record table.
-  mbdata <- list()
-  mbdata[['id']] <- id
-  mbdata[['dbcas']] <- dbcas
-  mbdata[['dbname']] <- dbname
-  mbdata[['dataused']] <- dataUsed
-  mbdata[['ACCESSION']] <- ""
-  mbdata[['RECORD_TITLE']] <- ""
-  mbdata[['DATE']] <- format(Sys.Date(), "%Y.%m.%d")
-  mbdata[['AUTHORS']] <- getOption("RMassBank")$annotations$authors
-  mbdata[['LICENSE']] <- getOption("RMassBank")$annotations$license
-  mbdata[['COPYRIGHT']] <- getOption("RMassBank")$annotations$copyright
-  # Confidence annotation and internal ID annotation.
-  # The ID of the compound will be written like:
-  # COMMENT: EAWAG_UCHEM_ID 1234
-  # if annotations$internal_id_fieldname is set to "EAWAG_UCHEM_ID"
-  mbdata[["COMMENT"]] <- list()
-  mbdata[["COMMENT"]][["CONFIDENCE"]] <- getOption("RMassBank")$annotations$confidence_comment
-  mbdata[["COMMENT"]][["ID"]] = id
-  # here compound info starts
-  mbdata[['CH$NAME']] <- names
-  # Currently we use a fixed value for Compound Class, since there is no useful
-  # convention of what should go there and what shouldn't, and the field is not used
-  # in search queries.
-  mbdata[['CH$COMPOUND_CLASS']] <- getOption("RMassBank")$annotations$compound_class
-  mbdata[['CH$FORMULA']] <- formula
-  mbdata[['CH$EXACT_MASS']] <- mass
-  mbdata[['CH$SMILES']] <- smiles
-  mbdata[['CH$IUPAC']] <- infos$inchi
-  
-  # Add all CH$LINK fields present in the compound datasets
-  link <- list()
-  if(length(infos$cas)>0) {
-    if (infos$cas[[1]] != "") link[["CAS"]] <- infos$cas[[1]]
-    if(dbcas %in% infos$cas) link[["CAS"]] <- dbcas
-  }
-  if(length(infos$chebi)>0) if(infos$chebi[[1]] != "") link[["CHEBI"]] <- infos$chebi[[1]]
-  if(infos$hmdb[[1]] != "") link[["HMDB"]] <- infos$hmdb[[1]]
-  if(length(infos$kegg)>0) if(infos$kegg[[1]] != "") link[["KEGG"]] <- infos$kegg[[1]]
-  if(infos$lipidmap[[1]] != "") link[["LIPIDMAPS"]] <- infos$lipidmap[[1]]
-  if(length(infos$cid)>0) if(infos$cid[[1]] != "") link[["PUBCHEM"]] <- paste("CID:",infos$cid[[1]],sep='')
-  link[["INCHIKEY"]] <- inchikey_split
-  if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid)))
-  mbdata[['CH$LINK']] <- link
-  
-  mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
-  mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
-
-  return(mbdata)  
+	.checkMbSettings()
+	
+	# Get all useful information from the local "database" (from the CSV sheet)
+	smiles <- findSmiles(id)
+	mass <- findMass(smiles)
+	dbcas <- findCAS(id)
+	dbname <- findName(id)
+	if(is.na(dbname)) dbname <- ""
+	formula <- findFormula(id)
+	# Convert SMILES to InChI key via Cactvs. CTS doesn't "interpret" the SMILES per se,
+	# it just matches identical known SMILES, so we need to convert to a "searchable" and
+	# standardized format beforehand.
+	inchikey <- getCactus(smiles, 'stdinchikey')
+	dataUsed <- "dbname"
+	
+	# Check whether we found a useful inchikey. If not, we will have to use the database
+	# name as search criterion.
+	if(!is.na(inchikey))
+	{
+		# Split the "InChiKey=" part off the key
+		inchikey_split <- strsplit(inchikey, "=", fixed=TRUE)[[1]][[2]]
+		# Actually retrieve data from CTS (see the webaccess scripts)
+		infos <- getCtsRecord(inchikey_split)
+		
+		if(length(infos) == 0)
+			dataUsed <- "dbname"
+		else
+			dataUsed <- "smiles"
+		
+		## storedName <- infos$Name
+		## # Check if the name was found. If yes, OK. Otherwise, search again using
+		## # the DB name as start
+		## 
+		## if(nrow(infos$names) == 0 | length(infos$names) == 0)
+		##   dataUsed <- "dbname"
+		## if(storedName %in% c('Unknown','None'))
+		##   dataUsed <- "dbname"
+	}
+	
+	# if dataUsed is "dbname" here, this means we must find a better SMILES and
+	# regenerate the InChI key since the old one was not found in CTS.
+	if(dataUsed == "dbname")
+	{
+		infos <- getCtsKey(dbname, from="Chemical Name", to="InChIKey")
+		# heuristically determine best InChI key to use:
+		# use the one with most common Structure part,
+		# and use the one with no stereochemistry and neutral charge if possible
+		keys <- as.data.frame(infos)
+		subkeys <- strsplit(infos, ',')
+		df <- do.call(rbind,subkeys)
+		keys$structure <- df[,1]
+		keys$stereo <- df[,2]
+		keys$charge <- df[,3]
+		# most frequent structure part:
+		freq <- aggregate(keys$keys, by=list(keys$structure), length)
+		structure <- freq[which.max(freq[,"x"]),"Group.1"]
+		keys <- keys[keys$structure == structure,]
+		# put stereofree compounds first, then neutral compounds first
+		keys$Vst <- factor(keys$stereo, levels="UHFFFAOYSA")
+		keys$Vchg <- factor(keys$charge, levels="N")
+		keys <- keys[order(keys$Vst, keys$Vchg, na.last=T),]
+		# get key, at last
+		inchikey_split <- keys[1,"keys"]
+		
+		# get full dataset from CTS
+		inchikey_split <- infos$inchikey
+		infos <- getCtsRecord(inchikey_split)
+		# InChIcode to SMILES using CACTUS. Should never fail since it's a conversion
+		# of structure representations
+		smiles <- getCactus(infos$inchicode, 'smiles')
+		
+	}
+	
+	# Get ChemSpider ID from Cactvs, because it doesn't work properly from CTS
+	csid <- getCactus(inchikey_split, 'chemspider_id')
+	
+	# Name sorting:
+	# TODO: when scoring is reimplemented in CTS, use scoring.
+	# in the meantime, we use the user-given name plus one systematic name ex CTS
+	ipreferred <- which(unlist(lapply(infos$synonyms, function(s) s$type == "IUPAC Name (Preferred)")))
+	if(length(ipreferred) == 0)
+	{
+		# no iupac in cts, find iupac from cactus
+		iupacName <- getCactus(infos$inchicode, 'iupac_name')
+		if(is.na(iupacName))
+		{
+			iupacName <- NULL
+			warning(paste0("Compound ID ",id,": no IUPAC name could be identified."))
+		}
+	}
+	else
+	{
+		iupacName <-infos$synonyms[[ipreferred]][["name"]]
+	}
+	# Eliminate duplicate names from our list of 3
+	names <- as.list(unique(c(dbname, iupacName)))
+	
+	
+	# Start to fill the MassBank record.
+	# The top 4 entries will not go into the final record; they are used to identify
+	# the record and also to facilitate manual editing of the exported record table.
+	mbdata <- list()
+	mbdata[['id']] <- id
+	mbdata[['dbcas']] <- dbcas
+	mbdata[['dbname']] <- dbname
+	mbdata[['dataused']] <- dataUsed
+	mbdata[['ACCESSION']] <- ""
+	mbdata[['RECORD_TITLE']] <- ""
+	mbdata[['DATE']] <- format(Sys.Date(), "%Y.%m.%d")
+	mbdata[['AUTHORS']] <- getOption("RMassBank")$annotations$authors
+	mbdata[['LICENSE']] <- getOption("RMassBank")$annotations$license
+	mbdata[['COPYRIGHT']] <- getOption("RMassBank")$annotations$copyright
+	# Confidence annotation and internal ID annotation.
+	# The ID of the compound will be written like:
+	# COMMENT: EAWAG_UCHEM_ID 1234
+	# if annotations$internal_id_fieldname is set to "EAWAG_UCHEM_ID"
+	mbdata[["COMMENT"]] <- list()
+	mbdata[["COMMENT"]][["CONFIDENCE"]] <- getOption("RMassBank")$annotations$confidence_comment
+	mbdata[["COMMENT"]][["ID"]] = id
+	# here compound info starts
+	mbdata[['CH$NAME']] <- names
+	# Currently we use a fixed value for Compound Class, since there is no useful
+	# convention of what should go there and what shouldn't, and the field is not used
+	# in search queries.
+	mbdata[['CH$COMPOUND_CLASS']] <- getOption("RMassBank")$annotations$compound_class
+	mbdata[['CH$FORMULA']] <- formula
+	mbdata[['CH$EXACT_MASS']] <- mass
+	mbdata[['CH$SMILES']] <- smiles
+	mbdata[['CH$IUPAC']] <- infos$inchicode
+	
+	# Add all CH$LINK fields present in the compound datasets
+	link <- list()
+	# CAS
+	if("CAS" %in% CTS.externalIdTypes(infos))
+	{
+		# Prefer database CAS if it is also listed in the CTS results.
+		# otherwise take the shortest one.
+		cas <- CTS.externalIdSubset(infos,"CAS")
+		if(dbcas %in% cas)
+			link[["CAS"]] <- dbcas
+		else
+			link[["CAS"]] <- cas[[which.min(nchar(cas))]]
+	}
+	# CHEBI
+	if("ChEBI" %in% CTS.externalIdTypes(infos))
+	{
+		# Cut off front "CHEBI:" if present
+		chebi <- CTS.externalIdSubset(infos,"ChEBI")
+		chebi <- chebi[[which.min(nchar(chebi))]]
+		chebi <- strsplit(chebi,":")[[1]]
+		chebi <- chebi[[length(chebi)]]
+	}
+	
+	# HMDB
+	if("HMDB" %in% CTS.externalIdTypes(infos))
+		link[["HMDB"]] <- CTS.externalIdSubset(infos,"HMDB")[[1]]
+	# KEGG
+	if("KEGG" %in% CTS.externalIdTypes(infos))
+		link[["KEGG"]] <- CTS.externalIdSubset(infos,"KEGG")[[1]]
+	# LipidMAPS
+	if("LipidMAPS" %in% CTS.externalIdTypes(infos))
+		link[["LIPIDMAPS"]] <- CTS.externalIdSubset(infos,"LipidMAPS")[[1]]
+	# PubChem CID
+	if("PubChem CID" %in% CTS.externalIdTypes(infos))
+	{
+		pc <- CTS.externalIdSubset(infos,"PubChem CID")
+		link[["PUBCHEM"]] <- paste0("CID:",min(pc))
+	}
+	link[["INCHIKEY"]] <- inchikey_split
+	if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid)))
+	mbdata[['CH$LINK']] <- link
+	
+	mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
+	mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
+	
+	return(mbdata)  
 } # function gather.mbdata
+
 
 
 
@@ -579,6 +632,9 @@ flatten <- function(mbdata)
     # a) exist in the target dataframe and b) exist in the (unlisted) MB record
     # are written into the dataframe.
     data <- unlist(mbdata[[row]])
+	# bugfix for the case of only one name
+	if(!("CH$NAME1" %in% names(data)))
+		data[["CH$NAME1"]] <- data[["CH$NAME"]]
     datacols <- intersect(colList, names(data))
     mbframe[row,datacols] <- data[datacols]
   }
@@ -606,6 +662,7 @@ readMbdata <- function(row)
   mbdata[['AUTHORS']] <- getOption("RMassBank")$annotations$authors
   mbdata[['LICENSE']] <- getOption("RMassBank")$annotations$license
   mbdata[['COPYRIGHT']] <- getOption("RMassBank")$annotations$copyright
+  mbdata[['PUBLICATION']] <- getOption("RMassBank")$annotations$publication
   
   # Read all determined fields from the file
   # This is not very flexible, as you can see...
@@ -950,7 +1007,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   # Could be automatised from DESCRIPTION file?
   mbdata[["MS$DATA_PROCESSING"]] <- c(
     getOption("RMassBank")$annotations$ms_dataprocessing,
-	list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
+    list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
     )
   
   # Annotation:

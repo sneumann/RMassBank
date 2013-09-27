@@ -151,7 +151,7 @@ msmsWorkflow <- function(w, mode="pH", method = "mzR", steps=c(1:8),confirmMode 
   if(2 %in% steps)
   {
 	  nProg <- 0
-	  message("msmsWorkflow: Step 2")
+	  message("msmsWorkflow: Step 2. First analysis pre recalibration")
 	  pb <- txtProgressBar(0,nLen,0, style=3, file=stderr())
 	  w@analyzedSpecs <- lapply(w@specs, function(spec) {
 				  #print(spec$id)
@@ -169,13 +169,13 @@ msmsWorkflow <- function(w, mode="pH", method = "mzR", steps=c(1:8),confirmMode 
   # Step 3: aggregate all spectra
   if(3 %in% steps)
   {
-	message("msmsWorkflow: Step 3")
+	message("msmsWorkflow: Step 3. Aggregate all spectra")
     w@aggregatedSpecs <- aggregateSpectra(w@analyzedSpecs)
   }
   # Step 4: recalibrate all m/z values in raw spectra
   if(4 %in% steps)
   {
-	message("msmsWorkflow: Step 4")
+	message("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
 	if(newRecalibration)
 	{
 		recal <- makeRecalibration(w@aggregatedSpecs, mode)
@@ -188,7 +188,7 @@ msmsWorkflow <- function(w, mode="pH", method = "mzR", steps=c(1:8),confirmMode 
   if(5 %in% steps)
   {
 	nProg <- 0
-	message("msmsWorkflow: Step 5")
+	message("msmsWorkflow: Step 5. Reanalyze recalibrated spectra")
 	pb <- txtProgressBar(0,nLen,0, style=3, file=stderr())
     w@analyzedRcSpecs <- lapply(w@recalibratedSpecs, function(spec) {
       s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="recalibrated", cut=0, cut_ratio=0 )
@@ -206,7 +206,7 @@ msmsWorkflow <- function(w, mode="pH", method = "mzR", steps=c(1:8),confirmMode 
   # Step 6: aggregate recalibrated results
   if(6 %in% steps)
   {
-    message("msmsWorkflow: Step 6")
+    message("msmsWorkflow: Step 6. Aggregate recalibrated results")
     w@aggregatedRcSpecs <- aggregateSpectra(w@analyzedRcSpecs, addIncomplete=TRUE)
     if(!is.na(archivename))
       archiveResults(w, paste(archivename, ".RData", sep=''))
@@ -216,7 +216,7 @@ msmsWorkflow <- function(w, mode="pH", method = "mzR", steps=c(1:8),confirmMode 
   # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
   if(7 %in% steps)
   {
-	message("msmsWorkflow: Step 7")
+	message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
     w@reanalyzedRcSpecs <- reanalyzeFailpeaks(
 			w@aggregatedRcSpecs, custom_additions="N2O", mode=mode)
     if(!is.na(archivename))
@@ -226,7 +226,7 @@ msmsWorkflow <- function(w, mode="pH", method = "mzR", steps=c(1:8),confirmMode 
   #         creation of failpeak list
   if(8 %in% steps)
   {
-	message("msmsWorkflow: Step 8")
+	message("msmsWorkflow: Step 8. Peak multiplicity filtering")
     # apply heuristic filter
     w@refilteredRcSpecs <- filterMultiplicity(
 			w@reanalyzedRcSpecs, archivename, mode)
@@ -1485,6 +1485,13 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 #' @export
 filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TRUE)
 {
+    # Read multiplicity filter setting
+    # For backwards compatibility: If the option is not set, define as 2
+    # (which was the behaviour before we introduced the option)
+    multiplicityFilter <- getOption("RMassBank")$multiplicityFilter
+    if(is.null(multiplicityFilter))
+      multiplicityFilter <- 2
+    
     peaksFiltered <- filterPeaksMultiplicity(specs$peaksMatched,
                                                         "formula", recalcBest)
     peaksFilteredReanalysis <- 
@@ -1494,18 +1501,24 @@ filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TR
     peaksNoformula$formulaMultiplicity <- 0
     peaksNoformula$fM_factor <- as.factor(0)
     
-    
+	# Reorder the columns of peaksNoformula such that they match the columns
+	# of peaksFilteredReanalysis; such that rbind gives an identical result
+	# when peaksFilteredReanalysis is empty. (Otherwise peaksFilterReanalysis
+	# would be dropped as 0x0, and rbind's output column order would be the one originally
+	# in peaksNoformula. See ?cbind)
+	peaksNoformula <- peaksNoformula[,colnames(peaksFilteredReanalysis)]
+	
     # export the peaks which drop through reanalysis or filter criteria
     fp_rean <-  problematicPeaks(
                 rbind(
                   peaksFilteredReanalysis[ 
-						  peaksFilteredReanalysis$formulaMultiplicity < 2,],
+						  peaksFilteredReanalysis$formulaMultiplicity < multiplicityFilter,],
                   peaksNoformula),
                 specs$peaksMatched,
                 mode)
     fp_mult <-  problematicPeaks(
                 peaksFiltered[
-						peaksFiltered$formulaMultiplicity < 2,],
+						peaksFiltered$formulaMultiplicity < multiplicityFilter,],
                 specs$peaksMatched,
                 mode)
     fp_mult$good <- NULL
@@ -1532,13 +1545,25 @@ filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TR
 	   fp_tot$OK <- character(0)
 	   fp_tot$name <- character(0)
    }
+   # Select the columns for output into the failpeaks file
     fp_tot <- fp_tot[,c("OK", "name", "cpdID", "scan", "mzFound", "formula", "mzCalc", "dppm", "dbe", "mz", "int",
                  "formulaCount", "parentScan", "aMax", "mzCenter")]
+ 	# Select the correct precursor scans. This serves to filter the list
+	# for the cases where multiple workspaces were combined after step 7
+	# with combineMultiplicities.
+	# Note that this has drawbacks. Leaving the "duplicates" in would make it more easy
+	# to identify legitimate unformulaed peaks. We might experiment by marking them up
+	# somehow. 
+	precursors <- unlist(lapply(specs$specFound, function(s) s$parentHeader$acquisitionNum))
+	fp_tot <- fp_tot[
+			fp_tot$parentScan %in% precursors
+			,]
+
     
     peaksOK <- peaksFiltered[
-                      peaksFiltered$formulaMultiplicity > 1,]
+                      peaksFiltered$formulaMultiplicity > (multiplicityFilter - 1),]
     peaksReanOK <- peaksFilteredReanalysis[
-						(peaksFilteredReanalysis$formulaMultiplicity > 1) &
+						(peaksFilteredReanalysis$formulaMultiplicity > (multiplicityFilter - 1)) &
 						!is.na(peaksFilteredReanalysis$reanalyzed.formula),]
     # Kick the M+H+ satellites out of peaksReanOK:
     peaksReanOK$mzCenter <- as.numeric(
@@ -1698,3 +1723,9 @@ recalibrate.loess <- function(rcdata)
 	return(loess(recalfield ~ mzFound, data=rcdata, family=c("symmetric"),
 					degree = 1, span=0.25, surface="direct" ))
 }
+
+## #' @export
+## recalibrate.identity <- function(rcdata)
+## {
+## 
+## }
