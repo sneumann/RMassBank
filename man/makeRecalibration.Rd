@@ -4,12 +4,20 @@
 \alias{recalibrateSpectra}
 \title{Recalibrate MS/MS spectra}
 \usage{
-  makeRecalibration(spec, mode)
+  makeRecalibration(spec, mode, recalibrateBy =
+    getOption("RMassBank")$recalibrateBy, recalibrateMS1 =
+    getOption("RMassBank")$recalibrateMS1, recalibrator =
+    getOption("RMassBank")$recalibrator,
+    recalibrateMS1Window =
+    getOption("RMassBank")$recalibrateMS1Window )
 
   recalibrateSpectra(mode, rawspec = NULL, rc = NULL,
-    rc.ms1 = NULL, w = NULL)
+    rc.ms1=NULL, w = NULL, recalibrateBy =
+    getOption("RMassBank")$recalibrateBy, recalibrateMS1 =
+    getOption("RMassBank")$recalibrateMS1)
 
-  recalibrateSingleSpec(spectrum, rc)
+  recalibrateSingleSpec(spectrum, rc, recalibrateBy =
+    getOption("RMassBank")$recalibrateBy)
 }
 \arguments{
   \item{spec}{For \code{recalibrateSpectra}: a list of
@@ -31,6 +39,21 @@
 
   \item{rc,rc.ms1}{The recalibration curves to be used in
   the recalibration.}
+
+  \item{recalibrateBy}{Whether recalibration should be done
+  by ppm ("ppm") or by m/z ("mz").}
+
+  \item{recalibrateMS1}{Whether MS1 spectra should be
+  recalibrated separately ("separate"), together with MS2
+  ("common") or not at all ("none"). Usually taken from
+  settings.}
+
+  \item{recalibrator}{The recalibrator functions to be
+  used.  Refer to \code{\link{recalibrate}} for details.
+  Usually taken from settings.}
+
+  \item{recalibrateMS1Window}{Window width to look for MS1
+  peaks to recalibrate (in ppm).}
 
   \item{w}{The \code{msmsWorkspace} to write the
   calibration to or to get the calibration from.}

@@ -266,4 +266,3 @@ findMass <- function(cpdID_or_smiles)
 	mol <- getMolecule(s)
 	return(get.exact.mass(mol))
 }
-

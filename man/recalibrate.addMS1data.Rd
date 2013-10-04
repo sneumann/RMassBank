@@ -2,7 +2,9 @@
 \alias{recalibrate.addMS1data}
 \title{Return MS1 peaks to be used for recalibration}
 \usage{
-  recalibrate.addMS1data(spec,mode="pH", dppm=15)
+  recalibrate.addMS1data(spec,mode="pH",
+    recalibrateMS1Window =
+    getOption("RMassBank")$recalibrateMS1Window)
 }
 \arguments{
   \item{spec}{A \code{aggregatedSpecs}-like object.}
@@ -11,8 +13,8 @@
   for different ions ([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-,
   [M+FA]-).}
 
-  \item{dppm}{Delta ppm margin to use for locating the
-  precursor ion in the MS1.}
+  \item{recalibrateMS1Window}{Window width to look for MS1
+  peaks to recalibrate (in ppm).}
 }
 \value{
   A dataframe with columns \code{mzFound, formula, mzCalc,

@@ -1,7 +1,7 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 1.3.1
+Version: 1.3.2
 Authors@R: c(
     person(given = "RMassBank at Eawag", email = "massbank@eawag.ch",
     role=c("cre")),
@@ -9,11 +9,12 @@ Authors@R: c(
     "michael.stravs@eawag.ch", role=c("aut")), person(given = "Emma L.",
     family = "Schymanski", email = "emma.schymanski@eawag.ch", role=c("aut")),
     person(given = "Steffen", family = "Neumann", role = "aut", email =
-    "sneumann@ipb-halle.de"), person(given = "Erik", family = "Mueller", role =
+    "sneumann@ipb-halle.de"), person(given = "Erik", family = "Muller", role =
     "aut", email = "erik.mueller@student.uni-halle.de"), person(given =
     "Tobias", family = "Schulze", role = "ctb", email =
     "tobias.schulze@ufz.de") )
-Author: Michael Stravs, Emma Schymanski, Steffen Neumann, Erik Mueller, with contributions from Tobias Schulze
+Author: Michael Stravs, Emma Schymanski, Steffen Neumann, Erik Mueller, with
+    contributions from Tobias Schulze
 Maintainer: RMassBank at Eawag <massbank@eawag.ch>
 Description: Workflow to process tandem MS files and build MassBank records.
     Functions include automated extraction of tandem MS spectra, formula
@@ -24,11 +25,15 @@ License: Artistic-2.0
 SystemRequirements: OpenBabel
 biocViews: Bioinformatics, MassSpectrometry, Metabolomics, Software
 Depends:
-    rcdk,yaml,mzR,methods,rjson
+    mzR,rcdk,yaml,methods
 Imports:
-    XML,RCurl
+    XML,RCurl,rjson
 Suggests:
-    gplots,RMassBankData,xcms
+    gplots,RMassBankData,
+    xcms (>= 1.37.1),
+    CAMERA,
+    ontoCAT,
+    RUnit
 Collate:
     'createMassBank.R'
     'formulaCalculator.R'
@@ -38,5 +43,8 @@ Collate:
     'settings_example.R'
     'webAccess.R'
     'deprofile.R'
+    'parseMassBank.R'
     'RmbWorkspace.R'
+    'validateMassBank.R'
+    'zzz.R'
     'tools.R'

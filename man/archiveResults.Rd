@@ -2,12 +2,16 @@
 \alias{archiveResults}
 \title{Backup \code{msmsWorkflow} results}
 \usage{
-  archiveResults(w, fileName)
+  archiveResults(w, fileName, settings =
+    getOption("RMassBank"))
 }
 \arguments{
   \item{w}{The \code{msmsWorkspace} to be saved.}
 
   \item{fileName}{The filename to store the results under.}
+
+  \item{settings}{The settings to be stored into the
+  msmsWorkspace image.}
 }
 \description{
   Writes the results from different \code{msmsWorkflow}
@@ -16,6 +20,7 @@
 \examples{
 # This doesn't really make a lot of sense,
 		# it stores an empty workspace.
+		RmbDefaultSettings()
 		w <- newMsmsWorkspace()
 		archiveResults(w, "narcotics.RData")
 }

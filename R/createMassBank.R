@@ -453,7 +453,7 @@ gatherData <- function(id)
 	}
 	else
 	{
-		iupacName <-infos$synonyms[[ipreferred]][["name"]]
+		iupacName <-infos$synonyms[[ipreferred[[1]]]][["name"]]
 	}
 	# Eliminate duplicate names from our list of 3
 	names <- as.list(unique(c(dbname, iupacName)))
@@ -916,9 +916,6 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   peaks$dppm <- round(peaks$dppm, 2)
   peaks$mzCalc <- round(peaks$mzCalc, 4)
   peaks$int <- round(peaks$int, 1)
-  # I actually have no idea what the "num" entry in the annotation data
-  # is supposed to mean.
-  peaks$num <- 1
   # copy the peak table to the annotation table. (The peak table will then be extended
   # with peaks from the global "additional_peaks" table, which can be used to add peaks
   # to the spectra by hand.
@@ -971,7 +968,12 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
     "pM" = "+",
     "mM" = "-")
   type <- formula_tag[[spec$mode]]
-  annotation$formula <- paste(annotation$formula, type, sep='')
+  
+  annotator <- getOption("RMassBank")$annotator
+  if(is.null(annotator))
+    annotator <- "annotator.default"
+  
+  
   
   # Here, the relative intensity is recalculated using the newly added additional
   # peaks from the peak list. Therefore, we throw superfluous peaks out again.
@@ -980,9 +982,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   annotation$intrel <- floor(annotation$int / max(peaks$int) * 999)
   annotation <- annotation[annotation$intrel >= 1,]
   
-  # Select the right columns and name them correctly for output.
-  annotation <- annotation[,c("mzSpec", "num", "formula", "mzCalc", "dppm")]
-  colnames(annotation) <- c("m/z", "num", "{formula", "mass", "error(ppm)}")
+  annotation <- do.call(annotator, list(annotation= annotation, type=type))
   
   # Create the "lower part" of the record.  
   mbdata <- list()
@@ -1002,9 +1002,17 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   mbdata[["MS$FOCUSED_ION"]] <- ms_fi
 
   # the data processing tag :)
+  # Change by Tobias:
+  # I suggest to add here the current version number of the clone due to better distinction between different makes of MB records
+  # Could be automatised from DESCRIPTION file?
+  if(getOption("RMassBank")$use_rean_peaks)
+      processingComment <- list("REANALYZE" = "Peaks with additional N2/O included")
+  else
+      processingComment <- list()
   mbdata[["MS$DATA_PROCESSING"]] <- c(
     getOption("RMassBank")$annotations$ms_dataprocessing,
-    list("WHOLE" = "RMassBank")
+    processingComment,
+    list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
     )
   
   # Annotation:
@@ -1016,7 +1024,20 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
   # These two entries will be thrown out later, but they are necessary to build the
   # record title and the accession number.
   mbdata[["RECORD_TITLE_CE"]] <- msmsdata$info$ces #formatted collision energy
-  mbdata[["SUBSCAN"]] <- msmsdata$scan - spec$parentHeader$acquisitionNum #relative scan
+  # Mode of relative scan calculation: by default it is calculated relative to the
+  # parent scan. If a corresponding option is set, it will be calculated from the first
+  # present child scan in the list.
+  relativeScan <- "fromParent"
+  if(!is.null(getOption("RMassBank")$recomputeRelativeScan))
+	  if(getOption("RMassBank")$recomputeRelativeScan == "fromFirstChild")
+		  relativeScan <- "fromFirstChild"
+  if(relativeScan == "fromParent")
+	  mbdata[["SUBSCAN"]] <- msmsdata$scan - spec$parentHeader$acquisitionNum #relative scan
+  else if(relativeScan == "fromFirstChild")
+  {
+	  firstChild <- min(unlist(lapply(spec,function(d) d$header$acquisitionNum)))
+	  mbdata[["SUBSCAN"]] <- msmsdata$scan - firstChild + 1
+  }
   return(mbdata)
 }
 
@@ -1092,32 +1113,16 @@ compileRecord <- function(spec, mbdata, refiltered, additionalPeaks = NULL)
       # Here is the right place to fix the name of the INTERNAL ID field.
       names(mbrecord[["COMMENT"]])[[which(names(mbrecord[["COMMENT"]]) == "ID")]] <-
         getOption("RMassBank")$annotations$internal_id_fieldname
-      # The fields are named differently in MB record definitions v.1 and 2.
-      # Therefore, the title is composed slightly differently (with the same result.)
+	  # get mode parameter (for accession number generation) depending on version 
+	  # of record definition
+	  # Change by Tobias:
+	  # I suggest to include fragmentation mode here for information
       if(getOption("RMassBank")$use_version == 2)
-      {
-        mbrecord[["RECORD_TITLE"]] <- paste(
-          mbrecord[["CH$NAME"]][[1]],
-          mbrecord[["AC$INSTRUMENT_TYPE"]],
-          mbrecord[["AC$MASS_SPECTROMETRY"]][["MS_TYPE"]],
-          mbrecord[["RECORD_TITLE_CE"]],
-          paste("R=",mbrecord[["AC$MASS_SPECTROMETRY"]][["RESOLUTION"]], sep='' ),
-          mbrecord[["MS$FOCUSED_ION"]][["PRECURSOR_TYPE"]],
-          sep="; ")
         mode <- mbrecord[["AC$MASS_SPECTROMETRY"]][["ION_MODE"]]
-      }
       else
-      {
-        mbrecord[["RECORD_TITLE"]] <- paste(
-          mbrecord[["CH$NAME"]][[1]],
-          mbrecord[["AC$INSTRUMENT_TYPE"]],
-          mbrecord[["AC$ANALYTICAL_CONDITION"]][["MS_TYPE"]],
-          paste("CE: ", mbrecord[["RECORD_TITLE_CE"]], sep=''),
-          paste("R=",mbrecord[["AC$ANALYTICAL_CONDITION"]][["RESOLUTION"]], sep='' ),
-          mbrecord[["MS$FOCUSED_ION"]][["PRECURSOR_TYPE"]],
-          sep="; ")
         mode <- mbrecord[["AC$ANALYTICAL_CONDITION"]][["MODE"]]
-      }
+	  # Generate the title and then delete the temprary RECORD_TITLE_CE field used before
+	  mbrecord[["RECORD_TITLE"]] <- .parseTitleString(mbrecord)
       mbrecord[["RECORD_TITLE_CE"]] <- NULL
       # Calculate the accession number from the options.
       shift <- getOption("RMassBank")$accessionNumberShifts[[spec$mode]]
@@ -1128,6 +1133,137 @@ compileRecord <- function(spec, mbdata, refiltered, additionalPeaks = NULL)
       return(mbrecord)
   })
 }
+
+
+
+#' Generate peak annotation from peaklist
+#' 
+#' Generates the PK$ANNOTATION entry from the peaklist obtained. This function is
+#' overridable by using the "annotator" option in the settings file.
+#' 
+#' @param annotation A peak list to be annotated. Contains columns:
+#' \code{"cpdID","formula","mzFound" ,"scan","mzCalc","dppm",
+#'      "dbe","mz","int","formulaCount","parentScan","fM_factor","dppmBest",
+#'     "formulaMultiplicity","intrel","mzSpec"}
+#' 
+#' @param type The ion type to be added to annotated formulas ("+" or "-" usually)
+#' 
+#' @return The annotated peak table. Table \code{colnames()} will be used for the
+#' 		titles (preferrably don't use spaces in the column titles; however no format is
+#' 		strictly enforced by the MassBank data format.
+#' 
+#' @examples 
+#' \dontrun{
+#' annotation <- annotator.default(annotation)
+#' }
+#' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
+#' @export
+annotator.default <- function(annotation, type)
+{
+  
+  annotation$formula <- paste(annotation$formula, type, sep='')
+  # Select the right columns and name them correctly for output.
+  annotation <- annotation[,c("mzSpec","formula", "formulaCount", "mzCalc", "dppm")]
+  colnames(annotation) <- c("m/z", "tentative_formula", "formula_count", "mass", "error(ppm)")
+  return(annotation)
+}
+
+#' Parse record title
+#' 
+#' Parses a title for a single MassBank record using the title format
+#' specified in the option titleFormat. Internally used, not exported.
+#' 
+#' If the option is not set, a standard title format is used (for record definition
+#' version 1 or 2).
+#' 
+#' @usage .parseTitleString(mbrecord)
+#' @param mbrecord A MassBank record in list format, as returned from
+#' 	\code{\link{gatherSpectrum}}.
+#' @return A string with the title.
+#' @author Michael Stravs, Eawag
+#' @seealso \code{\link{compileRecord}}
+#' @references MassBank record format:
+#' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
+#' @examples
+#' \dontrun{
+#' 		# used in compileRecord()
+#' 		title <- .parseTitleString(mbrecord)
+#' }
+#' 
+#' 
+#' 
+.parseTitleString <- function(mbrecord)
+{
+	
+	varlist <- getOption("RMassBank")$titleFormat
+	
+	# Set the standard title format.
+	if(is.null(varlist))
+	{
+		if(getOption("RMassBank")$use_version == 2)
+		{
+			varlist <- c(
+					"{CH$NAME}",
+					"{AC$INSTRUMENT_TYPE}",
+					"{AC$MASS_SPECTROMETRY: MS_TYPE}",
+					"CE: {RECORD_TITLE_CE}",
+					"R={AC$MASS_SPECTROMETRY: RESOLUTION}",
+					"{MS$FOCUSED_ION: PRECURSOR_TYPE}"
+			)
+		}
+		else
+		{
+			varlist <- c(
+					"{CH$NAME}",
+					"{AC$INSTRUMENT_TYPE}",
+					"{AC$ANALYTICAL_CONDITION: MS_TYPE}",
+					"CE: {RECORD_TITLE_CE}",
+					"R={AC$ANALYTICAL_CONDITION: RESOLUTION}",
+					"{MS$FOCUSED_ION: PRECURSOR_TYPE}"
+			)
+		}
+	}
+  
+	
+	# Extract a {XXX} argument from each title section.
+	# check that every title has one and only one match
+	args <- regexec("\\{(.*)\\}", varlist)
+	arglist <- regmatches(varlist, args)
+	if(any(unlist(lapply(arglist, length)) != 2))
+		stop("Title format is incorrectly specified: a section with not exactly 1 parameters")
+	
+	parsedVars <- lapply(varlist, function(var)
+			{
+				# Extract the specified parameter inside the {}.
+				# I.e. from a string like "R={BLA: BLUB}" return "BLA: BLUB"
+				args <- regexec("\\{(.*)\\}", var)
+				arg <- regmatches(var, args)[[1]][[2]]
+				
+				# Split the parameter by colon if necessary
+				splitVar <- strsplit(arg, ": ")[[1]]
+				# Read the parameter value from the record
+				if(length(splitVar) == 2)
+					replaceVar <- mbrecord[[splitVar[[1]]]][[splitVar[[2]]]]
+				else if(length(splitVar) ==  1)
+					replaceVar <- mbrecord[[splitVar]]
+				else
+					stop(paste(
+									"Title format is incorrectly specified:", var)
+					)
+				# Fix problems: NULL returns
+				if(is.null(replaceVar))
+					replaceVar <- ""
+				# Fix problems: Names will have >= 1 match. Take the first
+				if(length(replaceVar) > 1)
+					replaceVar <- replaceVar[[1]]
+				# Substitute the parameter value into the string
+				parsedVar <- sub("\\{(.*)\\}", replaceVar, var)	
+				return(parsedVar)
+			})
+	title <- paste(parsedVars, collapse="; ")
+	return(title)
+}
+
 
 # This converts the tree-like list (as obtained e.g. from compileRecord())
 # into a plain text array, which can then be dumped to a file suitable for 

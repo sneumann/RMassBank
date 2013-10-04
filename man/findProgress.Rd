@@ -1,0 +1,27 @@
+\name{findProgress}
+\alias{findProgress}
+\title{Determine processed steps}
+\usage{
+  findProgress(workspace)
+}
+\arguments{
+  \item{workspace}{A \code{msmsWorkspace} object.}
+}
+\value{
+  An array containing all \code{msmsWorkflow} steps which
+  have likely been processed.
+}
+\description{
+  This function reads out the content of different slots of
+  the \code{workspace} object and finds out which steps
+  have already been processed on it.
+}
+\examples{
+\dontrun{
+findProgress(w)
+}
+}
+\author{
+  Stravs MA, Eawag <michael.stravs@eawag.ch>
+}
+

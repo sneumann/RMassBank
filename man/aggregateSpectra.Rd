@@ -2,7 +2,8 @@
 \alias{aggregateSpectra}
 \title{Aggregate analyzed spectra}
 \usage{
-  aggregateSpectra(spec, addIncomplete = FALSE)
+  aggregateSpectra(spec, addIncomplete=FALSE, spectraList =
+    getOption("RMassBank")$spectraList)
 }
 \arguments{
   \item{spec}{The set of spectra to aggregate}
@@ -10,6 +11,9 @@
   \item{addIncomplete}{Whether or not the peaks from
   incomplete files (files for which less than the maximal
   number of spectra are present)}
+
+  \item{spectraList}{The list of MS/MS spectra present in
+  each data block. As also defined in the settings file.}
 }
 \value{
   \item{foundOK }{ A numeric vector with the compound IDs

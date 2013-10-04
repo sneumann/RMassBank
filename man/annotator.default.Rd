@@ -1,0 +1,36 @@
+\name{annotator.default}
+\alias{annotator.default}
+\title{Generate peak annotation from peaklist}
+\usage{
+  annotator.default(annotation, type)
+}
+\arguments{
+  \item{annotation}{A peak list to be annotated. Contains
+  columns: \code{"cpdID","formula","mzFound"
+  ,"scan","mzCalc","dppm",
+  "dbe","mz","int","formulaCount","parentScan","fM_factor","dppmBest",
+  "formulaMultiplicity","intrel","mzSpec"}}
+
+  \item{type}{The ion type to be added to annotated
+  formulas ("+" or "-" usually)}
+}
+\value{
+  The annotated peak table. Table \code{colnames()} will be
+  used for the titles (preferrably don't use spaces in the
+  column titles; however no format is strictly enforced by
+  the MassBank data format.
+}
+\description{
+  Generates the PK$ANNOTATION entry from the peaklist
+  obtained. This function is overridable by using the
+  "annotator" option in the settings file.
+}
+\examples{
+\dontrun{
+annotation <- annotator.default(annotation)
+}
+}
+\author{
+  Michele Stravs, Eawag <stravsmi@eawag.ch>
+}
+

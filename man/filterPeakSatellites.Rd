@@ -2,8 +2,8 @@
 \alias{filterPeakSatellites}
 \title{Filter satellite peaks}
 \usage{
-  filterPeakSatellites(peaks, cutoff_mz_limit = 0.5,
-    cutoff_int_limit = 0.05)
+  filterPeakSatellites(peaks, filterSettings =
+    getOption("RMassBank")$filterSettings)
 }
 \arguments{
   \item{peaks}{A peak dataframe with at least the columns
@@ -12,11 +12,9 @@
   identical for both the unrecalibrated and the
   recalibrated spectra.}
 
-  \item{cutoff_mz_limit}{The window around a "parent" peak
-  to consider for satellite search.}
-
-  \item{cutoff_int_limit}{The relative intensity below
-  which to discard "satellites".}
+  \item{filterSettings}{The settings used for filtering.
+  Refer to \code{\link{analyzeMsMs}} documentation for
+  filter settings.}
 }
 \value{
   Returns the peak table with satellite peaks removed.
