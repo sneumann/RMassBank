@@ -40,7 +40,7 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' workflow.
 #' 
 #' @usage msmsWorkflow(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-#' 		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA, plots = FALSE,
+#' 		useRtLimit = TRUE, archivename=NA, readMethod = "mzR",
 #' 		precursorscan.cf = FALSE,
 #' 		settings = getOption("RMassBank"), analyzeMethod = "formula",
 #' 		progressbar = "progressBarHook")
@@ -56,15 +56,11 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' 			to reuse the currently stored curve (\code{FALSE}, useful e.g. for adduct-processing runs.) 
 #' @param useRtLimit Whether to enforce the given retention time window.
 #' @param archivename The prefix under which to store the analyzed result files.
-#' @param readMethod Several methods are available to get peak lists from the files.
-#'        Currently supported are "mzR", "xcms", "MassBank" and "peaklist".
-#'        The first two read MS/MS raw data, and differ in the strategy 
-#'        used to extract peaks. MassBank will read existing records, 
-#'        so that e.g. a recalibration can be performed, and "peaklist" 
-#'        just requires a CSV with two columns and the column header "mz", "int".
-#' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
-#' @param plots A parameter that determines whether the spectra should be plotted or not (This parameter is only used for the xcms-method)
-#' @param precursorscan.cf Whether to fill precursor scans. To be used with files which for
+#' @param readMethod Several methods are available to get peak lists from the input files.
+#'        Currently supported are "mzR" and "peaklist".
+#'        "mzR" reads MS/MS raw data. An alternative raw data reader "xcms" is not yet released.
+#' 				"peaklist" reads a CSV with two columns and the column header "mz", "int".
+#' @param precursorscan.cf Whether to fill precursor scan entries (cf = carry forward). To be used with files which for
 #' 		some reasons do not contain precursor scan IDs in the mzML, e.g. AB Sciex converted
 #' 		files.
 #' @param settings Options to be used for processing. Defaults to the options loaded via
@@ -77,7 +73,7 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export
 msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA, plots = FALSE,
+		useRtLimit = TRUE, archivename=NA, readMethod = "mzR",
 		precursorscan.cf = FALSE,
 		settings = getOption("RMassBank"), analyzeMethod = "formula",
 		progressbar = "progressBarHook")
@@ -124,28 +120,28 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		do.call(progressbar, list(object=pb, close=TRUE))
 	}
 	
-	if(readMethod == "xcms"){
-		splitfn <- strsplit(w@files,'_')
-		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[length(splitted)-1]))})
-		files <- list()
-		wfiles <- vector()
-			for(i in 1:length(unique(cpdIDs))) {
-			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
-			files[[i]] <- w@files[indices]
-		}
-		
-		w@files <- sapply(files,function(files){return(files[1])})
-		
-		for(i in 1:length(unique(cpdIDs))){
-			specs <- list()
-			for(j in 1:length(files[[i]])){
-				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs, plots)	
-			}
-			w@specs[[i]] <- toRMB(unlist(specs, recursive = FALSE), unique(cpdIDs)[i], mode=mode)
-		}
-		names(w@specs) <- basename(as.character(w@files))
-	}
-	
+#	if(readMethod == "xcms"){
+#		splitfn <- strsplit(w@files,'_')
+#		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[length(splitted)-1]))})
+#		files <- list()
+#		wfiles <- vector()
+#			for(i in 1:length(unique(cpdIDs))) {
+#			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
+#			files[[i]] <- w@files[indices]
+#		}
+#		
+#		w@files <- sapply(files,function(files){return(files[1])})
+#		
+#		for(i in 1:length(unique(cpdIDs))){
+#			specs <- list()
+#			for(j in 1:length(files[[i]])){
+#				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs, plots)	
+#			}
+#			w@specs[[i]] <- toRMB(unlist(specs, recursive = FALSE), unique(cpdIDs)[i], mode=mode)
+#		}
+#		names(w@specs) <- basename(as.character(w@files))
+#	}
+#	
 	##if(readMethod == "MassBank"){
 	##	for(i in 1:length(w@files)){
 	##		w <- addMB(w, w@files[i], mode)

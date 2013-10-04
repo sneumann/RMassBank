@@ -1,8 +1,8 @@
 \name{RmbDefaultSettings}
-\alias{loadRmbSettings}
-\alias{loadRmbSettingsFromEnv}
 \alias{RmbDefaultSettings}
 \alias{RmbSettingsTemplate}
+\alias{loadRmbSettings}
+\alias{loadRmbSettingsFromEnv}
 \title{RMassBank settings}
 \usage{
   loadRmbSettings(file_or_list)

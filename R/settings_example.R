@@ -1,4 +1,5 @@
-
+#' @import yaml
+NULL
 
 .checkMbSettings <- function()
 {

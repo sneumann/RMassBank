@@ -1,4 +1,5 @@
-
+#' @import methods
+NULL
 
 #' Workspace for \code{msmsWorkflow} data
 #' 

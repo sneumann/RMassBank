@@ -27,7 +27,7 @@
     fillPrecursorScan =
     getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
     rtMargin = getOption("RMassBank")$rtMargin, deprofile =
-    getOption("RMassBank")$deprofile)
+    getOption("RMassBank")$deprofile, headerCache = NA)
 }
 \arguments{
   \item{fileName}{The file to open and search the MS2
