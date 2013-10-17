@@ -77,7 +77,7 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export
 msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA, plots = FALSE,
+		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NULL, plots = FALSE,
 		precursorscan.cf = FALSE,
 		settings = getOption("RMassBank"), analyzeMethod = "formula",
 		progressbar = "progressBarHook")
