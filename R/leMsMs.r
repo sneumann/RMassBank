@@ -488,7 +488,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
     if(nrow(shot)==0)
       return(list(specOK=FALSE))
     
-    if(max(shot$int) < filterSettings$specOkLimit)
+    if(max(shot$int) < as.numeric(filterSettings$specOkLimit))
       return(list(specOK=FALSE))
     # Crop to 4 digits (necessary because of the recalibrated values)
     shot[,mzColname] <- round(shot[,mzColname], 5)
@@ -739,7 +739,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		if(nrow(shot)==0)
 			return(list(specOK=FALSE))
 		
-		if(max(shot$int) < filterSettings$specOkLimit)
+		if(max(shot$int) < as.numeric(filterSettings$specOkLimit))
 			return(list(specOK=FALSE))
 		# Crop to 4 digits (necessary because of the recalibrated values)
 		shot[,mzColname] <- round(shot[,mzColname], 5)

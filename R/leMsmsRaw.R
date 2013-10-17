@@ -318,7 +318,6 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	for(i in 1:length(xrs)){
 		peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
 		#devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
-		print(i)
 		
                 if (nrow(peaks(xsmsms[[i]])) == 0) {
                   spectra[[i]] <- matrix(0,2,7)
@@ -331,7 +330,6 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		## Best: find precursor peak
 		candidates[[i]] <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
 						& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
-        print(candidates[[i]])
 		devnull <- capture.output(anmsms[[i]] <- xsAnnotate(xsmsms[[i]]))
 		devnull <- capture.output(anmsms[[i]] <- groupFWHM(anmsms[[i]]))
 
@@ -352,7 +350,6 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		}
 		if(length(psp[[i]]) != 0){
 		spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
-		print(spectra[[i]][,c("mz","rt")])
 		} else {whichmissing <- c(whichmissing,i)}
 	}
 	if(length(spectra) != 0){
