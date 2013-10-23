@@ -268,11 +268,16 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(8 %in% steps)
   {
 	message("msmsWorkflow: Step 8. Peak multiplicity filtering")
-    # apply heuristic filter
-    w@refilteredRcSpecs <- filterMultiplicity(
+    if (is.null(settings$multiplicityFilter)) {
+      message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
+    } else {
+      # apply heuristic filter      
+      w@refilteredRcSpecs <- filterMultiplicity(
 			w@reanalyzedRcSpecs, archivename, mode, settings$multiplicityFilter )
-    if(!is.na(archivename))
-      archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
+
+      if(!is.na(archivename))
+        archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
+    }
   }
   message("msmsWorkflow: Done.")
   return(w)
@@ -880,8 +885,8 @@ filterLowaccResults <- function(peaks, mode="fine", filterSettings  = getOption(
   if(is.null(filterSettings))
   {
 	  filterSettings <- list(
-			ppmHighMass = 15,
-	  		ppmLowMass = 10,
+			ppmHighMass = 10,
+	  		ppmLowMass = 15,
 	  		massRangeDivision = 120,
 	  		ppmFine = 5)
   }
