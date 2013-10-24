@@ -233,7 +233,28 @@ setMethod("show", "msmsWorkspace",
 			cat("Object of class \"",class(object),"\"\n",sep="")
 			cat(" with files: \n")
 			sapply(basename(object@files), function(x) cat("  -", x, "\n"))
-		})  
+                        ## msmsWorkflow: Step 1. Get peaks ?
+                        dummy <- sapply(object@specs, function(x) cat(" -", x$id, "\t foundOK:", x$foundOK, "\n"))
+                        cat("Peaks found:\n")
+                        dummy <- sapply(object@specs, function(x) cat(" -", x$id, "\t peaks:",
+                                                                      sapply(x$peaks, nrow), "\n"))
+                        
+                        ## msmsWorkflow: Step 2. First analysis pre recalibration
+                        cat("Peaks found after Step2:\n")
+                        dummy <- sapply(object@analyzedSpecs, function(x) cat(" -", x$id, "\t peaks:",
+                                                                      sapply(x$peaks, nrow), "\n"))
+                        
+                        
+                        ## msmsWorkflow: Step 3. Aggregate all spectra
+                        ## msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra
+                        ## msmsWorkflow: Step 5. Reanalyze recalibrated spectra
+                        ## msmsWorkflow: Step 6. Aggregate recalibrated results
+                        ## msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O
+                        ## msmsWorkflow: Step 8. Peak multiplicity filtering 
+                        cat("After Step 8: multiplicity filtering:\n")
+                        show(table(object@refilteredRcSpecs$peaksOK$cpdID))
+                        show(table(object@refilteredRcSpecs$peaksReanOK$cpdID))
+                      })  
 
 
 
@@ -246,5 +267,6 @@ setMethod("show", "msmsWorkspace",
 setMethod("show", "mbWorkspace",
 		function(object) {
 			cat("Object of class \"",class(object),"\"\n",sep="")
+                        str(object, max.level=2)
 		}) 
 		
