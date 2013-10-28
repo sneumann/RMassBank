@@ -278,7 +278,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 #'      psp <- findMsMsHRperxcms.direct(fileList,2184)
 #' }
 #' @export
-findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE) {
+findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE, MSe = FALSE) {
 	
 	require(CAMERA)
 	require(xcms)
@@ -289,23 +289,23 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	getRT <- function(xa) {
 		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
 	}
-	##
-	## MS
-	##
-	
-	
 	
 	##
 	## MSMS
 	##
 	xrmsms <- xcmsRaw(fileName, includeMSn=TRUE)
+	
 	## Where is the wanted isolation ?
 	##precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
 
-	## Fake MS1 from MSn scans
-	## xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
-	
-	suppressWarnings(xrs <- split(msn2xcmsRaw(xrmsms), f=xrmsms@msnCollisionEnergy))
+	if(MSe == FALSE){
+		## Fake MS1 from MSn scans
+		## xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
+		suppressWarnings(xrs <- split(msn2xcmsRaw(xrmsms), f=xrmsms@msnCollisionEnergy))
+	} else{
+		xrs <- list()
+		xrs[[1]] <- xrmsms
+	}
 	## Fake s simplistic xcmsSet
 	setReplicate <- xcmsSet(files=fileName, method="MS1")
 	xsmsms <- as.list(replicate(length(xrs),setReplicate))
