@@ -530,9 +530,8 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 #' @seealso \code{\link{msmsWorkflow}}
 #' @author Erik Mueller
 #' @examples \dontrun{
-#' 		handSpec <- matrix(0,4,2)
-#' 		handSpec[,1] <- c(274.986685367956, 259.012401087427, 95.9493025990907, 96.9573002472772)
-#' 		handSpec[,2] <- c(357,761, 2821, 3446)
+#' 		handSpec <- cbind(mz=c(274.986685367956, 259.012401087427, 95.9493025990907, 96.9573002472772),
+#'                                intensity=c(357,761, 2821, 3446))
 #' 		addPeaksManually(w, cpdID, handSpec)
 #' }
 #' @export
