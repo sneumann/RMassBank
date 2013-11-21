@@ -318,8 +318,7 @@ setMethod("show", "msmsWorkspace",
                         cat("After Step 8: multiplicity filtering:\n")
                         show(table(object@refilteredRcSpecs$peaksOK$cpdID))
                         show(table(object@refilteredRcSpecs$peaksReanOK$cpdID))
-                      })  
-
+                      })
 
 
 #'

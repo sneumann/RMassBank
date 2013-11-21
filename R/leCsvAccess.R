@@ -173,8 +173,11 @@ findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 findMz <- function(cpdID, mode="pH", ppm=10, deltaMz=0)
 {
   s <- findSmiles(cpdID)
-  if(s=="-") s <- NA
-  if(is.na(s)) return(list(mzMin=NA,mzMax=NA,mzCenter=NA))
+  #if(s=="-") s <- NA
+  if(is.na(s)){
+	stop("There was no matching SMILES-entry to the supplied cpdID(s) \n Please check the cpdIDs and the compoundlist.")
+	return(list(mzMin=NA,mzMax=NA,mzCenter=NA))
+  }
   formula <- .get.mol2formula(getMolecule(s))
   return(findMz.formula(formula@string, mode, ppm, deltaMz))
 }
@@ -203,7 +206,6 @@ findSmiles <- function(cpdID) {
 		stop("Compound list must be loaded first.")
 	if(!exists("compoundList", where=.listEnvEnv$listEnv))
 		stop("Compound list must be loaded first.")
-	
 	return(.listEnvEnv$listEnv$compoundList[match(cpdID, .listEnvEnv$listEnv$compoundList$ID),"SMILES"])
 }
 
