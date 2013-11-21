@@ -283,6 +283,9 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	require(CAMERA)
 	require(xcms)
 	parentMass <- findMz(cpdID, mode=mode)$mzCenter
+	if(is.na(parentMass)){
+		stop("There was no matching entry to the supplied cpdID(s) \n Please check the cpdIDs and the compoundlist.")
+	}
 	RT <- findRt(cpdID)$RT * 60
 	mzabs <- 0.1
 	
@@ -336,8 +339,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
         if(length(candidates[[i]]) > 0){
 		closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]))
 		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
-		}
-        else{psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )}
+		} else{psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )}
 		## Now find the pspec for compound       
 
 		## 2nd best: Spectrum closest to MS1
@@ -465,7 +467,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		ret$parentHeader[1,12] <- max(MS1spec[,1])
 		ret$parentHeader[1,13:20] <- 0 ##Has no precursor and merge is not yet implemented
 	}
-	ret$parentHeader <- as.data.frame(ret$parentHeader)
+	
 	
 	##Write the peaks into the childscans
 	ret$childScans <- 2:(numScan+1)
@@ -491,7 +493,8 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		}))
 		childHeader[,1:2] <- 2:(length(msmsXCMSspecs)+1)
 	
-	
+	ret$parentHeader <- median(childHeader[,6])
+	ret$parentHeader <- as.data.frame(ret$parentHeader)
 	ret$childHeader <- as.data.frame(childHeader)
 	rownames(ret$childHeader) <- 2:(numScan+1)
 	colnames(ret$childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
