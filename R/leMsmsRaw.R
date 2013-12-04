@@ -359,6 +359,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 			spectra[[i]] <- matrix(0,2,7)
 		}
 	}
+	spectra <- toRMB(spectra,cpdID,mode)
 	return(spectra)
 }
 
@@ -424,7 +425,6 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA)
 #' }
 #' @export
 toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
-	
 	ret <- list()
 	ret$mz <- findMz(cpdID,mode=mode)
 	ret$id <- cpdID
@@ -433,18 +433,24 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		ret$foundOK <- FALSE
 		return(ret)
 	}
-	if(is.na(msmsXCMSspecs)){
+	
+	ret$foundOK <- !any(sapply(msmsXCMSspecs, function(x) all(x == 0)))
+	
+	if(!ret$foundOK){
+		return(ret)
+	}
+	
+	if(is.na(msmsXCMSspecs[1])){
 			stop("You need a readable spectrum!")
 	}
+	
 	if(is.na(cpdID)){
 			stop("Please supply the compoundID!")
 	}
 	numScan <- length(msmsXCMSspecs)
-
-	
-	ret$foundOK <- TRUE
 	ret$parentscan <- 1
 	ret$parentHeader <- matrix(0, ncol = 20, nrow = 1)
+	
 	rownames(ret$parentHeader) <- 1
 	colnames(ret$parentHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
 									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
@@ -493,7 +499,6 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		}))
 		childHeader[,1:2] <- 2:(length(msmsXCMSspecs)+1)
 	
-	ret$parentHeader <- median(childHeader[,6])
 	ret$parentHeader <- as.data.frame(ret$parentHeader)
 	ret$childHeader <- as.data.frame(childHeader)
 	rownames(ret$childHeader) <- 2:(numScan+1)
