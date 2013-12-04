@@ -227,7 +227,8 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
 			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
 			rtMargin = getOption("RMassBank")$rtMargin,
-			deprofile = getOption("RMassBank")$deprofile)
+			deprofile = getOption("RMassBank")$deprofile,
+      headerCache = NA)
 {
   # for finding the peak RT: use the gauss-fitted centwave peak
   # (centroid data converted with TOPP is necessary. save as
@@ -245,7 +246,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 	  dbRt <- findRt(cpdID)
 	  rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
   }
-  spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,NA
+  spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
   	,fillPrecursorScan, deprofile)
   # check whether a) spectrum was found and b) enough spectra were found
   if(length(spectra) < (confirmMode + 1))
