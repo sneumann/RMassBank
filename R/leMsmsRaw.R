@@ -377,11 +377,15 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 #' @param limit If a single mass was given for \code{mz}: the mass window to extract.
 #' 			A limit of 0.001 means that the EIC will be returned for \code{[mz - 0.001, mz + 0.001]}.
 #' @param rtLimit If given, the retention time limits in form \code{c(rtmin, rtmax)} in seconds.
+#' @param headerCache If present, the complete \code{mzR::header(msRaw)}. Passing
+#' 			this value is useful if spectra for multiple compounds should be 
+#' 			extracted from the same mzML file, since it avoids getting the data
+#' 			freshly from \code{msRaw} for every compound.
 #' @return A \code{[rt, intensity, scan]} matrix (\code{scan} being the scan number.) 
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @seealso findMsMsHR
 #' @export
-findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA)
+findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL)
 {
 	# calculate mz upper and lower limits for "integration"
 	if(all(c("mzMin", "mzMax") %in% names(mz)))
@@ -389,7 +393,10 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA)
 	else
 		mzlimits <- c(mz - limit, mz + limit)
 	# Find peaklists for all MS1 scans
-	headerData <- as.data.frame(header(msRaw))
+  if(!all(is.na(headerCache)))
+    headerData <- as.data.frame(headerCache)
+  else
+    headerData <- as.data.frame(header(msRaw))
 	# If RT limit is already given, retrieve only candidates in the first place,
 	# since this makes everything much faster.
 	if(all(!is.na(rtLimit)))

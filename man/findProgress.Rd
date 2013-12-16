@@ -16,6 +16,11 @@
   the \code{workspace} object and finds out which steps
   have already been processed on it.
 }
+\examples{
+\dontrun{
+findProgress(w)
+}
+}
 \author{
   Stravs MA, Eawag <michael.stravs@eawag.ch>
 }
