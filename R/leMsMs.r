@@ -77,10 +77,10 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export
 msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA, plots = FALSE,
+		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NULL, plots = FALSE,
 		precursorscan.cf = FALSE,
 		settings = getOption("RMassBank"), analyzeMethod = "formula",
-		progressbar = "progressBarHook")
+		progressbar = "progressBarHook", MSe = FALSE)
 {
     .checkMbSettings()
     
@@ -139,9 +139,9 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		for(i in 1:length(unique(cpdIDs))){
 			specs <- list()
 			for(j in 1:length(files[[i]])){
-				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs, plots)	
+				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs, plots, MSe=MSe)
 			}
-			w@specs[[i]] <- toRMB(unlist(specs, recursive = FALSE), unique(cpdIDs)[i], mode=mode)
+			w@specs[[i]] <- unlist(specs,recursive=FALSE)
 		}
 		names(w@specs) <- basename(as.character(w@files))
 	}
@@ -268,11 +268,16 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(8 %in% steps)
   {
 	message("msmsWorkflow: Step 8. Peak multiplicity filtering")
-    # apply heuristic filter
-    w@refilteredRcSpecs <- filterMultiplicity(
+    if (is.null(settings$multiplicityFilter)) {
+      message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
+    } else {
+      # apply heuristic filter      
+      w@refilteredRcSpecs <- filterMultiplicity(
 			w@reanalyzedRcSpecs, archivename, mode, settings$multiplicityFilter )
-    if(!is.na(archivename))
-      archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
+
+      if(!is.na(archivename))
+        archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
+    }
   }
   message("msmsWorkflow: Done.")
   return(w)
@@ -488,7 +493,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
     if(nrow(shot)==0)
       return(list(specOK=FALSE))
     
-    if(max(shot$int) < filterSettings$specOkLimit)
+    if(max(shot$int) < as.numeric(filterSettings$specOkLimit))
       return(list(specOK=FALSE))
     # Crop to 4 digits (necessary because of the recalibrated values)
     shot[,mzColname] <- round(shot[,mzColname], 5)
@@ -739,7 +744,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		if(nrow(shot)==0)
 			return(list(specOK=FALSE))
 		
-		if(max(shot$int) < filterSettings$specOkLimit)
+		if(max(shot$int) < as.numeric(filterSettings$specOkLimit))
 			return(list(specOK=FALSE))
 		# Crop to 4 digits (necessary because of the recalibrated values)
 		shot[,mzColname] <- round(shot[,mzColname], 5)

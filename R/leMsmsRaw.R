@@ -279,35 +279,37 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 #'      psp <- findMsMsHRperxcms.direct(fileList,2184)
 #' }
 #' @export
-findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE) {
+findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE, MSe = FALSE) {
 	
 	require(CAMERA)
 	require(xcms)
-	parentMass <- findMz(cpdID)$mzCenter
+	parentMass <- findMz(cpdID, mode=mode)$mzCenter
+	if(is.na(parentMass)){
+		stop("There was no matching entry to the supplied cpdID(s) \n Please check the cpdIDs and the compoundlist.")
+	}
 	RT <- findRt(cpdID)$RT * 60
 	mzabs <- 0.1
 	
 	getRT <- function(xa) {
 		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
 	}
-	##
-	## MS
-	##
-	
-	
 	
 	##
 	## MSMS
 	##
 	xrmsms <- xcmsRaw(fileName, includeMSn=TRUE)
-	print("File read")
-	## Where is the wanted isolation ?
-	precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
-
-	## Fake MS1 from MSn scans
-	## xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
 	
-	xrs <- split(msn2xcmsRaw(xrmsms), f=xrmsms@msnCollisionEnergy)
+	## Where is the wanted isolation ?
+	##precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
+
+	if(MSe == FALSE){
+		## Fake MS1 from MSn scans
+		## xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
+		suppressWarnings(xrs <- split(msn2xcmsRaw(xrmsms), f=xrmsms@msnCollisionEnergy))
+	} else{
+		xrs <- list()
+		xrs[[1]] <- xrmsms
+	}
 	## Fake s simplistic xcmsSet
 	setReplicate <- xcmsSet(files=fileName, method="MS1")
 	xsmsms <- as.list(replicate(length(xrs),setReplicate))
@@ -316,10 +318,11 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	psp <- list()
 	spectra <- list()
 	whichmissing <- vector()
-	
+	print(cpdID)
 	for(i in 1:length(xrs)){
 		peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
-
+		#devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
+		
                 if (nrow(peaks(xsmsms[[i]])) == 0) {
                   spectra[[i]] <- matrix(0,2,7)
                   next 
@@ -331,24 +334,20 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		## Best: find precursor peak
 		candidates[[i]] <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
 						& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
-                
-		print(paste("Candidates:",candidates[[i]]))
-		anmsms[[i]] <- xsAnnotate(xsmsms[[i]])
-		anmsms[[i]] <- groupFWHM(anmsms[[i]])
+		devnull <- capture.output(anmsms[[i]] <- xsAnnotate(xsmsms[[i]]))
+		devnull <- capture.output(anmsms[[i]] <- groupFWHM(anmsms[[i]]))
 
-        if(length(candidates[[i]]) > 0)
-		closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]  ) )
-        else(closestCandidate <- 1)
-		## Now find the pspec for compound
-		
-		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))       
-		print(paste("Pseudospectra:",psp[[i]]))
+        if(length(candidates[[i]]) > 0){
+		closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]))
+		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
+		} else{psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )}
+		## Now find the pspec for compound       
 
 		## 2nd best: Spectrum closest to MS1
 		##psp <- which.min( abs(getRT(anmsms) - actualRT))
 
 		## 3rd Best: find pspec closest to RT from spreadsheet
-		##psp <- which.min( abs(abs(getRT(anmsms) - RT) )
+		##psp <- which.min( abs(getRT(anmsms) - RT) )
 		if((plots == TRUE) && (length(psp[[i]]) > 0)){
 			plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
 		}
@@ -361,6 +360,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 			spectra[[i]] <- matrix(0,2,7)
 		}
 	}
+	spectra <- toRMB(spectra,cpdID,mode)
 	return(spectra)
 }
 
@@ -433,29 +433,32 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL)
 #' }
 #' @export
 toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
-	
 	ret <- list()
 	ret$mz <- findMz(cpdID,mode=mode)
 	ret$id <- cpdID
 	ret$formula <- findFormula(cpdID)
-	print(paste("Length of msmsXCMSspecs:",length(msmsXCMSspecs)))
 	if(length(msmsXCMSspecs) == 0){
 		ret$foundOK <- FALSE
-		print("blabla")
 		return(ret)
 	}
-	if(is.na(msmsXCMSspecs)){
+	
+	ret$foundOK <- !any(sapply(msmsXCMSspecs, function(x) all(x == 0)))
+	
+	if(!ret$foundOK){
+		return(ret)
+	}
+	
+	if(is.na(msmsXCMSspecs[1])){
 			stop("You need a readable spectrum!")
 	}
+	
 	if(is.na(cpdID)){
 			stop("Please supply the compoundID!")
 	}
 	numScan <- length(msmsXCMSspecs)
-
-	
-	ret$foundOK <- TRUE
 	ret$parentscan <- 1
 	ret$parentHeader <- matrix(0, ncol = 20, nrow = 1)
+	
 	rownames(ret$parentHeader) <- 1
 	colnames(ret$parentHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
 									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
@@ -478,7 +481,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		ret$parentHeader[1,12] <- max(MS1spec[,1])
 		ret$parentHeader[1,13:20] <- 0 ##Has no precursor and merge is not yet implemented
 	}
-	ret$parentHeader <- as.data.frame(ret$parentHeader)
+	
 	
 	##Write the peaks into the childscans
 	ret$childScans <- 2:(numScan+1)
@@ -504,7 +507,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		}))
 		childHeader[,1:2] <- 2:(length(msmsXCMSspecs)+1)
 	
-	
+	ret$parentHeader <- as.data.frame(ret$parentHeader)
 	ret$childHeader <- as.data.frame(childHeader)
 	rownames(ret$childHeader) <- 2:(numScan+1)
 	colnames(ret$childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
@@ -543,9 +546,8 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 #' @seealso \code{\link{msmsWorkflow}}
 #' @author Erik Mueller
 #' @examples \dontrun{
-#' 		handSpec <- matrix(0,4,2)
-#' 		handSpec[,1] <- c(274.986685367956, 259.012401087427, 95.9493025990907, 96.9573002472772)
-#' 		handSpec[,2] <- c(357,761, 2821, 3446)
+#' 		handSpec <- cbind(mz=c(274.986685367956, 259.012401087427, 95.9493025990907, 96.9573002472772),
+#'                                intensity=c(357,761, 2821, 3446))
 #' 		addPeaksManually(w, cpdID, handSpec)
 #' }
 #' @export

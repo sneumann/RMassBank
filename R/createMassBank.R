@@ -440,7 +440,10 @@ gatherData <- function(id)
 	# Name sorting:
 	# TODO: when scoring is reimplemented in CTS, use scoring.
 	# in the meantime, we use the user-given name plus one systematic name ex CTS
-	ipreferred <- which(unlist(lapply(infos$synonyms, function(s) s$type == "IUPAC Name (Preferred)")))
+        ipreferred <- integer()
+        if (length(infos$synonyms) >0) {
+          ipreferred <- which(unlist(lapply(infos$synonyms, function(s) s$type == "IUPAC Name (Preferred)")))
+        }
 	if(length(ipreferred) == 0)
 	{
 		# no iupac in cts, find iupac from cactus
