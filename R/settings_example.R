@@ -353,8 +353,9 @@ loadRmbSettings <- function(file_or_list)
 	}
 	else if (isR)
 	{
-		o <- source(file_or_list)
-		options(RMassBank = o$value)
+		ov <- source(file_or_list)
+    o <- ov$value
+		options(RMassBank = o)
 	}
 	else
 		stop("Options format not recognized. Use YAML (.ini, .yml) or R file (.R) format.")
@@ -362,6 +363,18 @@ loadRmbSettings <- function(file_or_list)
   }
   else
     stop("Options incorrectly specified.")
+  
+  # Settings are loaded, now check if they are up to date
+  o <- getOption("RMassBank")
+  curr <- names(.settingsList)
+  problem <- length(setdiff(curr, names(o))) > 0
+  # Hesch es problem? He?
+  if(problem)
+  {
+    warning("Your settings are outdated. Missing will be replaced by default values.")
+    o <- updateSettings(o)
+    options(RMassBank = o)
+  }
 }
 
 #' @export

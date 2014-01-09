@@ -45,3 +45,4 @@ Collate:
     'validateMassBank.R'
     'zzz.R'
     'tools.R'
+    'msmsRead.R'

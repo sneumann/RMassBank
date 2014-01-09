@@ -7,7 +7,7 @@
 #' See the vignette \code{vignette("RMassBank")} for further details about the
 #' workflow.
 #' 
-#' @usage msmsWorkflow(w, filetable = NULL, files = NULL, cpdids = NULL, 
+#' @usage msmsRead(w, filetable = NULL, files = NULL, cpdids = NULL, 
 #'					readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
 #'					Args, settings = getOption("RMassBank"), progressbar = "progressBarHook")
 #' @param w A \code{msmsWorkspace} to work with.
@@ -38,7 +38,7 @@
 #' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
 #' @return The \code{msmsWorkspace} with msms-spectra read.
 #' @seealso \code{\link{msmsWorkspace-class}}, \code{\link{msmsWorkflow}}
-#' @author Michael Stravs, Eawag <michael.stravs@eawag.ch>
+#' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @author Erik Mueller, UFZ
 #' @export
 msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL, 
@@ -140,22 +140,3 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 			   
 			   
 			   
-			   
-			   
-			   
-			   
-			   
-#####SCRIPT
-library(RMassBank)
-loadRmbSettings("settings_comrecal_QEx_EX.INI")
-loadList("QEx_10_compoundlist.csv")
-msmsmzR <- newMsmsWorkspace()
-msmsXCMS <- newMsmsWorkspace()
-Args <- list(method="centWave", ppm = 5, snthresh = 1.5,
-                  peakwidth = c(20,60), integrate = 1, mzdiff = -0.001, mzCenterFun = "meanApex3")
-msmsmzR <- msmsRead(msmsmzR, filetable = "Filelist_QEx.csv", readMethod="mzR", mode="pH", Args=Args)
-
-datadir <- "/vol/data_extern/emma.schymanski@ufz.de/Qexactive/10_centroided_mzMLs"
-files <- list.files(datadir, pattern=".mzML", full.names=TRUE)
-cpdid <- c(3035,2845,3040,3041,139,3046,297,3050,2856,3052)
-msmsXCMS <- msmsRead(msmsXCMS, files=files, cpdids = cpdid, readMethod="xcms",mode="pH",Args=Args)

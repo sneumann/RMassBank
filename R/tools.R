@@ -84,3 +84,45 @@ findProgress <- function(workspace)
     steps <- which(c(step1, step2, step3, step4, step5, step6, step7, step8))
     return(steps)
 }
+
+#' Update settings to current version
+#'
+#' Checks if all necessary fields are present in the current settings
+#' and fills in default values from the \code{\link{RmbDefaultSettings}}
+#' if required.
+#' 
+#' @note Important: There is a change in behaviour of RMassBank in certain cases when \code{filterSettings} is not
+#' present in the old settings! The default pre-recalibration cutoff from \code{\link{RmbDefaultSettings}} is 10000.
+#' Formerly the pre-recalibration cutoff was set to be 10000 for positive spectra but 0 for negative spectra.
+#' 
+#' Updating the settings files is preferred to using the \code{updateSettings} function.
+#' 
+#' @param settings The set of settings to check and update.
+#' 
+#' @param warn Whether to update parameters quietly (\code{FALSE}) or to notify the user
+#' 	of the changed parameters (\code{TRUE}, default.) This serves to make the user aware that
+#' standard parameters are filled in!
+#' 
+#' @return The updated set of settings.
+#' 
+#' @examples \dontrun{
+#' w@@settings <- updateSettings(w@@settings)
+#' }
+#' 
+#' @author Stravs MA, Eawag <michael.stravs@@eawag.ch>
+#' @export
+#' 
+updateSettings <- function(settings, warn=TRUE)
+{
+  settings.new <- .settingsList
+  settings.old <- settings
+  renew <- setdiff(names(settings.new), names(settings.old))
+  if(length(renew) > 0 && warn==TRUE){
+    warning(paste0("Your settings are outdated! The following fields were taken from default values: ", 
+            paste(renew,collapse=", ")))
+    if("filterSettings" %in% renew)
+      warning("The default values of filterSettings could change the processing behaviour if you have negative-mode spectra. Check ?updateSettings for details.")
+  }
+  settings.old[renew] <- settings.new[renew]
+  return(settings.old)
+}

@@ -823,6 +823,8 @@ gatherCompound <- function(spec, refiltered, additionalPeaks = NULL)
   return(allSpectra)
 }
 
+
+
 # Process one single MSMS child scan.
 # spec: an object of "analyzedSpectrum" type (i.e. contains 
 #       14x (or other number) msmsdata, info, mzrange,

@@ -465,6 +465,15 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   parentSpectrum <- msmsPeaks$parentPeak
 
 
+  # Check whether the spectra can be fitted to the spectra list correctly!
+  if(nrow(msmsPeaks$childHeaders) != length(spectraList))
+  {
+    warning(paste0(
+            "The spectra count of the substance ", msmsPeaks$id, " (", nrow(msmsPeaks$childHeaders), " spectra) doesn't match the provided spectra list (", length(spectraList), " spectra)."
+                ))
+    return(list(specOK=FALSE))
+    
+  }
   
   # On each spectrum the following function analyzeTandemShot will be applied.
   # It takes the raw peaks matrix as argument (mz, int) and processes the spectrum by

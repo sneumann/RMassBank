@@ -3,7 +3,7 @@
 \title{Extract EICs}
 \usage{
   findEIC(msRaw, mz, limit = NULL, rtLimit = NA,
-    headerCache = NA)
+    headerCache = NULL)
 }
 \arguments{
   \item{msRaw}{The mzR file handle}
