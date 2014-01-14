@@ -210,7 +210,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 			  function(r, refiltered) {
 				  message(paste("Compiling: ", r$name, sep=""))
 				  mbdata <- mb@mbdata_relisted[[which(mb@mbdata_archive$id == as.numeric(r$id))]]
-				  if(ncol(mb@additionalPeaks) > 0)
+				  if(nrow(mb@additionalPeaks) > 0)
 					  res <-compileRecord(r, mbdata, refiltered, mb@additionalPeaks)
 				  else
 					  res <-compileRecord(r, mbdata, refiltered, NULL)
@@ -1543,7 +1543,7 @@ addPeaks <- function(mb, filename_or_dataframe)
 	else
 		df <- read.csv(filename_or_dataframe)
 	culled_df <- df[,c("cpdID", "scan", "mzFound", "int", "OK")]
-	if(ncol(mb@additionalPeaks) > 0)
+	if(nrow(mb@additionalPeaks) == 0)
 		mb@additionalPeaks <- culled_df
 	else
 		mb@additionalPeaks <- rbind(mb@additionalPeaks, culled_df)

@@ -39,7 +39,7 @@
  w1 <- msmsWorkflow(w, steps=c(1:7), mode="pH")
  w2 <- msmsWorkflow(w, steps=c(1:7), mode="pH", confirmMode = 1)
  wTotal <- combineMultiplicities(c(w1, w2))
- wTotal <- msmsWorkflow(wTotal, steps=8, mode="pH", archiveName = "output")
+ wTotal <- msmsWorkflow(wTotal, steps=8, mode="pH", archivename = "output")
  # continue here with mbWorkflow
 }
 }

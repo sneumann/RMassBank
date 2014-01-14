@@ -2,7 +2,8 @@
 \alias{findEIC}
 \title{Extract EICs}
 \usage{
-  findEIC(msRaw, mz, limit = NULL, rtLimit = NA)
+  findEIC(msRaw, mz, limit = NULL, rtLimit = NA,
+    headerCache = NA)
 }
 \arguments{
   \item{msRaw}{The mzR file handle}
@@ -19,6 +20,12 @@
 
   \item{rtLimit}{If given, the retention time limits in
   form \code{c(rtmin, rtmax)} in seconds.}
+
+  \item{headerCache}{If present, the complete
+  \code{mzR::header(msRaw)}. Passing this value is useful
+  if spectra for multiple compounds should be extracted
+  from the same mzML file, since it avoids getting the data
+  freshly from \code{msRaw} for every compound.}
 }
 \value{
   A \code{[rt, intensity, scan]} matrix (\code{scan} being
