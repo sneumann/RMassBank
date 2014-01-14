@@ -77,6 +77,9 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(!(readMethod %in% c("mzR","peaklist","xcms"))){
 		stop("The supplied method does not exist")
 	}
+	if(!all(file.exists(w@files))){
+		stop("The supplied files don't exist")
+	}
 	
 	##Progressbar
 	nLen <- length(w@files)
@@ -128,34 +131,3 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		return(w)
 	}
 }
-## For reference:
-# w <- msmsRead(w, files=f)
-# w <- msmsRead(w, files=fileList[,"fileNames"], compounds=fileList[,"cpdID"],
-               # method=c("mzR", "xcms", "peaklist"),
-               # mode=c("pH", "nH"),
-               # findPeaksArgs=list("parameters", "passed", "to", "xcms"))
-
-			   
-			   
-			   
-			   
-			   
-			   
-			   
-			   
-			   
-			   
-#####SCRIPT
-library(RMassBank)
-loadRmbSettings("settings_comrecal_QEx_EX.INI")
-loadList("QEx_10_compoundlist.csv")
-msmsmzR <- newMsmsWorkspace()
-msmsXCMS <- newMsmsWorkspace()
-Args <- list(method="centWave", ppm = 5, snthresh = 1.5,
-                  peakwidth = c(20,60), integrate = 1, mzdiff = -0.001, mzCenterFun = "meanApex3")
-msmsmzR <- msmsRead(msmsmzR, filetable = "Filelist_QEx.csv", readMethod="mzR", mode="pH", Args=Args)
-
-datadir <- "/vol/data_extern/emma.schymanski@ufz.de/Qexactive/10_centroided_mzMLs"
-files <- list.files(datadir, pattern=".mzML", full.names=TRUE)
-cpdid <- c(3035,2845,3040,3041,139,3046,297,3050,2856,3052)
-msmsXCMS <- msmsRead(msmsXCMS, files=files, cpdids = cpdid, readMethod="xcms",mode="pH",Args=Args)
