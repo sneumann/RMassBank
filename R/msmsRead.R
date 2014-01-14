@@ -77,6 +77,9 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(!(readMethod %in% c("mzR","peaklist","xcms"))){
 		stop("The supplied method does not exist")
 	}
+	if(!all(file.exists(w@files))){
+		stop("The supplied files don't exist")
+	}
 	
 	##Progressbar
 	nLen <- length(w@files)
