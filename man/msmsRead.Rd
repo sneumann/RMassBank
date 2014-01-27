@@ -1,0 +1,81 @@
+\name{msmsRead}
+\alias{msmsRead}
+\title{Extracts and processes spectra from a specified file list, according to
+loaded options and given parameters.}
+\usage{
+  msmsRead(w, filetable = NULL, files = NULL, cpdids =
+    NULL, readMethod, mode, confirmMode = FALSE, useRtLimit
+    = TRUE, Args, settings = getOption("RMassBank"),
+    progressbar = "progressBarHook")
+}
+\arguments{
+  \item{w}{A \code{msmsWorkspace} to work with.}
+
+  \item{filetable}{The path to a .csv-file that contains
+  the columns "files" and "cpdid" supplying the
+  relationships between files and compound IDs. Either this
+  or "files" need to be specified.}
+
+  \item{files}{A vector or list containing the filenames of
+  the files that are to be read as spectra.  For the IDs to
+  be inferred from the filenames alone, there need to be
+  exactly 2 underscores.}
+
+  \item{cpdids}{A vector or list containing the compound
+  IDs of the files that are to be read as spectra.  The
+  ordering of this and \code{files} implicitly assigns each
+  ID to the corresponding file.  If this is supplied, then
+  the IDs implicitly named in the filenames are ignored.}
+
+  \item{readMethod}{Several methods are available to get
+  peak lists from the files.  Currently supported are
+  "mzR", "xcms", "MassBank" and "peaklist".  The first two
+  read MS/MS raw data, and differ in the strategy used to
+  extract peaks. MassBank will read existing records, so
+  that e.g. a recalibration can be performed, and
+  "peaklist" just requires a CSV with two columns and the
+  column header "mz", "int".}
+
+  \item{mode}{\code{"pH", "pNa", "pM", "mH", "mM", "mFA"}
+  for different ions ([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-,
+  [M+FA]-).}
+
+  \item{confirmMode}{Defaults to false (use most intense
+  precursor). Value 1 uses the 2nd-most intense precursor
+  for a chosen ion (and its data-dependent scans) , etc.}
+
+  \item{useRtLimit}{Whether to enforce the given retention
+  time window.}
+
+  \item{Args}{A list of arguments that will be handed to
+  the xcms-method findPeaks via do.call}
+
+  \item{settings}{Options to be used for processing.
+  Defaults to the options loaded via
+  \code{\link{loadRmbSettings}} et al. Refer to there for
+  specific settings.}
+
+  \item{progressbar}{The progress bar callback to use. Only
+  needed for specialized applications.  Cf. the
+  documentation of \code{\link{progressBarHook}} for
+  usage.}
+}
+\value{
+  The \code{msmsWorkspace} with msms-spectra read.
+}
+\description{
+  The filenames of the raw LC-MS runs are read from the
+  array \code{files} in the global enviroment. See the
+  vignette \code{vignette("RMassBank")} for further details
+  about the workflow.
+}
+\author{
+  Michael Stravs, Eawag <michael.stravs@eawag.ch>
+
+  Erik Mueller, UFZ
+}
+\seealso{
+  \code{\link{msmsWorkspace-class}},
+  \code{\link{msmsWorkflow}}
+}
+

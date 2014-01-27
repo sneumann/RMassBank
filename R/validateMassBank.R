@@ -18,13 +18,8 @@
 #' @export
 validate <- function(path) {
 
-        if (!require(ontoCAT)) {
-          stop("Package ontoCAT missing. Validation requires package ontoCAT and RUnit")
-        }
-
-        if (!require(RUnit)) {
-          stop("Package RUnit missing. Validation requires package ontoCAT and RUnit")
-        }
+        require(ontoCAT)
+		require(RUnit)
 
 	# Is the argument a directory?
 	# If yes, list the files
@@ -55,7 +50,7 @@ validate <- function(path) {
 	}
 	print("Starting Tests")
 	# Testing the list of Testsuites
-	testData <- runTestSuite(tests)
+	testData <- suppressWarnings(runTestSuite(tests))
 	# Prints the HTML-record
 	printHTMLProtocol(testData, fileName = paste(getwd(),"/report.html", sep = ""))
 	print(paste("Report for the file(s) finished"))

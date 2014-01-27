@@ -210,7 +210,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 			  function(r, refiltered) {
 				  message(paste("Compiling: ", r$name, sep=""))
 				  mbdata <- mb@mbdata_relisted[[which(mb@mbdata_archive$id == as.numeric(r$id))]]
-				  if(ncol(mb@additionalPeaks) > 0)
+				  if(nrow(mb@additionalPeaks) > 0)
 					  res <-compileRecord(r, mbdata, refiltered, mb@additionalPeaks)
 				  else
 					  res <-compileRecord(r, mbdata, refiltered, NULL)
@@ -440,7 +440,10 @@ gatherData <- function(id)
 	# Name sorting:
 	# TODO: when scoring is reimplemented in CTS, use scoring.
 	# in the meantime, we use the user-given name plus one systematic name ex CTS
-	ipreferred <- which(unlist(lapply(infos$synonyms, function(s) s$type == "IUPAC Name (Preferred)")))
+        ipreferred <- integer()
+        if (length(infos$synonyms) >0) {
+          ipreferred <- which(unlist(lapply(infos$synonyms, function(s) s$type == "IUPAC Name (Preferred)")))
+        }
 	if(length(ipreferred) == 0)
 	{
 		# no iupac in cts, find iupac from cactus
@@ -819,6 +822,8 @@ gatherCompound <- function(spec, refiltered, additionalPeaks = NULL)
   allSpectra <- allSpectra[which(!is.na(allSpectra))]
   return(allSpectra)
 }
+
+
 
 # Process one single MSMS child scan.
 # spec: an object of "analyzedSpectrum" type (i.e. contains 
@@ -1540,7 +1545,7 @@ addPeaks <- function(mb, filename_or_dataframe)
 	else
 		df <- read.csv(filename_or_dataframe)
 	culled_df <- df[,c("cpdID", "scan", "mzFound", "int", "OK")]
-	if(ncol(mb@additionalPeaks) > 0)
+	if(nrow(mb@additionalPeaks) == 0)
 		mb@additionalPeaks <- culled_df
 	else
 		mb@additionalPeaks <- rbind(mb@additionalPeaks, culled_df)

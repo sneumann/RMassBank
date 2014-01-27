@@ -1,0 +1,41 @@
+\name{updateSettings}
+\alias{updateSettings}
+\title{Update settings to current version}
+\usage{
+  updateSettings(settings, warn = TRUE)
+}
+\arguments{
+  \item{settings}{The set of settings to check and update.}
+
+  \item{warn}{Whether to update parameters quietly
+  (\code{FALSE}) or to notify the user of the changed
+  parameters (\code{TRUE}, default.) This serves to make
+  the user aware that standard parameters are filled in!}
+}
+\value{
+  The updated set of settings.
+}
+\description{
+  Checks if all necessary fields are present in the current
+  settings and fills in default values from the
+  \code{\link{RmbDefaultSettings}} if required.
+}
+\note{
+  Important: There is a change in behaviour of RMassBank in
+  certain cases when \code{filterSettings} is not present
+  in the old settings! The default pre-recalibration cutoff
+  from \code{\link{RmbDefaultSettings}} is 10000. Formerly
+  the pre-recalibration cutoff was hardcoded to be 10000
+  for positive spectra but 0 for negative spectra! Updating
+  the settings files is preferred to using the
+  \code{updateSettings} function.
+}
+\examples{
+\dontrun{
+w@settings <- updateSettings(w@settings)
+}
+}
+\author{
+  Stravs MA, Eawag <michael.stravs@eawag.ch>
+}
+

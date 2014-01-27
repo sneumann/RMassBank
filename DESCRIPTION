@@ -25,7 +25,7 @@ License: Artistic-2.0
 SystemRequirements: OpenBabel
 biocViews: Bioinformatics, MassSpectrometry, Metabolomics, Software
 Depends:
-    mzR,rcdk,yaml,methods
+    rcdk,yaml,mzR,methods,rjson
 Imports:
     XML,RCurl,rjson
 Suggests:
@@ -48,3 +48,4 @@ Collate:
     'validateMassBank.R'
     'zzz.R'
     'tools.R'
+    'msmsRead.R'
