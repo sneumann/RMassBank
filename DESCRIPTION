@@ -43,6 +43,7 @@ Collate:
     'parseMassBank.R'
     'RmbWorkspace.R'
     'validateMassBank.R'
+	'msmsRead.R'
     'zzz.R'
     'tools.R'
     'msmsRead.R'

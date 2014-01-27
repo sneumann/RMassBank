@@ -333,3 +333,68 @@ setMethod("show", "mbWorkspace",
                         str(object, max.level=2)
 		}) 
 		
+#' Plots mbWorkspaces
+#' 
+#' Plots the peaks of one or two \code{mbWorkspace} to compare them.
+#' 
+#' This functions plots one or two \code{mbWorkspace}s in case the use has used different methods to acquire
+#' similar spectra. \code{w1} must always be supplied, while \code{w2} is optional. The wokspaces need to be fully processed
+#' for this function to work.
+#'
+#' @param w1 The \code{mbWorkspace} to be plotted
+#' @param w2 Another optional \code{mbWorkspace} be plotted as a reference.
+#' @return A logical indicating whether the information was plotted or not
+#' @author Erik Mueller
+#' @examples
+#' 
+#' #
+#' \dontrun{plotMbWorkspaces(w1,w2)}
+#' 
+#' @export
+plotMbWorkspaces <- function(w1, w2=NULL){
+	if(class(w1) != "mbWorkspace"){
+		stop("The first supplied argument must be an mbWorkspace")
+	}
+	if(!is.null(w2)){
+		if(class(w2) != "mbWorkspace"){
+			stop("If there is a second argument supplied it must be of class mbWorkspace")
+		}
+		pl2 <- lapply(w2@compiled_ok,function(x){
+			lapply(x,function(y) y[['PK$PEAK']][,c("m/z","rel.int.")])
+		})
+		plot_title <- lapply(w2@compiled_ok,function(x){
+			lapply(x,function(y) y[['RECORD_TITLE']])
+		})
+	}
+	
+	
+	
+	pl1 <- lapply(w1@compiled_ok,function(x){
+		lapply(x,function(y) y[['PK$PEAK']][,c("m/z","rel.int.")])
+	})
+	
+	plot_title <- lapply(w1@compiled_ok,function(x){
+		lapply(x,function(y) y[['RECORD_TITLE']])
+	})
+	
+	
+	
+	maxpeaks <- c(-1000,1000)
+	
+	if(length(pl1) != 0){
+		for(i in 1:length(pl1)){
+			currentCompound <- pl1[[i]]
+			
+			for(j in 1:length(currentCompound)){
+				currentSpectrum <- currentCompound[[j]]
+				plot(currentSpectrum[,"m/z"],currentSpectrum[,"rel.int."], type="h",col="green",lwd=3,ylim=maxpeaks,xlab = "mz", ylab="rel.int", main=plot_title[[i]][[j]])
+				if(!is.null(w2)){
+					points(pl2[[i]][[j]][,"m/z"],-pl2[[i]][[j]][,"rel.int."], type="h",col="red",lwd=3)
+				}
+			}
+		}
+	}
+	
+	return(TRUE)
+}
+		

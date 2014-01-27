@@ -540,56 +540,46 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 #' @usage addPeaksManually(w, cpdID, handSpec, mode)
 #' @param w The msmsWorkspace that the peaklist should be added to.
 #' @param cpdID The compoundID of the compound that has been used for the peaklist
-#' @param handSpec A peaklist with 2 columns, 
+#' @param handSpec A peaklist with 2 columns, one with "mz", one with "int" 
 #' @param mode The ionization mode that has been used for the spectrum represented by the peaklist
 #' @return The \code{msmsWorkspace} with the additional peaklist added to the right spectrum
 #' @seealso \code{\link{msmsWorkflow}}
 #' @author Erik Mueller
 #' @examples \dontrun{
 #' 		handSpec <- cbind(mz=c(274.986685367956, 259.012401087427, 95.9493025990907, 96.9573002472772),
-#'                                intensity=c(357,761, 2821, 3446))
+#'                                int=c(357,761, 2821, 3446))
 #' 		addPeaksManually(w, cpdID, handSpec)
 #' }
 #' @export
 addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
-	childHeaderAddition <- t(sapply(handSpec, function(spec){
-			header <- vector()
-			header[1:3] <- 2
-			header[4] <- length(spec[,1])
-			header[5] <- 0 ##Does this matter?
-			header[6] <- findRt(cpdID)$RT * 60
-			header[7] <- spec[which.max(spec[,2]),1]
-			header[8] <- max(spec[,2])
-			header[9] <- 0 ##Does this matter?
-			header[10] <- 0 ##Does this matter?
-			header[11] <- min(spec[,1])
-			header[12] <- max(spec[,1])
-			header[13] <- 1
-			header[14] <- findMz(cpdID)[[3]]
-			header[15] <- -1 ##Will be changed for different charges
-			header[16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. Workaround? msmsXCMS@files[1]
-			header[17:20] <- 0 ##Will be changed if merge is wanted
-			return(header)
-		}))
-	##Set colnames and rownames
-	colnames(childHeaderAddition) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-										"mergedResultStartScanNum", "mergedResultEndScanNum")
-	##Convert the manual peaklists
-	peaksHand <- lapply (handSpec, function(specs){
-							peaks <- matrix(nrow = length(specs[,1]), ncol = 2)
-							colnames(peaks) <- c("mz","int")
-							peaks <- specs
-							return(peaks)
-						})
 	
 	##Where do the peaks and the header need to be added?
 	pos <- sapply(w@specs,function(spec){cpdID %in% spec$id})
+	
+	childHeader <- matrix(0,1,20)
+	colnames(childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
+										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
+										"mergedResultStartScanNum", "mergedResultEndScanNum")
+	childHeader[,4] <- length(handSpec[,1])
+	childHeader[,5] <- 0
+	childHeader[,6] <- findRt(cpdID)$RT * 60
+	childHeader[,7] <- handSpec[which.max(handSpec[,"int"]),1]
+	childHeader[,8] <- max(handSpec)
+	childHeader[,10] <- 0
+	childHeader[,11] <- min(handSpec[,"mz"])
+	childHeader[,12] <- max(handSpec[,"mz"])
+	childHeader[,13] <- 1
+	childHeader[,14] <- findMz(cpdID)[[3]]
+	childHeader[,15] <- 1 ##Will be changed for different charges
+	childHeader[,16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. Workaround?
+	childHeader[,17:20] <- 0 ##Will be changed if merge is wanted
+	
+	
 	##If the compound for the cpdID isn't in specs yet, add a new spectrum
 	if(length(pos) == 0){
 		pos <- length(w@specs) + 1
-		childHeaderAddition[,1:2] <- 1
+		childHeader[,1:3] <- 2
 		w@specs[[pos]] <- list()
 		w@specs[[pos]]$foundOK <- 1
 		w@specs[[pos]]$parentscan <- 1
@@ -601,22 +591,38 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 									"mergedResultStartScanNum", "mergedResultEndScanNum")
 		w@specs[[pos]]$parentHeader[1,1:3] <- 1
 		w@specs[[pos]]$parentHeader[1,4:20] <- 0
+		w@specs[[pos]]$parentHeader[1,6] <- findRt(cpdID)$RT * 60
 		w@specs[[pos]]$parentHeader <- as.data.frame(w@specs[[pos]]$parentHeader)
-		w@specs[[pos]]$childScans <- 1
-		w@specs[[pos]]$childHeader <- as.data.frame(childHeaderAddition)
+		w@specs[[pos]]$childScans <- 2
+		w@specs[[pos]]$childHeader <- as.data.frame(childHeader)
 		w@specs[[pos]]$parentPeak <- matrix(nrow = 1, ncol = 2)
 		colnames(w@specs[[pos]]$parentPeak) <- c("mz","int")
 		w@specs[[pos]]$parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
-		w@specs[[pos]]$peaks <- peaksHand
+		w@specs[[pos]]$peaks <- list()
+		w@specs[[pos]]$peaks[[1]] <- handSpec
 		w@specs[[pos]]$mz <- findMz(cpdID,mode=mode)
 		w@specs[[pos]]$id <- cpdID
 		w@specs[[pos]]$formula <- findFormula(cpdID)
-	} else { pos <- which(pos)
-			w@specs[[pos]]$childHeader <- rbind(w@specs[[pos]]$childHeader,childHeaderAddition)
-			w@specs[[pos]]$peaks <- c(w@specs[[pos]]$peaks, peaksHand) }
-		
+	} else { 
+			pos <- which(pos)
+			w@specs[[pos]]$childHeader <- rbind(w@specs[[pos]]$childHeader,childHeader)
+			w@specs[[pos]]$childScans <- c(w@specs[[pos]]$childScans,max(w@specs[[pos]]$childScans)+1)
+			w@specs[[pos]]$peaks[[length(w@specs[[pos]]$peaks)+1]] <- handSpec
+		}
 		return(w)
 }
+
+#' @export
+createSpecsFromPeaklists <- function(w, cpdIDs, dirnames, mode="pH"){
+	for(i in 1:length(dirnames)){
+		peakLists <- list.files(dirnames[i],full.names=TRUE)
+		for(j in 1:length(peakLists)){
+			w <- addPeaksManually(w,cpdIDs[i],as.matrix(read.csv(peakLists[j])),mode)
+		}
+	}
+	return(w)
+}
+
 
 #' MassBank-record Addition
 #' 

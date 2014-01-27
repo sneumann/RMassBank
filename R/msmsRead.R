@@ -77,6 +77,9 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(!(readMethod %in% c("mzR","peaklist","xcms"))){
 		stop("The supplied method does not exist")
 	}
+	if(!all(file.exists(w@files))){
+		stop("The supplied files don't exist")
+	}
 	
 	##Progressbar
 	nLen <- length(w@files)
@@ -128,15 +131,3 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		return(w)
 	}
 }
-## For reference:
-# w <- msmsRead(w, files=f)
-# w <- msmsRead(w, files=fileList[,"fileNames"], compounds=fileList[,"cpdID"],
-               # method=c("mzR", "xcms", "peaklist"),
-               # mode=c("pH", "nH"),
-               # findPeaksArgs=list("parameters", "passed", "to", "xcms"))
-
-			   
-			   
-			   
-			   
-			   
