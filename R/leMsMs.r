@@ -40,7 +40,6 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' workflow.
 #' 
 #' @usage msmsWorkflow(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-#' 		useRtLimit = TRUE, archivename=NA, readMethod = "mzR",
 #' 		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA, plots = FALSE,
 #' 		precursorscan.cf = FALSE,
 #' 		settings = getOption("RMassBank"), analyzeMethod = "formula",
