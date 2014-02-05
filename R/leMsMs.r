@@ -72,6 +72,7 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @param analyzeMethod The "method" parameter to pass to \code{\link{analyzeMsMs}}.
 #' @param progressbar The progress bar callback to use. Only needed for specialized applications.
 #' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
+#' @param MSe A boolean value that determines whether the spectra were recorded using MSe or not
 #' @return The processed \code{msmsWorkspace}.
 #' @seealso \code{\link{msmsWorkspace-class}}
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>

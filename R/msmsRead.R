@@ -113,7 +113,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(readMethod == "peaklist"){
 		count <- 1
 		w@specs <-  lapply(w@files, function(fileName){
-			spec <- addpeaksmanually(files, cpdids[count], mode=mode, findPeaksArgs=Args)
+			spec <- addPeaksManually(files, cpdids[count], mode=mode, findPeaksArgs=Args)
 			count <<- count + 1
 			return(spec)
 		})

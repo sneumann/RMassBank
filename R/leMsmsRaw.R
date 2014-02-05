@@ -270,6 +270,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 #' @param mode The ionization mode that has been used for the spectrum represented by the peaklist
 #' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
 #' @param plots A parameter that determines whether the spectra should be plotted or not
+#' @param MSe A boolean value that determines whether the spectra were recorded using MSe or not
 #' @return The \code{msmsWorkspace} with the additional peaklist added to the right spectrum
 #' @seealso \code{\link{msmsWorkflow}}
 #' @author Erik Mueller
@@ -508,7 +509,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		childHeader[,1:2] <- 2:(length(msmsXCMSspecs)+1)
 	
 	ret$parentHeader <- as.data.frame(ret$parentHeader)
-	ret$childHeader <- as.data.frame(childHeader)
+	ret$childHeaders <- as.data.frame(childHeader)
 	rownames(ret$childHeader) <- 2:(numScan+1)
 	colnames(ret$childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
 									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
@@ -612,7 +613,6 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 		return(w)
 }
 
-#' @export
 createSpecsFromPeaklists <- function(w, cpdIDs, dirnames, mode="pH"){
 	for(i in 1:length(dirnames)){
 		peakLists <- list.files(dirnames[i],full.names=TRUE)
