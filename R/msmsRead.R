@@ -7,9 +7,6 @@
 #' See the vignette \code{vignette("RMassBank")} for further details about the
 #' workflow.
 #' 
-#' @usage msmsRead(w, filetable = NULL, files = NULL, cpdids = NULL, 
-#'					readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
-#'					Args, settings = getOption("RMassBank"), progressbar = "progressBarHook")
 #' @param w A \code{msmsWorkspace} to work with.
 #' @param filetable The path to a .csv-file that contains the columns "files" and "cpdid" supplying
 #' 			the relationships between files and compound IDs. Either this or "files" need
@@ -66,9 +63,9 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		}
 	} else{
 		##If a filetable is supplied read it
-		tab <- read.csv(filetable)
-		w@files <- as.vector(tab[,"Files"])
-		cpdids <- as.vector(tab[,"ID"])
+		tab <- read.csv(filetable, stringsAsFactors = FALSE)
+		w@files <- tab[,"Files"]
+		cpdids <- tab[,"ID"]
 	}
 	
 	##If there's more cpdids than filenames or the other way around, then abort

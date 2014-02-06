@@ -1,8 +1,7 @@
 #' @import mzR
 #' @importClassesFrom mzR
 #' @importMethodsFrom mzR
-# library(mzR)
-NULL
+NULL # This is required so that roxygen knows where the first manpage starts
 
 #' Extract MS/MS spectra for specified precursor
 #' 
@@ -264,7 +263,6 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 #' 
 #' Picks peaks from mz-files and returns the pseudospectra that CAMERA creates with the help of XCMS
 #'
-#' @usage findMsMsHRperxcms.direct(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE) 
 #' @param fileName The path to the mz-file that should be read
 #' @param cpdID The compoundID of the compound that has been used for the file
 #' @param mode The ionization mode that has been used for the spectrum represented by the peaklist
@@ -286,7 +284,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	require(xcms)
 	parentMass <- findMz(cpdID[1], mode=mode)$mzCenter
 	if(is.na(parentMass)){
-		stop("There was no matching entry to the supplied cpdID(s) \n Please check the cpdIDs and the compoundlist.")
+                  stop(paste("There was no matching entry to the supplied cpdID", cpdID[1] ,"\n Please check the cpdIDs and the compoundlist."))
 	}
 	RT <- findRt(cpdID[1])$RT * 60
 	mzabs <- 0.1
@@ -326,6 +324,9 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		RT <- findRt(cpdID[ID])$RT * 60
 		parentMass <- findMz(cpdID[ID], mode=mode)$mzCenter
 
+                if(is.na(parentMass)){
+                  stop(paste("There was no matching entry to the supplied cpdID", cpdID[ID] ,"\n Please check the cpdIDs and the compoundlist."))
+                }
 		
 		for(i in 1:length(xrs)){
 			peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))

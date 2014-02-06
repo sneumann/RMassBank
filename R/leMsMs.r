@@ -39,11 +39,6 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' See the vignette \code{vignette("RMassBank")} for further details about the
 #' workflow.
 #' 
-#' @usage msmsWorkflow(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-#' 		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA, plots = FALSE,
-#' 		precursorscan.cf = FALSE,
-#' 		settings = getOption("RMassBank"), analyzeMethod = "formula",
-#' 		progressbar = "progressBarHook")
 #' @param w A \code{msmsWorkspace} to work with.
 #' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
