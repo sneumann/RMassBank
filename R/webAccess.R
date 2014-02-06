@@ -69,7 +69,7 @@ getCactus <- function(identifier, representation)
 #' @examples
 #' 
 #' # Benzene (again):
-#' getPcId("benzene")
+#' # Currently broken: getPcId("benzene")
 #' 
 #' @export
 getPcId <- function(search)
