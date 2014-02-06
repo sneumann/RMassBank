@@ -123,7 +123,6 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 			w@specs <-  lapply(w@files, function(fileName){
 				spec <- findMsMsHRperxcms.direct(fileName, cpdids[count], mode=mode, findPeaksArgs=Args)
 				count <<- count + 1
-				print(unlist(spec,recursive=FALSE))
 				return(unlist(spec,recursive=FALSE))
 			})
 			names(w@specs) <- basename(as.character(w@files))
@@ -132,7 +131,6 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 			FNames <-vector()
 			for(i in 1:length(ufiles)){ ##Create list
 				FileIDs <- cpdids[which(w@files == ufiles[i])]
-				print(FileIDs)
 				metaSpec <- findMsMsHRperxcms.direct(ufiles[i], FileIDs, mode=mode, findPeaksArgs=Args, MSe = MSe)
 				for(j in 1:length(FileIDs)){
 					w@specs[[length(w@specs)+1]] <- metaSpec[[j]]
