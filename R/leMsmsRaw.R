@@ -284,11 +284,11 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	
 	require(CAMERA)
 	require(xcms)
-	parentMass <- findMz(cpdID, mode=mode)$mzCenter
+	parentMass <- findMz(cpdID[1], mode=mode)$mzCenter
 	if(is.na(parentMass)){
 		stop("There was no matching entry to the supplied cpdID(s) \n Please check the cpdIDs and the compoundlist.")
 	}
-	RT <- findRt(cpdID)$RT * 60
+	RT <- findRt(cpdID[1])$RT * 60
 	mzabs <- 0.1
 	
 	getRT <- function(xa) {
@@ -319,50 +319,59 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	psp <- list()
 	spectra <- list()
 	whichmissing <- vector()
-	print(cpdID)
-	for(i in 1:length(xrs)){
-		peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
-		#devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
+	
+	metaspec <- list()
+	for(ID in 1:length(cpdID)){
+		spectra <- list()
+		RT <- findRt(cpdID[ID])$RT * 60
+		parentMass <- findMz(cpdID[ID], mode=mode)$mzCenter
+
 		
-                if (nrow(peaks(xsmsms[[i]])) == 0) {
-                  spectra[[i]] <- matrix(0,2,7)
-                  next 
-                }
-                
-		## Get pspec 
-		pl <- peaks(xsmsms[[i]])[,c("mz", "rt"), drop=FALSE]
+		for(i in 1:length(xrs)){
+			peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
+			#devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
+			
+					if (nrow(peaks(xsmsms[[i]])) == 0) {
+					  spectra[[i]] <- matrix(0,2,7)
+					  next
+					} else{	
+						## Get pspec 
+						pl <- peaks(xsmsms[[i]])[,c("mz", "rt"), drop=FALSE]
 
-		## Best: find precursor peak
-		candidates[[i]] <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
-						& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
-		devnull <- capture.output(anmsms[[i]] <- xsAnnotate(xsmsms[[i]]))
-		devnull <- capture.output(anmsms[[i]] <- groupFWHM(anmsms[[i]]))
+						## Best: find precursor peak
+						candidates[[i]] <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
+										& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
+						devnull <- capture.output(anmsms[[i]] <- xsAnnotate(xsmsms[[i]]))
+						devnull <- capture.output(anmsms[[i]] <- groupFWHM(anmsms[[i]]))
 
-        if(length(candidates[[i]]) > 0){
-		closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]))
-		psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
-		} else{psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )}
-		## Now find the pspec for compound       
+						if(length(candidates[[i]]) > 0){
+						closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]))
+						psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
+						} else{psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )}
+						## Now find the pspec for compound       
 
-		## 2nd best: Spectrum closest to MS1
-		##psp <- which.min( abs(getRT(anmsms) - actualRT))
+						## 2nd best: Spectrum closest to MS1
+						##psp <- which.min( abs(getRT(anmsms) - actualRT))
 
-		## 3rd Best: find pspec closest to RT from spreadsheet
-		##psp <- which.min( abs(getRT(anmsms) - RT) )
-		if((plots == TRUE) && (length(psp[[i]]) > 0)){
-			plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
+						## 3rd Best: find pspec closest to RT from spreadsheet
+						##psp <- which.min( abs(getRT(anmsms) - RT) )
+						if((plots == TRUE) && (length(psp[[i]]) > 0)){
+							plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
+						}
+						if(length(psp[[i]]) != 0){
+						spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
+						} else {whichmissing <- c(whichmissing,i)}
+					}
 		}
-		if(length(psp[[i]]) != 0){
-		spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
-		} else {whichmissing <- c(whichmissing,i)}
-	}
-	if(length(spectra) != 0){
-		for(i in whichmissing){
-			spectra[[i]] <- matrix(0,2,7)
+		if(length(spectra) != 0){
+			for(i in whichmissing){
+				spectra[[i]] <- matrix(0,2,7)
+			}
 		}
+		spectra <- toRMB(spectra,cpdID[ID],mode)
+		metaspec[[ID]] <- spectra
 	}
-	spectra <- toRMB(spectra,cpdID,mode)
-	return(spectra)
+	return(metaspec)
 }
 
 # Finds the EIC for a mass trace with a window of x ppm.
@@ -510,8 +519,8 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 	
 	ret$parentHeader <- as.data.frame(ret$parentHeader)
 	ret$childHeaders <- as.data.frame(childHeader)
-	rownames(ret$childHeader) <- 2:(numScan+1)
-	colnames(ret$childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+	rownames(ret$childHeaders) <- 2:(numScan+1)
+	colnames(ret$childHeaders) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
 									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
 									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
 									"mergedResultStartScanNum", "mergedResultEndScanNum")
@@ -555,13 +564,10 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 	
 	##Where do the peaks and the header need to be added?
-	pos <- sapply(w@specs,function(spec){cpdID %in% spec$id})
+	pos <- sapply(w@specs,function(spec){cpdID == spec$id})
+	if(length(pos) == 0) pos <- FALSE
 	
 	childHeader <- matrix(0,1,20)
-	colnames(childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-										"mergedResultStartScanNum", "mergedResultEndScanNum")
 	childHeader[,4] <- length(handSpec[,1])
 	childHeader[,5] <- 0
 	childHeader[,6] <- findRt(cpdID)$RT * 60
@@ -573,12 +579,12 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 	childHeader[,13] <- 1
 	childHeader[,14] <- findMz(cpdID)[[3]]
 	childHeader[,15] <- 1 ##Will be changed for different charges
-	childHeader[,16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. Workaround?
+	childHeader[,16] <- 0 ##There sadly isn't any precursor intensity to find in the msms-scans. Workaround?
 	childHeader[,17:20] <- 0 ##Will be changed if merge is wanted
 	
 	
 	##If the compound for the cpdID isn't in specs yet, add a new spectrum
-	if(length(pos) == 0){
+	if(length(which(pos)) == 0){
 		pos <- length(w@specs) + 1
 		childHeader[,1:3] <- 2
 		w@specs[[pos]] <- list()
@@ -606,10 +612,14 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 		w@specs[[pos]]$formula <- findFormula(cpdID)
 	} else { 
 			pos <- which(pos)
-			w@specs[[pos]]$childHeader <- rbind(w@specs[[pos]]$childHeader,childHeader)
+			w@specs[[pos]]$childHeaders <- rbind(w@specs[[pos]]$childHeader,childHeader)
 			w@specs[[pos]]$childScans <- c(w@specs[[pos]]$childScans,max(w@specs[[pos]]$childScans)+1)
 			w@specs[[pos]]$peaks[[length(w@specs[[pos]]$peaks)+1]] <- handSpec
 		}
+			colnames(w@specs[[pos]]$childHeaders) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
+										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
+										"mergedResultStartScanNum", "mergedResultEndScanNum")
 		return(w)
 }
 

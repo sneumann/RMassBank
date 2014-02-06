@@ -144,6 +144,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 			}
 			w@specs[[i]] <- unlist(specs,recursive=FALSE)
 		}
+		w@specs <- unlist(w@specs, recursive=FALSE)
 		names(w@specs) <- basename(as.character(w@files))
 	}
 	
