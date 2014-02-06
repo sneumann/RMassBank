@@ -3,10 +3,11 @@
 \title{Extracts and processes spectra from a specified file list, according to
 loaded options and given parameters.}
 \usage{
-  msmsRead(w, filetable = NULL, files = NULL, cpdids =
-    NULL, readMethod, mode, confirmMode = FALSE, useRtLimit
-    = TRUE, Args, settings = getOption("RMassBank"),
-    progressbar = "progressBarHook")
+  msmsRead(w, filetable = NULL, files = NULL,
+    cpdids = NULL, readMethod, mode, confirmMode = FALSE,
+    useRtLimit = TRUE, Args = NULL,
+    settings = getOption("RMassBank"),
+    progressbar = "progressBarHook", MSe = FALSE)
 }
 \arguments{
   \item{w}{A \code{msmsWorkspace} to work with.}
@@ -59,6 +60,9 @@ loaded options and given parameters.}
   needed for specialized applications.  Cf. the
   documentation of \code{\link{progressBarHook}} for
   usage.}
+
+  \item{MSe}{A boolean value that determines whether the
+  spectra were recorded using MSe or not}
 }
 \value{
   The \code{msmsWorkspace} with msms-spectra read.

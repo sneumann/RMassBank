@@ -20,7 +20,7 @@
 }
 \examples{
 # Benzene (again):
-getPcId("benzene")
+# Currently broken: getPcId("benzene")
 }
 \author{
   Michael Stravs
