@@ -109,13 +109,15 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	
 	##Peaklist-readmethod 
 	if(readMethod == "peaklist"){
-		w <- createSpecsFromPeaklists(w, cpdids, dirnames, mode="pH")
+		w <- createSpecsFromPeaklists(w, cpdids, dirnames=w@files, mode=mode)
+		names(w@specs) <- basename(as.character(w@files))
 		return(w)
 	}
 	
 	##xcms-readmethod 
 	if(readMethod == "xcms"){
 		ufiles <- unique(w@files)
+		count <- 1
 		if(length(ufiles) == length(w@files)){
 			w@specs <-  lapply(w@files, function(fileName){
 				spec <- findMsMsHRperxcms.direct(fileName, cpdids[count], mode=mode, findPeaksArgs=Args)

@@ -283,9 +283,11 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	require(CAMERA)
 	require(xcms)
 	parentMass <- findMz(cpdID[1], mode=mode)$mzCenter
+	
 	if(is.na(parentMass)){
                   stop(paste("There was no matching entry to the supplied cpdID", cpdID[1] ,"\n Please check the cpdIDs and the compoundlist."))
 	}
+	
 	RT <- findRt(cpdID[1])$RT * 60
 	mzabs <- 0.1
 	
@@ -582,7 +584,10 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 	childHeader[,15] <- 1 ##Will be changed for different charges
 	childHeader[,16] <- 0 ##There sadly isn't any precursor intensity to find in the msms-scans. Workaround?
 	childHeader[,17:20] <- 0 ##Will be changed if merge is wanted
-	
+	colnames(childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
+										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
+										"mergedResultStartScanNum", "mergedResultEndScanNum")
 	
 	##If the compound for the cpdID isn't in specs yet, add a new spectrum
 	if(length(which(pos)) == 0){
@@ -602,7 +607,7 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 		w@specs[[pos]]$parentHeader[1,6] <- findRt(cpdID)$RT * 60
 		w@specs[[pos]]$parentHeader <- as.data.frame(w@specs[[pos]]$parentHeader)
 		w@specs[[pos]]$childScans <- 2
-		w@specs[[pos]]$childHeader <- as.data.frame(childHeader)
+		w@specs[[pos]]$childHeaders <- as.data.frame(childHeader)
 		w@specs[[pos]]$parentPeak <- matrix(nrow = 1, ncol = 2)
 		colnames(w@specs[[pos]]$parentPeak) <- c("mz","int")
 		w@specs[[pos]]$parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
@@ -611,16 +616,16 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 		w@specs[[pos]]$mz <- findMz(cpdID,mode=mode)
 		w@specs[[pos]]$id <- cpdID
 		w@specs[[pos]]$formula <- findFormula(cpdID)
+		colnames(w@specs[[pos]]$childHeaders) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
+										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
+										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
+										"mergedResultStartScanNum", "mergedResultEndScanNum")
 	} else { 
 			pos <- which(pos)
 			w@specs[[pos]]$childHeaders <- rbind(w@specs[[pos]]$childHeader,childHeader)
 			w@specs[[pos]]$childScans <- c(w@specs[[pos]]$childScans,max(w@specs[[pos]]$childScans)+1)
 			w@specs[[pos]]$peaks[[length(w@specs[[pos]]$peaks)+1]] <- handSpec
 		}
-			colnames(w@specs[[pos]]$childHeaders) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-										"mergedResultStartScanNum", "mergedResultEndScanNum")
 		return(w)
 }
 
