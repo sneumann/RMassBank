@@ -25,9 +25,10 @@
   certain cases when \code{filterSettings} is not present
   in the old settings! The default pre-recalibration cutoff
   from \code{\link{RmbDefaultSettings}} is 10000. Formerly
-  the pre-recalibration cutoff was hardcoded to be 10000
-  for positive spectra but 0 for negative spectra! Updating
-  the settings files is preferred to using the
+  the pre-recalibration cutoff was set to be 10000 for
+  positive spectra but 0 for negative spectra.
+
+  Updating the settings files is preferred to using the
   \code{updateSettings} function.
 }
 \examples{

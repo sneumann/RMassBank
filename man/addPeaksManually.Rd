@@ -11,7 +11,8 @@
   \item{cpdID}{The compoundID of the compound that has been
   used for the peaklist}
 
-  \item{handSpec}{A peaklist with 2 columns,}
+  \item{handSpec}{A peaklist with 2 columns, one with "mz",
+  one with "int"}
 
   \item{mode}{The ionization mode that has been used for
   the spectrum represented by the peaklist}
@@ -26,7 +27,7 @@
 \examples{
 \dontrun{
 		handSpec <- cbind(mz=c(274.986685367956, 259.012401087427, 95.9493025990907, 96.9573002472772),
-                               intensity=c(357,761, 2821, 3446))
+                               int=c(357,761, 2821, 3446))
 		addPeaksManually(w, cpdID, handSpec)
 }
 }

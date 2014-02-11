@@ -7,9 +7,6 @@
 #' See the vignette \code{vignette("RMassBank")} for further details about the
 #' workflow.
 #' 
-#' @usage msmsRead(w, filetable = NULL, files = NULL, cpdids = NULL, 
-#'					readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
-#'					Args, settings = getOption("RMassBank"), progressbar = "progressBarHook")
 #' @param w A \code{msmsWorkspace} to work with.
 #' @param filetable The path to a .csv-file that contains the columns "files" and "cpdid" supplying
 #' 			the relationships between files and compound IDs. Either this or "files" need
@@ -36,6 +33,7 @@
 #' 			\code{\link{loadRmbSettings}} et al. Refer to there for specific settings.
 #' @param progressbar The progress bar callback to use. Only needed for specialized applications.
 #' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
+#' @param MSe A boolean value that determines whether the spectra were recorded using MSe or not
 #' @return The \code{msmsWorkspace} with msms-spectra read.
 #' @seealso \code{\link{msmsWorkspace-class}}, \code{\link{msmsWorkflow}}
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -43,7 +41,7 @@
 #' @export
 msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL, 
 					readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
-					Args = NULL, settings = getOption("RMassBank"), progressbar = "progressBarHook"){
+					Args = NULL, settings = getOption("RMassBank"), progressbar = "progressBarHook", MSe = FALSE){
 	
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
@@ -65,7 +63,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		}
 	} else{
 		##If a filetable is supplied read it
-		tab <- read.csv(filetable)
+		tab <- read.csv(filetable, stringsAsFactors = FALSE)
 		w@files <- tab[,"Files"]
 		cpdids <- tab[,"ID"]
 	}
@@ -111,23 +109,39 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	
 	##Peaklist-readmethod 
 	if(readMethod == "peaklist"){
-		count <- 1
-		w@specs <-  lapply(w@files, function(fileName){
-			spec <- addpeaksmanually(files, cpdids[count], mode=mode, findPeaksArgs=Args)
-			count <<- count + 1
-			return(spec)
-		})
+		w <- createSpecsFromPeaklists(w, cpdids, dirnames=w@files, mode=mode)
+		names(w@specs) <- basename(as.character(w@files))
 		return(w)
 	}
 	
 	##xcms-readmethod 
 	if(readMethod == "xcms"){
+		ufiles <- unique(w@files)
 		count <- 1
-		w@specs <-  lapply(w@files, function(fileName){
-			spec <- findMsMsHRperxcms.direct(fileName, cpdids[count], mode=mode, findPeaksArgs=Args)
-			count <<- count + 1
-			return(spec)
-		})
+		if(length(ufiles) == length(w@files)){
+			w@specs <-  lapply(w@files, function(fileName){
+				spec <- findMsMsHRperxcms.direct(fileName, cpdids[count], mode=mode, findPeaksArgs=Args)
+				count <<- count + 1
+				return(unlist(spec,recursive=FALSE))
+			})
+			names(w@specs) <- basename(as.character(w@files))
+		} else{ ##Routine for the case of multiple cpdIDs per file
+			w@specs <- list()
+			FNames <-vector()
+			for(i in 1:length(ufiles)){ ##Create list
+				FileIDs <- cpdids[which(w@files == ufiles[i])]
+				metaSpec <- findMsMsHRperxcms.direct(ufiles[i], FileIDs, mode=mode, findPeaksArgs=Args, MSe = MSe)
+				for(j in 1:length(FileIDs)){
+					w@specs[[length(w@specs)+1]] <- metaSpec[[j]]
+				}
+				##Make up mock filenames(Because the list is named after files and there are files double)
+				nFiles <- length(FileIDs)
+				for(n in 1:nFiles){
+					FNames <- c(FNames,paste(ufiles[i],"_",FileIDs[n],sep=""))
+				}
+			}
+			names(w@specs) <- basename(as.character(FNames))
+		}
 		return(w)
 	}
 }

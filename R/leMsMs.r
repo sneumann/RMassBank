@@ -39,11 +39,6 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' See the vignette \code{vignette("RMassBank")} for further details about the
 #' workflow.
 #' 
-#' @usage msmsWorkflow(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-#' 		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NA, plots = FALSE,
-#' 		precursorscan.cf = FALSE,
-#' 		settings = getOption("RMassBank"), analyzeMethod = "formula",
-#' 		progressbar = "progressBarHook")
 #' @param w A \code{msmsWorkspace} to work with.
 #' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
@@ -72,6 +67,7 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @param analyzeMethod The "method" parameter to pass to \code{\link{analyzeMsMs}}.
 #' @param progressbar The progress bar callback to use. Only needed for specialized applications.
 #' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
+#' @param MSe A boolean value that determines whether the spectra were recorded using MSe or not
 #' @return The processed \code{msmsWorkspace}.
 #' @seealso \code{\link{msmsWorkspace-class}}
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -143,6 +139,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 			}
 			w@specs[[i]] <- unlist(specs,recursive=FALSE)
 		}
+		w@specs <- unlist(w@specs, recursive=FALSE)
 		names(w@specs) <- basename(as.character(w@files))
 	}
 	
