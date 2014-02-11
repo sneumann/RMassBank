@@ -15,7 +15,7 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 		is a low-level function which uses the mass directly for lookup and is intended for
 #' 		use as a standalone function in unrelated applications.
 #' 
-#' @usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
+#' @Usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
 #' 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
 #' 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
 #' 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
@@ -529,7 +529,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 									"mergedResultStartScanNum", "mergedResultEndScanNum")
         if (is.na(ret$parentHeader[1,"retentionTime"])) {
           ## Overwrite MS1 RT with average from MS2 
-          ret$parentHeader[1,"retentionTime"] <- median(ret$childHeader[which(ret$childHeader[,"retentionTime"] != 0), "retentionTime"])
+          ret$parentHeader[1,"retentionTime"] <- median(ret$childHeaders[which(ret$childHeaders[,"retentionTime"] != 0), "retentionTime"])
         }
 	
 	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
@@ -622,7 +622,7 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 										"mergedResultStartScanNum", "mergedResultEndScanNum")
 	} else { 
 			pos <- which(pos)
-			w@specs[[pos]]$childHeaders <- rbind(w@specs[[pos]]$childHeader,childHeader)
+			w@specs[[pos]]$childHeaders <- rbind(w@specs[[pos]]$childHeaders,childHeader)
 			w@specs[[pos]]$childScans <- c(w@specs[[pos]]$childScans,max(w@specs[[pos]]$childScans)+1)
 			w@specs[[pos]]$peaks[[length(w@specs[[pos]]$peaks)+1]] <- handSpec
 		}
