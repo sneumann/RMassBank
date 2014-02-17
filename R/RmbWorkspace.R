@@ -235,16 +235,35 @@ setMethod("show", "msmsWorkspace",
 			cat(" with files: \n")
 			sapply(basename(object@files), function(x) cat("  -", x, "\n"))
                         ## msmsWorkflow: Step 1. Get peaks ?
+						numspecs <- 0
                         dummy <- sapply(object@specs, function(x) cat(" -", x$id, "\t foundOK:", x$foundOK, "\n"))
                         cat("Peaks found:\n")
-                        dummy <- sapply(object@specs, function(x) cat(" -", x$id, "\t peaks:",
-                                                                      sapply(x$peaks, nrow), "\n"))
+						ids <- vector()
+                        dummy1 <- sapply(object@specs, function(x) {
+							cat(" -", x$id, "\t peaks:",
+                            sapply(x$peaks, nrow), "\n")
+							ids <<- c(ids, x$id)
+							numspecs <<- numspecs + 1
+							return(sapply(x$peaks, nrow))
+						})
 																	  
                         ## msmsWorkflow: Step 2. First analysis pre recalibration
                         cat("Peaks annotated after Step 2:\n")
-                        dummy <- sapply(object@analyzedSpecs, function(x) cat(" -", x$id, "\t peaks:",
-                                                                      sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))), "\n"))
-                        
+                        dummy2 <- sapply(object@analyzedSpecs, function(x) {
+							cat(" -", x$id, "\t peaks:",
+                            sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))), "\n")
+							return(sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))))
+						})
+						
+						PeakMat <- matrix(dummy1-dummy2,numspecs,numspecs)
+						
+						tempids <- ids
+                        cat("Peaks Missing:\n")
+						sapply(split(PeakMat, rep(1:nrow(PeakMat), each = ncol(PeakMat))), function(x){
+							cat(" -", tempids[1], "\t number of peaks subtracted:", x, "\n")
+							tempids <<- tempids[-1]
+						})
+						
                         ## msmsWorkflow: Step 3. Aggregate all spectra
 						cat("Peaks aggregated after Step 3:\n")
 						cat("Matched Peaks:\n")
@@ -273,12 +292,29 @@ setMethod("show", "msmsWorkspace",
 						cat("Peaks found after Step 4:\n")
 						dummy <- sapply(object@recalibratedSpecs, function(x) cat(" -", x$id, "\t foundOK:", x$foundOK, "\n"))
                         cat("Peaks found:\n")
-                        dummy <- sapply(object@recalibratedSpecs, function(x) cat(" -", x$id, "\t peaks:",
-                                                                      sapply(x$peaks, nrow), "\n"))
+                        dummy4 <- sapply(object@recalibratedSpecs, function(x){ 
+																	cat(" -", x$id, "\t peaks:",
+																		sapply(x$peaks, nrow), "\n")
+																		return(sapply(x$peaks, nrow))
+																	})
+						
                         ## msmsWorkflow: Step 5. Reanalyze recalibrated spectra
 						cat("Peaks found after Step 5:\n")
-                        dummy <- sapply(object@analyzedRcSpecs, function(x) cat(" -", x$id, "\t peaks:",
-                                                                      sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))), "\n"))
+                        dummy5 <- sapply(object@analyzedRcSpecs, function(x){
+																	cat(" -", x$id, "\t peaks:",
+                                                                    sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))), "\n")
+																	return(sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))))
+																})
+																
+						PeakMat <- matrix(dummy4-dummy5,numspecs,numspecs)
+						
+						tempids <- ids
+                        cat("Peaks Missing in reanalyzed recalibrated peaks:\n")
+						sapply(split(PeakMat, rep(1:nrow(PeakMat), each = ncol(PeakMat))), function(x){
+							cat(" -", tempids[1], "\t number of peaks subtracted:", x, "\n")
+							tempids <<- tempids[-1]
+						})
+						
                         ## msmsWorkflow: Step 6. Aggregate recalibrated results
 						cat("Peaks found after Step 6:\n")
 						cat("Matched Peaks:\n")
