@@ -1,0 +1,35 @@
+\name{plotMbWorkspaces}
+\alias{plotMbWorkspaces}
+\title{Plots mbWorkspaces}
+\usage{
+  plotMbWorkspaces(w1, w2 = NULL)
+}
+\arguments{
+  \item{w1}{The \code{mbWorkspace} to be plotted}
+
+  \item{w2}{Another optional \code{mbWorkspace} be plotted
+  as a reference.}
+}
+\value{
+  A logical indicating whether the information was plotted
+  or not
+}
+\description{
+  Plots the peaks of one or two \code{mbWorkspace} to
+  compare them.
+}
+\details{
+  This functions plots one or two \code{mbWorkspace}s in
+  case the use has used different methods to acquire
+  similar spectra. \code{w1} must always be supplied, while
+  \code{w2} is optional. The wokspaces need to be fully
+  processed for this function to work.
+}
+\examples{
+#
+\dontrun{plotMbWorkspaces(w1,w2)}
+}
+\author{
+  Erik Mueller
+}
+
