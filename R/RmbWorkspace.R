@@ -258,9 +258,9 @@ setMethod("show", "msmsWorkspace",
 						PeakMat <- matrix(dummy1-dummy2,numspecs,numspecs)
 						
 						tempids <- ids
-                        cat("Peaks Missing:\n")
+                        cat("Peaks without annotation:\n")
 						sapply(split(PeakMat, rep(1:nrow(PeakMat), each = ncol(PeakMat))), function(x){
-							cat(" -", tempids[1], "\t number of peaks subtracted:", x, "\n")
+							cat(" -", tempids[1], "\t number of peaks filtered:", x, "\n")
 							tempids <<- tempids[-1]
 						})
 						
@@ -309,9 +309,9 @@ setMethod("show", "msmsWorkspace",
 						PeakMat <- matrix(dummy4-dummy5,numspecs,numspecs)
 						
 						tempids <- ids
-                        cat("Peaks Missing in reanalyzed recalibrated peaks:\n")
+                        cat("Peaks without annotation in reanalyzed recalibrated peaks:\n")
 						sapply(split(PeakMat, rep(1:nrow(PeakMat), each = ncol(PeakMat))), function(x){
-							cat(" -", tempids[1], "\t number of peaks subtracted:", x, "\n")
+							cat(" -", tempids[1], "\t number of peaks filtered:", x, "\n")
 							tempids <<- tempids[-1]
 						})
 						
