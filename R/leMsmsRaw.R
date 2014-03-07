@@ -331,8 +331,8 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
                 }
 		
 		for(i in 1:length(xrs)){
-			peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
-			#devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
+			##peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
+			devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
 			
 					if (nrow(peaks(xsmsms[[i]])) == 0) {
 					  spectra[[i]] <- matrix(0,2,7)
@@ -663,4 +663,60 @@ addMB <- function(w, cpdID, fileName, mode){
 	peaklist[[1]] <- mb@compiled_ok[[1]][["PK$PEAK"]][,1:2]
 	w <- addPeaksManually(w, cpdID, peaklist[[1]], mode)
 	return(w)
+}
+
+
+#####
+#####Should the following function be exported or not? I guess you could, but then again, 
+#####its purpose is very specific and there is much room to misunderstand it.
+#####
+
+#' Concatenation of raw spectra in msmsWorkspace
+#' 
+#' Concatenates the (at)specs spectra of msmsWorkspace according to cpdIDs
+#'
+#' @usage c.msmsWSspecs(w1, w2)
+#' @param w1,w2 The msmsWorkspaces of which the spectra should be concatenated
+#' @return The \code{msmsWorkspace} with the spectra of two workspaces concatenated into one. Please note that the spectra from w2 will be concatenated to w1 and not vice versa.
+#' @seealso \code{\link{addPeaksManually}}
+#' @author Erik Mueller
+#' @examples \dontrun{
+#' 		c.msmsWSspecs(w1,w2)
+#' }
+#'export
+c.msmsWSspecs <- function(w1 = NA, w2 = NA){
+
+	if(class(w1) != "msmsWorkspace" || class(w2) != "msmsWorkspace"){
+		stop("At least one of the supplied arguments is not of the msmsWorkspace class.") 
+	}
+	
+	cpdIDsw1 <- sapply(w1@specs, function(x) x$id)
+	cpdIDsw2 <- sapply(w2@specs, function(x) x$id)
+	
+	for(i in 1:length(cpdIDsw2)){
+		if(any(cpdIDsw2[i] == cpdIDsw1)){
+			index <- which(cpdIDsw2[i] == cpdIDsw1)
+			w1@specs[[index]]$peaks <- c(w1@specs[[index]]$peaks,w2@specs[[i]]$peaks)
+			w1@specs[[index]]$childScans <- c(w1@specs[[index]]$childScans,w2@specs[[i]]$childScans)
+			w1@specs[[index]]$childHeaders <- rbind(w1@specs[[index]]$childHeaders, w2@specs[[i]]$childHeaders)
+			
+			##Fake seqNums and/or acquisitionNums if the concatenation has doubled some of them
+			
+			seqNums <- w1@specs[[index]]$childHeaders[,"seqNum"]
+			if(length(seqNums) != length(unique(seqNums))){
+				w1@specs[[index]]$childHeaders[,"seqNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+			}
+			
+			
+			acqNums <- w1@specs[[index]]$childHeaders[,"acquisitionNum"]
+			if(length(acqNums) != length(unique(acqNums))){
+				w1@specs[[index]]$childHeaders[,"acquisitionNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+			}	
+		}
+		
+		if(all(cpdIDsw2[i] != cpdIDsw1)){
+			w1@specs[[length(w1@specs) + 1]] <- w2@specs[[i]]
+		}
+	}
+	return(w1)
 }
