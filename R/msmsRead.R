@@ -57,7 +57,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		if(is.null(cpdids)){
 			splitfn <- strsplit(files,"_")
 			splitsfn <- sapply(splitfn, function(x) x[length(x)-1])
-			if(suppressWarnings(is.na(as.numeric(splitsfn))))
+			if(suppressWarnings(any(is.na(as.numeric(splitsfn)[1]))))
 				stop("Please supply the cpdids corresponding to the files in the filetable or the filenames")
 			cpdids <- splitsfn
 		}
@@ -78,14 +78,14 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(!all(file.exists(w@files))){
 		stop("The supplied files don't exist")
 	}
-	
-	##Progressbar
-	nLen <- length(w@files)
-	nProg <- 0
-	pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 
 	##This should work
 	if(readMethod == "mzR"){
+		##Progressbar
+		nLen <- length(w@files)
+		nProg <- 0
+		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
+		
 		count <- 1
 		w@specs <-  lapply(w@files, function(fileName){
 			spec <- findMsMsHR(fileName, cpdids[count], mode, confirmMode, useRtLimit,
