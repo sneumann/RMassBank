@@ -298,7 +298,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	##
 	## MSMS
 	##
-	xrmsms <- xcmsRaw(fileName, includeMSn=TRUE)
+	suppressWarnings(xrmsms <- xcmsRaw(fileName, includeMSn=TRUE))
 	
 	## Where is the wanted isolation ?
 	##precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
@@ -312,7 +312,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		xrs[[1]] <- xrmsms
 	}
 	## Fake s simplistic xcmsSet
-	setReplicate <- xcmsSet(files=fileName, method="MS1")
+	suppressWarnings(setReplicate <- xcmsSet(files=fileName, method="MS1"))
 	xsmsms <- as.list(replicate(length(xrs),setReplicate))
 	candidates <- list()
 	anmsms <- list()
@@ -705,13 +705,14 @@ c.msmsWSspecs <- function(w1 = NA, w2 = NA){
 			seqNums <- w1@specs[[index]]$childHeaders[,"seqNum"]
 			if(length(seqNums) != length(unique(seqNums))){
 				w1@specs[[index]]$childHeaders[,"seqNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+				w1@specs[[index]]$childScans <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
 			}
 			
 			
 			acqNums <- w1@specs[[index]]$childHeaders[,"acquisitionNum"]
 			if(length(acqNums) != length(unique(acqNums))){
 				w1@specs[[index]]$childHeaders[,"acquisitionNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-			}	
+			}		
 		}
 		
 		if(all(cpdIDsw2[i] != cpdIDsw1)){
