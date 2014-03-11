@@ -57,7 +57,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		if(is.null(cpdids)){
 			splitfn <- strsplit(files,"_")
 			splitsfn <- sapply(splitfn, function(x) x[length(x)-1])
-			if(suppressWarnings(!is.na(as.numeric(splitsfn))))
+			if(suppressWarnings(any(is.na(as.numeric(splitsfn)[1]))))
 				stop("Please supply the cpdids corresponding to the files in the filetable or the filenames")
 			cpdids <- splitsfn
 		}
@@ -78,14 +78,14 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(!all(file.exists(w@files))){
 		stop("The supplied files don't exist")
 	}
-	
-	##Progressbar
-	nLen <- length(w@files)
-	nProg <- 0
-	pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 
 	##This should work
 	if(readMethod == "mzR"){
+		##Progressbar
+		nLen <- length(w@files)
+		nProg <- 0
+		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
+		
 		count <- 1
 		w@specs <-  lapply(w@files, function(fileName){
 			spec <- findMsMsHR(fileName, cpdids[count], mode, confirmMode, useRtLimit,
@@ -117,31 +117,39 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	##xcms-readmethod 
 	if(readMethod == "xcms"){
 		ufiles <- unique(w@files)
-		count <- 1
-		if(length(ufiles) == length(w@files)){
-			w@specs <-  lapply(w@files, function(fileName){
-				spec <- findMsMsHRperxcms.direct(fileName, cpdids[count], mode=mode, findPeaksArgs=Args)
-				count <<- count + 1
-				return(unlist(spec,recursive=FALSE))
-			})
-			names(w@specs) <- basename(as.character(w@files))
-		} else{ ##Routine for the case of multiple cpdIDs per file
-			w@specs <- list()
-			FNames <-vector()
+		uIDs <- unique(cpdids)
+		##Routine for the case of multiple cpdIDs per file and multiple files per cpdID
+		dummySpecs <- list()
+		w@specs <- list()
 			for(i in 1:length(ufiles)){ ##Create list
+				dummySpecs[[i]] <- newMsmsWorkspace()
+				dummySpecs[[i]]@specs <- list()
 				FileIDs <- cpdids[which(w@files == ufiles[i])]
 				metaSpec <- findMsMsHRperxcms.direct(ufiles[i], FileIDs, mode=mode, findPeaksArgs=Args, MSe = MSe)
 				for(j in 1:length(FileIDs)){
-					w@specs[[length(w@specs)+1]] <- metaSpec[[j]]
+					dummySpecs[[i]]@specs[[length(dummySpecs[[i]]@specs)+1]] <- metaSpec[[j]]
 				}
-				##Make up mock filenames(Because the list is named after files and there are files double)
-				nFiles <- length(FileIDs)
-				for(n in 1:nFiles){
-					FNames <- c(FNames,paste(ufiles[i],"_",FileIDs[n],sep=""))
+
+			}
+			
+			if(length(dummySpecs) > 1){
+				for(j in 2:length(dummySpecs)){
+					dummySpecs[[1]] <- c.msmsWSspecs(dummySpecs[[1]],dummySpecs[[j]])
 				}
 			}
+			
+			##You need as many names as there were different IDs
+			##And the Names and IDs have to go together in some way
+			##Find out Names that make sense: (cpdID with Name of File that uses cpdID)
+			FNames <- vector()
+			for(i in uIDs){
+				nindex <- min(which(i == cpdids))
+				FNames <- c(FNames,paste(w@files[nindex],"_",cpdids[nindex],sep=""))
+			}
+			
+			w@specs <- dummySpecs[[1]]@specs
 			names(w@specs) <- basename(as.character(FNames))
-		}
-		return(w)
+			w@files <- basename(as.character(FNames))
+			return(w)
 	}
 }
