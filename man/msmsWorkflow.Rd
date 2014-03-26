@@ -2,11 +2,14 @@
 \alias{msmsWorkflow}
 \title{RMassBank mass spectrometry pipeline}
 \usage{
-  msmsWorkflow(w, mode="pH", steps=c(1:8), confirmMode =
-    FALSE, newRecalibration = TRUE, useRtLimit = TRUE,
-    archivename=NA, readMethod = "mzR", precursorscan.cf =
-    FALSE, settings = getOption("RMassBank"), analyzeMethod
-    = "formula", progressbar = "progressBarHook")
+  msmsWorkflow(w, mode = "pH", steps = c(1:8),
+    confirmMode = FALSE, newRecalibration = TRUE,
+    useRtLimit = TRUE, archivename = NA,
+    readMethod = "mzR", findPeaksArgs = NULL,
+    plots = FALSE, precursorscan.cf = FALSE,
+    settings = getOption("RMassBank"),
+    analyzeMethod = "formula",
+    progressbar = "progressBarHook", MSe = FALSE)
 }
 \arguments{
   \item{w}{A \code{msmsWorkspace} to work with.}
@@ -34,16 +37,25 @@
   analyzed result files.}
 
   \item{readMethod}{Several methods are available to get
-  peak lists from the input files.  Currently supported are
-  "mzR" and "peaklist".  "mzR" reads MS/MS raw data. An
-  alternative raw data reader "xcms" is not yet released.
-  "peaklist" reads a CSV with two columns and the column
-  header "mz", "int".}
+  peak lists from the files.  Currently supported are
+  "mzR", "xcms", "MassBank" and "peaklist".  The first two
+  read MS/MS raw data, and differ in the strategy used to
+  extract peaks. MassBank will read existing records, so
+  that e.g. a recalibration can be performed, and
+  "peaklist" just requires a CSV with two columns and the
+  column header "mz", "int".}
 
-  \item{precursorscan.cf}{Whether to fill precursor scan
-  entries (cf = carry forward). To be used with files which
-  for some reasons do not contain precursor scan IDs in the
-  mzML, e.g. AB Sciex converted files.}
+  \item{findPeaksArgs}{A list of arguments that will be
+  handed to the xcms-method findPeaks via do.call}
+
+  \item{plots}{A parameter that determines whether the
+  spectra should be plotted or not (This parameter is only
+  used for the xcms-method)}
+
+  \item{precursorscan.cf}{Whether to fill precursor scans.
+  To be used with files which for some reasons do not
+  contain precursor scan IDs in the mzML, e.g. AB Sciex
+  converted files.}
 
   \item{settings}{Options to be used for processing.
   Defaults to the options loaded via
@@ -57,6 +69,9 @@
   needed for specialized applications.  Cf. the
   documentation of \code{\link{progressBarHook}} for
   usage.}
+
+  \item{MSe}{A boolean value that determines whether the
+  spectra were recorded using MSe or not}
 }
 \value{
   The processed \code{msmsWorkspace}.

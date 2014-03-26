@@ -1,0 +1,41 @@
+\name{toRMB}
+\alias{toRMB}
+\title{Conversion of XCMS-pseudospectra into RMassBank-spectra}
+\usage{
+  toRMB(msmsXCMSspecs, cpdID, mode, MS1spec)
+}
+\arguments{
+  \item{msmsXCMSspecs}{The compoundID of the compound that
+  has been used for the peaklist}
+
+  \item{cpdID}{The compound ID of the substance of the
+  given spectrum}
+
+  \item{mode}{The ionization mode that has been used for
+  the spectrum}
+
+  \item{MS1spec}{The MS1-spectrum from XCMS, which can be
+  optionally supplied}
+}
+\value{
+  One list element of the (at)specs-entry from an
+  msmsWorkspace
+}
+\description{
+  Converts a pseudospectrum extracted from XCMS using
+  CAMERA into the msmsWorkspace(at)specs-format that
+  RMassBank uses
+}
+\examples{
+\dontrun{
+		XCMSpspectra <- findmsmsHRperxcms.direct("Glucolesquerellin_2184_1.mzdata", 2184)
+     wspecs <- toRMB(XCMSpspectra)
+}
+}
+\author{
+  Erik Mueller
+}
+\seealso{
+  \code{\link{msmsWorkspace-class}}
+}
+

@@ -1,35 +1,50 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 1.5.1
-Authors@R: c( person(given = "RMassBank at Eawag", email =
-        "massbank@eawag.ch", role=c("cre")), person(given = "Michael
-        A.", family = "Stravs", email = "michael.stravs@eawag.ch",
-        role=c("aut")), person(given = "Emma L.", family =
-        "Schymanski", email = "emma.schymanski@eawag.ch",
-        role=c("aut")), person(given = "Steffen", family = "Neumann",
-        role = "aut", email = "sneumann@ipb-halle.de"), person(given =
-        "Erik", family = "Muller", role = "aut", email =
-        "erik.mueller@student.uni-halle.de"), person(given = "Tobias",
-        family = "Schulze", role = "ctb", email =
-        "tobias.schulze@ufz.de") )
-Author: Michael Stravs, Emma Schymanski, Steffen Neumann, Erik Mueller,
-        with contributions from Tobias Schulze
+Version: 1.5.2
+Authors@R: c(
+    person(given = "RMassBank at Eawag", email = "massbank@eawag.ch",
+    role=c("cre")),
+    person(given = "Michael A.", family = "Stravs", email =
+    "michael.stravs@eawag.ch", role=c("aut")), person(given = "Emma L.",
+    family = "Schymanski", email = "emma.schymanski@eawag.ch", role=c("aut")),
+    person(given = "Steffen", family = "Neumann", role = "aut", email =
+    "sneumann@ipb-halle.de"), person(given = "Erik", family = "Muller", role =
+    "aut", email = "erik.mueller@student.uni-halle.de"), person(given =
+    "Tobias", family = "Schulze", role = "ctb", email =
+    "tobias.schulze@ufz.de") )
+Author: Michael Stravs, Emma Schymanski, Steffen Neumann, Erik Mueller, with
+    contributions from Tobias Schulze
 Maintainer: RMassBank at Eawag <massbank@eawag.ch>
-Description: Workflow to process tandem MS files and build MassBank
-        records. Functions include automated extraction of tandem MS
-        spectra, formula assignment to tandem MS fragments,
-        recalibration of tandem MS spectra with assigned fragments,
-        spectrum cleanup, automated retrieval of compound information
-        from Internet databases, and export to MassBank records.
+Description: Workflow to process tandem MS files and build MassBank records.
+    Functions include automated extraction of tandem MS spectra, formula
+    assignment to tandem MS fragments, recalibration of tandem MS spectra with
+    assigned fragments, spectrum cleanup, automated retrieval of compound
+    information from Internet databases, and export to MassBank records.
 License: Artistic-2.0
 SystemRequirements: OpenBabel
-Depends: mzR,rcdk,yaml,methods
-Imports: XML,RCurl,rjson
-Suggests: gplots,RMassBankData, xcms (>= 1.37.1), CAMERA, ontoCAT,
-        RUnit
-Collate: 'createMassBank.R' 'formulaCalculator.R' 'leCsvAccess.R'
-        'leMsMs.r' 'leMsmsRaw.R' 'settings_example.R' 'webAccess.R'
-        'deprofile.R' 'parseMassBank.R' 'RmbWorkspace.R'
-        'validateMassBank.R' 'zzz.R' 'tools.R'
-biocViews: MassSpectrometry, Metabolomics, Software
+biocViews: Bioinformatics, MassSpectrometry, Metabolomics, Software
+Depends: Rcpp
+Imports:
+    XML,RCurl,rjson, rcdk,yaml,mzR,methods
+Suggests:
+    gplots,RMassBankData,
+    xcms (>= 1.37.1),
+    CAMERA,
+    ontoCAT,
+    RUnit
+Collate:
+    'createMassBank.R'
+    'formulaCalculator.R'
+    'leCsvAccess.R'
+    'leMsMs.r'
+    'leMsmsRaw.R'
+    'settings_example.R'
+    'webAccess.R'
+    'deprofile.R'
+    'parseMassBank.R'
+    'RmbWorkspace.R'
+    'validateMassBank.R'
+    'zzz.R'
+    'tools.R'
+    'msmsRead.R'

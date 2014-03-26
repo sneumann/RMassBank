@@ -39,11 +39,6 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' See the vignette \code{vignette("RMassBank")} for further details about the
 #' workflow.
 #' 
-#' @usage msmsWorkflow(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-#' 		useRtLimit = TRUE, archivename=NA, readMethod = "mzR",
-#' 		precursorscan.cf = FALSE,
-#' 		settings = getOption("RMassBank"), analyzeMethod = "formula",
-#' 		progressbar = "progressBarHook")
 #' @param w A \code{msmsWorkspace} to work with.
 #' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
@@ -56,11 +51,15 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' 			to reuse the currently stored curve (\code{FALSE}, useful e.g. for adduct-processing runs.) 
 #' @param useRtLimit Whether to enforce the given retention time window.
 #' @param archivename The prefix under which to store the analyzed result files.
-#' @param readMethod Several methods are available to get peak lists from the input files.
-#'        Currently supported are "mzR" and "peaklist".
-#'        "mzR" reads MS/MS raw data. An alternative raw data reader "xcms" is not yet released.
-#' 				"peaklist" reads a CSV with two columns and the column header "mz", "int".
-#' @param precursorscan.cf Whether to fill precursor scan entries (cf = carry forward). To be used with files which for
+#' @param readMethod Several methods are available to get peak lists from the files.
+#'        Currently supported are "mzR", "xcms", "MassBank" and "peaklist".
+#'        The first two read MS/MS raw data, and differ in the strategy 
+#'        used to extract peaks. MassBank will read existing records, 
+#'        so that e.g. a recalibration can be performed, and "peaklist" 
+#'        just requires a CSV with two columns and the column header "mz", "int".
+#' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
+#' @param plots A parameter that determines whether the spectra should be plotted or not (This parameter is only used for the xcms-method)
+#' @param precursorscan.cf Whether to fill precursor scans. To be used with files which for
 #' 		some reasons do not contain precursor scan IDs in the mzML, e.g. AB Sciex converted
 #' 		files.
 #' @param settings Options to be used for processing. Defaults to the options loaded via
@@ -68,15 +67,16 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @param analyzeMethod The "method" parameter to pass to \code{\link{analyzeMsMs}}.
 #' @param progressbar The progress bar callback to use. Only needed for specialized applications.
 #' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
+#' @param MSe A boolean value that determines whether the spectra were recorded using MSe or not
 #' @return The processed \code{msmsWorkspace}.
 #' @seealso \code{\link{msmsWorkspace-class}}
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export
 msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-		useRtLimit = TRUE, archivename=NA, readMethod = "mzR",
+		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NULL, plots = FALSE,
 		precursorscan.cf = FALSE,
 		settings = getOption("RMassBank"), analyzeMethod = "formula",
-		progressbar = "progressBarHook")
+		progressbar = "progressBarHook", MSe = FALSE)
 {
     .checkMbSettings()
     
@@ -120,28 +120,29 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		do.call(progressbar, list(object=pb, close=TRUE))
 	}
 	
-#	if(readMethod == "xcms"){
-#		splitfn <- strsplit(w@files,'_')
-#		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[length(splitted)-1]))})
-#		files <- list()
-#		wfiles <- vector()
-#			for(i in 1:length(unique(cpdIDs))) {
-#			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
-#			files[[i]] <- w@files[indices]
-#		}
-#		
-#		w@files <- sapply(files,function(files){return(files[1])})
-#		
-#		for(i in 1:length(unique(cpdIDs))){
-#			specs <- list()
-#			for(j in 1:length(files[[i]])){
-#				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs, plots)	
-#			}
-#			w@specs[[i]] <- toRMB(unlist(specs, recursive = FALSE), unique(cpdIDs)[i], mode=mode)
-#		}
-#		names(w@specs) <- basename(as.character(w@files))
-#	}
-#	
+	if(readMethod == "xcms"){
+		splitfn <- strsplit(w@files,'_')
+		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[length(splitted)-1]))})
+		files <- list()
+		wfiles <- vector()
+			for(i in 1:length(unique(cpdIDs))) {
+			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
+			files[[i]] <- w@files[indices]
+		}
+		
+		w@files <- sapply(files,function(files){return(files[1])})
+		
+		for(i in 1:length(unique(cpdIDs))){
+			specs <- list()
+			for(j in 1:length(files[[i]])){
+				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs, plots, MSe=MSe)
+			}
+			w@specs[[i]] <- unlist(specs,recursive=FALSE)
+		}
+		w@specs <- unlist(w@specs, recursive=FALSE)
+		names(w@specs) <- basename(as.character(w@files))
+	}
+	
 	##if(readMethod == "MassBank"){
 	##	for(i in 1:length(w@files)){
 	##		w <- addMB(w, w@files[i], mode)
@@ -264,11 +265,16 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(8 %in% steps)
   {
 	message("msmsWorkflow: Step 8. Peak multiplicity filtering")
-    # apply heuristic filter
-    w@refilteredRcSpecs <- filterMultiplicity(
+    if (is.null(settings$multiplicityFilter)) {
+      message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
+    } else {
+      # apply heuristic filter      
+      w@refilteredRcSpecs <- filterMultiplicity(
 			w@reanalyzedRcSpecs, archivename, mode, settings$multiplicityFilter )
-    if(!is.na(archivename))
-      archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
+
+      if(!is.na(archivename))
+        archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
+    }
   }
   message("msmsWorkflow: Done.")
   return(w)
@@ -456,6 +462,15 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   parentSpectrum <- msmsPeaks$parentPeak
 
 
+  # Check whether the spectra can be fitted to the spectra list correctly!
+  if(nrow(msmsPeaks$childHeaders) != length(spectraList))
+  {
+    warning(paste0(
+            "The spectra count of the substance ", msmsPeaks$id, " (", nrow(msmsPeaks$childHeaders), " spectra) doesn't match the provided spectra list (", length(spectraList), " spectra)."
+                ))
+    return(list(specOK=FALSE))
+    
+  }
   
   # On each spectrum the following function analyzeTandemShot will be applied.
   # It takes the raw peaks matrix as argument (mz, int) and processes the spectrum by
@@ -484,7 +499,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
     if(nrow(shot)==0)
       return(list(specOK=FALSE))
     
-    if(max(shot$int) < filterSettings$specOkLimit)
+    if(max(shot$int) < as.numeric(filterSettings$specOkLimit))
       return(list(specOK=FALSE))
     # Crop to 4 digits (necessary because of the recalibrated values)
     shot[,mzColname] <- round(shot[,mzColname], 5)
@@ -735,7 +750,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		if(nrow(shot)==0)
 			return(list(specOK=FALSE))
 		
-		if(max(shot$int) < filterSettings$specOkLimit)
+		if(max(shot$int) < as.numeric(filterSettings$specOkLimit))
 			return(list(specOK=FALSE))
 		# Crop to 4 digits (necessary because of the recalibrated values)
 		shot[,mzColname] <- round(shot[,mzColname], 5)
