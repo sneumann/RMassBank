@@ -623,9 +623,12 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 	} else { 
 			pos <- which(pos)
 			w@specs[[pos]]$childHeaders <- rbind(w@specs[[pos]]$childHeaders,childHeader)
+			w@specs[[pos]]$childHeaders[,1] <- 2:(nrow(w@specs[[pos]]$childHeaders)+1)
+			w@specs[[pos]]$childHeaders[,2] <- w@specs[[pos]]$childHeaders[,1]
 			w@specs[[pos]]$childScans <- c(w@specs[[pos]]$childScans,max(w@specs[[pos]]$childScans)+1)
 			w@specs[[pos]]$peaks[[length(w@specs[[pos]]$peaks)+1]] <- handSpec
 		}
+		
 		return(w)
 }
 
