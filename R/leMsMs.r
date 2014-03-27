@@ -158,17 +158,17 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		for(i in 1:length(unique(cpdIDs))) {
 			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
 			files[[i]] <- w@files[indices]
-			}
-			
-			peaklist <- list()
-			
-			for(i in 1:length(w@files)){
-				peaklist[[1]] <- read.csv(w@files[i], header = TRUE)
-				w <- addPeaksManually(w, cpdIDs[i], peaklist, mode=mode)
-			}
-			w@files <- sapply(files,function(files){return(files[1])})
-			names(w@specs) <- basename(as.character(w@files))
 		}
+			
+		peaklist <- list()
+			
+		for(i in 1:length(w@files)){
+			peaklist <- read.csv(w@files[i], header = TRUE)
+			w <- addPeaksManually(w, cpdIDs[i], peaklist, mode=mode)
+		}
+		w@files <- sapply(files,function(file){return(file[1])})
+		names(w@specs) <- basename(as.character(w@files))
+	}
   }
   # Step 2: first run analysis before recalibration
   if(2 %in% steps)
