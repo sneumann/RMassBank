@@ -247,7 +247,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
       archiveResults(w, paste(archivename, ".RData", sep=''), settings)
     w@aggregatedRcSpecs$peaksUnmatchedC <- 
 			cleanElnoise(w@aggregatedRcSpecs$peaksUnmatched,
-					settings$noise, settings$width)
+					settings$electronicNoise, settings$electronicNoiseWidth)
   }
   # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
   if(7 %in% steps)
