@@ -109,8 +109,24 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	
 	##Peaklist-readmethod 
 	if(readMethod == "peaklist"){
-		w <- createSpecsFromPeaklists(w, cpdids, dirnames=w@files, mode=mode)
-		names(w@specs) <- basename(as.character(w@files))
+		w <- createSpecsFromPeaklists(w, cpdids, filenames=w@files, mode=mode)
+		uIDs <- unique(cpdids)
+		files <- list()
+		
+		for(i in 1:length(uIDs)){
+			indices <- sapply(cpdids,function(a){return(uIDs[i] %in% a)})
+			files[[i]] <- w@files[indices]
+		}
+		
+		w@files <- sapply(files,function(file){return(file[1])})
+		specnames <- basename(as.character(w@files))
+		if(length(unique(specnames)) == length(specnames)){
+			names(w@specs) <- basename(as.character(w@files))
+		} else {
+			for(i in 1:length(specnames)){
+				specnames[i] <- paste(i,"_",specnames[i],sep="")
+			}
+		}
 		return(w)
 	}
 	
