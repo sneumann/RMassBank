@@ -37,8 +37,14 @@ loadList <- function(path, listEnv = NULL)
   n <- colnames(compoundList)
   cols <- c('ID', 'Name', 'SMILES', 'RT', 'CAS')
   d <- setdiff(cols, n)
-  if(length(d)>0)
-      stop("Some columns are missing in the compound list. Needs at least ID, Name, SMILES, RT.")
+  if(length(d)>0){
+		compoundList <- read.csv2(path, stringsAsFactors=FALSE)
+		n <- colnames(compoundList)
+		d2 <- setdiff(cols, n)
+		if(length(d2) > 0){
+			stop("Some columns are missing in the compound list. Needs at least ID, Name, SMILES, RT.")
+		}
+	}
   if(length(duplicated(compoundList$cpdID)) > 0)
       stop("Duplicate compound IDs are present. Please check your list.")
   assign("listEnv", listEnv, envir=.listEnvEnv) 
