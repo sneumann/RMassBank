@@ -76,7 +76,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		stop("The supplied method does not exist")
 	}
 	if(!all(file.exists(w@files))){
-		stop("The supplied files don't exist")
+		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist")
 	}
 
 	##This should work
