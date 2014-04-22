@@ -174,11 +174,6 @@ mb <- mbWorkflow(mb, steps=1:8)
 
 \subsection{peaklist-workflow}
 
-<<<<<<< HEAD
-The peaklist-workflow works akin to the normal mzR-workflow with the only difference being that the supplied data has to be in .csv format and contain 2 columns: "mz" and "int".
-You can look at an example file in the RMassBankData-package in spectra.Glucolesquerellin. Please note that the naming of the csv has to be similar to the mzdata-files, with the only difference being the filename extension.
-The readMethod name for this is "peaklist"
-=======
 The peaklist-workflow works akin to the normal mzR-workflow with the
 only difference being, that the supplied data has to be in .csv format
 and contain 2 columns: "mz" and "int".  You can look at an example
@@ -186,7 +181,6 @@ file in the RMassBankData-package in spectra.Glucolesquerellin. Please
 note that the naming of the csv has to be similar to the mzdata-files,
 with the only difference being the filename extension.  The readMethod
 name for this is "peaklist"
->>>>>>> 9c3d30b251405e7f267621f5309e2f5843085227
 
 <<>>=
 msmsPeaklist <- newMsmsWorkspace()

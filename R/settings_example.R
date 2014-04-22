@@ -345,6 +345,9 @@ loadRmbSettings <- function(file_or_list)
 			o$deprofile <- NA
 		if(is.null(o$babeldir))
 			o$babeldir <- NA
+		if(nchar(o$annotations$entry_prefix) != 2){
+			stop("The entry prefix must be of length 2")
+		}
 		for(name in names(o$annotations))
 		{
 			if(is.null(o$annotations[[name]]))

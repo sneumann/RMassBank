@@ -32,6 +32,8 @@ loadList <- function(path, listEnv = NULL)
 {
 	if(is.null(listEnv))
 		listEnv <- .listEnvEnv
+	if(!file.exists(path))
+		stop("The supplied file does not exist, please supply a correct path")
   compoundList <- read.csv(path, stringsAsFactors=FALSE)
   # check whether the necessary columns are present
   n <- colnames(compoundList)

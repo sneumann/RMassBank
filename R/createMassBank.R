@@ -1544,7 +1544,24 @@ addPeaks <- function(mb, filename_or_dataframe)
 		df <- filename_or_dataframe
 	else
 		df <- read.csv(filename_or_dataframe)
+	
+	cols <- c("cpdID", "scan", "mzFound", "int", "OK")
+	
+	n <- colnames(df)
+	d <- setdiff(cols, n)
+	
+	if(length(d)>0){
+		df <- read.csv2(filename_or_dataframe, stringsAsFactors=FALSE)
+		n <- colnames(df)
+		d2 <- setdiff(cols, n)
+		if(length(d2) > 0){
+			stop("Some columns are missing in the additional peak list. Needs at least cpdID, scan, mzFound, int, OK.")
+		}
+	}
+	
 	culled_df <- df[,c("cpdID", "scan", "mzFound", "int", "OK")]
+	
+	
 	if(nrow(mb@additionalPeaks) == 0)
 		mb@additionalPeaks <- culled_df
 	else
