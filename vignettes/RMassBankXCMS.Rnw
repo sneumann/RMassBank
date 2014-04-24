@@ -39,7 +39,7 @@ options(width=74)
 \section{Introduction}
 
 As the RMassBank-workflow is described in the other manual, this document mainly explains how to utilize the
-XCMS-, MassBank-, and peaklist-readMethods for step 1 of the workflow.
+XCMS-, MassBank-, and peaklist-readMethods for Step 1 of the workflow.
 
 \section{Input files}
 
@@ -56,8 +56,8 @@ In the standard workflow, the file names are used to identify a
 compound: file names must be in the format \funcarg{xxxxxxxx\_1234\_xxx.mzXML},
 where the xxx parts denote anything and the 1234 part denotes the compound ID in
 the compound list (see below). Advanced and alternative uses can be implemented;
-consult the implementation of \Rvar{msms\_workflow} and \Rvar{findMsMsHRperX.direct} for
-more information.
+consult the implementation of \Rvar{msmsRead}, \Rvar{msms\_workflow} and 
+\Rvar{findMsMsHRperX.direct} for more information.
 
 \section{Additional Workflow-Methods}
 
@@ -73,7 +73,7 @@ library(RMassBankData)
 
 In the first part of the workflow, spectra are extracted from the
 files and processed. In the following example, we will process the
-Glulesquerellin spectra from the provided files.
+Glucolesquerellin spectra from the provided files.
 
 For the workflow to work correctly, we use the default settings, and
 modify then to match the data acquisition method. The settings have to
@@ -161,7 +161,8 @@ You can of course run the rest of the workflow as usual, by - like here - settin
 
 \subsection{Export the records}
 
-To export the records from the XCMS workflow, follow the same procedure as the standard RMassBank workflow, i.e.:
+To export the records from the XCMS workflow, follow the same procedure 
+as the standard RMassBank workflow, i.e.:
 
 <<>>=
 mb <- newMbWorkspace(msmsList)
@@ -191,10 +192,7 @@ msmsPeaklist <- msmsWorkflow(msmsPeaklist, steps=1:8,
                              mode="mH", readMethod="peaklist")
 @
 
-
-
-
-
+The records can then be generated and exported with \Rfunction{mbWorkflow}.
 
 \section{Session information}
 
