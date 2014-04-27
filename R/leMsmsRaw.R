@@ -632,13 +632,10 @@ addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
 		return(w)
 }
 
-createSpecsFromPeaklists <- function(w, cpdIDs, dirnames, mode="pH"){
-	for(i in 1:length(dirnames)){
-		peakLists <- list.files(dirnames[i],full.names=TRUE)
-		for(j in 1:length(peakLists)){
-			w <- addPeaksManually(w,cpdIDs[i],as.matrix(read.csv(peakLists[j])),mode)
+createSpecsFromPeaklists <- function(w, cpdIDs, filenames, mode="pH"){
+		for(j in 1:length(filenames)){
+			w <- addPeaksManually(w,cpdIDs[j],as.matrix(read.csv(filenames[j]), header=TRUE),mode)
 		}
-	}
 	return(w)
 }
 

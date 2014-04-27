@@ -164,7 +164,6 @@ You can of course run the rest of the workflow as usual, by - like here - settin
 To export the records from the XCMS workflow, follow the same procedure 
 as the standard RMassBank workflow, i.e.:
 
-
 <<>>=
 mb <- newMbWorkspace(msmsList)
 mb <- resetInfolists(mb)
@@ -194,7 +193,6 @@ msmsPeaklist <- msmsWorkflow(msmsPeaklist, steps=1:8,
 @
 
 The records can then be generated and exported with \Rfunction{mbWorkflow}.
-
 
 \section{Session information}
 

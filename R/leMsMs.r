@@ -154,7 +154,6 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		splitfn <- strsplit(w@files,'_')
 		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[2]))})
 		files <- list()
-		wfiles <- vector()
 		for(i in 1:length(unique(cpdIDs))) {
 			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
 			files[[i]] <- w@files[indices]

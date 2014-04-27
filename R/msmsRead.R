@@ -76,7 +76,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		stop("The supplied method does not exist")
 	}
 	if(!all(file.exists(w@files))){
-		stop("The supplied files don't exist")
+		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist")
 	}
 
 	##This should work
@@ -109,28 +109,59 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	
 	##Peaklist-readmethod 
 	if(readMethod == "peaklist"){
-		w <- createSpecsFromPeaklists(w, cpdids, dirnames=w@files, mode=mode)
-		names(w@specs) <- basename(as.character(w@files))
+		w <- createSpecsFromPeaklists(w, cpdids, filenames=w@files, mode=mode)
+		uIDs <- unique(cpdids)
+		files <- list()
+		
+		for(i in 1:length(uIDs)){
+			indices <- sapply(cpdids,function(a){return(uIDs[i] %in% a)})
+			files[[i]] <- w@files[indices]
+		}
+		
+		w@files <- sapply(files,function(file){return(file[1])})
+		specnames <- basename(as.character(w@files))
+		if(length(unique(specnames)) == length(specnames)){
+			names(w@specs) <- basename(as.character(w@files))
+		} else {
+			for(i in 1:length(specnames)){
+				specnames[i] <- paste(i,"_",specnames[i],sep="")
+			}
+		}
+		names(w@specs) <- specnames
+		message("Peaks read")
 		return(w)
 	}
 	
 	##xcms-readmethod 
 	if(readMethod == "xcms"){
+		require(xcms)
+		require(CAMERA)
 		ufiles <- unique(w@files)
 		uIDs <- unique(cpdids)
 		##Routine for the case of multiple cpdIDs per file and multiple files per cpdID
 		dummySpecs <- list()
 		w@specs <- list()
-			for(i in 1:length(ufiles)){ ##Create list
-				dummySpecs[[i]] <- newMsmsWorkspace()
-				dummySpecs[[i]]@specs <- list()
-				FileIDs <- cpdids[which(w@files == ufiles[i])]
-				metaSpec <- findMsMsHRperxcms.direct(ufiles[i], FileIDs, mode=mode, findPeaksArgs=Args, MSe = MSe)
-				for(j in 1:length(FileIDs)){
-					dummySpecs[[i]]@specs[[length(dummySpecs[[i]]@specs)+1]] <- metaSpec[[j]]
-				}
-
+		
+		nLen <- length(ufiles)
+		nProg <- 0
+		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
+		i <- 1
+		dummyapply <- lapply(ufiles, function(currfile){
+			
+			dummySpecs[[i]] <<- newMsmsWorkspace()
+			dummySpecs[[i]]@specs <<- list()
+			FileIDs <<- cpdids[which(w@files == currfile)]
+			dummylinebreak <- capture.output(metaSpec <<- findMsMsHRperxcms.direct(currfile, FileIDs, mode=mode, findPeaksArgs=Args, MSe = MSe))
+			
+			for(j in 1:length(FileIDs)){
+				dummySpecs[[i]]@specs[[length(dummySpecs[[i]]@specs)+1]] <<- metaSpec[[j]]
 			}
+			
+			##Progress
+			nProg <<- nProg + 1
+			pb <- do.call(progressbar, list(object=pb, value= nProg))
+			i <<- i+1
+			})
 			
 			if(length(dummySpecs) > 1){
 				for(j in 2:length(dummySpecs)){
