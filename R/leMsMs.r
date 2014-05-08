@@ -79,7 +79,8 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		progressbar = "progressBarHook", MSe = FALSE)
 {
     .checkMbSettings()
-    
+  if(!any(mode %in% c("pH","pNa","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+  
   if(!is.na(archivename))
 	  w@archivename <- archivename
   
@@ -444,6 +445,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
         cut <- 1e4
       else if(mode %in% c("mH", "mFA","mM"))
         cut <- 0
+	  else stop(paste("The ionization mode", mode, "is unknown."))
     }
 	cutRatio <- filterSettings$prelimCutRatio
   }
@@ -701,6 +703,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 				cut <- 1e4
 			else if(mode %in% c("mH", "mFA", "mM"))
 				cut <- 0
+			else stop(paste("The ionization mode", mode, "is unknown."))
 		}
 		cutRatio <- filterSettings$prelimCutRatio
 	}
