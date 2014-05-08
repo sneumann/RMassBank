@@ -207,7 +207,7 @@ msmsRead.ticms2 <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
   
   ##Peaklist-readmethod 
   if(readMethod == "peaklist"){
-    w <- createSpecsFromPeaklists(w, cpdids, dirnames=w@files, mode=mode)
+    w <- createSpecsFromPeaklists(w, cpdids, filenames=w@files, mode=mode)
     names(w@specs) <- basename(as.character(w@files))
     return(w)
   }
