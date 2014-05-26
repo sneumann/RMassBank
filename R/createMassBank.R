@@ -690,11 +690,14 @@ readMbdata <- function(row)
               "CH$LINK.CHEMSPIDER")
   mbdata[["COMMENT"]] = list()
   mbdata[["COMMENT"]][["CONFIDENCE"]] <- row[["COMMENT.CONFIDENCE"]]
-  # Again, our ID field.
+  # Again, our ID field. 
+  
   mbdata[["COMMENT"]][["ID"]]<-
             row[["COMMENT.ID"]]
   names = c(row[["CH.NAME1"]], row[["CH.NAME2"]], row[["CH.NAME3"]])
   names = names[which(!is.na(names))]
+  
+  names <- gsub("'", "`", names) 
   mbdata[["CH$NAME"]] = names
   mbdata[["CH$COMPOUND_CLASS"]] = row[["CH.COMPOUND_CLASS"]]
   mbdata[["CH$FORMULA"]] = row[["CH.FORMULA"]]
