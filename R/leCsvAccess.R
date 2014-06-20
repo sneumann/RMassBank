@@ -115,6 +115,7 @@ getMolecule <- function(smiles)
 #' @export
 findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 {
+	if(!any(mode %in% c("pH","pNa","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
 	mzopt <- list(addition="", charge=0)
 	if(mode=="pH") mzopt <- list(addition="H", charge=1)
 	if(mode=="pNa") mzopt <- list(addition="Na", charge=1)
@@ -123,6 +124,7 @@ findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 	if(mode=="mFA") mzopt <- list(addition="C1O2", charge=-1)
 	if(mode=="mM") mzopt <- list(addition="", charge=-1)
 	if(mode=="") mzopt <- list(addition="", charge=0)
+	
 	
 	formula <- add.formula(formula, mzopt$addition)
 	formula <- get.formula(formula, charge=mzopt$charge)

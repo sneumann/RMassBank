@@ -240,7 +240,8 @@ NULL
     "pM" = 16, # [M]+: 17-30
     "pNa" = 32, # [M+Na]+: 33-46
     "mH" = 50, # [M-H]-: 51-64
-    "mFA" = 66 # [M+FA]-: 67-80
+    "mFA" = 66, # [M+FA]-: 67-80
+	"mM" = 80 # [M]-: 81-94
     ),
   # Known electronic noise peaks in the Orbitrap data
   electronicNoise = c(189.825, 201.725,196.875),
@@ -366,7 +367,7 @@ loadRmbSettings <- function(file_or_list)
 	
   }
   else
-    stop("Options incorrectly specified.")
+    stop("The file path supplied for the options does not exist.")
   
   # Settings are loaded, now check if they are up to date
   o <- getOption("RMassBank")

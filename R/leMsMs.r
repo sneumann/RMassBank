@@ -79,7 +79,8 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		progressbar = "progressBarHook", MSe = FALSE)
 {
     .checkMbSettings()
-    
+  if(!any(mode %in% c("pH","pNa","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+  
   if(!is.na(archivename))
 	  w@archivename <- archivename
   
@@ -442,8 +443,9 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
     {
       if(mode %in% c("pH", "pM", "pNa"))
         cut <- 1e4
-      else if(mode %in% c("mH", "mFA"))
+      else if(mode %in% c("mH", "mFA","mM"))
         cut <- 0
+	  else stop(paste("The ionization mode", mode, "is unknown."))
     }
 	cutRatio <- filterSettings$prelimCutRatio
   }
@@ -512,31 +514,28 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 			x1=0,x2=0,x3=0)
 	
 	# define the adduct additions
-	if(mode == "pH")
-	{
+	if(mode == "pH") {
 		allowed_additions <- "H"
 		mode.charge <- 1
-	}
-	if(mode == "pNa")
-	{
+	} else if(mode == "pNa") {
 		allowed_additions <- "Na"
 		mode.charge <- 1
-	}
-	if(mode == "pM")
-	{
+	} else if(mode == "pM") {
 		allowed_additions <- ""
 		mode.charge <- 1
-	}
-	if(mode == "mH")
-	{
+	} else if(mode == "mM") {
+		allowed_additions <- ""
+		mode.charge <- -1
+	} else if(mode == "mH") {
 		allowed_additions <- "H-1"
 		mode.charge <- -1
-	}
-	if(mode == "mFA")
-	{
+	} else if(mode == "mFA") {
 		allowed_additions <- "C2H3O2"
 		mode.charge <- -1
-	}
+	} else {
+          stop("mode = \"", mode, "\" not defined")
+        }
+    
 	
 	# the ppm range is two-sided here.
 	# The range is slightly expanded because dppm calculation of
@@ -702,8 +701,9 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		{
 			if(mode %in% c("pH", "pM", "pNa"))
 				cut <- 1e4
-			else if(mode %in% c("mH", "mFA"))
+			else if(mode %in% c("mH", "mFA", "mM"))
 				cut <- 0
+			else stop(paste("The ionization mode", mode, "is unknown."))
 		}
 		cutRatio <- filterSettings$prelimCutRatio
 	}
@@ -1598,31 +1598,27 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	#------------------------------------
 	
 	# define the adduct additions
-	if(mode == "pH")
-	{
+	if(mode == "pH") {
 		allowed_additions <- "H"
 		mode.charge <- 1
-	}
-	if(mode == "pNa")
-	{
+	} else if(mode == "pNa") {
 		allowed_additions <- "Na"
 		mode.charge <- 1
-	}
-	if(mode == "pM")
-	{
+	} else if(mode == "pM") {
 		allowed_additions <- ""
 		mode.charge <- 1
-	}
-	if(mode == "mH")
-	{
+	} else if(mode == "mM") {
+		allowed_additions <- ""
+		mode.charge <- -1
+	} else if(mode == "mH") {
 		allowed_additions <- "H-1"
 		mode.charge <- -1
-	}
-	if(mode == "mFA")
-	{
+	} else if(mode == "mFA") {
 		allowed_additions <- "C2H3O2"
 		mode.charge <- -1
-	}
+	} else {
+          stop("mode = \"", mode, "\" not defined")
+        }
 	
 	# the ppm range is two-sided here.
 	# The range is slightly expanded because dppm calculation of
