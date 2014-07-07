@@ -88,6 +88,16 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   nProg <- 0
   nLen <- length(w@files)
   
+  if(readMethod == "simple"){
+	##Edit options
+	opt <- getOption("RMassBank")
+	opt$recalibrator$MS1 <- "recalibrate.identity"
+	opt$recalibrator$MS2 <- "recalibrate.identity"
+	options(RMassBank=opt)
+	##Edit analyzemethod
+	analyzeMethod <- "intensity"
+  }
+  
   # Step 1: acquire all MSMS spectra from files
   if(1 %in% steps)
   {
@@ -151,7 +161,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	##	names(w@specs) <- basename(as.character(w@files))
 	##}
 		
-	if(readMethod == "peaklist"){
+	if((readMethod == "peaklist") || (readMethod == "simple")){
 		splitfn <- strsplit(w@files,'_')
 		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[2]))})
 		files <- list()
@@ -1739,7 +1749,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	# rename (because "formulacol" is not the actually correct name)
 	colnames(multInfo) <- c("cpdID", formulacol, "formulaMultiplicity")
 	
-	if(nrow(peaks) == 0)
+	if(!is.matrix(peaks))
 	{
 		message("filterPeaksMultiplicity: no peaks to aggregate")
 		peaks <- cbind(peaks, data.frame(formulaMultiplicity=numeric()))
