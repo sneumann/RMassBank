@@ -1749,7 +1749,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	# rename (because "formulacol" is not the actually correct name)
 	colnames(multInfo) <- c("cpdID", formulacol, "formulaMultiplicity")
 	
-	if(!is.matrix(peaks))
+	if(!is.data.frame(peaks))
 	{
 		message("filterPeaksMultiplicity: no peaks to aggregate")
 		peaks <- cbind(peaks, data.frame(formulaMultiplicity=numeric()))
