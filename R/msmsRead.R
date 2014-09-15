@@ -34,6 +34,7 @@
 #' @param progressbar The progress bar callback to use. Only needed for specialized applications.
 #' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
 #' @param MSe A boolean value that determines whether the spectra were recorded using MSe or not
+#' @param plots A boolean value that determines whether the pseudospectra in XCMS should be plotted
 #' @return The \code{msmsWorkspace} with msms-spectra read.
 #' @seealso \code{\link{msmsWorkspace-class}}, \code{\link{msmsWorkflow}}
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -41,7 +42,7 @@
 #' @export
 msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL, 
 					readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
-					Args = NULL, settings = getOption("RMassBank"), progressbar = "progressBarHook", MSe = FALSE){
+					Args = NULL, settings = getOption("RMassBank"), progressbar = "progressBarHook", MSe = FALSE, plots = FALSE){
 	
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
@@ -163,7 +164,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 			dummySpecs[[i]] <<- newMsmsWorkspace()
 			dummySpecs[[i]]@specs <<- list()
 			FileIDs <<- cpdids[which(w@files == currfile)]
-			dummylinebreak <- capture.output(metaSpec <<- findMsMsHRperxcms.direct(currfile, FileIDs, mode=mode, findPeaksArgs=Args, MSe = MSe))
+			dummylinebreak <- capture.output(metaSpec <<- findMsMsHRperxcms.direct(currfile, FileIDs, mode=mode, findPeaksArgs=Args, plots, MSe = MSe))
 			
 			for(j in 1:length(FileIDs)){
 				dummySpecs[[i]]@specs[[length(dummySpecs[[i]]@specs)+1]] <<- metaSpec[[j]]

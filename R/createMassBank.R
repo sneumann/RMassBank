@@ -53,10 +53,10 @@ loadInfolist <- function(mb, fileName)
   # Even if dbname_* are not used downstream of here, it's still good to keep them
   # for debugging reasons.
   n <- colnames(mbdata_new)
-  cols <- c("id","dbcas","dbname","dataused")
+  cols <- c("id","dbcas","dataused")
   d <- setdiff(cols, n)
   if(length(d)>0){
-		mbdata_new <- read.csv2(path, stringsAsFactors=FALSE)
+		mbdata_new <- read.csv2(fileName, stringsAsFactors=FALSE)
 		n <- colnames(mbdata_new)
 		d2 <- setdiff(cols, n)
 		if(length(d2) > 0){
