@@ -420,7 +420,7 @@ plotMbWorkspaces <- function(w1, w2=NULL){
 			lapply(x,function(y) y[['PK$PEAK']][,c("m/z","rel.int.")])
 		})
 		plot_title <- lapply(w2@compiled_ok,function(x){
-			lapply(x,function(y) y[['RECORD_TITLE']])
+			lapply(x,function(y) y[['ACCESSION']])
 		})
 	}
 	
@@ -431,7 +431,7 @@ plotMbWorkspaces <- function(w1, w2=NULL){
 	})
 	
 	plot_title <- lapply(w1@compiled_ok,function(x){
-		lapply(x,function(y) y[['RECORD_TITLE']])
+		lapply(x,function(y) y[['ACCESSION']])
 	})
 	
 	
