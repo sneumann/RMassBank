@@ -215,10 +215,13 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, confirmMode = FALS
 		stop("No cpdids supplied")
 	}
 		
-	msnExist <- which(sapply(xRAW,function(x) length(x@msnPrecursorScan) != 0))
-	if(length(msnExist) != length(xRAW)){
-		stop(paste("No msn data in list elements", diff(1:length(xRAW),msnExist)))
-	}
+	#msnExist <- which(sapply(xRAW,function(x) length(x@msnPrecursorScan) != 0))
+	#print(length(msnExist))
+	#print(length(xRAW))
+	
+	#if(length(msnExist) != length(xRAW)){
+	#	stop(paste("No msn data in list elements", setdiff(1:length(xRAW),msnExist)))
+	#}
 	
 	require(CAMERA)
 	
