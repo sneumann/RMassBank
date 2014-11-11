@@ -162,8 +162,10 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	##}
 		
 	if((readMethod == "peaklist") || (readMethod == "simple")){
-		splitfn <- strsplit(w@files,'_')
-		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[2]))})
+		splitfn <- strsplit(basename(w@files), "_")
+		cpdIDs <- sapply(splitfn, function(splitted) {
+			as.numeric(return(splitted[2]))
+		})
 		files <- list()
 		for(i in 1:length(unique(cpdIDs))) {
 			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
