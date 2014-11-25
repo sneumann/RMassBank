@@ -1563,7 +1563,7 @@ addPeaks <- function(mb, filename_or_dataframe)
 	
 	cols <- c("cpdID", "scan", "mzFound", "int", "OK")
 	
-	n <- colnames(df
+	n <- colnames(df)
 	
 	# Check if comma-separated or semicolon-separated
 	d <- setdiff(cols, n)
