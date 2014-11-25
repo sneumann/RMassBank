@@ -54,6 +54,8 @@ loadInfolist <- function(mb, fileName)
   # for debugging reasons.
   n <- colnames(mbdata_new)
   cols <- c("id","dbcas","dataused")
+  
+  # Check if comma-separated or semicolon-separated
   d <- setdiff(cols, n)
   if(length(d)>0){
 		mbdata_new <- read.csv2(fileName, stringsAsFactors=FALSE)
@@ -1561,7 +1563,9 @@ addPeaks <- function(mb, filename_or_dataframe)
 	
 	cols <- c("cpdID", "scan", "mzFound", "int", "OK")
 	
-	n <- colnames(df)
+	n <- colnames(df
+	
+	# Check if comma-separated or semicolon-separated
 	d <- setdiff(cols, n)
 	
 	if(length(d)>0){
