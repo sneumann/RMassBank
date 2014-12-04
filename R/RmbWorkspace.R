@@ -1,6 +1,9 @@
 #' @import methods
 NULL
 
+
+setClassUnion("msmsWorkspaceOrNULL", "NULL")
+
 #' Workspace for \code{msmsWorkflow} data
 #' 
 #' A workspace which stores input and output data for \code{\link{msmsWorkflow}}.
@@ -46,7 +49,7 @@ NULL
 ## ' 		peaks (after step 7, see \code{\link{reanalyzeFailpeaks}}).
 ## ' @slot refilteredRcSpecs Final data to use for MassBank record creation after 
 ## ' 		multiplicity filtering (step 8).
-#' 
+##' 
 ## ' @method show,msmsWorkflow Shows a brief summary of the object. Currently only the included files.
 #' 
 #' @seealso \code{\link{msmsWorkflow}}
@@ -55,10 +58,11 @@ NULL
 #' @docType class
 #' @exportClass msmsWorkspace
 #' @export
-setClass("msmsWorkspace",
-		representation(
+.msmsWorkspace <- setClass("msmsWorkspace",
+		representation = representation(
 				files = "character",
-				specs = "list",
+				spectra = "RmbSpectraSetList",
+				parent = "msmsWorkspaceOrNULL",
 				analyzedSpecs = "list",
 				aggregatedSpecs = "list",
 				rc = "ANY",
@@ -70,8 +74,39 @@ setClass("msmsWorkspace",
 				refilteredRcSpecs = "list",
 				archivename = "character",
 				settings = "list"
-				),
+		),
+		contains=c("Versioned"),
+		prototype = prototype(
+				new("Versioned", versions=c(msmsWorkspace = "2.0.1")),
+				parent = NULL
 		)
+)
+
+setIs("msmsWorkspace", "msmsWorkspaceOrNULL")
+
+#.msmsWorkspace <- setClass("msmsWorkspace",
+#		representation = representation(
+#				files = "character",
+#				specs = "list",
+#				analyzedSpecs = "list",
+#				aggregatedSpecs = "list",
+#				rc = "ANY",
+#				rc.ms1 = "ANY",
+#				recalibratedSpecs = "list",
+#				analyzedRcSpecs = "list",
+#				aggregatedRcSpecs = "list",
+#				reanalyzedRcSpecs = "list",
+#				refilteredRcSpecs = "list",
+#				archivename = "character",
+#				settings = "list"
+#				),
+#		contains=c("Versioned"),
+#		prototype = prototype(
+#				new("Versioned", versions=c(msmsWorkspace = "1.0.1"))
+#				)
+#		)
+		
+
 
 #' Workspace for \code{mbWorkflow} data
 #' 
@@ -159,7 +194,7 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 	load(fileName, envir=tempEnv)
 	# Look if there is a msmsWorkspace in the file
 	objs <- ls(tempEnv)
-	isWs <- unlist(lapply(objs, function(obj) "msmsWorkspace" %in% class(tempEnv[[obj]])))
+	isWs <- unlist(lapply(objs, function(obj) is(tempEnv[[obj]], "msmsWorkspace")))
 	whichWs <- match(TRUE, isWs)
 	# Found? Then just return it.
 	if(!is.na(whichWs))
@@ -169,7 +204,7 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 		if(loadSettings == FALSE)
 			w@settings <- list()
 	}
-	# Otherwise hope to load the dataset into a new workspace
+	# If there is no msmsWorkspace object in the workspace, this means that the workspace is version 1!
 	else
 	{
 		w <- new("msmsWorkspace")
@@ -188,12 +223,22 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 		for(var in dataset)
 		{
 			if(exists(var, envir=tempEnv))
-				slot(w, var) <- tempEnv[[var]]
+				slot(w, var, check=FALSE) <- tempEnv[[var]]
+			classVersion(w) <- "1.0.0"
 		}
 		# Check if settings exist...
 		if((loadSettings == TRUE) && exists("RmbSettings", envir=tempEnv))
 			w@settings <- tempEnv$RmbSettings
 	}
+	# process version updates
+	updateClass <- FALSE
+	if(!isVersioned(w)) updateClass <- TRUE
+	else if(!all(isCurrent(w))) updateClass <- TRUE
+	if(updateClass)
+	{
+		w <- updateObject(w)
+	}
+	
 	# If loadSettings is set: load the settings into RMassBank
 	if((loadSettings == TRUE) && (length(w@settings) > 0))
 		loadRmbSettings(w@settings)
