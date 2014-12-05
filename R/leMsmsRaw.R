@@ -222,41 +222,42 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 
 #' @export
 findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
-			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
-			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
-			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
-			rtMargin = getOption("RMassBank")$rtMargin,
-			deprofile = getOption("RMassBank")$deprofile,
-      headerCache = NA)
+		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+		rtMargin = getOption("RMassBank")$rtMargin,
+		deprofile = getOption("RMassBank")$deprofile,
+		headerCache = NULL)
 {
-  # for finding the peak RT: use the gauss-fitted centwave peak
-  # (centroid data converted with TOPP is necessary. save as
-  # mzData, since this is correctly read :P)
-  #xset <- xcmsSet(fileName, method="centWave",ppm=5, fitgauss=TRUE)
-
-  # find cpd m/z
-  mzLimits <- findMz(cpdID, mode)
-  mz <- mzLimits$mzCenter
-  limit.fine <- ppm(mz, ppmFine, p=TRUE)
-  if(!useRtLimit)
-	  rtLimits <- NA
-  else
-  {
-	  dbRt <- findRt(cpdID)
-	  rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
-  }
-  spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
-  	,fillPrecursorScan, deprofile)
-  # check whether a) spectrum was found and b) enough spectra were found
-  if(length(spectra) < (confirmMode + 1))
-    sp <- list(foundOK = FALSE)
-  else
-    sp <- spectra[[confirmMode + 1]]
-  
-  sp$mz <- mzLimits
-  sp$id <- cpdID
-  sp$formula <- findFormula(cpdID)
-  return(sp)
+	# for finding the peak RT: use the gauss-fitted centwave peak
+	# (centroid data converted with TOPP is necessary. save as
+	# mzData, since this is correctly read :P)
+	#xset <- xcmsSet(fileName, method="centWave",ppm=5, fitgauss=TRUE)
+	
+	# find cpd m/z
+	mzLimits <- findMz(cpdID, mode)
+	mz <- mzLimits$mzCenter
+	limit.fine <- ppm(mz, ppmFine, p=TRUE)
+	if(!useRtLimit)
+		rtLimits <- NA
+	else
+	{
+		dbRt <- findRt(cpdID)
+		rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
+	}
+	spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
+			,fillPrecursorScan, deprofile)
+	# check whether a) spectrum was found and b) enough spectra were found
+	if(length(spectra) < (confirmMode + 1))
+		sp <- new("RmbSpectraSet", found=FALSE)
+	else
+		sp <- spectra[[confirmMode + 1]]
+	
+	#sp@mz <- mzLimits
+	sp@id <- as.integer(cpdID)
+	sp@name <- findName(cpdID)
+	sp@formula <- findFormula(cpdID)
+	return(sp)
 }
 
 #' Read in mz-files using XCMS
@@ -394,11 +395,14 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 #' 			this value is useful if spectra for multiple compounds should be 
 #' 			extracted from the same mzML file, since it avoids getting the data
 #' 			freshly from \code{msRaw} for every compound.
+#' @param floatingRecalibration 
+#' 			A fitting function that \code{predict()}s a mass shift based on the retention time. Can be used
+#' 			if a lockmass calibration is known (however you have to build the calibration yourself.)
 #' @return A \code{[rt, intensity, scan]} matrix (\code{scan} being the scan number.) 
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @seealso findMsMsHR
 #' @export
-findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL)
+findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, floatingRecalibration = NULL)
 {
 	# calculate mz upper and lower limits for "integration"
 	if(all(c("mzMin", "mzMax") %in% names(mz)))
@@ -406,10 +410,10 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL)
 	else
 		mzlimits <- c(mz - limit, mz + limit)
 	# Find peaklists for all MS1 scans
-  if(!all(is.na(headerCache)))
-    headerData <- as.data.frame(headerCache)
-  else
-    headerData <- as.data.frame(header(msRaw))
+	if(!is.null(headerCache))
+		headerData <- as.data.frame(headerCache)
+	else
+		headerData <- as.data.frame(header(msRaw))
 	# If RT limit is already given, retrieve only candidates in the first place,
 	# since this makes everything much faster.
 	if(all(!is.na(rtLimit)))
@@ -421,11 +425,25 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL)
 		headerMS1 <- headerData[headerData$msLevel == 1,]
 	pks <- mzR::peaks(msRaw, headerMS1$seqNum)
 	# Sum intensities in the given mass window for each scan
-	pks_t <- unlist(lapply(pks, function(peaktable)
-						sum(peaktable[which((peaktable[,1] >= mzlimits[[1]]) & (peaktable[,1] <= mzlimits[[2]])) ,2])))
-	rt <- headerMS1$retentionTime
-	scan <- headerMS1$acquisitionNum
-	return(data.frame(rt = rt, intensity=pks_t, scan=scan))
+	if(is.null(floatingRecalibration))
+	{
+		headerMS1$mzMin <- mzlimits[[1]]
+		headerMS1$mzMax <- mzlimits[[2]]
+	}
+	else
+	{
+		headerMS1$mzMin <- mzlimits[[1]] + predict(floatingRecalibration, headerMS1$retentionTime)
+		headerMS1$mzMax <- mzlimits[[2]] + predict(floatingRecalibration, headerMS1$retentionTime)
+	}
+	intensity <- unlist(lapply(1:nrow(headerMS1), function(row)
+					{
+						peaktable <- mzR::peaks(msRaw, headerMS1[row,"acquisitionNum"])
+						sum(peaktable[
+										which((peaktable[,1] >= headerMS1[row,"mzMin"]) & (peaktable[,1] <= headerMS1[row,"mzMax"])),
+										2])
+						
+					}))
+	return(data.frame(rt = headerMS1$retentionTime, intensity=intensity, scan=headerMS1$acquisitionNum))
 }
 
 #' Conversion of XCMS-pseudospectra into RMassBank-spectra
