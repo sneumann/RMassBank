@@ -249,16 +249,16 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 			,fillPrecursorScan, deprofile)
 	# check whether a) spectrum was found and b) enough spectra were found
 	if(length(spectra) < (confirmMode + 1))
-		sp <- new("RmbSpectraSet", found=FALSE)
+		sp <- list(foundOK = FALSE)
 	else
 		sp <- spectra[[confirmMode + 1]]
 	
-	#sp@mz <- mzLimits
-	sp@id <- as.integer(cpdID)
-	sp@name <- findName(cpdID)
-	sp@formula <- findFormula(cpdID)
+	sp$mz <- mzLimits
+	sp$id <- cpdID
+	sp$formula <- findFormula(cpdID)
 	return(sp)
 }
+
 
 #' Read in mz-files using XCMS
 #' 

@@ -1375,9 +1375,9 @@ recalibrateSpectra <- function(mode, rawspec = NULL, rc = NULL, rc.ms1=NULL, w =
 						  colnames(p) <- c("mzFound", "int")
 						  drecal <- predict(rc.ms1, newdata= p)
 						  if(recalibrateBy == "dppm")
-							  p$mzRecal <- p$mz / ( 1 + drecal/1e6 )
+							  p$mzRecal <- p$mzFound / ( 1 + drecal/1e6 )
 						  else
-							  p$mzRecal <- p$mz - drecal
+							  p$mzRecal <- p$mzFound - drecal
 						  colnames(p) <- c("mz", "int", "mzRecal")
 					  }
 					  p <- as.matrix(p)
@@ -1404,9 +1404,9 @@ recalibrateSingleSpec <- function(spectrum, rc,
 		colnames(p) <- c("mzFound", "int")
 		drecal <- predict(rc, newdata= p)
 		if(recalibrateBy == "dppm")
-			p$mzRecal <- p$mz / ( 1 + drecal/1e6 )
+			p$mzRecal <- p$mzFound / ( 1 + drecal/1e6 )
 		else
-			p$mzRecal <- p$mz - drecal
+			p$mzRecal <- p$mzFound - drecal
 		# And rename them back so our "mz" column is
 		# called "mz" again
 		colnames(p) <- c("mz", "int", "mzRecal")
