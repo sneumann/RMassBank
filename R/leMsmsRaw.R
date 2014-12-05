@@ -23,7 +23,7 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 		deprofile = getOption("RMassBank")$deprofile)
 #' 		
 #' 		findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-#' 		headerCache = NA, fillPrecursorScan = FALSE,
+#' 		headerCache = NULL, fillPrecursorScan = FALSE,
 #' 		deprofile = getOption("RMassBank")$deprofile)
 #'
 #' findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
@@ -31,7 +31,7 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #'			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
 #'			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
 #'			rtMargin = getOption("RMassBank")$rtMargin,
-#'			deprofile = getOption("RMassBank")$deprofile, headerCache = NA)
+#'			deprofile = getOption("RMassBank")$deprofile, headerCache = NULL)
 #' 
 #' @aliases findMsMsHR.mass findMsMsHR.direct findMsMsHR
 #' @param fileName The file to open and search the MS2 spectrum in.
@@ -110,14 +110,14 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 	# mzR.
 	msRaw <- openMSfile(fileName)
 	ret <- findMsMsHR.direct(msRaw, cpdID, mode, confirmMode, useRtLimit, ppmFine, mzCoarse, fillPrecursorScan,
-				rtMargin, deprofile)
+			rtMargin, deprofile)
 	mzR::close(msRaw)
 	return(ret)
 }
 
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-		headerCache = NA, fillPrecursorScan = FALSE,
+		headerCache = NULL, fillPrecursorScan = FALSE,
 		deprofile = getOption("RMassBank")$deprofile)
 {
 	eic <- findEIC(msRaw, mz, limit.fine, rtLimits)
@@ -125,7 +125,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	#	{  
 	#		eic <- subset(eic, rt >= rtLimits[[1]] & rt <= rtLimits[[2]])
 	#	}
-	if(!all(is.na(headerCache)))
+	if(!is.null(headerCache))
 		headerData <- headerCache
 	else
 		headerData <- as.data.frame(header(msRaw))
