@@ -558,8 +558,11 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	
 	
 	peakmatrix <- lapply(shot[,mzColname], function(mass) {
-				peakformula <- tryCatch(generate.formula(mass, ppm(mass, ppmlimit, p=TRUE), 
-								limits, charge=mode.charge), error=function(e) NA)
+				# Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
+				# finally back-correct calculated masses for the charge
+				mass.calc <- mass + mode.charge * .emass
+				peakformula <- tryCatch(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
+								limits, charge=0), error=function(e) NA)
 				#peakformula <- tryCatch( 
 				#  generate.formula(mass, 
 				#                   ppm(mass, ppmlimit, p=TRUE),
@@ -572,9 +575,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 				{
 					return(t(sapply(peakformula, function(f)
 											{
+												mzCalc <- f@mass - mode.charge * .emass 
 												c(mzFound=mass,
 														formula=f@string, 
-														mzCalc=f@mass)
+														mzCalc=mzCalc)
 											})))
 				}
 			})
