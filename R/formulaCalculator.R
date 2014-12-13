@@ -335,6 +335,6 @@ ppm <- function(mass, dppm, l=FALSE, p=FALSE)
 }
 
 ## # auxiliaries
-## emass <- 0.0005485799
+.emass <- 0.0005485799
 ## pmass <- 1.007276565
 ## hmass <- 1.007825
