@@ -398,7 +398,7 @@ gatherData <- function(id)
 		# Actually retrieve data from CTS (see the webaccess scripts)
 		infos <- getCtsRecord(inchikey_split)
 		
-		if(infos == "Sorry, we couldn't find any matching results")
+		if(infos[1] == "Sorry, we couldn't find any matching results")
 			dataUsed <- "dbname"
 		else
 			dataUsed <- "smiles"
