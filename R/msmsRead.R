@@ -198,8 +198,38 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	}
 }
 
-msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, confirmMode = FALSE, useRtLimit = TRUE, 
-						findPeaksArgs = NULL, settings = getOption("RMassBank"), progressbar = "progressBarHook", plots = FALSE){
+#' 
+#' Extracts and processes spectra from a list of xcms-Objects
+#' 
+#' The filenames of the raw LC-MS runs are read from the array \code{files} 
+#' in the global enviroment.
+#' See the vignette \code{vignette("RMassBank")} for further details about the
+#' workflow.
+#' 
+#' @param w A \code{msmsWorkspace} to work with.
+#' @param xRAW A list of xcmsRaw objects whose peaks should be detected and added to the workspace.
+#'				The relevant data must be in the MS1 data of the xcmsRaw object.  You can coerce the
+#'				msn-data in a usable object with the \code{msn2xcmsRaw} function of xcms.
+#' @param cpdids A vector or list containing the compound IDs of the files that are to be read as spectra.
+#'				The ordering of this and \code{files} implicitly assigns each ID to the corresponding file.
+#'				If this is supplied, then the IDs implicitly named in the filenames are ignored.
+#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
+#' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
+#' @param settings Options to be used for processing. Defaults to the options loaded via
+#' 			\code{\link{loadRmbSettings}} et al. Refer to there for specific settings.
+#' @param progressbar The progress bar callback to use. Only needed for specialized applications.
+#' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
+#' @param plots A boolean value that determines whether the pseudospectra in XCMS should be plotted
+#' @return The \code{msmsWorkspace} with msms-spectra read.
+#' @seealso \code{\link{msmsWorkspace-class}}, \code{\link{msmsWorkflow}}
+#' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
+#' @author Erik Mueller, UFZ
+#' @export
+msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NULL, 
+							settings = getOption("RMassBank"), progressbar = "progressBarHook", plots = FALSE){
+	
+	require(xcms)
 	
 	##xRAW will be coerced into a list of length 1 if it is an xcmsRaw-object
 	if(class(xRAW) == "xcmsRaw"){
