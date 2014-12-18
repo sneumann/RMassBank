@@ -140,3 +140,37 @@ smiles2mass <- function(SMILES){
 	mass <- get.exact.mass(massfromformula)
 	return(mass)
 }
+
+.unitTestRMB <- function(){
+	require(RUnit)
+	library(RMassBank)
+	library(RMassBankData)
+	w <- newMsmsWorkspace()
+	RmbDefaultSettings()
+	file.copy()
+	files <- list.files(system.file("spectra", package="RMassBankData"),
+		 ".mzML", full.names = TRUE)
+	basename(files)
+	# To make the workflow faster here, we use only 2 compounds:
+	w@files <- files
+	loadList(system.file("list/NarcoticsDataset.csv", 
+		package="RMassBankData"))
+	w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
+					"pH_narcotics")
+	w <- msmsWorkflow(w, mode="pH", steps=c(5:8), archivename = 
+			"pH_narcotics")	
+	
+	testSuite <- defineTestSuite("Electronic noise and formula calculation Test", dirs = system.file("unitTests", 
+		package="RMassBank"), testFileRegexp = "runit.EN_FC.R",
+					#testFuncRegexp = "^test.+",
+					rngKind = "Marsaglia-Multicarry",
+					rngNormalKind = "Kinderman-Ramage")
+					
+	testData <- suppressWarnings(runTestSuite(testSuite))
+	
+	file.remove("pH_narcotics_Failpeaks.csv")
+	
+	# Prints the HTML-record
+	printTextProtocol(testData)
+	return(testData)
+}
