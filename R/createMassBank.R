@@ -54,6 +54,8 @@ loadInfolist <- function(mb, fileName)
   # for debugging reasons.
   n <- colnames(mbdata_new)
   cols <- c("id","dbcas","dataused")
+  
+  # Check if comma-separated or semicolon-separated
   d <- setdiff(cols, n)
   if(length(d)>0){
 		mbdata_new <- read.csv2(fileName, stringsAsFactors=FALSE)
@@ -396,7 +398,7 @@ gatherData <- function(id)
 		# Actually retrieve data from CTS (see the webaccess scripts)
 		infos <- getCtsRecord(inchikey_split)
 		
-		if(length(infos) == 0)
+		if(infos == "Sorry, we couldn't find any matching results")
 			dataUsed <- "dbname"
 		else
 			dataUsed <- "smiles"
@@ -1562,6 +1564,8 @@ addPeaks <- function(mb, filename_or_dataframe)
 	cols <- c("cpdID", "scan", "mzFound", "int", "OK")
 	
 	n <- colnames(df)
+	
+	# Check if comma-separated or semicolon-separated
 	d <- setdiff(cols, n)
 	
 	if(length(d)>0){

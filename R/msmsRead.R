@@ -8,8 +8,8 @@
 #' workflow.
 #' 
 #' @param w A \code{msmsWorkspace} to work with.
-#' @param filetable The path to a .csv-file that contains the columns "files" and "cpdid" supplying
-#' 			the relationships between files and compound IDs. Either this or "files" need
+#' @param filetable The path to a .csv-file that contains the columns "Files" and "ID" supplying
+#' 			the relationships between files and compound IDs. Either this or the parameter "files" need
 #'			to be specified. 
 #' @param files A vector or list containing the filenames of the files that are to be read as spectra. 
 #'				For the IDs to be inferred from the filenames alone, there need to be exactly 2 underscores.
@@ -215,10 +215,13 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, confirmMode = FALS
 		stop("No cpdids supplied")
 	}
 		
-	msnExist <- which(sapply(xRAW,function(x) length(x@msnPrecursorScan) != 0))
-	if(length(msnExist) != length(xRAW)){
-		stop(paste("No msn data in list elements", diff(1:length(xRAW),msnExist)))
-	}
+	#msnExist <- which(sapply(xRAW,function(x) length(x@msnPrecursorScan) != 0))
+	#print(length(msnExist))
+	#print(length(xRAW))
+	
+	#if(length(msnExist) != length(xRAW)){
+	#	stop(paste("No msn data in list elements", setdiff(1:length(xRAW),msnExist)))
+	#}
 	
 	require(CAMERA)
 	
