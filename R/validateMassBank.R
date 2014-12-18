@@ -2,7 +2,7 @@
 #' 
 #' Validates a plain text MassBank record, or recursively all
 #' records within a directory. The Unit Tests to be used are
-#' installed in RMassBank/inst/unitTests and currently include 
+#' installed in RMassBank/inst/validationTests and currently include 
 #' checks for NAs, peaks versus precursor, precursor mz, 
 #' precursor type, SMILES vs exact mass, total intensities and
 #' title versus type. The validation report is saved as 
@@ -37,12 +37,12 @@ validate <- function(path) {
 	tests <- list()
 	for(i in 1:length(RMassBank.env$mb)){
 		if(RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS2" || RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS"){
-		tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "unitTests"), testFileRegexp = "runit.MS2.test.R",
+		tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "runit.MS2.test.R",
                 #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
 		} else{
-			tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "unitTests"), testFileRegexp = "^runit.MSn.test.[rR]$",
+			tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "^runit.MSn.test.[rR]$",
                 #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
