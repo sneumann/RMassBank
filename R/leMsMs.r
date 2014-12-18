@@ -88,7 +88,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   nProg <- 0
   nLen <- length(w@files)
   
-  if(readMethod == "simple"){
+  if(readMethod == "minimal"){
 	##Edit options
 	opt <- getOption("RMassBank")
 	opt$recalibrator$MS1 <- "recalibrate.identity"
@@ -161,7 +161,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	##	names(w@specs) <- basename(as.character(w@files))
 	##}
 		
-	if((readMethod == "peaklist") || (readMethod == "simple")){
+	if((readMethod == "peaklist") || (readMethod == "minimal")){
 		splitfn <- strsplit(basename(w@files), "_")
 		cpdIDs <- sapply(splitfn, function(splitted) {
 			as.numeric(return(splitted[2]))

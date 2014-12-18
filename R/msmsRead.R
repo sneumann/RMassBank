@@ -75,7 +75,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(length(w@files) != length(cpdids)){
 		stop("There are a different number of cpdids than files")
 	}
-	if(!(readMethod %in% c("mzR","peaklist","xcms","simple"))){
+	if(!(readMethod %in% c("mzR","peaklist","xcms","minimal"))){
 		stop("The supplied method does not exist")
 	}
 	if(!all(file.exists(w@files))){
@@ -83,7 +83,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	}
 
 	##This should work
-	if(readMethod == "simple"){
+	if(readMethod == "minimal"){
 		##Edit options
 		opt <- getOption("RMassBank")
 		opt$recalibrator$MS1 <- "recalibrate.identity"
@@ -121,7 +121,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	}
 	
 	##Peaklist-readmethod 
-	if((readMethod == "peaklist") || (readMethod=="simple")){
+	if((readMethod == "peaklist") || (readMethod=="minimal")){
 		w <- createSpecsFromPeaklists(w, cpdids, filenames=w@files, mode=mode)
 		uIDs <- unique(cpdids)
 		files <- list()
