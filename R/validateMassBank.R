@@ -147,7 +147,6 @@ smiles2mass <- function(SMILES){
 	library(RMassBankData)
 	w <- newMsmsWorkspace()
 	RmbDefaultSettings()
-	file.copy()
 	files <- list.files(system.file("spectra", package="RMassBankData"),
 		 ".mzML", full.names = TRUE)
 	basename(files)
