@@ -2,7 +2,7 @@
 #' 
 #' Validates a plain text MassBank record, or recursively all
 #' records within a directory. The Unit Tests to be used are
-#' installed in RMassBank/inst/unitTests and currently include 
+#' installed in RMassBank/inst/validationTests and currently include 
 #' checks for NAs, peaks versus precursor, precursor mz, 
 #' precursor type, SMILES vs exact mass, total intensities and
 #' title versus type. The validation report is saved as 
@@ -37,12 +37,12 @@ validate <- function(path) {
 	tests <- list()
 	for(i in 1:length(RMassBank.env$mb)){
 		if(RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS2" || RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS"){
-		tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "unitTests"), testFileRegexp = "runit.MS2.test.R",
+		tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "runit.MS2.test.R",
                 #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
 		} else{
-			tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "unitTests"), testFileRegexp = "^runit.MSn.test.[rR]$",
+			tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "^runit.MSn.test.[rR]$",
                 #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
@@ -139,4 +139,37 @@ smiles2mass <- function(SMILES){
 	do.isotopes(massfromformula)
 	mass <- get.exact.mass(massfromformula)
 	return(mass)
+}
+
+.unitTestRMB <- function(){
+	require(RUnit)
+	library(RMassBank)
+	library(RMassBankData)
+	w <- newMsmsWorkspace()
+	RmbDefaultSettings()
+	files <- list.files(system.file("spectra", package="RMassBankData"),
+		 ".mzML", full.names = TRUE)
+	basename(files)
+	# To make the workflow faster here, we use only 2 compounds:
+	w@files <- files
+	loadList(system.file("list/NarcoticsDataset.csv", 
+		package="RMassBankData"))
+	w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
+					"pH_narcotics")
+	w <- msmsWorkflow(w, mode="pH", steps=c(5:8), archivename = 
+			"pH_narcotics")	
+	
+	testSuite <- defineTestSuite("Electronic noise and formula calculation Test", dirs = system.file("unitTests", 
+		package="RMassBank"), testFileRegexp = "runit.EN_FC.R",
+					#testFuncRegexp = "^test.+",
+					rngKind = "Marsaglia-Multicarry",
+					rngNormalKind = "Kinderman-Ramage")
+					
+	testData <- suppressWarnings(runTestSuite(testSuite))
+	
+	file.remove("pH_narcotics_Failpeaks.csv")
+	
+	# Prints the HTML-record
+	printTextProtocol(testData)
+	return(testData)
 }

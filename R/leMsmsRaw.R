@@ -1,6 +1,15 @@
+## For generating the NAMESPACE
 #' @import mzR
-#' @importClassesFrom mzR
-#' @importMethodsFrom mzR
+# # importClassesFrom mzR ## Causes error 
+# # importMethodsFrom mzR 
+#' @import Rcpp ## Was not in manually written NAMESPACE ?
+#' @import RCurl 
+#' @import XML 
+#' @import methods 
+#' @import mzR 
+#' @import rcdk 
+#' @import rjson 
+#' @import yaml 
 NULL # This is required so that roxygen knows where the first manpage starts
 
 #' Extract MS/MS spectra for specified precursor
@@ -15,7 +24,7 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 		is a low-level function which uses the mass directly for lookup and is intended for
 #' 		use as a standalone function in unrelated applications.
 #' 
-#' @Usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
+#' @usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
 #' 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
 #' 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
 #' 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
@@ -307,7 +316,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	if(MSe == FALSE){
 		## Fake MS1 from MSn scans
 		## xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
-		suppressWarnings(xrs <- split(msn2xcmsRaw(xrmsms), f=xrmsms@msnCollisionEnergy))
+		suppressWarnings(xrs <- split(msn2xcmsRaw(xrmsms), f = xrmsms@msnCollisionEnergy))
 	} else{
 		xrs <- list()
 		xrs[[1]] <- xrmsms
@@ -320,7 +329,6 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	psp <- list()
 	spectra <- list()
 	whichmissing <- vector()
-	
 	metaspec <- list()
 	for(ID in 1:length(cpdID)){
 		spectra <- list()
@@ -701,7 +709,7 @@ addMB <- function(w, cpdID, fileName, mode){
 #' @examples \dontrun{
 #' 		c.msmsWSspecs(w1,w2)
 #' }
-#'export
+#'@export
 c.msmsWSspecs <- function(w1 = NA, w2 = NA){
 
 	if(class(w1) != "msmsWorkspace" || class(w2) != "msmsWorkspace"){
