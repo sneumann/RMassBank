@@ -11,12 +11,13 @@
 #' @aliases validate
 #' @usage validate(path)
 #' @param path The filepath to a single record, or a directory to search recursively
+#' @param simple If TRUE the function creates a simpler form of the RUnit .html report, better readable for humans. If FALSE it returns the unchanged RUnit report.
 #' @examples
 #' \dontrun{
 #' validate("/tmp/MassBank/OpenData/record/")
 #' }
 #' @export
-validate <- function(path) {
+validate <- function(path, simple = TRUE) {
 
         require(ontoCAT)
 		require(RUnit)
@@ -50,9 +51,42 @@ validate <- function(path) {
 	}
 	print("Starting Tests")
 	# Testing the list of Testsuites
-	testData <- suppressWarnings(runTestSuite(tests))
+	testData <- suppressWarnings(runTestSuite(tests,verbose=0))
 	# Prints the HTML-record
-	printHTMLProtocol(testData, fileName = paste(getwd(),"/report.html", sep = ""))
+	printHTMLProtocol(testData, fileName = paste0(getwd(),"/report.html"))
+	if(simple){
+		fileConnection <- file(paste0(getwd(),"/report.html"), open = "r")
+		htmlFile <- readLines(fileConnection)
+		close(fileConnection)
+		htmlFile <- gsub(">test.NA", ">No NAs contained in peak list", htmlFile)
+		htmlFile <- gsub(">test.peaksvsprecursor", ">One peak m/z  with no noticable difference from the precursor mass", htmlFile)
+		htmlFile <- gsub(">test.precursormz", ">Mass of precursor m/z possible with given mass and type", htmlFile)
+		htmlFile <- gsub(">test.PrecursorType", ">Precursor type valid", htmlFile)
+		htmlFile <- gsub(">test.smilesvsexactmass", ">Smiles code represents a molecule with specified exact mass", htmlFile)
+		htmlFile <- gsub(">test.sumintensities", ">All intensies greater than zero", htmlFile)
+		htmlFile <- gsub(">test.TitleVsType", ">Precursor type are the same in the title and in the document", htmlFile)
+		htmlFile <- gsub("\\(1 checks\\)", "", htmlFile)
+		htmlFile <- gsub("\\({1}.{1,6}seconds\\)", "", htmlFile)
+		htmlFile <- gsub("Test Suite: ", "", htmlFile)
+		htmlFile <- gsub("h5", "h2", htmlFile)
+		##Remove ending
+		poshr <- grep("<hr>", htmlFile, fixed=TRUE)
+		poshr <- poshr[length(poshr)]
+		htmlFile <- htmlFile[1:(poshr)]
+		
+		ullines <- grep("<ul>", htmlFile)
+		htmlFile[ullines] <- gsub("</a><ul>", "</a></li>", htmlFile[ullines])
+		htmlFile[ullines] <- gsub("</li></ul></li></ul>", "</li></ul>", htmlFile[ullines])
+		htmlFile[ullines] <- gsub('<li><a href=".+">Test file: runit.MS2.test.R</a></li>', "", htmlFile[ullines])
+		htmlFile[ullines] <- gsub('</a>.+RMassBank/validationTests<br/>',"</a>", htmlFile[ullines])
+		
+		##Remove superfluous information
+		htmlFile <- gsub("Test function regexp: ^test.+<br/>Test file regexp: runit.MS2.test.R<br/>Involved directory:<br/>", "", htmlFile, fixed=TRUE)
+		
+		fileConnection <- file(paste0(getwd(),"/report.html"), open = "w")
+		writeLines(htmlFile, fileConnection)
+		close(fileConnection)
+	}
 	print(paste("Report for the file(s) finished"))
 }
 
