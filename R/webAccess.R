@@ -166,7 +166,7 @@ getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 {
 	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/convert"
 	url <- paste(baseURL, from, to, query, sep='/')
-	data <- getURL(URLencode(url))
+	data <- getURL(URLencode(url), timeout=7)
 	r <- fromJSON(data)
 	if(length(r) == 0)
 		return(FALSE)
