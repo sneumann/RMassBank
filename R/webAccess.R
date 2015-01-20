@@ -74,11 +74,23 @@ getCactus <- function(identifier, representation)
 #' @export
 getPcId <- function(search)
 {
-  
   baseUrl <- "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
   term <- paste(baseUrl, "esearch.fcgi?db=pccompound&term=", URLencode(search), sep='')
-  ret <-  getURL(term)
+  ret <-  getURL(term, timeout=5)
+  errorvar <- 0
+  currEnvir <- environment()
+  tryCatch(
+	{test <- getURL("www.google.com:81", timeout=5)},
+	error=function(e){
+	currEnvir$errorvar <- 1
+	})
+  
+  if(errorvar){
+	stop("Currently can't connect to pubchem")
+  }
+  
   #ret <- paste(ret, collapse='')
+  s
   xml <- xmlParseDoc(ret,asText=TRUE)
   idNodes <- getNodeSet(xml, "/eSearchResult/IdList/Id")
   
