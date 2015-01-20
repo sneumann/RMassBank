@@ -143,10 +143,11 @@ getPcId <- function(search)
 #' \url{http://cts.fiehnlab.ucdavis.edu}
 #' 
 #' @examples
-#' 
+#' \dontrun{
 #' data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
 #' # show all synonym "types"
 #' types <- unique(unlist(lapply(data$synonyms, function(i) i$type)))
+#' }
 #' \dontrun{print(types)}
 #' 
 #' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
@@ -171,7 +172,9 @@ getCtsRecord <- function(key)
 #' @return An unordered array with the resulting converted key(s). 
 #' 
 #' @examples 
-#' 	k <- getCtsKey("benzene", "Chemical Name", "InChIKey")
+#' \dontrun{	
+#' k <- getCtsKey("benzene", "Chemical Name", "InChIKey")
+#' }
 #' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
 #' @export
 getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
