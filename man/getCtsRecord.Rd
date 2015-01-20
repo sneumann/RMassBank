@@ -27,9 +27,11 @@
   scores are all 0, formula and exact mass return zero.
 }
 \examples{
+\dontrun{
 data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
 # show all synonym "types"
 types <- unique(unlist(lapply(data$synonyms, function(i) i$type)))
+}
 \dontrun{print(types)}
 }
 \author{

@@ -18,7 +18,9 @@
   Convert a single ID to another using CTS.
 }
 \examples{
+\dontrun{
 k <- getCtsKey("benzene", "Chemical Name", "InChIKey")
+}
 }
 \author{
   Michele Stravs, Eawag <stravsmi@eawag.ch>
