@@ -76,11 +76,11 @@ getPcId <- function(search)
 {
   baseUrl <- "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
   term <- paste(baseUrl, "esearch.fcgi?db=pccompound&term=", URLencode(search), sep='')
-  ret <-  getURL(term, timeout=5)
+
   errorvar <- 0
   currEnvir <- environment()
   tryCatch(
-	{test <- getURL("www.google.com:81", timeout=5)},
+	{ret <-  getURL(term, timeout=5)},
 	error=function(e){
 	currEnvir$errorvar <- 1
 	})
