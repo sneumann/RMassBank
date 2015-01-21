@@ -44,7 +44,7 @@ loadList <- function(path, listEnv = NULL)
 		n <- colnames(compoundList)
 		d2 <- setdiff(cols, n)
 		if(length(d2) > 0){
-			stop("Some columns are missing in the compound list. Needs at least ID, Name, SMILES, RT.")
+			stop("Some columns are missing in the compound list. Needs at least ID, Name, SMILES, RT, CAS.")
 		}
 	}
   if(length(duplicated(compoundList$cpdID)) > 0)
