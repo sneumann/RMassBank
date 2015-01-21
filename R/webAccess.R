@@ -90,7 +90,7 @@ getPcId <- function(search)
   }
   
   #ret <- paste(ret, collapse='')
-  s
+  
   xml <- xmlParseDoc(ret,asText=TRUE)
   idNodes <- getNodeSet(xml, "/eSearchResult/IdList/Id")
   
