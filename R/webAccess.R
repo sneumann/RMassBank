@@ -74,11 +74,23 @@ getCactus <- function(identifier, representation)
 #' @export
 getPcId <- function(search)
 {
-  
   baseUrl <- "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
   term <- paste(baseUrl, "esearch.fcgi?db=pccompound&term=", URLencode(search), sep='')
-  ret <-  getURL(term)
+  ret <-  getURL(term, timeout=5)
+  errorvar <- 0
+  currEnvir <- environment()
+  tryCatch(
+	{test <- getURL("www.google.com:81", timeout=5)},
+	error=function(e){
+	currEnvir$errorvar <- 1
+	})
+  
+  if(errorvar){
+	stop("Currently can't connect to pubchem")
+  }
+  
   #ret <- paste(ret, collapse='')
+  s
   xml <- xmlParseDoc(ret,asText=TRUE)
   idNodes <- getNodeSet(xml, "/eSearchResult/IdList/Id")
   
@@ -131,10 +143,11 @@ getPcId <- function(search)
 #' \url{http://cts.fiehnlab.ucdavis.edu}
 #' 
 #' @examples
-#' 
+#' \dontrun{
 #' data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
 #' # show all synonym "types"
 #' types <- unique(unlist(lapply(data$synonyms, function(i) i$type)))
+#' }
 #' \dontrun{print(types)}
 #' 
 #' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
@@ -159,14 +172,16 @@ getCtsRecord <- function(key)
 #' @return An unordered array with the resulting converted key(s). 
 #' 
 #' @examples 
-#' 	k <- getCtsKey("benzene", "Chemical Name", "InChIKey")
+#' \dontrun{	
+#' k <- getCtsKey("benzene", "Chemical Name", "InChIKey")
+#' }
 #' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
 #' @export
 getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 {
 	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/convert"
 	url <- paste(baseURL, from, to, query, sep='/')
-	data <- getURL(URLencode(url))
+	data <- getURL(URLencode(url), timeout=7)
 	r <- fromJSON(data)
 	if(length(r) == 0)
 		return(FALSE)

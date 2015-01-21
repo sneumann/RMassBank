@@ -438,6 +438,32 @@ gatherData <- function(id)
 		# get key, at last
 		inchikey_split <- keys[1,"keys"]
 		
+		
+		#######################FIX THAT SHOULD WORK IN COMMENTS
+		#######################????
+		# # keys <- as.data.frame(infos)
+		# # subkeys <- strsplit(infos, '-')
+		# # df <- do.call(rbind,subkeys)
+
+		# # keys$structure <- df[,1]
+		# # keys$stereo <- df[,2]
+		# # keys$charge <- df[,3]
+		# # # most frequent structure part:
+		# # freq <- aggregate(keys$infos, by=list(keys$structure), length)
+		# # structure <- freq[which.max(freq[,"x"]),"Group.1"]
+		# # keys <- keys[keys$structure == structure,]
+		# # # put stereofree compounds first, then neutral compounds first
+		# # keys$Vst <- factor(keys$stereo, levels="UHFFFAOYSA")
+		# # keys$Vchg <- factor(keys$charge, levels="N")
+		# # keys <- keys[order(keys$Vst, keys$Vchg, na.last=T),]
+		# # # get key, at last
+		# # inchikey_split <- keys[1,"infos"]
+		# infos <- getCtsRecord(inchikey_split)
+		# # InChIcode to SMILES using CACTUS. Should never fail since it's a conversion
+		# # of structure representations
+		# smiles <- getCactus(infos$inchicode, 'smiles')
+		########################????
+		
 		# get full dataset from CTS
 		inchikey_split <- infos$inchikey
 		infos <- getCtsRecord(inchikey_split)

@@ -1757,7 +1757,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	
 	if(!is.data.frame(peaks))
 	{
-		message("filterPeaksMultiplicity: no peaks to aggregate")
+		stop("filterPeaksMultiplicity: All peaks have been filtered.")
 		peaks <- cbind(peaks, data.frame(formulaMultiplicity=numeric()))
 	}
 	else
