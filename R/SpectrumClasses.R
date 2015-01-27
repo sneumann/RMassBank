@@ -47,9 +47,10 @@
 				complete = "logical",
 				empty = "logical",
 				formula = "character",
-				id = "integer",
+				id = "character",
 				mz = "numeric",
 				name = "character",
+				mode = "character",
 				annotations = "list"
 				),
 		prototype = prototype(
@@ -59,9 +60,10 @@
 				complete = NA,
 				empty = NA,
 				formula = character(),
-				id = integer(),
+				id = character(),
 				mz = numeric(),
 				name = character(),
+				mode = character(),
 				annotations = list()
 		)
 );
