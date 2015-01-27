@@ -252,6 +252,7 @@
 							},
 							set@children, analyzedSpec$msmsdata)
 							set@children <- as(children, "SimpleList")
+							set@mode <- analyzedSpec$mode
 							return(set)
 				},
 				spectra, analyzedSpecs)

@@ -20,7 +20,7 @@ setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TR
 			cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dppm")
 			types <- c("mz" = "numeric", "intensity" = "numeric", "satellite" = "logical", "low" = "logical",
 					"rawOK" = "logical", "good" = "logical", "mzCalc" = "numeric", "formula" = "character", 
-					"dppm" = "numeric"
+					"dppm" = "numeric", "ok" = "numeric"
 					)
 			s@peaksCount <- as.integer(nrow(df))
 			cols.inDf <- which(cols %in% colnames(df))
@@ -33,7 +33,7 @@ setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TR
 			cols.no <- cols[cols.notinDf]
 			if(clean)
 			{
-				for(col in cols.df)
+				for(col in cols.no)
 				{
 					slot(s, col) <- c()
 				}

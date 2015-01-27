@@ -9,7 +9,8 @@
 				dbe = "numeric",
 				formulaCount = "integer",
 				dppm = "numeric",
-				dppmBest = "numeric"
+				dppmBest = "numeric",
+				ok = "logical"
 		),
 		contains=c("Spectrum2"),
 		prototype = prototype(
@@ -23,6 +24,7 @@
 				formulaCount = integer(),
 				dppm = numeric(),
 				dppmBest = numeric(),
+				ok = logical(),
 				new("Versioned", versions=c(classVersion("Spectrum2"), RmbSpectrum2 = "0.1.0"))
 		),
 )
@@ -71,5 +73,5 @@
 
 
 setGeneric("getData",	function(s) standardGeneric("getData"))
-setGeneric("setData",	function(s, df) standardGeneric("setData"))
+setGeneric("setData",	function(s, df, ...) standardGeneric("setData"))
 
