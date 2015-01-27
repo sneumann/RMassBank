@@ -29,7 +29,7 @@ setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TR
 			{
 				slot(s, col) <- as(df[,col], types[[col]])
 			}
-			cols.notinDf <- not(cols.inDf)
+			cols.notinDf <- !(cols.inDf)
 			cols.no <- cols[cols.notinDf]
 			if(clean)
 			{
