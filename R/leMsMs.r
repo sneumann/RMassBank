@@ -754,29 +754,11 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	return(child)
   }
   
-  msmsPeaks@children <- lapply(msmsPeaks@children, analyzeTandemShot)
-  #browser()
-  shots <- mapply(function(shot, scan, info)
-    {
-      shot$scan <- scan
-      shot$info <- info
-      shot$header <- msmsPeaks$childHeaders[as.character(scan),]
-      return(shot)
-  }, shots, msmsPeaks$childScans, spectraList, SIMPLIFY=FALSE)
+  children <- lapply(msmsPeaks@children, analyzeTandemShot)
+  msmsPeaks@children <- as(children, "SimpleList")
   
-  mzranges <- t(sapply(shots, function(p) {return(range(p$childRaw[,mzColname]))}))
-  mzmin <- min(mzranges[,1], na.rm=TRUE)
-  mzmax <- max(mzranges[,2], na.rm=TRUE)
   
-  return(list(
-          msmsdata=shots,
-          mzrange=c(mzmin, mzmax),
-          id=msmsPeaks$id,
-          mode=mode,
-          parentHeader = msmsPeaks$parentHeader,
-          parentMs = msmsPeaks$parentPeak,
-		  formula = msmsPeaks$formula,
-          foundOK = TRUE))
+  return(msmsPeaks)
 }
 
 
@@ -790,7 +772,6 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 	cut_ratio <- 0
 	if(run=="preliminary")
 	{
-		mzColname <- "mz"
 		filterMode <- "coarse"
 		cut <- filterSettings$prelimCut
 		if(is.na(cut))
@@ -805,7 +786,6 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 	}
 	else
 	{
-		mzColname <- "mzRecal"
 		filterMode <- "fine"
 		cut <- filterSettings$fineCut
 		cut_ratio <- filterSettings$fineCutRatio
@@ -813,9 +793,6 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 	}
 	
 	# find whole spectrum of parent peak, so we have reasonable data to feed into
-	# MolgenMsMs
-	parentSpectrum <- msmsPeaks$parentPeak
-	
 	
 	
 	# On each spectrum the following function analyzeTandemShot will be applied.
@@ -924,29 +901,34 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		}
 		return(rl)
 	}
-	shots <- lapply(msmsPeaks$peaks, analyzeTandemShot)
+	children <- lapply(msmsPeaks@children, analyzeTandemShot)
+	msmsPeaks@children <- as(children, "SimpleList")
 	#browser()
-	shots <- mapply(function(shot, scan, info)
-			{
-				shot$scan <- scan
-				shot$info <- info
-				shot$header <- msmsPeaks$childHeaders[as.character(scan),]
-				return(shot)
-			}, shots, msmsPeaks$childScans, spectraList, SIMPLIFY=FALSE)
-	
-	mzranges <- t(sapply(shots, function(p) {return(range(p$childRaw[,mzColname]))}))
-	mzmin <- min(mzranges[,1], na.rm=TRUE)
-	mzmax <- max(mzranges[,2], na.rm=TRUE)
-	
-	return(list(
-					msmsdata=shots,
-					mzrange=c(mzmin, mzmax),
-					id=msmsPeaks$id,
-					mode=mode,
-					parentHeader = msmsPeaks$parentHeader,
-					parentMs = msmsPeaks$parentPeak,
-					formula = msmsPeaks$formula,
-					foundOK = TRUE))
+
+	return(msmsPeaks)
+
+	# Omit all the stuff below for now, I don't believe it is needed. One thing is that spectraList info will have to be added somewhere else.
+	## shots <- mapply(function(shot, scan, info)
+	##         {
+	##             shot$scan <- scan
+	##             shot$info <- info
+	##             shot$header <- msmsPeaks$childHeaders[as.character(scan),]
+	##             return(shot)
+	##         }, shots, msmsPeaks$childScans, spectraList, SIMPLIFY=FALSE)
+	## 
+	## mzranges <- t(sapply(shots, function(p) {return(range(p$childRaw[,mzColname]))}))
+	## mzmin <- min(mzranges[,1], na.rm=TRUE)
+	## mzmax <- max(mzranges[,2], na.rm=TRUE)
+	## 
+	## return(list(
+	##                 msmsdata=shots,
+	##                 mzrange=c(mzmin, mzmax),
+	##                 id=msmsPeaks$id,
+	##                 mode=mode,
+	##                 parentHeader = msmsPeaks$parentHeader,
+	##                 parentMs = msmsPeaks$parentPeak,
+	##                 formula = msmsPeaks$formula,
+	##                 foundOK = TRUE))
 }
 
 
