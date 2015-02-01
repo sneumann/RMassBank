@@ -9,7 +9,7 @@
 #' "report.html" in the working directory.
 #' 
 #' @aliases validate
-#' @usage validate(path)
+#' @usage validate(path, simple = TRUE)
 #' @param path The filepath to a single record, or a directory to search recursively
 #' @param simple If TRUE the function creates a simpler form of the RUnit .html report, better readable for humans. If FALSE it returns the unchanged RUnit report.
 #' @examples

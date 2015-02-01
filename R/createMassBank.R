@@ -160,6 +160,8 @@ resetInfolists <- function(mb)
 #' @param infolist_path A path where to store newly downloaded compound informations,
 #' 			which should then be manually inspected.
 #' @param mb The \code{mbWorkspace} to work in.
+#' @param useCTS A boolean variable denoting whether to retrieve information using CTS or to use babel
+#'			to retrieve minimal information.
 #' @return The processed \code{mbWorkspace}.
 #' @seealso \code{\link{mbWorkspace-class}}
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -170,22 +172,28 @@ resetInfolists <- function(mb)
 #' 		
 #' }
 #' @export
-mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.csv")
+mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.csv", useCTS = TRUE)
 {
   # Step 1: Find which compounds don't have annotation information yet. For these
   # compounds, pull information from CTS (using gatherData).
   if(1 %in% steps)
   {
       mbdata_ids <- lapply(mb@aggregatedRcSpecs$specFound, function(spec) spec$id)
-	  
-	  message("mbWorkflow: Step 1. Gather info from CTS")
-	  
+	  if(useCTS){
+		message("mbWorkflow: Step 1. Gather info from CTS")
+	  } else{
+		message("mbWorkflow: Step 1. Gather info using babel")
+	  }
       # Which IDs are not in mbdata_archive yet?
       new_ids <- setdiff(as.numeric(unlist(mbdata_ids)), mb@mbdata_archive$id)
       mb@mbdata <- lapply(new_ids, function(id) 
       {
         #print(id)
-        d <- gatherData(id)
+		if(useCTS){
+			d <- gatherData(id)
+		} else{
+			d <- gatherDataBabel(id)
+		}
         #print(d$dataused)
 		message(paste(id, ": ", d$dataused, sep=''))
         return(d)
@@ -581,7 +589,107 @@ gatherData <- function(id)
 	return(mbdata)  
 } # function gather.mbdata
 
-
+# Retrieve annotation data for a compound, using only babel
+#' Retrieve annotation data
+#' 
+#' Retrieves annotation data for a compound by using babel,
+#' based on the SMILES code and name of the compounds stored in the
+#' compound list.
+#' 
+#' Composes the "upper part" of a MassBank record filled with chemical data
+#' about the compound: name, exact mass, structure, CAS no..  
+#' The instrument type is also written into this block (even
+#' if not strictly part of the chemical information). Additionally, index
+#' fields are added at the start of the record, which will be removed later:
+#' \code{id, dbcas, dbname} from the compound list.
+#' 
+#' Additionally, the fields \code{ACCESSION} and \code{RECORD_TITLE} are
+#' inserted empty and will be filled later on.
+#' 
+#' This function is an alternative to gatherData, in case CTS is down or if information
+#' on one or more of the compounds in the compound list are sparse
+#'
+#' @usage gatherDataBabel(id)
+#' @param id The compound ID.
+#' @return Returns a list of type \code{list(id= \var{compoundID}, ...,
+#' 'ACCESSION' = '', 'RECORD_TITLE' = '', )} etc. %% ...
+#' @author Michael Stravs, Erik Mueller
+#' @seealso \code{\link{mbWorkflow}}
+#' @references MassBank record format:
+#' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
+#' @examples
+#' 
+#' # Gather data for compound ID 131
+#' \dontrun{gatherDataBabel(131)}
+#' 
+#' @export
+gatherDataBabel <- function(id){
+		#.checkMbSettings()
+		babeldir <- getOption("RMassBank")$babeldir
+		smiles <- findSmiles(id)
+			
+		
+		# if no babeldir was set, throw an error that says that either CTS or babel have to be used
+		if(is.na(babeldir))
+		{
+			stop("No babeldir supplied; It is currently not possible to convert the information without either babel or CTS")
+		} else {
+			###Babel conversion
+			cmdinchikey <- paste0(babeldir, 'obabel -:"',smiles,'" ', '-oinchikey')
+			inchikey <- system(cmdinchikey, intern=TRUE, input=smiles, ignore.stderr=TRUE)
+			cmdinchi <- paste0(babeldir, 'obabel -:"',smiles,'" ', '-oinchi')
+			inchi <- system(cmdinchi, intern=TRUE, input=smiles, ignore.stderr=TRUE)
+			
+			##Read from Compoundlist
+			smiles <- findSmiles(id)
+			mass <- findMass(smiles)
+			dbcas <- findCAS(id)
+			dbname <- findName(id)
+			if(is.na(dbname)) dbname <- ""
+			if(is.na(dbcas)) dbcas <- ""
+			formula <- findFormula(id)
+			
+			##Create 
+			mbdata <- list()
+			mbdata[['id']] <- id
+			mbdata[['dbcas']] <- dbcas
+			mbdata[['dbname']] <- dbname
+			mbdata[['dataused']] <- "smiles"
+			mbdata[['ACCESSION']] <- ""
+			mbdata[['RECORD_TITLE']] <- ""
+			mbdata[['DATE']] <- format(Sys.Date(), "%Y.%m.%d")
+			mbdata[['AUTHORS']] <- getOption("RMassBank")$annotations$authors
+			mbdata[['LICENSE']] <- getOption("RMassBank")$annotations$license
+			mbdata[['COPYRIGHT']] <- getOption("RMassBank")$annotations$copyright
+			# Confidence annotation and internal ID annotation.
+			# The ID of the compound will be written like:
+			# COMMENT: EAWAG_UCHEM_ID 1234
+			# if annotations$internal_id_fieldname is set to "EAWAG_UCHEM_ID"
+			mbdata[["COMMENT"]] <- list()
+			mbdata[["COMMENT"]][["CONFIDENCE"]] <- getOption("RMassBank")$annotations$confidence_comment
+			mbdata[["COMMENT"]][["ID"]] <- id
+			# here compound info starts
+			mbdata[['CH$NAME']] <- as.list(dbname)
+			
+			# Currently we use a fixed value for Compound Class, since there is no useful
+			# convention of what should go there and what shouldn't, and the field is not used
+			# in search queries.
+			mbdata[['CH$COMPOUND_CLASS']] <- getOption("RMassBank")$annotations$compound_class
+			mbdata[['CH$FORMULA']] <- formula
+			mbdata[['CH$EXACT_MASS']] <- mass
+			mbdata[['CH$SMILES']] <- smiles
+			mbdata[['CH$IUPAC']] <- inchi
+			
+			link <- list()
+			if(dbcas != "")
+			link[["CAS"]] <- dbcas
+			link[["INCHIKEY"]] <- inchikey
+			mbdata[['CH$LINK']] <- link
+			mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
+			mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
+		}
+		return(mbdata)
+}
 
 
 # Flatten the internal tree-like representation of MassBank data to a flat table.

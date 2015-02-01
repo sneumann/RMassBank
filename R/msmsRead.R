@@ -303,7 +303,7 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 				## 3rd Best: find pspec closest to RT from spreadsheet
 				##psp <- which.min( abs(getRT(anmsms) - RT) )
 				if((plots == TRUE) && (length(psp[[i]]) > 0)){
-					plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdids)[[3]]), maxlabel=10)
+					plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdids[1])[[3]]), maxlabel=10)
 				}
 				if(length(psp[[i]]) != 0){
 					spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
@@ -315,12 +315,18 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 				spectra[[i]] <- matrix(0,2,7)
 			}
 		}
+		
 	if(length(w@specs) != 0){
 		w@specs <- c(w@specs,list(toRMB(spectra,cpdids[1],mode)))
 	} else {
 		w@specs[[1]] <- toRMB(spectra,cpdids[1],mode)
 	}
-	w@files <- c(w@files,xRAW[[1]]@filepath)
-	names(w@specs)[length(w@specs)] <- basename(xRAW[[1]]@filepath)
+	
+	if(all(w@files != xRAW[[1]]@filepath)){
+		w@files <- c(w@files,xRAW[[1]]@filepath)
+	} else{
+		w@files <- c(w@files,paste0(xRAW[[1]]@filepath,"_2"))
+	}
+	names(w@specs)[length(w@specs)] <- basename(w@files[length(w@files)])
 	return(w)
 }

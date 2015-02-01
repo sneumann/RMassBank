@@ -3,7 +3,7 @@
 \title{MassBank record creation workflow}
 \usage{
   mbWorkflow(mb, steps = c(1, 2, 3, 4, 5, 6, 7, 8),
-    infolist_path = "./infolist.csv")
+    infolist_path = "./infolist.csv", useCTS = TRUE)
 }
 \arguments{
   \item{steps}{Which steps in the workflow to perform.}
@@ -13,6 +13,11 @@
   manually inspected.}
 
   \item{mb}{The \code{mbWorkspace} to work in.}
+  
+  \item{useCTS}{A boolean variable denoting whether 
+  to retrieve information using CTS or to use babel	to
+  retrieve minimal information.}
+
 }
 \value{
   The processed \code{mbWorkspace}.

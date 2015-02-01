@@ -719,30 +719,43 @@ c.msmsWSspecs <- function(w1 = NA, w2 = NA){
 	cpdIDsw1 <- sapply(w1@specs, function(x) x$id)
 	cpdIDsw2 <- sapply(w2@specs, function(x) x$id)
 	
+	if(length(cpdIDsw2) == 0){
+		stop("w2 can't be empty.")
+	}
+	
+	if(length(cpdIDsw1) == 0){
+		w1@specs <- w2@specs
+		w1@files <- w2@files
+		return(w1)
+	}
+	
 	for(i in 1:length(cpdIDsw2)){
 		if(any(cpdIDsw2[i] == cpdIDsw1)){
+			
 			index <- which(cpdIDsw2[i] == cpdIDsw1)
-			w1@specs[[index]]$peaks <- c(w1@specs[[index]]$peaks,w2@specs[[i]]$peaks)
-			w1@specs[[index]]$childScans <- c(w1@specs[[index]]$childScans,w2@specs[[i]]$childScans)
-			w1@specs[[index]]$childHeaders <- rbind(w1@specs[[index]]$childHeaders, w2@specs[[i]]$childHeaders)
 			
-			##Fake seqNums and/or acquisitionNums if the concatenation has doubled some of them
-			
-			seqNums <- w1@specs[[index]]$childHeaders[,"seqNum"]
-			if(length(seqNums) != length(unique(seqNums))){
-				w1@specs[[index]]$childHeaders[,"seqNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-				w1@specs[[index]]$childScans <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-			}
-			
-			
-			acqNums <- w1@specs[[index]]$childHeaders[,"acquisitionNum"]
-			if(length(acqNums) != length(unique(acqNums))){
-				w1@specs[[index]]$childHeaders[,"acquisitionNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-			}		
+				w1@specs[[index]]$peaks <- c(w1@specs[[index]]$peaks,w2@specs[[i]]$peaks)
+				w1@specs[[index]]$childScans <- c(w1@specs[[index]]$childScans,w2@specs[[i]]$childScans)
+				w1@specs[[index]]$childHeaders <- rbind(w1@specs[[index]]$childHeaders, w2@specs[[i]]$childHeaders)
+				
+				##Fake seqNums and/or acquisitionNums if the concatenation has doubled some of them
+				
+				seqNums <- w1@specs[[index]]$childHeaders[,"seqNum"]
+				if(length(seqNums) != length(unique(seqNums))){
+					w1@specs[[index]]$childHeaders[,"seqNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+					w1@specs[[index]]$childScans <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+				}
+				
+				
+				acqNums <- w1@specs[[index]]$childHeaders[,"acquisitionNum"]
+				if(length(acqNums) != length(unique(acqNums))){
+					w1@specs[[index]]$childHeaders[,"acquisitionNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+				}
 		}
 		
 		if(all(cpdIDsw2[i] != cpdIDsw1)){
 			w1@specs[[length(w1@specs) + 1]] <- w2@specs[[i]]
+			w1@files <- c(w1@files,w2@files[i])
 		}
 	}
 	return(w1)
