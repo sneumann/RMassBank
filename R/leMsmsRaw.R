@@ -59,8 +59,8 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 			(The parameters are distinct to clearly conceptually distinguish findMsMsHR.mass
 #' 			(a standalone useful function) from the cpdID based functions (workflow functions).)
 #' @param mode The processing mode (determines which ion/adduct is searched):
-#' 			\code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-). 
+#' 			\code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-). 
 #' @param confirmMode Whether to use the highest-intensity precursor (=0), second-
 #' 			highest (=1), third-highest (=2)...
 #' @param useRtLimit Whether to respect retention time limits from the compound list.
@@ -172,6 +172,9 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				return(FALSE)
 			})
 	validPrecursors <- validPrecursors[which(which_OK==TRUE)]
+	if(length(validPrecursors) == 0){
+		warning("No precursor was detected. It is recommended to try to use the setting fillPrecursorScan: TRUE in the ini-file")
+	}
 	# Crop the "EIC" to the valid precursor scans
 	eic <- eic[eic$scan %in% validPrecursors,]
 	# Order by intensity, descending

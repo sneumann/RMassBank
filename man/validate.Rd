@@ -4,7 +4,7 @@
 \alias{validate}
 \title{Validate MassBank records with a set of Unit tests}
 \usage{
-validate(path, simple=TRUE)
+validate(path, simple = TRUE)
 }
 \arguments{
 \item{path}{The filepath to a single record, or a directory to search recursively}

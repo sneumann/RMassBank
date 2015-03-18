@@ -19,8 +19,8 @@ msn-data in a usable object with the \code{msn2xcmsRaw} function of xcms.}
 The ordering of this and \code{files} implicitly assigns each ID to the corresponding file.
 If this is supplied, then the IDs implicitly named in the filenames are ignored.}
 
-\item{mode}{\code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions
-([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).}
+\item{mode}{\code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions
+([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).}
 
 \item{findPeaksArgs}{A list of arguments that will be handed to the xcms-method findPeaks via do.call}
 

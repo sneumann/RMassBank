@@ -31,8 +31,8 @@ findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE,
 to use for formula lookup.}
 
 \item{mode}{The processing mode (determines which ion/adduct is searched):
-\code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions
-([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).}
+\code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions
+([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).}
 
 \item{confirmMode}{Whether to use the highest-intensity precursor (=0), second-
 highest (=1), third-highest (=2)...}

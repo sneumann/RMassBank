@@ -31,8 +31,8 @@ used to extract peaks. MassBank will read existing records,
 so that e.g. a recalibration can be performed, and "peaklist"
 just requires a CSV with two columns and the column header "mz", "int".}
 
-\item{mode}{\code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions
-([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).}
+\item{mode}{\code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions
+([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).}
 
 \item{confirmMode}{Defaults to false (use most intense precursor). Value 1 uses
 the 2nd-most intense precursor for a chosen ion (and its data-dependent scans)

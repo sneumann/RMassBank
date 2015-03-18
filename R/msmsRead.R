@@ -22,8 +22,8 @@
 #'        used to extract peaks. MassBank will read existing records, 
 #'        so that e.g. a recalibration can be performed, and "peaklist" 
 #'        just requires a CSV with two columns and the column header "mz", "int".
-#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
+#' @param mode \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
 #' @param confirmMode Defaults to false (use most intense precursor). Value 1 uses
 #' 			the 2nd-most intense precursor for a chosen ion (and its data-dependent scans)
 #' 			, etc.
@@ -46,7 +46,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
-	if(!any(mode %in% c("pH","pNa","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
 	
 	if(is.null(filetable)){
 		##If no filetable is supplied, filenames must be named explicitly
@@ -159,6 +159,8 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		nProg <- 0
 		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 		i <- 1
+		FileIDs <- vector()
+		metaSpec <- list()
 		dummyapply <- lapply(ufiles, function(currfile){
 			
 			dummySpecs[[i]] <<- newMsmsWorkspace()
@@ -213,8 +215,8 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 #' @param cpdids A vector or list containing the compound IDs of the files that are to be read as spectra.
 #'				The ordering of this and \code{files} implicitly assigns each ID to the corresponding file.
 #'				If this is supplied, then the IDs implicitly named in the filenames are ignored.
-#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
+#' @param mode \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
 #' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
 #' @param settings Options to be used for processing. Defaults to the options loaded via
 #' 			\code{\link{loadRmbSettings}} et al. Refer to there for specific settings.

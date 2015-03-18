@@ -544,7 +544,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	} else if(mode == "mFA") {
 		allowed_additions <- "C2H3O2"
 		mode.charge <- -1
-	} else {
+	} else if(mode == "pNH4") {
+		allowed_additions <- "NH4"
+		mode.charge <- 1
+	} else{
           stop("mode = \"", mode, "\" not defined")
         }
     
@@ -715,7 +718,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		cut <- filterSettings$prelimCut
 		if(is.na(cut))
 		{
-			if(mode %in% c("pH", "pM", "pNa"))
+			if(mode %in% c("pH", "pM", "pNa", "pNH4"))
 				cut <- 1e4
 			else if(mode %in% c("mH", "mFA", "mM"))
 				cut <- 0
@@ -2006,8 +2009,8 @@ filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TR
 #' @usage  recalibrate.addMS1data(spec,mode="pH", recalibrateMS1Window = 
 #' 				getOption("RMassBank")$recalibrateMS1Window)
 #' @param spec A \code{aggregatedSpecs}-like object.
-#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
+#' @param mode \code{"pH", "pNa", "pM", "pNH4",  "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+,  [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
 #' @param recalibrateMS1Window Window width to look for MS1 peaks to recalibrate (in ppm).
 #' @return A dataframe with columns \code{mzFound, formula, mzCalc, dppm, dbe, int,
 #' 		dppmBest, formulaCount, good, cpdID, scan, parentScan, dppmRc}. However,
