@@ -175,10 +175,12 @@ smiles2mass <- function(SMILES){
 	return(mass)
 }
 
-.unitTestRMB <- function(){
+.unitTestRMB <- function(WD=getwd()){
 	require(RUnit)
 	library(RMassBank)
 	library(RMassBankData)
+	oldwd <- getwd()
+	setwd(WD)
 	w <- newMsmsWorkspace()
 	RmbDefaultSettings()
 	files <- list.files(system.file("spectra", package="RMassBankData"),
@@ -192,6 +194,10 @@ smiles2mass <- function(SMILES){
 					"pH_narcotics")
 	w <- msmsWorkflow(w, mode="pH", steps=c(5:8), archivename = 
 			"pH_narcotics")	
+	w2 <- newMbWorkspace(w)
+	#w2 <- mbWorkflow(w2)
+	#w2 <- loadInfolist(w2, "infolist.csv")
+	#w2 <- mbWorkflow(w2)
 	
 	testSuite <- defineTestSuite("Electronic noise and formula calculation Test", dirs = system.file("unitTests", 
 		package="RMassBank"), testFileRegexp = "runit.EN_FC.R",
@@ -201,9 +207,10 @@ smiles2mass <- function(SMILES){
 					
 	testData <- suppressWarnings(runTestSuite(testSuite))
 	
-	file.remove("pH_narcotics_Failpeaks.csv")
+	file.remove(c("pH_narcotics_Failpeaks.csv","pH_narcotics.RData","pH_narcotics_RA.RData","pH_narcotics_RF.RData"))
 	
 	# Prints the HTML-record
 	printTextProtocol(testData)
+	setwd(oldwd)
 	return(testData)
 }

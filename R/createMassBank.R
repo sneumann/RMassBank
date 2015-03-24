@@ -180,7 +180,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   {
       mbdata_ids <- lapply(mb@aggregatedRcSpecs$specFound, function(spec) spec$id)
 	  if(useCTS){
-		message("mbWorkflow: Step 1. Gather info from CTS")
+		message("mbWorkflow: Step 1. Gather info from several databases")
 	  } else{
 		message("mbWorkflow: Step 1. Gather info using babel")
 	  }

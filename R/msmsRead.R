@@ -81,7 +81,13 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(!all(file.exists(w@files))){
 		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist")
 	}
-
+	
+	na.ids <- which(is.na(sapply(cpdids, findSmiles)))
+	
+	if(length(na.ids)){
+		stop("The supplied compound ids ", paste(cpdids[na.ids], collapse=" "), " don't have a corresponding smiles entry. Maybe they are missing from the compound list")
+	}
+	
 	##This should work
 	if(readMethod == "minimal"){
 		##Edit options

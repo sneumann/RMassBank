@@ -201,7 +201,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 			  })
 	  for(f in w@files)
 		  w@analyzedSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
-	  do.call(progressbar, list(object=pb, close=TRUE))
+	  suppressWarnings(do.call(progressbar, list(object=pb, close=TRUE)))
   }
   # Step 3: aggregate all spectra
   if(3 %in% steps)
@@ -687,7 +687,14 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
       return(shot)
   }, shots, msmsPeaks$childScans, spectraList, SIMPLIFY=FALSE)
   
-  mzranges <- t(sapply(shots, function(p) {return(range(p$childRaw[,mzColname]))}))
+  mzranges <- t(sapply(shots, function(p) {
+	  if(!is.null(p$childRaw)){
+		return(range(p$childRaw[,mzColname]))
+	  } else {
+		return(c(NA,NA))
+	  }
+  }))
+  
   mzmin <- min(mzranges[,1], na.rm=TRUE)
   mzmax <- max(mzranges[,2], na.rm=TRUE)
   
