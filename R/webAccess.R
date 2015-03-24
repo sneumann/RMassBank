@@ -58,32 +58,55 @@ getCactus <- function(identifier, representation)
 #' Only the first result is returned currently. \bold{The function should be
 #' regarded as experimental and has not thoroughly been tested.}
 #' 
-#' @usage getPcId(search)
-#' @param search The search term.
+#' @usage getPcId(query, from = "inchikey")
+#' @param query ID to be converted
+#' @param from Type of input ID
 #' @return The PubChem CID (in string type).
-#' @author Michael Stravs
+#' @author Michael Stravs, Erik Mueller
 #' @seealso \code{\link{getCtsRecord}}, \code{\link{getCactus}}
 #' @references PubChem search: \url{http://pubchem.ncbi.nlm.nih.gov/} 
 #' 
-#' Entrez E-utilities: \url{http://www.ncbi.nlm.nih.gov/books/NBK25500/}
+#' Pubchem REST:
+#' \url{https://pubchem.ncbi.nlm.nih.gov/pug_rest/PUG_REST.html}
 #' @examples
-#' 
-#' # Benzene (again):
-#' # Currently broken: getPcId("benzene")
+#' getPcId("MKXZASYAUGDDCJ-NJAFHUGGSA-N")
 #' 
 #' @export
-getPcId <- function(search)
+getPcId <- function(query, from = "inchikey")
 {
-  
-  baseUrl <- "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
-  term <- paste(baseUrl, "esearch.fcgi?db=pccompound&term=", URLencode(search), sep='')
-  ret <-  getURL(term)
-  #ret <- paste(ret, collapse='')
-  xml <- xmlParseDoc(ret,asText=TRUE)
-  idNodes <- getNodeSet(xml, "/eSearchResult/IdList/Id")
-  
-  id <- xmlValue(idNodes[[1]])
-  return(id)
+	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	url <- paste(baseURL, from, query, "description", "json", sep="/")
+	
+	errorvar <- 0
+	currEnvir <- environment()
+	
+	tryCatch(
+		data <- getURL(URLencode(url),timeout=5),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
+	
+	if(errorvar){
+		return(NA)
+	}
+	
+	# This happens if the InChI key is not found:
+	r <- fromJSON(data)
+	
+	if(!is.null(r$Fault))
+	return(NA)
+	
+	titleEntry <- which(unlist(lapply(r$InformationList$Information, function(i) !is.null(i$Title))))
+	
+	titleEntry <- titleEntry[which.min(sapply(titleEntry, function(x)r$InformationList$Information[[x]]$CID))]
+
+	PcID <- r$InformationList$Information[[titleEntry]]$CID
+	
+	if(is.null(PcID)){
+		return(NA)
+	} else{
+		return(PcID)
+	}
 }
 
 # The following function is unfinished.
@@ -131,7 +154,6 @@ getPcId <- function(search)
 #' \url{http://cts.fiehnlab.ucdavis.edu}
 #' 
 #' @examples
-#' 
 #' data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
 #' # show all synonym "types"
 #' types <- unique(unlist(lapply(data$synonyms, function(i) i$type)))
@@ -142,7 +164,26 @@ getPcId <- function(search)
 getCtsRecord <- function(key)
 {
 	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/compound/"
-	data <- getURL(paste0(baseURL,key))
+	
+	errorvar <- 0
+	currEnvir <- environment()
+	
+	##tryCatch a CTS timeout
+	##
+	tryCatch(
+		{
+			data <- getURL(paste0(baseURL,key), timeout=7)
+		},
+		error=function(e){
+			currEnvir$errorvar <- 1
+		}
+	)
+  
+	if(errorvar){
+		warning("CTS seems to be currently unavailable or incapable of interpreting your request")
+		return(NULL)
+	}
+
 	r <- fromJSON(data)
 	if(length(r) == 1)
 		if(r == "You entered an invalid InChIKey")
@@ -159,17 +200,36 @@ getCtsRecord <- function(key)
 #' @return An unordered array with the resulting converted key(s). 
 #' 
 #' @examples 
-#' 	k <- getCtsKey("benzene", "Chemical Name", "InChIKey")
+#' k <- getCtsKey("benzene", "Chemical Name", "InChIKey")
 #' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
 #' @export
 getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 {
 	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/convert"
 	url <- paste(baseURL, from, to, query, sep='/')
-	data <- getURL(URLencode(url))
+	errorvar <- 0
+	currEnvir <- environment()
+	
+	##tryCatch a CTS timeout
+	##
+	tryCatch(
+		{
+			data <- getURL(URLencode(url), timeout=7)
+		},
+		error=function(e){
+			currEnvir$errorvar <- 1
+		}
+	)
+  
+	if(errorvar){
+		warning("CTS seems to be currently unavailable or incapable of interpreting your request")
+		return(NULL)
+	}
+	
+	
 	r <- fromJSON(data)
 	if(length(r) == 0)
-		return(FALSE)
+		return(NULL)
 	else
 	{
 		# read out the results in simplest form:
@@ -232,3 +292,177 @@ CTS.externalIdTypes <- function(data)
 								id[["name"]]
 							})))
 }
+
+.pubChemOnline <- function(){
+	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	url <- paste(baseURL, "inchikey", "QEIXBXXKTUNWDK-UHFFFAOYSA-N", "description", "json", sep="/")
+	
+	errorvar <- 0
+	currEnvir <- environment()
+	tryCatch(
+		ret <- getURL(URLencode(url), timeout=5),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
+  
+  if(errorvar){
+	warning("Pubchem is currently offline")
+	return(FALSE)
+  } else{
+	return(TRUE)
+  }
+}
+
+getPcCHEBI <- function(query, from = "inchikey")
+{
+	# Get the JSON-Data from Pubchem
+	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	url <- paste(baseURL, from, query, "synonyms", "json", sep="/")
+	errorvar <- 0
+	currEnvir <- environment()
+	
+	tryCatch(
+		data <- getURL(URLencode(url),timeout=5),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
+	
+	if(errorvar){
+		return(NA)
+	}
+	
+	r <- fromJSON(data)
+	
+	# This happens if the InChI key is not found:
+	if(!is.null(r$Fault))
+	return(NA)
+	
+	# Find the entries which contain Chebi-links
+	synonymEntry <- which(unlist(lapply(r$InformationList$Information, function(i) !is.null(i$Synonym))))
+	synonymList <- r$InformationList$Information[[synonymEntry]]$Synonym
+	matchChebi <- which(grepl("CHEBI:", synonymList, fixed=TRUE))
+	
+	# It doesn't matter if the db is down or if chebi isn't found, so return NA also
+	if(length(matchChebi) == 0){
+		return (NA) 
+	} else {
+		return (sapply(matchChebi, function(x) synonymList[[x]]))
+	}
+}
+
+##This fucntion uses the chemspider-interface to collect the CSID
+getCSID <- function(query)
+{
+	baseURL <- "http://www.chemspider.com/InChI.asmx/InChIKeyToCSID?inchi_key="
+	url <- paste0(baseURL, query)
+	
+	errorvar <- 0
+	currEnvir <- environment()
+	
+	tryCatch(
+		data <- getURL(URLencode(url), timeout=5),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
+	
+	if(errorvar){
+		warning("Chemspider is currently offline")
+		return(NA)
+	}
+	
+	xml <- xmlParseDoc(data,asText=TRUE)
+	# the returned XML document contains only the root node called "string" which contains the correct CSID
+	idNodes <- getNodeSet(xml, "/")
+	id <- xmlValue(idNodes[[1]])
+	return(id)
+} 
+
+##This function returns a sensible name for the compound
+getPcSynonym <- function (query, from = "inchikey")
+{
+	# Get the JSON-Data from Pubchem
+	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	url <- paste(baseURL, from, query, "description", "json", sep="/")
+	
+	errorvar <- 0
+	currEnvir <- environment()
+	
+	tryCatch(
+		data <- getURL(URLencode(url),timeout=5),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
+	
+	if(errorvar){
+		return(NA)
+	}
+	
+	r <- fromJSON(data)
+	
+	# This happens if the InChI key is not found:
+	if(!is.null(r$Fault))
+	return(NA)
+	
+	# Find the synonym
+	
+	titleEntry <- which(unlist(lapply(r$InformationList$Information, function(i) !is.null(i$Title))))
+	
+	titleEntry <- titleEntry[which.min(sapply(titleEntry, function(x)r$InformationList$Information[[x]]$CID))]
+	
+	title <- r$InformationList$Information[[titleEntry]]$Title
+	
+	if(is.null(title)){
+		return(NA)
+	} else{
+		return(title)
+	}
+} 
+
+
+##A function to retrieve a IUPAC Name from Pubchem
+getPcIUPAC <- function (query, from = "inchikey")
+{
+	# Get the JSON-Data from Pubchem
+	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	url <- paste(baseURL, from, query, "record", "json", sep="/")
+	
+	errorvar <- 0
+	currEnvir <- environment()
+	
+	tryCatch(
+		data <- getURL(URLencode(url),timeout=5),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
+	
+	if(errorvar){
+		return(NA)
+	}
+	
+	r <- fromJSON(data)
+	
+	# This happens if the InChI key is not found:
+	if(!is.null(r$Fault))
+	return(NA)
+	
+	# Find the IUPAC-Names
+	if(!is.null(r$PC_Compounds[[1]]$props)){
+		IUPACIndex <- which(unlist(lapply(r$PC_Compounds[[1]]$props, function(i) (i$urn$label == "IUPAC Name"))))
+		if(length(IUPACIndex) > 0){
+			# Retrieve all IUPAC-Names
+			IUPACEntries <- lapply(IUPACIndex, function(x) r$PC_Compounds[[1]]$props[[x]])
+			if(!is.null(IUPACEntries)){
+				# Is there a preferred IUPAC-Name? If yes, retrieve that
+				PrefIUPAC <- which(unlist(lapply(IUPACEntries, function(x) x$urn$name == "Preferred")))
+			}	else{return(NA)}
+		}	else{return(NA)}
+	}	else{return(NA)}
+	
+
+	if(length(PrefIUPAC) == 1){
+		return(IUPACEntries[[PrefIUPAC]]$value$sval)
+	} else{
+		# Else it doesn't matter which
+		return(IUPACEntries[[1]]$value$sval)
+	}
+} 

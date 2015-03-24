@@ -88,7 +88,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   nProg <- 0
   nLen <- length(w@files)
   
-  if(readMethod == "simple"){
+  if(readMethod == "minimal"){
 	##Edit options
 	opt <- getOption("RMassBank")
 	opt$recalibrator$MS1 <- "recalibrate.identity"
@@ -161,9 +161,11 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	##	names(w@specs) <- basename(as.character(w@files))
 	##}
 		
-	if((readMethod == "peaklist") || (readMethod == "simple")){
-		splitfn <- strsplit(w@files,'_')
-		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[2]))})
+	if((readMethod == "peaklist") || (readMethod == "minimal")){
+		splitfn <- strsplit(basename(w@files), "_")
+		cpdIDs <- sapply(splitfn, function(splitted) {
+			as.numeric(return(splitted[2]))
+		})
 		files <- list()
 		for(i in 1:length(unique(cpdIDs))) {
 			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
@@ -199,7 +201,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 			  })
 	  for(f in w@files)
 		  w@analyzedSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
-	  do.call(progressbar, list(object=pb, close=TRUE))
+	  suppressWarnings(do.call(progressbar, list(object=pb, close=TRUE)))
   }
   # Step 3: aggregate all spectra
   if(3 %in% steps)
@@ -542,7 +544,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	} else if(mode == "mFA") {
 		allowed_additions <- "C2H3O2"
 		mode.charge <- -1
-	} else {
+	} else if(mode == "pNH4") {
+		allowed_additions <- "NH4"
+		mode.charge <- 1
+	} else{
           stop("mode = \"", mode, "\" not defined")
         }
     
@@ -568,8 +573,11 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	
 	
 	peakmatrix <- lapply(shot[,mzColname], function(mass) {
-				peakformula <- tryCatch(generate.formula(mass, ppm(mass, ppmlimit, p=TRUE), 
-								limits, charge=mode.charge), error=function(e) NA)
+				# Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
+				# finally back-correct calculated masses for the charge
+				mass.calc <- mass + mode.charge * .emass
+				peakformula <- tryCatch(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
+								limits, charge=0), error=function(e) NA)
 				#peakformula <- tryCatch( 
 				#  generate.formula(mass, 
 				#                   ppm(mass, ppmlimit, p=TRUE),
@@ -582,9 +590,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 				{
 					return(t(sapply(peakformula, function(f)
 											{
+												mzCalc <- f@mass - mode.charge * .emass 
 												c(mzFound=mass,
 														formula=f@string, 
-														mzCalc=f@mass)
+														mzCalc=mzCalc)
 											})))
 				}
 			})
@@ -678,7 +687,14 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
       return(shot)
   }, shots, msmsPeaks$childScans, spectraList, SIMPLIFY=FALSE)
   
-  mzranges <- t(sapply(shots, function(p) {return(range(p$childRaw[,mzColname]))}))
+  mzranges <- t(sapply(shots, function(p) {
+	  if(!is.null(p$childRaw)){
+		return(range(p$childRaw[,mzColname]))
+	  } else {
+		return(c(NA,NA))
+	  }
+  }))
+  
   mzmin <- min(mzranges[,1], na.rm=TRUE)
   mzmax <- max(mzranges[,2], na.rm=TRUE)
   
@@ -709,7 +725,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		cut <- filterSettings$prelimCut
 		if(is.na(cut))
 		{
-			if(mode %in% c("pH", "pM", "pNa"))
+			if(mode %in% c("pH", "pM", "pNa", "pNH4"))
 				cut <- 1e4
 			else if(mode %in% c("mH", "mFA", "mM"))
 				cut <- 0
@@ -1381,9 +1397,9 @@ recalibrateSpectra <- function(mode, rawspec = NULL, rc = NULL, rc.ms1=NULL, w =
 						  colnames(p) <- c("mzFound", "int")
 						  drecal <- predict(rc.ms1, newdata= p)
 						  if(recalibrateBy == "dppm")
-							  p$mzRecal <- p$mz / ( 1 + drecal/1e6 )
+							  p$mzRecal <- p$mzFound / ( 1 + drecal/1e6 )
 						  else
-							  p$mzRecal <- p$mz - drecal
+							  p$mzRecal <- p$mzFound - drecal
 						  colnames(p) <- c("mz", "int", "mzRecal")
 					  }
 					  p <- as.matrix(p)
@@ -1410,9 +1426,9 @@ recalibrateSingleSpec <- function(spectrum, rc,
 		colnames(p) <- c("mzFound", "int")
 		drecal <- predict(rc, newdata= p)
 		if(recalibrateBy == "dppm")
-			p$mzRecal <- p$mz / ( 1 + drecal/1e6 )
+			p$mzRecal <- p$mzFound / ( 1 + drecal/1e6 )
 		else
-			p$mzRecal <- p$mz - drecal
+			p$mzRecal <- p$mzFound - drecal
 		# And rename them back so our "mz" column is
 		# called "mz" again
 		colnames(p) <- c("mz", "int", "mzRecal")
@@ -1751,7 +1767,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	
 	if(!is.data.frame(peaks))
 	{
-		message("filterPeaksMultiplicity: no peaks to aggregate")
+		stop("filterPeaksMultiplicity: All peaks have been filtered.")
 		peaks <- cbind(peaks, data.frame(formulaMultiplicity=numeric()))
 	}
 	else
@@ -2000,8 +2016,8 @@ filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TR
 #' @usage  recalibrate.addMS1data(spec,mode="pH", recalibrateMS1Window = 
 #' 				getOption("RMassBank")$recalibrateMS1Window)
 #' @param spec A \code{aggregatedSpecs}-like object.
-#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
+#' @param mode \code{"pH", "pNa", "pM", "pNH4",  "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+,  [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
 #' @param recalibrateMS1Window Window width to look for MS1 peaks to recalibrate (in ppm).
 #' @return A dataframe with columns \code{mzFound, formula, mzCalc, dppm, dbe, int,
 #' 		dppmBest, formulaCount, good, cpdID, scan, parentScan, dppmRc}. However,

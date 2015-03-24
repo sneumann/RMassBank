@@ -8,8 +8,8 @@
 #' workflow.
 #' 
 #' @param w A \code{msmsWorkspace} to work with.
-#' @param filetable The path to a .csv-file that contains the columns "files" and "cpdid" supplying
-#' 			the relationships between files and compound IDs. Either this or "files" need
+#' @param filetable The path to a .csv-file that contains the columns "Files" and "ID" supplying
+#' 			the relationships between files and compound IDs. Either this or the parameter "files" need
 #'			to be specified. 
 #' @param files A vector or list containing the filenames of the files that are to be read as spectra. 
 #'				For the IDs to be inferred from the filenames alone, there need to be exactly 2 underscores.
@@ -22,8 +22,8 @@
 #'        used to extract peaks. MassBank will read existing records, 
 #'        so that e.g. a recalibration can be performed, and "peaklist" 
 #'        just requires a CSV with two columns and the column header "mz", "int".
-#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
+#' @param mode \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
 #' @param confirmMode Defaults to false (use most intense precursor). Value 1 uses
 #' 			the 2nd-most intense precursor for a chosen ion (and its data-dependent scans)
 #' 			, etc.
@@ -46,7 +46,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
-	if(!any(mode %in% c("pH","pNa","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
 	
 	if(is.null(filetable)){
 		##If no filetable is supplied, filenames must be named explicitly
@@ -75,15 +75,21 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(length(w@files) != length(cpdids)){
 		stop("There are a different number of cpdids than files")
 	}
-	if(!(readMethod %in% c("mzR","peaklist","xcms","simple"))){
+	if(!(readMethod %in% c("mzR","peaklist","xcms","minimal"))){
 		stop("The supplied method does not exist")
 	}
 	if(!all(file.exists(w@files))){
 		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist")
 	}
-
+	
+	na.ids <- which(is.na(sapply(cpdids, findSmiles)))
+	
+	if(length(na.ids)){
+		stop("The supplied compound ids ", paste(cpdids[na.ids], collapse=" "), " don't have a corresponding smiles entry. Maybe they are missing from the compound list")
+	}
+	
 	##This should work
-	if(readMethod == "simple"){
+	if(readMethod == "minimal"){
 		##Edit options
 		opt <- getOption("RMassBank")
 		opt$recalibrator$MS1 <- "recalibrate.identity"
@@ -121,7 +127,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	}
 	
 	##Peaklist-readmethod 
-	if((readMethod == "peaklist") || (readMethod=="simple")){
+	if((readMethod == "peaklist") || (readMethod=="minimal")){
 		w <- createSpecsFromPeaklists(w, cpdids, filenames=w@files, mode=mode)
 		uIDs <- unique(cpdids)
 		files <- list()
@@ -159,6 +165,8 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		nProg <- 0
 		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 		i <- 1
+		FileIDs <- vector()
+		metaSpec <- list()
 		dummyapply <- lapply(ufiles, function(currfile){
 			
 			dummySpecs[[i]] <<- newMsmsWorkspace()
@@ -198,8 +206,38 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	}
 }
 
-msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, confirmMode = FALSE, useRtLimit = TRUE, 
-						findPeaksArgs = NULL, settings = getOption("RMassBank"), progressbar = "progressBarHook", plots = FALSE){
+#' 
+#' Extracts and processes spectra from a list of xcms-Objects
+#' 
+#' The filenames of the raw LC-MS runs are read from the array \code{files} 
+#' in the global enviroment.
+#' See the vignette \code{vignette("RMassBank")} for further details about the
+#' workflow.
+#' 
+#' @param w A \code{msmsWorkspace} to work with.
+#' @param xRAW A list of xcmsRaw objects whose peaks should be detected and added to the workspace.
+#'				The relevant data must be in the MS1 data of the xcmsRaw object.  You can coerce the
+#'				msn-data in a usable object with the \code{msn2xcmsRaw} function of xcms.
+#' @param cpdids A vector or list containing the compound IDs of the files that are to be read as spectra.
+#'				The ordering of this and \code{files} implicitly assigns each ID to the corresponding file.
+#'				If this is supplied, then the IDs implicitly named in the filenames are ignored.
+#' @param mode \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
+#' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
+#' @param settings Options to be used for processing. Defaults to the options loaded via
+#' 			\code{\link{loadRmbSettings}} et al. Refer to there for specific settings.
+#' @param progressbar The progress bar callback to use. Only needed for specialized applications.
+#' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
+#' @param plots A boolean value that determines whether the pseudospectra in XCMS should be plotted
+#' @return The \code{msmsWorkspace} with msms-spectra read.
+#' @seealso \code{\link{msmsWorkspace-class}}, \code{\link{msmsWorkflow}}
+#' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
+#' @author Erik Mueller, UFZ
+#' @export
+msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NULL, 
+							settings = getOption("RMassBank"), progressbar = "progressBarHook", plots = FALSE){
+	
+	require(xcms)
 	
 	##xRAW will be coerced into a list of length 1 if it is an xcmsRaw-object
 	if(class(xRAW) == "xcmsRaw"){
@@ -215,10 +253,13 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, confirmMode = FALS
 		stop("No cpdids supplied")
 	}
 		
-	msnExist <- which(sapply(xRAW,function(x) length(x@msnPrecursorScan) != 0))
-	if(length(msnExist) != length(xRAW)){
-		stop(paste("No msn data in list elements", diff(1:length(xRAW),msnExist)))
-	}
+	#msnExist <- which(sapply(xRAW,function(x) length(x@msnPrecursorScan) != 0))
+	#print(length(msnExist))
+	#print(length(xRAW))
+	
+	#if(length(msnExist) != length(xRAW)){
+	#	stop(paste("No msn data in list elements", setdiff(1:length(xRAW),msnExist)))
+	#}
 	
 	require(CAMERA)
 	
@@ -270,7 +311,7 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, confirmMode = FALS
 				## 3rd Best: find pspec closest to RT from spreadsheet
 				##psp <- which.min( abs(getRT(anmsms) - RT) )
 				if((plots == TRUE) && (length(psp[[i]]) > 0)){
-					plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdids)[[3]]), maxlabel=10)
+					plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdids[1])[[3]]), maxlabel=10)
 				}
 				if(length(psp[[i]]) != 0){
 					spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
@@ -282,12 +323,18 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, confirmMode = FALS
 				spectra[[i]] <- matrix(0,2,7)
 			}
 		}
+		
 	if(length(w@specs) != 0){
 		w@specs <- c(w@specs,list(toRMB(spectra,cpdids[1],mode)))
 	} else {
 		w@specs[[1]] <- toRMB(spectra,cpdids[1],mode)
 	}
-	w@files <- c(w@files,xRAW[[1]]@filepath)
-	names(w@specs)[length(w@specs)] <- basename(xRAW[[1]]@filepath)
+	
+	if(all(w@files != xRAW[[1]]@filepath)){
+		w@files <- c(w@files,xRAW[[1]]@filepath)
+	} else{
+		w@files <- c(w@files,paste0(xRAW[[1]]@filepath,"_2"))
+	}
+	names(w@specs)[length(w@specs)] <- basename(w@files[length(w@files)])
 	return(w)
 }

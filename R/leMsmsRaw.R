@@ -1,6 +1,15 @@
+## For generating the NAMESPACE
 #' @import mzR
-#' @importClassesFrom mzR
-#' @importMethodsFrom mzR
+# # importClassesFrom mzR ## Causes error 
+# # importMethodsFrom mzR 
+#' @import Rcpp ## Was not in manually written NAMESPACE ?
+#' @import RCurl 
+#' @import XML 
+#' @import methods 
+#' @import mzR 
+#' @import rcdk 
+#' @import rjson 
+#' @import yaml 
 NULL # This is required so that roxygen knows where the first manpage starts
 
 #' Extract MS/MS spectra for specified precursor
@@ -15,7 +24,7 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 		is a low-level function which uses the mass directly for lookup and is intended for
 #' 		use as a standalone function in unrelated applications.
 #' 
-#' @Usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
+#' @usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
 #' 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
 #' 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
 #' 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
@@ -23,7 +32,7 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 		deprofile = getOption("RMassBank")$deprofile)
 #' 		
 #' 		findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-#' 		headerCache = NA, fillPrecursorScan = FALSE,
+#' 		headerCache = NULL, fillPrecursorScan = FALSE,
 #' 		deprofile = getOption("RMassBank")$deprofile)
 #'
 #' findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
@@ -31,7 +40,7 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #'			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
 #'			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
 #'			rtMargin = getOption("RMassBank")$rtMargin,
-#'			deprofile = getOption("RMassBank")$deprofile, headerCache = NA)
+#'			deprofile = getOption("RMassBank")$deprofile, headerCache = NULL)
 #' 
 #' @aliases findMsMsHR.mass findMsMsHR.direct findMsMsHR
 #' @param fileName The file to open and search the MS2 spectrum in.
@@ -50,8 +59,8 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 			(The parameters are distinct to clearly conceptually distinguish findMsMsHR.mass
 #' 			(a standalone useful function) from the cpdID based functions (workflow functions).)
 #' @param mode The processing mode (determines which ion/adduct is searched):
-#' 			\code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-). 
+#' 			\code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-). 
 #' @param confirmMode Whether to use the highest-intensity precursor (=0), second-
 #' 			highest (=1), third-highest (=2)...
 #' @param useRtLimit Whether to respect retention time limits from the compound list.
@@ -110,14 +119,14 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 	# mzR.
 	msRaw <- openMSfile(fileName)
 	ret <- findMsMsHR.direct(msRaw, cpdID, mode, confirmMode, useRtLimit, ppmFine, mzCoarse, fillPrecursorScan,
-				rtMargin, deprofile)
+			rtMargin, deprofile)
 	mzR::close(msRaw)
 	return(ret)
 }
 
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-		headerCache = NA, fillPrecursorScan = FALSE,
+		headerCache = NULL, fillPrecursorScan = FALSE,
 		deprofile = getOption("RMassBank")$deprofile)
 {
 	eic <- findEIC(msRaw, mz, limit.fine, rtLimits)
@@ -125,7 +134,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	#	{  
 	#		eic <- subset(eic, rt >= rtLimits[[1]] & rt <= rtLimits[[2]])
 	#	}
-	if(!all(is.na(headerCache)))
+	if(!is.null(headerCache))
 		headerData <- headerCache
 	else
 		headerData <- as.data.frame(header(msRaw))
@@ -163,6 +172,9 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				return(FALSE)
 			})
 	validPrecursors <- validPrecursors[which(which_OK==TRUE)]
+	if(length(validPrecursors) == 0){
+		warning("No precursor was detected. It is recommended to try to use the setting fillPrecursorScan: TRUE in the ini-file")
+	}
 	# Crop the "EIC" to the valid precursor scans
 	eic <- eic[eic$scan %in% validPrecursors,]
 	# Order by intensity, descending
@@ -222,42 +234,43 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 
 #' @export
 findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
-			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
-			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
-			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
-			rtMargin = getOption("RMassBank")$rtMargin,
-			deprofile = getOption("RMassBank")$deprofile,
-      headerCache = NA)
+		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+		rtMargin = getOption("RMassBank")$rtMargin,
+		deprofile = getOption("RMassBank")$deprofile,
+		headerCache = NULL)
 {
-  # for finding the peak RT: use the gauss-fitted centwave peak
-  # (centroid data converted with TOPP is necessary. save as
-  # mzData, since this is correctly read :P)
-  #xset <- xcmsSet(fileName, method="centWave",ppm=5, fitgauss=TRUE)
-
-  # find cpd m/z
-  mzLimits <- findMz(cpdID, mode)
-  mz <- mzLimits$mzCenter
-  limit.fine <- ppm(mz, ppmFine, p=TRUE)
-  if(!useRtLimit)
-	  rtLimits <- NA
-  else
-  {
-	  dbRt <- findRt(cpdID)
-	  rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
-  }
-  spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
-  	,fillPrecursorScan, deprofile)
-  # check whether a) spectrum was found and b) enough spectra were found
-  if(length(spectra) < (confirmMode + 1))
-    sp <- list(foundOK = FALSE)
-  else
-    sp <- spectra[[confirmMode + 1]]
-  
-  sp$mz <- mzLimits
-  sp$id <- cpdID
-  sp$formula <- findFormula(cpdID)
-  return(sp)
+	# for finding the peak RT: use the gauss-fitted centwave peak
+	# (centroid data converted with TOPP is necessary. save as
+	# mzData, since this is correctly read :P)
+	#xset <- xcmsSet(fileName, method="centWave",ppm=5, fitgauss=TRUE)
+	
+	# find cpd m/z
+	mzLimits <- findMz(cpdID, mode)
+	mz <- mzLimits$mzCenter
+	limit.fine <- ppm(mz, ppmFine, p=TRUE)
+	if(!useRtLimit)
+		rtLimits <- NA
+	else
+	{
+		dbRt <- findRt(cpdID)
+		rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
+	}
+	spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
+			,fillPrecursorScan, deprofile)
+	# check whether a) spectrum was found and b) enough spectra were found
+	if(length(spectra) < (confirmMode + 1))
+		sp <- list(foundOK = FALSE)
+	else
+		sp <- spectra[[confirmMode + 1]]
+	
+	sp$mz <- mzLimits
+	sp$id <- cpdID
+	sp$formula <- findFormula(cpdID)
+	return(sp)
 }
+
 
 #' Read in mz-files using XCMS
 #' 
@@ -393,11 +406,14 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 #' 			this value is useful if spectra for multiple compounds should be 
 #' 			extracted from the same mzML file, since it avoids getting the data
 #' 			freshly from \code{msRaw} for every compound.
+#' @param floatingRecalibration 
+#' 			A fitting function that \code{predict()}s a mass shift based on the retention time. Can be used
+#' 			if a lockmass calibration is known (however you have to build the calibration yourself.)
 #' @return A \code{[rt, intensity, scan]} matrix (\code{scan} being the scan number.) 
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @seealso findMsMsHR
 #' @export
-findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL)
+findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, floatingRecalibration = NULL)
 {
 	# calculate mz upper and lower limits for "integration"
 	if(all(c("mzMin", "mzMax") %in% names(mz)))
@@ -405,10 +421,10 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL)
 	else
 		mzlimits <- c(mz - limit, mz + limit)
 	# Find peaklists for all MS1 scans
-  if(!all(is.na(headerCache)))
-    headerData <- as.data.frame(headerCache)
-  else
-    headerData <- as.data.frame(header(msRaw))
+	if(!is.null(headerCache))
+		headerData <- as.data.frame(headerCache)
+	else
+		headerData <- as.data.frame(header(msRaw))
 	# If RT limit is already given, retrieve only candidates in the first place,
 	# since this makes everything much faster.
 	if(all(!is.na(rtLimit)))
@@ -420,11 +436,25 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL)
 		headerMS1 <- headerData[headerData$msLevel == 1,]
 	pks <- mzR::peaks(msRaw, headerMS1$seqNum)
 	# Sum intensities in the given mass window for each scan
-	pks_t <- unlist(lapply(pks, function(peaktable)
-						sum(peaktable[which((peaktable[,1] >= mzlimits[[1]]) & (peaktable[,1] <= mzlimits[[2]])) ,2])))
-	rt <- headerMS1$retentionTime
-	scan <- headerMS1$acquisitionNum
-	return(data.frame(rt = rt, intensity=pks_t, scan=scan))
+	if(is.null(floatingRecalibration))
+	{
+		headerMS1$mzMin <- mzlimits[[1]]
+		headerMS1$mzMax <- mzlimits[[2]]
+	}
+	else
+	{
+		headerMS1$mzMin <- mzlimits[[1]] + predict(floatingRecalibration, headerMS1$retentionTime)
+		headerMS1$mzMax <- mzlimits[[2]] + predict(floatingRecalibration, headerMS1$retentionTime)
+	}
+	intensity <- unlist(lapply(1:nrow(headerMS1), function(row)
+					{
+						peaktable <- mzR::peaks(msRaw, headerMS1[row,"acquisitionNum"])
+						sum(peaktable[
+										which((peaktable[,1] >= headerMS1[row,"mzMin"]) & (peaktable[,1] <= headerMS1[row,"mzMax"])),
+										2])
+						
+					}))
+	return(data.frame(rt = headerMS1$retentionTime, intensity=intensity, scan=headerMS1$acquisitionNum))
 }
 
 #' Conversion of XCMS-pseudospectra into RMassBank-spectra
@@ -682,7 +712,7 @@ addMB <- function(w, cpdID, fileName, mode){
 #' @examples \dontrun{
 #' 		c.msmsWSspecs(w1,w2)
 #' }
-#'export
+#'@export
 c.msmsWSspecs <- function(w1 = NA, w2 = NA){
 
 	if(class(w1) != "msmsWorkspace" || class(w2) != "msmsWorkspace"){
@@ -692,30 +722,43 @@ c.msmsWSspecs <- function(w1 = NA, w2 = NA){
 	cpdIDsw1 <- sapply(w1@specs, function(x) x$id)
 	cpdIDsw2 <- sapply(w2@specs, function(x) x$id)
 	
+	if(length(cpdIDsw2) == 0){
+		stop("w2 can't be empty.")
+	}
+	
+	if(length(cpdIDsw1) == 0){
+		w1@specs <- w2@specs
+		w1@files <- w2@files
+		return(w1)
+	}
+	
 	for(i in 1:length(cpdIDsw2)){
 		if(any(cpdIDsw2[i] == cpdIDsw1)){
+			
 			index <- which(cpdIDsw2[i] == cpdIDsw1)
-			w1@specs[[index]]$peaks <- c(w1@specs[[index]]$peaks,w2@specs[[i]]$peaks)
-			w1@specs[[index]]$childScans <- c(w1@specs[[index]]$childScans,w2@specs[[i]]$childScans)
-			w1@specs[[index]]$childHeaders <- rbind(w1@specs[[index]]$childHeaders, w2@specs[[i]]$childHeaders)
 			
-			##Fake seqNums and/or acquisitionNums if the concatenation has doubled some of them
-			
-			seqNums <- w1@specs[[index]]$childHeaders[,"seqNum"]
-			if(length(seqNums) != length(unique(seqNums))){
-				w1@specs[[index]]$childHeaders[,"seqNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-				w1@specs[[index]]$childScans <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-			}
-			
-			
-			acqNums <- w1@specs[[index]]$childHeaders[,"acquisitionNum"]
-			if(length(acqNums) != length(unique(acqNums))){
-				w1@specs[[index]]$childHeaders[,"acquisitionNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-			}		
+				w1@specs[[index]]$peaks <- c(w1@specs[[index]]$peaks,w2@specs[[i]]$peaks)
+				w1@specs[[index]]$childScans <- c(w1@specs[[index]]$childScans,w2@specs[[i]]$childScans)
+				w1@specs[[index]]$childHeaders <- rbind(w1@specs[[index]]$childHeaders, w2@specs[[i]]$childHeaders)
+				
+				##Fake seqNums and/or acquisitionNums if the concatenation has doubled some of them
+				
+				seqNums <- w1@specs[[index]]$childHeaders[,"seqNum"]
+				if(length(seqNums) != length(unique(seqNums))){
+					w1@specs[[index]]$childHeaders[,"seqNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+					w1@specs[[index]]$childScans <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+				}
+				
+				
+				acqNums <- w1@specs[[index]]$childHeaders[,"acquisitionNum"]
+				if(length(acqNums) != length(unique(acqNums))){
+					w1@specs[[index]]$childHeaders[,"acquisitionNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+				}
 		}
 		
 		if(all(cpdIDsw2[i] != cpdIDsw1)){
 			w1@specs[[length(w1@specs) + 1]] <- w2@specs[[i]]
+			w1@files <- c(w1@files,w2@files[i])
 		}
 	}
 	return(w1)

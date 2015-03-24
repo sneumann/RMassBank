@@ -8,17 +8,20 @@ assign("listEnv", NULL, envir=.listEnvEnv)
 #' 
 #' The list is loaded into the variable \code{\var{compoundList}} in the environment
 #' \code{listEnv} (which defaults to the global environment) and used by
-#' the \code{findMz}, \code{findCAS}, ... functions.
+#' the \code{findMz}, \code{findCAS}, ... functions. The CSV file is required to have at least the following columns, which are used for 
+#' further processing and must be named correctly (but present in any order): \var{ID, Name, SMILES, RT,
+#' CAS}
 #' 
 #' resetList() clears a currently loaded list.
 #' 
 #' @aliases loadList resetList
-#' @usage loadList(path, listEnv=NULL)
+#' @usage loadList(path, listEnv=NULL, check=TRUE)
 #' 
 #' 			resetList()
 #' @param path Path to the CSV list.
 #' @param listEnv The environment to load the list into. By default, the namelist is loaded
 #' 		into an environment internally in RMassBank. 
+#' @param check A parameter that specifies whether the SMILES-Codes in the list should be checked for readability by rcdk.
 #' @return No return value.
 #' @author Michael Stravs
 #' @seealso \code{\link{findMz}}
@@ -28,29 +31,52 @@ assign("listEnv", NULL, envir=.listEnvEnv)
 #' \dontrun{loadList("mylist.csv")}
 #' 
 #' @export
-loadList <- function(path, listEnv = NULL)
+loadList <- function(path, listEnv = NULL, check = TRUE)
 {
 	if(is.null(listEnv))
 		listEnv <- .listEnvEnv
 	if(!file.exists(path))
 		stop("The supplied file does not exist, please supply a correct path")
-  compoundList <- read.csv(path, stringsAsFactors=FALSE)
-  # check whether the necessary columns are present
-  n <- colnames(compoundList)
-  cols <- c('ID', 'Name', 'SMILES', 'RT', 'CAS')
-  d <- setdiff(cols, n)
-  if(length(d)>0){
+	compoundList <- read.csv(path, stringsAsFactors=FALSE)
+	# check whether the necessary columns are present
+	n <- colnames(compoundList)
+	cols <- c('ID', 'Name', 'SMILES', 'RT', 'CAS')
+	d <- setdiff(cols, n)
+	if(length(d)>0){
 		compoundList <- read.csv2(path, stringsAsFactors=FALSE)
 		n <- colnames(compoundList)
 		d2 <- setdiff(cols, n)
 		if(length(d2) > 0){
-			stop("Some columns are missing in the compound list. Needs at least ID, Name, SMILES, RT.")
+			stop("Some columns are missing in the compound list. Needs at least ID, Name, SMILES, RT, CAS.")
 		}
 	}
-  if(length(duplicated(compoundList$cpdID)) > 0)
-      stop("Duplicate compound IDs are present. Please check your list.")
-  assign("listEnv", listEnv, envir=.listEnvEnv) 
-  .listEnvEnv$listEnv$compoundList <- compoundList
+
+	
+	if(length(duplicated(compoundList$cpdID)) > 0)
+		stop("Duplicate compound IDs are present. Please check your list.")
+	assign("listEnv", listEnv, envir=.listEnvEnv) 
+	.listEnvEnv$listEnv$compoundList <- compoundList
+	
+	
+	###
+	###Test if all the IDs work
+	###
+	
+	if(check){
+		wrongID <- vector()
+		currEnvir <- environment()
+		sapply(compoundList[,"ID"], function(x){
+			tryCatch(
+				findMz(x),
+				error = function(e){
+					currEnvir$wrongID <- c(currEnvir$wrongID, x)
+				}
+			)
+		})
+		if(length(wrongID)){
+			stop(paste("Unable to interpret the SMILES-strings for ID(s)", paste(wrongID, collapse= " "), "\nPlease check these and load the list again."))
+		}
+	}
 }
 
 #' @export
@@ -104,8 +130,8 @@ getMolecule <- function(smiles)
 #' Find the exact mass +/- a given margin for a given formula or its ions and adducts.
 #' 
 #' @param formula The molecular formula  in text or list format (see \code{\link{formulastring.to.list}}
-#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-). "" for the uncharged molecule.
+#' @param mode \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-). "" for the uncharged molecule.
 #' @param ppm The ppm margin to add/subtract
 #' @param deltaMz The absolute mass to add/subtract. Cumulative with \code{ppm}
 #' @return A \code{list(mzMin=, mzCenter=, mzMax=)} with the masses.
@@ -115,11 +141,12 @@ getMolecule <- function(smiles)
 #' @export
 findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 {
-	if(!any(mode %in% c("pH","pNa","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
 	mzopt <- list(addition="", charge=0)
 	if(mode=="pH") mzopt <- list(addition="H", charge=1)
 	if(mode=="pNa") mzopt <- list(addition="Na", charge=1)
 	if(mode=="pM") mzopt <- list(addition="", charge=1)
+	if(mode=="pNH4") mzopt <- list(addition="NH4", charge=-1)
 	if(mode=="mH") mzopt <- list(addition="H-1", charge=-1)
 	if(mode=="mFA") mzopt <- list(addition="C1O2", charge=-1)
 	if(mode=="mM") mzopt <- list(addition="", charge=-1)
