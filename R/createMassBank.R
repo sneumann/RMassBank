@@ -132,7 +132,7 @@ resetInfolists <- function(mb)
 #' Steps:
 #' 
 #' Step 1: Find which compounds don't have annotation information yet. For these
-#' 		 compounds, pull information from CTS (using gatherData).
+#' 		 compounds, pull information from several databases (using gatherData).
 #' 
 #' Step 2: If new compounds were found, then export the infolist.csv and stop the workflow.
 #' 		Otherwise, continue.
@@ -160,8 +160,9 @@ resetInfolists <- function(mb)
 #' @param infolist_path A path where to store newly downloaded compound informations,
 #' 			which should then be manually inspected.
 #' @param mb The \code{mbWorkspace} to work in.
-#' @param useCTS A boolean variable denoting whether to retrieve information using CTS or to use babel
-#'			to retrieve minimal information.
+#' @param gatherData A variable denoting whether to retrieve information using several online databases \code{gatherData= "online"}
+#' or to use the local babel installation \code{gatherData= "babel"}. Note that babel is used either way, if a directory is given 
+#' in the settings
 #' @return The processed \code{mbWorkspace}.
 #' @seealso \code{\link{mbWorkspace-class}}
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -172,16 +173,17 @@ resetInfolists <- function(mb)
 #' 		
 #' }
 #' @export
-mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.csv", useCTS = TRUE)
+mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.csv", gatherData = "online")
 {
   # Step 1: Find which compounds don't have annotation information yet. For these
   # compounds, pull information from CTS (using gatherData).
   if(1 %in% steps)
   {
       mbdata_ids <- lapply(mb@aggregatedRcSpecs$specFound, function(spec) spec$id)
-	  if(useCTS){
+	  if(gatherData == "online"){
 		message("mbWorkflow: Step 1. Gather info from several databases")
-	  } else{
+	  } 
+	  if(gatherData == "babel"){
 		message("mbWorkflow: Step 1. Gather info using babel")
 	  }
       # Which IDs are not in mbdata_archive yet?
@@ -189,9 +191,10 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
       mb@mbdata <- lapply(new_ids, function(id) 
       {
         #print(id)
-		if(useCTS){
+		if(gatherData == "online"){
 			d <- gatherData(id)
-		} else{
+		} 
+		if(gatherData == "babel"){
 			d <- gatherDataBabel(id)
 		}
         #print(d$dataused)
@@ -459,7 +462,7 @@ gatherData <- function(id)
 	##Preamble: Is a babeldir supplied?
 	##If yes, use it
 	
-	#.checkMbSettings()
+	.checkMbSettings()
 	usebabel=TRUE
 	babeldir <- getOption("RMassBank")$babeldir
 	
@@ -683,7 +686,7 @@ gatherData <- function(id)
 #' 
 #' @export
 gatherDataBabel <- function(id){
-		#.checkMbSettings()
+		.checkMbSettings()
 		babeldir <- getOption("RMassBank")$babeldir
 		smiles <- findSmiles(id)
 			

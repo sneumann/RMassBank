@@ -7,7 +7,7 @@
 \usage{
 loadList(path, listEnv=NULL, check=TRUE)
 
-			resetList()
+resetList()
 }
 \arguments{
 \item{path}{Path to the CSV list.}

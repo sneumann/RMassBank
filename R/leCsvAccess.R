@@ -17,7 +17,7 @@ assign("listEnv", NULL, envir=.listEnvEnv)
 #' @aliases loadList resetList
 #' @usage loadList(path, listEnv=NULL, check=TRUE)
 #' 
-#' 			resetList()
+#' resetList()
 #' @param path Path to the CSV list.
 #' @param listEnv The environment to load the list into. By default, the namelist is loaded
 #' 		into an environment internally in RMassBank. 
