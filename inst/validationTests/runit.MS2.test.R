@@ -14,7 +14,7 @@ test.peaksvsprecursor <- function(){
 
 test.precursormz <- function(){
 	precursorlist <- c("[M+H]+","[M+Na]+","[M-H]-","[M+HCOO-]-","[M]+","[M]-")
-	if(is.na(RMassBank.env$mb[[RMassBank.env$testnumber]]@compiled_ok[[1]][['MS$FOCUSED_ION']][['PRECURSOR_TYPE']])){
+	if(is.na(RMassBank.env$mb[[RMassBank.env$testnumber]]@compiled_ok[[1]][['MS$FOCUSED_ION']][['PRECURSOR_TYPE']]) || is.na(RMassBank.env$mb[[RMassBank.env$testnumber]]@compiled_ok[[1]][['MS$FOCUSED_ION']][['PRECURSOR_M/Z']])){
 		checkTrue(TRUE)
 	} else{
 		precursor <- grep(RMassBank.env$mb[[RMassBank.env$testnumber]]@compiled_ok[[1]][['MS$FOCUSED_ION']][['PRECURSOR_TYPE']],precursorlist, value = TRUE, fixed = TRUE)

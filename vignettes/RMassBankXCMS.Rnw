@@ -39,7 +39,7 @@ options(width=74)
 \section{Introduction}
 
 As the RMassBank-workflow is described in the other manual, this document mainly explains how to utilize the
-XCMS-, MassBank-, andpeaklist-readMethods for step 1 of the workflow.
+XCMS-, MassBank-, and peaklist-readMethods for Step 1 of the workflow.
 
 \section{Input files}
 
@@ -50,14 +50,14 @@ centroid\footnote{The term "centroid" here refers to any kind of data which are
 not in profile mode, i.e. don't have continuous m/z data. It does not refer to
 the (mathematical) centroid peak, i.e. the area-weighted mass peak.} or in
 profile mode.
-Data in the examples was acquired using an QTOF instrument.
+Data in the examples was acquired using a QTOF instrument.
 
 In the standard workflow, the file names are used to identify a
 compound: file names must be in the format \funcarg{xxxxxxxx\_1234\_xxx.mzXML},
 where the xxx parts denote anything and the 1234 part denotes the compound ID in
 the compound list (see below). Advanced and alternative uses can be implemented;
-consult the implementation of \Rvar{msms\_workflow} and \Rvar{findMsMsHRperX.direct} for
-more information.
+consult the implementation of \Rvar{msmsRead}, \Rvar{msms\_workflow} and 
+\Rvar{findMsMsHRperX.direct} for more information.
 
 \section{Additional Workflow-Methods}
 
@@ -71,9 +71,13 @@ library(RMassBankData)
 
 \subsection{Options}
 
-In the first part of the workflow, spectra are extracted from the files and processed. In the following example, we will process the Glulesquerellin spectra from the provided files.
+In the first part of the workflow, spectra are extracted from the
+files and processed. In the following example, we will process the
+Glucolesquerellin spectra from the provided files.
 
-For the workflow to work correctly, we use the default settings, and modify then to match the data acquisition method. The settings have to contain the same parameters as the mzR-method would for the workflow.
+For the workflow to work correctly, we use the default settings, and
+modify then to match the data acquisition method. The settings have to
+contain the same parameters as the mzR-method would for the workflow.
 
 <<echo=TRUE,eval=TRUE>>=
 RmbDefaultSettings()
@@ -83,6 +87,7 @@ rmbo$spectraList <- list(
   list(mode="CID", ces="20eV", ce="20eV", res=12000)
 )
 
+rmbo$multiplicityFilter <- 1
 rmbo$annotations$instrument <- "Bruker micrOTOFq"
 rmbo$annotations$instrument_type <- "LC-ESI-QTOF"
 rmbo$recalibrator$MS1 <- "recalibrate.identity"
@@ -109,8 +114,12 @@ msmsList@files <- list.files(system.file("spectra.Glucolesquerellin",
                              "Glucolesquerellin.*mzData", full.names=TRUE)
 @
 
-Note the position of the compound IDs in the filenames. Historically, the "\Rvar{pos}" at the end was used to denote the polarity; it is obsolete now, but the ID must be terminated with an underscore.
-If you have multiple files for one compound, you have to give them the same ID, but thanks to the polarity at the end being obsolete, you can just enumerate them.
+Note the position of the compound IDs in the filenames. Historically,
+the "\Rvar{pos}" at the end was used to denote the polarity; it is
+obsolete now, but the ID must be terminated with an underscore.  If
+you have multiple files for one compound, you have to give them the
+same ID, but thanks to the polarity at the end being obsolete, you can
+just enumerate them.
 
 Additionally, the compound list must be loaded using \Rfunction{loadList}:
 
@@ -120,9 +129,18 @@ loadList(system.file("list/PlantDataset.csv",package="RMassBankData"))
 
 Basically, the changes to the workflow using XCMS can be described as follows:
 
-The MS2-Spectra(and optionally the MS1-spectrum) are extracted and peakpicked using XCMS. You can pass different parameters for the \Rfunction{findPeaks} function of XCMS using the findPeaksArgs-argument to detect actual peaks. Then, CAMERA processes the peak lists and creates pseudospectra (or compound spectra). The obtained pseudospectra are stored in the array \Rvar{specs}.
-Please note that "findPeaksArgs" has to be a list with the list elements named after the arguments that the method you want to use contains, as findPeaks is called by \Rfunction{do.call}.
-For example, if you want to use centWave with a peakwidth from 5 to 12 and 25 ppm, findPeaksArgs would look like this:
+The MS2-Spectra(and optionally the MS1-spectrum) are extracted and
+peakpicked using XCMS. You can pass different parameters for the
+\Rfunction{findPeaks} function of XCMS using the
+findPeaksArgs-argument to detect actual peaks. Then, CAMERA processes
+the peak lists and creates pseudospectra (or compound spectra). The
+obtained pseudospectra are stored in the array \Rvar{specs}.
+
+Please note that "findPeaksArgs" has to be a list with the list
+elements named after the arguments that the method you want to use
+contains, as findPeaks is called by \Rfunction{do.call}.  For example,
+if you want to use centWave with a peakwidth from 5 to 12 and 25 ppm,
+findPeaksArgs would look like this:
 
 <<eval=TRUE>>=
 Args <- list(method="centWave",
@@ -133,33 +151,24 @@ Args <- list(method="centWave",
 
 If you want to utilize XCMS for Step 1 of the workflow, you have to set the readMethod-parameter to "xcms" and - if you don't want to use standard values for findPeaks - pass on findPeaksArgs to the workflow.
 
-<<eval=TRUE>>=
-msmsList <- msmsRead(msmsList, files= msmsList@files, readMethod = "xcms", mode = "mH", Args = Args)
+<<echo=FALSE,eval=TRUE>>=
+par(mfcol=c(2,2))
+@
+
+
+<<eval=TRUE, fig=TRUE>>=
+msmsList <- msmsRead(msmsList, files= msmsList@files, 
+                     readMethod = "xcms", mode = "mH", Args = Args, plots = TRUE)
 msmsList <- msmsWorkflow(msmsList, steps=2:8,
-                                 mode="mH", readMethod="xcms")
+                         mode="mH", readMethod="xcms")
 @
 
 You can of course run the rest of the workflow as usual, by - like here - setting steps to 1:8
 
-\subsection{peaklist-workflow}
-
-The peaklist-workflow works akin to the normal mzR-workflow with the only difference being, that the supplied data has to be in .csv format and contain 2 columns: "mz" and "int".
-You can look at an example file in the RMassBankData-package in spectra.Glucolesquerellin. Please note that the naming of the csv has to be similar to the mzdata-files, with the only difference being the filename extension.
-The readMethod name for this is "peaklist"
-
-<<eval=FALSE>>=
-msmsPeaklist <- newMsmsWorkspace()
-msmsPeaklist@files <- list.files(system.file("spectra.Glucolesquerellin",
-                                                     package = "RMassBankData"),
-                                         "Glucolesquerellin.*csv", full.names=TRUE)
-msmsPeaklist <- msmsWorkflow(msmsPeaklist, steps=1:8,
-                                     mode="mH", readMethod="peaklist")
-@
-
 \subsection{Export the records}
 
-This section is just to debug the record creation with XCMS, and hence very terse.
-
+To export the records from the XCMS workflow, follow the same procedure 
+as the standard RMassBank workflow, i.e.:
 
 <<>>=
 mb <- newMbWorkspace(msmsList)
@@ -170,8 +179,26 @@ mb <- loadInfolist(mb,system.file("infolists/PlantDataset.csv",
 mb <- mbWorkflow(mb, steps=1:8)
 @
 
+\subsection{peaklist-workflow}
 
+The peaklist-workflow works akin to the normal mzR-workflow with the
+only difference being, that the supplied data has to be in .csv format
+and contain 2 columns: "mz" and "int".  You can look at an example
+file in the RMassBankData-package in spectra.Glucolesquerellin. Please
+note that the naming of the csv has to be similar to the mzdata-files,
+with the only difference being the filename extension.  The readMethod
+name for this is "peaklist"
 
+<<>>=
+msmsPeaklist <- newMsmsWorkspace()
+msmsPeaklist@files <- list.files(system.file("spectra.Glucolesquerellin",
+                                             package = "RMassBankData"),
+                                 "Glucolesquerellin.*csv", full.names=TRUE)
+msmsPeaklist <- msmsWorkflow(msmsPeaklist, steps=1:8,
+                             mode="mH", readMethod="peaklist")
+@
+
+The records can then be generated and exported with \Rfunction{mbWorkflow}.
 
 \section{Session information}
 

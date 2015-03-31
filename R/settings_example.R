@@ -240,7 +240,8 @@ NULL
     "pM" = 16, # [M]+: 17-30
     "pNa" = 32, # [M+Na]+: 33-46
     "mH" = 50, # [M-H]-: 51-64
-    "mFA" = 66 # [M+FA]-: 67-80
+    "mFA" = 66, # [M+FA]-: 67-80
+	"mM" = 80 # [M]-: 81-94
     ),
   # Known electronic noise peaks in the Orbitrap data
   electronicNoise = c(189.825, 201.725,196.875),
@@ -343,8 +344,26 @@ loadRmbSettings <- function(file_or_list)
 		# Fix the YAML file to suit our needs
 		if(is.null(o$deprofile))
 			o$deprofile <- NA
-		if(is.null(o$babeldir))
+		if(is.null(o$babeldir)){
 			o$babeldir <- NA
+		} else{
+			##Check if babeldir exists
+			babelcheck <- gsub('\"','',o$babeldir)
+			if(substring(babelcheck, nchar(babelcheck)) == "\\"){
+				babelexists <- file.exists(substring(babelcheck, 1, nchar(babelcheck)-1))
+			} else{
+				babelexists <- file.exists(babelcheck)
+			}
+			
+			if(!babelexists){
+				stop("The babeldir does not exist. Please check the babeldir in the settings and adjust it accordingly.")
+			}
+		}
+
+
+		if(nchar(o$annotations$entry_prefix) != 2){
+			stop("The entry prefix must be of length 2")
+		}
 		for(name in names(o$annotations))
 		{
 			if(is.null(o$annotations[[name]]))
@@ -363,7 +382,7 @@ loadRmbSettings <- function(file_or_list)
 	
   }
   else
-    stop("Options incorrectly specified.")
+    stop("The file path supplied for the options does not exist.")
   
   # Settings are loaded, now check if they are up to date
   o <- getOption("RMassBank")

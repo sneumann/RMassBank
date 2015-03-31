@@ -16,7 +16,7 @@ parseMassBank <- function(Files){
 	mb <- new("mbWorkspace")
 	mb@compiled_ok <- list()
 	i <- 1
-		fileConnection <- file(normalizePath(Files[i]))
+		fileConnection <- file(Files[i])
 		record <- readLines(fileConnection)
 		close(fileConnection)
 		mb@compiled_ok[[i]] <- list()
