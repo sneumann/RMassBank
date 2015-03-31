@@ -97,90 +97,13 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	##Edit analyzemethod
 	analyzeMethod <- "intensity"
   }
-  
+
   # Step 1: acquire all MSMS spectra from files
   if(1 %in% steps)
   {
-	if(readMethod == "mzR"){
-		nProg <- 0
-		message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
-		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
-		w@specs <- lapply(w@files, function(fileName) {
-			
-			# Find compound ID
-			splitfn <- strsplit(fileName,'_')
-			splitsfn <- splitfn[[1]]
-			cpdID <- splitsfn[[length(splitsfn)-1]]
-			# Retrieve spectrum data
-			spec <- findMsMsHR(fileName, cpdID, mode, confirmMode, useRtLimit,
-		 		ppmFine = settings$findMsMsRawSettings$ppmFine,
-		 		mzCoarse = settings$findMsMsRawSettings$mzCoarse,
-		 		fillPrecursorScan = settings$findMsMsRawSettings$fillPrecursorScan,
-		 		rtMargin = settings$rtMargin,
-		 		deprofile = settings$deprofile)
-			gc()
-		
-			# Progress:
-			nProg <<- nProg + 1
-			pb <- do.call(progressbar, list(object=pb, value= nProg))
-		
-			return(spec)
-		} )
-		names(w@specs) <- basename(as.character(w@files))
-		# close progress bar
-		do.call(progressbar, list(object=pb, close=TRUE))
-	}
-	
-	if(readMethod == "xcms"){
-		splitfn <- strsplit(w@files,'_')
-		cpdIDs <- sapply(splitfn, function(splitted){as.numeric(return(splitted[length(splitted)-1]))})
-		files <- list()
-		wfiles <- vector()
-			for(i in 1:length(unique(cpdIDs))) {
-			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
-			files[[i]] <- w@files[indices]
-		}
-		
-		w@files <- sapply(files,function(files){return(files[1])})
-		
-		for(i in 1:length(unique(cpdIDs))){
-			specs <- list()
-			for(j in 1:length(files[[i]])){
-				specs[[j]] <- findMsMsHRperxcms.direct(files[[i]][j], unique(cpdIDs)[i], mode=mode, findPeaksArgs=findPeaksArgs, plots, MSe=MSe)
-			}
-			w@specs[[i]] <- unlist(specs,recursive=FALSE)
-		}
-		w@specs <- unlist(w@specs, recursive=FALSE)
-		names(w@specs) <- basename(as.character(w@files))
-	}
-	
-	##if(readMethod == "MassBank"){
-	##	for(i in 1:length(w@files)){
-	##		w <- addMB(w, w@files[i], mode)
-	##	}
-	##	names(w@specs) <- basename(as.character(w@files))
-	##}
-		
-	if((readMethod == "peaklist") || (readMethod == "minimal")){
-		splitfn <- strsplit(basename(w@files), "_")
-		cpdIDs <- sapply(splitfn, function(splitted) {
-			as.numeric(return(splitted[2]))
-		})
-		files <- list()
-		for(i in 1:length(unique(cpdIDs))) {
-			indices <- sapply(splitfn,function(a){return(unique(cpdIDs)[i] %in% a)})
-			files[[i]] <- w@files[indices]
-		}
-			
-		peaklist <- list()
-			
-		for(i in 1:length(w@files)){
-			peaklist <- read.csv(w@files[i], header = TRUE)
-			w <- addPeaksManually(w, cpdIDs[i], peaklist, mode=mode)
-		}
-		w@files <- sapply(files,function(file){return(file[1])})
-		names(w@specs) <- basename(as.character(w@files))
-	}
+    message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
+	w <- msmsRead(w = w, files = w@files, readMethod=readMethod, mode=mode, confirmMode = confirmMode, useRtLimit = useRtLimit, 
+					Args = findPeaksArgs, settings = settings, progressbar = progressbar, MSe = MSe)
   }
   # Step 2: first run analysis before recalibration
   if(2 %in% steps)
@@ -201,7 +124,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 			  })
 	  for(f in w@files)
 		  w@analyzedSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
-	  do.call(progressbar, list(object=pb, close=TRUE))
+	  suppressWarnings(do.call(progressbar, list(object=pb, close=TRUE)))
   }
   # Step 3: aggregate all spectra
   if(3 %in% steps)
@@ -544,7 +467,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	} else if(mode == "mFA") {
 		allowed_additions <- "C2H3O2"
 		mode.charge <- -1
-	} else {
+	} else if(mode == "pNH4") {
+		allowed_additions <- "NH4"
+		mode.charge <- 1
+	} else{
           stop("mode = \"", mode, "\" not defined")
         }
     
@@ -684,7 +610,14 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
       return(shot)
   }, shots, msmsPeaks$childScans, spectraList, SIMPLIFY=FALSE)
   
-  mzranges <- t(sapply(shots, function(p) {return(range(p$childRaw[,mzColname]))}))
+  mzranges <- t(sapply(shots, function(p) {
+	  if(!is.null(p$childRaw)){
+		return(range(p$childRaw[,mzColname]))
+	  } else {
+		return(c(NA,NA))
+	  }
+  }))
+  
   mzmin <- min(mzranges[,1], na.rm=TRUE)
   mzmax <- max(mzranges[,2], na.rm=TRUE)
   
@@ -715,7 +648,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		cut <- filterSettings$prelimCut
 		if(is.na(cut))
 		{
-			if(mode %in% c("pH", "pM", "pNa"))
+			if(mode %in% c("pH", "pM", "pNa", "pNH4"))
 				cut <- 1e4
 			else if(mode %in% c("mH", "mFA", "mM"))
 				cut <- 0
@@ -2006,8 +1939,8 @@ filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TR
 #' @usage  recalibrate.addMS1data(spec,mode="pH", recalibrateMS1Window = 
 #' 				getOption("RMassBank")$recalibrateMS1Window)
 #' @param spec A \code{aggregatedSpecs}-like object.
-#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
+#' @param mode \code{"pH", "pNa", "pM", "pNH4",  "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+,  [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
 #' @param recalibrateMS1Window Window width to look for MS1 peaks to recalibrate (in ppm).
 #' @return A dataframe with columns \code{mzFound, formula, mzCalc, dppm, dbe, int,
 #' 		dppmBest, formulaCount, good, cpdID, scan, parentScan, dppmRc}. However,

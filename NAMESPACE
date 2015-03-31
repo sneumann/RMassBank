@@ -1,5 +1,6 @@
 export(CTS.externalIdSubset)
 export(CTS.externalIdTypes)
+export(gatherPubChem)
 export(RmbDefaultSettings)
 export(RmbSettingsTemplate)
 export(add.formula)

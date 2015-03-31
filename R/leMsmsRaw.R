@@ -59,8 +59,8 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 			(The parameters are distinct to clearly conceptually distinguish findMsMsHR.mass
 #' 			(a standalone useful function) from the cpdID based functions (workflow functions).)
 #' @param mode The processing mode (determines which ion/adduct is searched):
-#' 			\code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-). 
+#' 			\code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-). 
 #' @param confirmMode Whether to use the highest-intensity precursor (=0), second-
 #' 			highest (=1), third-highest (=2)...
 #' @param useRtLimit Whether to respect retention time limits from the compound list.
@@ -172,6 +172,9 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				return(FALSE)
 			})
 	validPrecursors <- validPrecursors[which(which_OK==TRUE)]
+	if(length(validPrecursors) == 0){
+		warning("No precursor was detected. It is recommended to try to use the setting fillPrecursorScan: TRUE in the ini-file")
+	}
 	# Crop the "EIC" to the valid precursor scans
 	eic <- eic[eic$scan %in% validPrecursors,]
 	# Order by intensity, descending
@@ -719,30 +722,43 @@ c.msmsWSspecs <- function(w1 = NA, w2 = NA){
 	cpdIDsw1 <- sapply(w1@specs, function(x) x$id)
 	cpdIDsw2 <- sapply(w2@specs, function(x) x$id)
 	
+	if(length(cpdIDsw2) == 0){
+		stop("w2 can't be empty.")
+	}
+	
+	if(length(cpdIDsw1) == 0){
+		w1@specs <- w2@specs
+		w1@files <- w2@files
+		return(w1)
+	}
+	
 	for(i in 1:length(cpdIDsw2)){
 		if(any(cpdIDsw2[i] == cpdIDsw1)){
+			
 			index <- which(cpdIDsw2[i] == cpdIDsw1)
-			w1@specs[[index]]$peaks <- c(w1@specs[[index]]$peaks,w2@specs[[i]]$peaks)
-			w1@specs[[index]]$childScans <- c(w1@specs[[index]]$childScans,w2@specs[[i]]$childScans)
-			w1@specs[[index]]$childHeaders <- rbind(w1@specs[[index]]$childHeaders, w2@specs[[i]]$childHeaders)
 			
-			##Fake seqNums and/or acquisitionNums if the concatenation has doubled some of them
-			
-			seqNums <- w1@specs[[index]]$childHeaders[,"seqNum"]
-			if(length(seqNums) != length(unique(seqNums))){
-				w1@specs[[index]]$childHeaders[,"seqNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-				w1@specs[[index]]$childScans <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-			}
-			
-			
-			acqNums <- w1@specs[[index]]$childHeaders[,"acquisitionNum"]
-			if(length(acqNums) != length(unique(acqNums))){
-				w1@specs[[index]]$childHeaders[,"acquisitionNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-			}		
+				w1@specs[[index]]$peaks <- c(w1@specs[[index]]$peaks,w2@specs[[i]]$peaks)
+				w1@specs[[index]]$childScans <- c(w1@specs[[index]]$childScans,w2@specs[[i]]$childScans)
+				w1@specs[[index]]$childHeaders <- rbind(w1@specs[[index]]$childHeaders, w2@specs[[i]]$childHeaders)
+				
+				##Fake seqNums and/or acquisitionNums if the concatenation has doubled some of them
+				
+				seqNums <- w1@specs[[index]]$childHeaders[,"seqNum"]
+				if(length(seqNums) != length(unique(seqNums))){
+					w1@specs[[index]]$childHeaders[,"seqNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+					w1@specs[[index]]$childScans <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+				}
+				
+				
+				acqNums <- w1@specs[[index]]$childHeaders[,"acquisitionNum"]
+				if(length(acqNums) != length(unique(acqNums))){
+					w1@specs[[index]]$childHeaders[,"acquisitionNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
+				}
 		}
 		
 		if(all(cpdIDsw2[i] != cpdIDsw1)){
 			w1@specs[[length(w1@specs) + 1]] <- w2@specs[[i]]
+			w1@files <- c(w1@files,w2@files[i])
 		}
 	}
 	return(w1)
