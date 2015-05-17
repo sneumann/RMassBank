@@ -127,7 +127,7 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
 		headerCache = NULL, fillPrecursorScan = FALSE,
-		deprofile = getOption("RMassBank")$deprofile)
+		deprofile = getOption("RMassBank")$deprofile, cpdID)
 {
 	eic <- findEIC(msRaw, mz, limit.fine, rtLimits)
 	#	if(!is.na(rtLimits))
@@ -173,7 +173,8 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			})
 	validPrecursors <- validPrecursors[which(which_OK==TRUE)]
 	if(length(validPrecursors) == 0){
-		warning("No precursor was detected. It is recommended to try to use the setting fillPrecursorScan: TRUE in the ini-file")
+		warning(paste0("No precursor was detected for compound, ", cpdID " with m/z ", mz, ". Please check the mass and retention time window. 
+		If this happens for all cases, try using the setting fillPrecursorScan: TRUE in the ini-file"))
 	}
 	# Crop the "EIC" to the valid precursor scans
 	eic <- eic[eic$scan %in% validPrecursors,]
@@ -258,7 +259,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 		rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
 	}
 	spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
-			,fillPrecursorScan, deprofile)
+			,fillPrecursorScan, deprofile, cpdID=cpdID)
 	# check whether a) spectrum was found and b) enough spectra were found
 	if(length(spectra) < (confirmMode + 1))
 		sp <- list(foundOK = FALSE)
