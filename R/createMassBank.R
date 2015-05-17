@@ -247,7 +247,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 	  # check which compounds have useful spectra
 	  mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
 	  mb@problems <- which(is.na(mb@compiled))
-	  mb@compiled_ok <- mb@compiled[mb@ok]    
+	  mb@compiled_ok <- mb@compiled[mb@ok]
   }
   # Step 5: Convert the internal tree-like representation of the MassBank data into
   # flat-text string arrays (basically, into text-file style, but still in memory)
@@ -620,7 +620,7 @@ gatherData <- function(id)
 	}
 	# HMDB
 	if(!is.na(CTSinfo[1])){
-		if("HMDB" %in% CTS.externalIdTypes(CTSinfo))
+		if("Human Metabolome Database" %in% CTS.externalIdTypes(CTSinfo))
 			link[["HMDB"]] <- CTS.externalIdSubset(CTSinfo,"HMDB")[[1]]
 		# KEGG
 		if("KEGG" %in% CTS.externalIdTypes(CTSinfo))
@@ -635,7 +635,7 @@ gatherData <- function(id)
 			if("PubChem CID" %in% CTS.externalIdTypes(CTSinfo))
 			{
 				pc <- CTS.externalIdSubset(CTSinfo,"PubChem CID")
-				link[["PUBCHEM"]] <- paste0("CID:",min(pc))
+				link[["PUBCHEM"]] <- paste0(min(pc))
 			}
 		}
 	} else{
@@ -1755,20 +1755,32 @@ makeMollist <- function(compiled)
 #' @export 
 addPeaks <- function(mb, filename_or_dataframe)
 {
+	
+	errorvar <- 0
+	currEnvir <- environment()
+	d <- 1
+	
 	if(is.data.frame(filename_or_dataframe))
 		df <- filename_or_dataframe
 	else
-		df <- read.csv(filename_or_dataframe)
+	tryCatch(
+		df <- read.csv(filename_or_dataframe),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
 	
-	cols <- c("cpdID", "scan", "mzFound", "int", "OK")
+	if(!errorvar){
+		cols <- c("cpdID", "scan", "mzFound", "int", "OK")
 	
-	n <- colnames(df)
+		n <- colnames(df)
 	
-	# Check if comma-separated or semicolon-separated
-	d <- setdiff(cols, n)
+		# Check if comma-separated or semicolon-separated
+		d <- setdiff(cols, n)
+	}
+
 	
 	if(length(d)>0){
-		df <- read.csv2(filename_or_dataframe, stringsAsFactors=FALSE)
+		df <- read.csv(filename_or_dataframe, sep=";")
 		n <- colnames(df)
 		d2 <- setdiff(cols, n)
 		if(length(d2) > 0){
