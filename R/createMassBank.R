@@ -528,7 +528,7 @@ gatherData <- function(id)
 		warning(paste0("Compound ID ",id,": no IUPAC name could be identified."))
 	}
 	
-	names <- as.list(unique(c(dbname, synonym, iupacName)))
+	names <- as.list(unique(toupper(c(dbname, synonym, iupacName))))
 	
 	##If no name is found, it must be supplied in one way or another
 	if(all(sapply(names, function(x) x == ""))){
