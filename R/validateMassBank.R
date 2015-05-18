@@ -178,39 +178,52 @@ smiles2mass <- function(SMILES){
 .unitTestRMB <- function(WD=getwd()){
 	require(RUnit)
 	library(RMassBank)
-	library(RMassBankData)
+	require(RMassBankData)
 	oldwd <- getwd()
 	setwd(WD)
 	w <- newMsmsWorkspace()
 	RmbDefaultSettings()
 	files <- list.files(system.file("spectra", package="RMassBankData"),
 		 ".mzML", full.names = TRUE)
-	basename(files)
-	# To make the workflow faster here, we use only 2 compounds:
 	w@files <- files
 	loadList(system.file("list/NarcoticsDataset.csv", 
 		package="RMassBankData"))
 	w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
 					"pH_narcotics")
+	storedW <- loadMsmsWorkspace(system.file("results/pH_narcotics_RF.RData", 
+					package="RMassBankData"))
+	storedW <- msmsWorkflow(storedW, mode="pH", steps=4)
+	w@rc <- storedW@rc
+	w@rc.ms1 <- storedW@rc.ms1
+	w <- msmsWorkflow(w, mode="pH", steps=4, archivename = 
+	"pH_narcotics", newRecalibration = FALSE)
 	w <- msmsWorkflow(w, mode="pH", steps=c(5:8), archivename = 
 			"pH_narcotics")	
-	w2 <- newMbWorkspace(w)
-	#w2 <- mbWorkflow(w2)
-	#w2 <- loadInfolist(w2, "infolist.csv")
-	#w2 <- mbWorkflow(w2)
+	mb <- newMbWorkspace(w)
+	mb <- resetInfolists(mb)
+	mb <- loadInfolists(mb, system.file("infolists_incomplete",
+			package="RMassBankData"))
+	mb <- mbWorkflow(mb, infolist_path="./Narcotics_infolist.csv")
+	mb <- resetInfolists(mb)
+	mb <- loadInfolists(mb, system.file("infolists", package="RMassBankData"))
+	mb <- mbWorkflow(mb)
 	
 	testSuite <- defineTestSuite("Electronic noise and formula calculation Test", dirs = system.file("unitTests", 
 		package="RMassBank"), testFileRegexp = "runit.EN_FC.R",
 					#testFuncRegexp = "^test.+",
 					rngKind = "Marsaglia-Multicarry",
 					rngNormalKind = "Kinderman-Ramage")
-					
+	testSuite2 <- defineTestSuite("Evaluation of data acquisition process", dirs = system.file("unitTests", 
+		package="RMassBank"), testFileRegexp = "runit.DA.R",
+					#testFuncRegexp = "^test.+",
+					rngKind = "Marsaglia-Multicarry",
+					rngNormalKind = "Kinderman-Ramage")			
 	testData <- suppressWarnings(runTestSuite(testSuite))
+	testData2 <- suppressWarnings(runTestSuite(testSuite2))
 	
 	file.remove(c("pH_narcotics_Failpeaks.csv","pH_narcotics.RData","pH_narcotics_RA.RData","pH_narcotics_RF.RData"))
-	
-	# Prints the HTML-record
 	printTextProtocol(testData)
+	printTextProtocol(testData2)
 	setwd(oldwd)
 	return(testData)
 }
