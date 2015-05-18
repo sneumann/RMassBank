@@ -43,7 +43,7 @@
 msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL, 
 					readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
 					Args = NULL, settings = getOption("RMassBank"), progressbar = "progressBarHook", MSe = FALSE, plots = FALSE){
-	
+	.checkMbSettings()
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
 	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
@@ -333,7 +333,13 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 	if(all(w@files != xRAW[[1]]@filepath)){
 		w@files <- c(w@files,xRAW[[1]]@filepath)
 	} else{
-		w@files <- c(w@files,paste0(xRAW[[1]]@filepath,"_2"))
+		for(i in 2:(length(w@files)+1)){
+			currentFPath <- paste0(xRAW[[1]]@filepath,"_",i)
+			if(all(w@files != currentFPath)){
+				w@files <- c(w@files,currentFPath)
+				break
+			}
+		}
 	}
 	names(w@specs)[length(w@specs)] <- basename(w@files[length(w@files)])
 	return(w)
