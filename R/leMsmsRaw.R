@@ -173,7 +173,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			})
 	validPrecursors <- validPrecursors[which(which_OK==TRUE)]
 	if(length(validPrecursors) == 0){
-		warning(paste0("No precursor was detected for compound, ", cpdID " with m/z ", mz, ". Please check the mass and retention time window. 
+		warning(paste0("No precursor was detected for compound, ", cpdID, " with m/z ", mz, ". Please check the mass and retention time window. 
 		If this happens for all cases, try using the setting fillPrecursorScan: TRUE in the ini-file"))
 	}
 	# Crop the "EIC" to the valid precursor scans

@@ -15,7 +15,7 @@ findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
 
 		findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
 		headerCache = NULL, fillPrecursorScan = FALSE,
-		deprofile = getOption("RMassBank")$deprofile)
+		deprofile = getOption("RMassBank")$deprofile, cpdID)
 
 findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE,
 			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
