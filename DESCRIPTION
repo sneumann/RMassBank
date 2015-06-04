@@ -26,7 +26,7 @@ SystemRequirements: OpenBabel
 biocViews: Bioinformatics, MassSpectrometry, Metabolomics, Software
 Depends: Rcpp
 Imports:
-    XML,RCurl,rjson, rcdk,yaml,mzR,methods
+    XML,RCurl,rjson, rcdk,yaml,mzR,methods,Biobase,MSnbase
 Suggests:
     gplots,RMassBankData,
     xcms (>= 1.37.1),
@@ -44,8 +44,13 @@ Collate:
     'webAccess.R'
     'deprofile.R'
     'parseMassBank.R'
+    'SpectrumClasses.R'
+    'SpectrumMethods.R'
     'RmbWorkspace.R'
+    'RmbWorkspaceUpdate.R'
     'validateMassBank.R'
     'zzz.R'
     'tools.R'
     'msmsRead.R'
+
+    

@@ -1,3 +1,9 @@
+#' @import MSnbase
+#' @import Biobase
+#' @import S4Vectors
+#' @importClassesFrom MSnbase Spectrum Spectrum2 
+
+
 .RmbSpectrum2 <- setClass("RmbSpectrum2",
 		representation = representation(
 				satellite="logical",
