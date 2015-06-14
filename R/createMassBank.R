@@ -503,7 +503,7 @@ gatherData <- function(id)
 			##Split the "InChiKey=" part off the key
 			inchikey_split <- strsplit(inchikey, "=", fixed=TRUE)[[1]][[2]]
 		} else{
-		    inchikey <- getPcInchiKey(smiles)
+		    inchikey_split <- getPcInchiKey(smiles)
 		}
 	}
 	
