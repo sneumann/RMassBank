@@ -330,6 +330,13 @@ createMolfile <- function(id_or_smiles, fileName = FALSE)
 	if(is.na(babeldir))
 	{
 		res <- getCactus(smiles, "sdf")
+		
+		if(is.na(res)){
+			res <- getPcSDF(smiles)
+		}
+		if(is.na(res)){
+			stop("Pubchem and Cactus both seem to be down.")
+		}
 		if(is.character(fileName))
 			writeLines(res, fileName)
 	}
@@ -492,8 +499,12 @@ gatherData <- function(id)
 		inchikey_split <- system(cmdinchikey, intern=TRUE, input=smiles, ignore.stderr=TRUE)
 	} else{
 		inchikey <- getCactus(smiles, 'stdinchikey')
-		##Split the "InChiKey=" part off the key
-		inchikey_split <- strsplit(inchikey, "=", fixed=TRUE)[[1]][[2]]
+		if(!is.na(inchikey)){
+			##Split the "InChiKey=" part off the key
+			inchikey_split <- strsplit(inchikey, "=", fixed=TRUE)[[1]][[2]]
+		} else{
+		    inchikey <- getPcInchiKey(smiles)
+		}
 	}
 	
 	##Use Pubchem to retrieve information

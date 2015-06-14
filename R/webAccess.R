@@ -313,6 +313,8 @@ CTS.externalIdTypes <- function(data)
   }
 }
 
+
+
 getPcCHEBI <- function(query, from = "inchikey")
 {
 	# Get the JSON-Data from Pubchem
@@ -466,3 +468,59 @@ getPcIUPAC <- function (query, from = "inchikey")
 		return(IUPACEntries[[1]]$value$sval)
 	}
 } 
+
+getPcInchiKey <- function(query, from = "smiles"){
+	# Get the JSON-Data from Pubchem
+	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	url <- paste(baseURL, from, query, "record", "json", sep="/")
+	errorvar <- 0
+	currEnvir <- environment()
+	
+	tryCatch(
+		data <- getURL(URLencode(url),timeout=5),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
+	
+	if(errorvar){
+		return(NA)
+	}
+	
+	r <- fromJSON(data)
+	
+	# This happens if the InChI key is not found:
+	if(!is.null(r$Fault))
+	return(NA)
+	
+	# Find the entries which contain Chebi-links
+	if(!is.null(r$PC_Compounds[[1]]$props)){
+		INKEYindex <- which(sapply(r$PC_Compounds[[1]]$props, function(x) x$urn$label) == "InChIKey")
+		if(length(INKEYindex) > 0){
+			return(r$PC_Compounds[[1]]$props[[INKEYindex]]$value$sval)
+		}	else{return(NA)}
+	}	else{return(NA)}
+
+	
+}
+
+getPcSDF <- function(query, from = "smiles"){
+	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	url <- paste(baseURL, from, query, "sdf", sep="/")
+	
+	errorvar <- 0
+	currEnvir <- environment()
+	
+	tryCatch(
+		data <- getURL(URLencode(url),timeout=5),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
+	
+	if(errorvar){
+		return(NA)
+	}
+	
+	molEnd <- regexpr(data,pattern="M  END",fixed=TRUE)+5
+	data <- c(strsplit(substring(data,1,molEnd),"\n")[[1]],"$$$$")
+	return(data)
+}
