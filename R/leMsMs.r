@@ -95,7 +95,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		nProg <- 0
 		message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
 		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
-		w@spectra <- lapply(w@files, function(fileName) {
+		w@spectra <- as(lapply(w@files, function(fileName) {
 			
 			# Find compound ID
 			splitfn <- strsplit(fileName,'_')
@@ -115,7 +115,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 			pb <- do.call(progressbar, list(object=pb, value= nProg))
 		
 			return(spec)
-		} )
+		} ), "SimpleList")
 		names(w@spectra) <- basename(as.character(w@files))
 		# close progress bar
 		do.call(progressbar, list(object=pb, close=TRUE))
@@ -176,7 +176,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	  nProg <- 0
 	  message("msmsWorkflow: Step 2. First analysis pre recalibration")
 	  pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
-	  w@spectra <- lapply(w@spectra, function(spec) {
+	  w@spectra <- as(lapply(w@spectra, function(spec) {
 				  #print(spec$id)
 				  s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="preliminary",
 						  filterSettings = settings$filterSettings,
@@ -186,7 +186,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 				  pb <- do.call(progressbar, list(object=pb, value= nProg))
 				  
 				  return(s)
-			  })
+			  }), "SimpleList")
 	  for(f in w@files)
 		  w@spectra[[basename(as.character(f))]]@name <- basename(as.character(f))
 	  do.call(progressbar, list(object=pb, close=TRUE))
@@ -705,21 +705,26 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
     childPeaksFilt <- filterLowaccResults(childPeaks, filterMode, filterSettings)
     childPeaksGood <- childPeaksFilt[["TRUE"]]
     childPeaksBad <- childPeaksFilt[["FALSE"]]
+	if(is.null(childPeaksGood))
+		childPeaksGood <- childPeaks[c(),,drop=FALSE]
+	if(is.null(childPeaksBad))
+		childPeaksBad <- childPeaks[c(),,drop=FALSE]
 	childPeaksUnassigned <- childPeaks[is.na(childPeaks$dppm),,drop=FALSE]
-	childPeaksUnassigned$good <- FALSE
+	childPeaksUnassigned$good <- rep(FALSE, nrow(childPeaksUnassigned))
 	
 	
     # count formulas within new limits
     # (the results of the "old" count stay in childPeaksInt and are returned
     # in $childPeaks)
-    if(!is.null(childPeaksGood))
-    {
-      countFormulasTab <- xtabs( ~formula + mz, data=childPeaksGood)
-      countFormulas <- colSums(countFormulasTab)
-      childPeaksGood$formulaCount <- countFormulas[as.character(childPeaksGood$mz)]
-    }
-	childPeaksUnassigned$formulaCount <- NA
-	childPeaksBad$formulaCount <- NA
+	countFormulasTab <- xtabs( ~formula + mz, data=childPeaksGood)
+	countFormulas <- colSums(countFormulasTab)
+	childPeaksGood$formulaCount <- countFormulas[as.character(childPeaksGood$mz)]
+	  
+	childPeaksUnassigned$formulaCount <- rep(NA, nrow(childPeaksUnassigned))
+	childPeaksBad$formulaCount <- rep(NA, nrow(childPeaksBad))
+	childPeaksBad$good <- rep(FALSE, nrow(childPeaksBad))
+	
+	
 	
 	# Now: childPeaksGood (containing the new, recounted peaks with good = TRUE), and childPeaksBad (containing the 
 	# peaks with good=FALSE, i.e. outside filter criteria, with the old formula count even though it is worthless)
@@ -732,18 +737,18 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	# to match order in childPeaks. After that, setData to the child slot.
 	childPeaksOmitted <- getData(child)
 	childPeaksOmitted <- childPeaksOmitted[child@low | child@satellite,,drop=FALSE]
-	childPeaksOmitted$rawOK <- FALSE
-	childPeaksOmitted$good <- FALSE
-	childPeaksOmitted$dppm <- NA
-	childPeaksOmitted$formula <- NA
-	childPeaksOmitted$mzCalc <- NA
-	childPeaksOmitted$dbe <- NA
-    childPeaksOmitted$dppmBest <- NA
-    childPeaksOmitted$formulaCount <- 0
+	childPeaksOmitted$rawOK <- rep(FALSE, nrow(childPeaksOmitted))
+	childPeaksOmitted$good <- rep(FALSE, nrow(childPeaksOmitted))
+	childPeaksOmitted$dppm <- rep(NA, nrow(childPeaksOmitted))
+	childPeaksOmitted$formula <- rep(NA, nrow(childPeaksOmitted))
+	childPeaksOmitted$mzCalc <- rep(NA, nrow(childPeaksOmitted))
+	childPeaksOmitted$dbe <- rep(NA, nrow(childPeaksOmitted))
+    childPeaksOmitted$dppmBest <- rep(NA, nrow(childPeaksOmitted))
+    childPeaksOmitted$formulaCount <- rep(0, nrow(childPeaksOmitted))
     
-	childPeaks$satellite <- FALSE
-	childPeaks$low <- FALSE
-	childPeaks$rawOK <- TRUE
+	childPeaks$satellite <- rep(FALSE, nrow(childPeaks))
+	childPeaks$low <- rep(FALSE, nrow(childPeaks))
+	childPeaks$rawOK <- rep(TRUE, nrow(childPeaks))
 	
 	childPeaks <- childPeaks[,colnames(childPeaksOmitted), drop=FALSE]
 	

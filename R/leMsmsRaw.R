@@ -220,7 +220,9 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 									centroided = TRUE
 									)
 						})
-				msmsSpecs <- do.call(c, msmsSpecs)
+				msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
+				
+				
 				
 				# build the new objects
 				masterSpec <- new("Spectrum1",
@@ -285,7 +287,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
     sp <- spectra[[confirmMode + 1]]
   
   #sp@mz <- mzLimits
-  sp@id <- as.integer(cpdID)
+  sp@id <- as.character(as.integer(cpdID))
   sp@name <- findName(cpdID)
   sp@formula <- findFormula(cpdID)
   return(sp)
