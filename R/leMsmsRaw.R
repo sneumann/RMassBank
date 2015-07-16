@@ -98,7 +98,7 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @seealso findEIC
 #' @export
-findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
+findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
@@ -108,11 +108,39 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 	
 	# access data directly for finding the MS/MS data. This is done using
 	# mzR.
-	msRaw <- openMSfile(fileName)
-	ret <- findMsMsHR.direct(msRaw, cpdID, mode, confirmMode, useRtLimit, ppmFine, mzCoarse, fillPrecursorScan,
-				rtMargin, deprofile)
-	mzR::close(msRaw)
-	return(ret)
+	if(!is.null(fileName) & !is.null(msRaw))
+		stop("Both MS raw data and MS filename given. Only one can be handled at the same time.")
+	if(!is.null(fileName))
+		msRaw <- openMSfile(fileName)
+	
+	mzLimits <- findMz(cpdID, mode)
+	mz <- mzLimits$mzCenter
+	limit.fine <- ppm(mz, ppmFine, p=TRUE)
+	if(!useRtLimit)
+		rtLimits <- NA
+	else
+	{
+		dbRt <- findRt(cpdID)
+		rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
+	}
+	spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
+			,fillPrecursorScan, deprofile)
+	# check whether a) spectrum was found and b) enough spectra were found
+	if(length(spectra) < (confirmMode + 1))
+		sp <- new("RmbSpectraSet", found=FALSE)
+	else
+		sp <- spectra[[confirmMode + 1]]
+	
+	#sp@mz <- mzLimits
+	sp@id <- as.character(as.integer(cpdID))
+	sp@name <- findName(cpdID)
+	sp@formula <- findFormula(cpdID)
+	
+	# If we had to open the file, we have to close it again
+	if(!is.null(fileName))
+		mzR::close(msRaw)
+	
+	return(sp)
 }
 
 #' @export
@@ -262,35 +290,7 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 			deprofile = getOption("RMassBank")$deprofile,
       headerCache = NULL)
 {
-  # for finding the peak RT: use the gauss-fitted centwave peak
-  # (centroid data converted with TOPP is necessary. save as
-  # mzData, since this is correctly read :P)
-  #xset <- xcmsSet(fileName, method="centWave",ppm=5, fitgauss=TRUE)
-
-  # find cpd m/z
-  mzLimits <- findMz(cpdID, mode)
-  mz <- mzLimits$mzCenter
-  limit.fine <- ppm(mz, ppmFine, p=TRUE)
-  if(!useRtLimit)
-	  rtLimits <- NA
-  else
-  {
-	  dbRt <- findRt(cpdID)
-	  rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
-  }
-  spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
-  	,fillPrecursorScan, deprofile)
-  # check whether a) spectrum was found and b) enough spectra were found
-  if(length(spectra) < (confirmMode + 1))
-    sp <- new("RmbSpectraSet", found=FALSE)
-  else
-    sp <- spectra[[confirmMode + 1]]
-  
-  #sp@mz <- mzLimits
-  sp@id <- as.character(as.integer(cpdID))
-  sp@name <- findName(cpdID)
-  sp@formula <- findFormula(cpdID)
-  return(sp)
+	stop("Support for this interface has been discontinued. Use findMsMsHR with the same parameters instead (use named parameter msRaw)")
 }
 
 #' Read in mz-files using XCMS
