@@ -224,7 +224,7 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 		{
 			if(exists(var, envir=tempEnv))
 				slot(w, var, check=FALSE) <- tempEnv[[var]]
-			classVersion(w) <- "1.0.0"
+			classVersion(w)["msmsWorkspace"] <- "1.0.0"
 		}
 		# Check if settings exist...
 		if((loadSettings == TRUE) && exists("RmbSettings", envir=tempEnv))
@@ -306,9 +306,15 @@ setMethod("show", "msmsWorkspace",
 								return(sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))))
 							})
 							
-							PeakMat <- matrix(dummy1-dummy2,numspecs,numspecs)
+							whichok <- which(sapply(dummy1,length) != 0)
+							anyok <- whichok[1]
 							
-							tempids <- ids
+							dummy2 <- matrix(unlist(dummy2), ncol = length(dummy1[[anyok]]), byrow = TRUE)
+							dummy1 <- matrix(unlist(dummy1), ncol = length(dummy1[[anyok]]), byrow = TRUE)
+							
+							PeakMat <- dummy1-dummy2
+							
+							tempids <- ids[whichok]
 							cat("Peaks without annotation:\n")
 							sapply(split(PeakMat, rep(1:nrow(PeakMat), each = ncol(PeakMat))), function(x){
 								cat(" -", tempids[1], "\t number of peaks filtered:", x, "\n")
@@ -362,10 +368,16 @@ setMethod("show", "msmsWorkspace",
 																		sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))), "\n")
 																		return(sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))))
 																	})
-																	
-							PeakMat <- matrix(dummy4-dummy5,numspecs,numspecs)
 							
-							tempids <- ids
+							whichok <- which(sapply(dummy4,length) != 0)
+							anyok <- whichok[1]
+							
+							dummy5 <- matrix(unlist(dummy5), ncol = length(dummy4[[anyok]]), byrow = TRUE)
+							dummy4 <- matrix(unlist(dummy4), ncol = length(dummy4[[anyok]]), byrow = TRUE)
+							
+							PeakMat <- dummy4-dummy5
+							
+							tempids <- ids[whichok]
 							cat("Peaks without annotation in reanalyzed recalibrated peaks:\n")
 							sapply(split(PeakMat, rep(1:nrow(PeakMat), each = ncol(PeakMat))), function(x){
 								cat(" -", tempids[1], "\t number of peaks filtered:", x, "\n")
@@ -465,7 +477,7 @@ plotMbWorkspaces <- function(w1, w2=NULL){
 			lapply(x,function(y) y[['PK$PEAK']][,c("m/z","rel.int.")])
 		})
 		plot_title <- lapply(w2@compiled_ok,function(x){
-			lapply(x,function(y) y[['RECORD_TITLE']])
+			lapply(x,function(y) y[['ACCESSION']])
 		})
 	}
 	
@@ -476,7 +488,7 @@ plotMbWorkspaces <- function(w1, w2=NULL){
 	})
 	
 	plot_title <- lapply(w1@compiled_ok,function(x){
-		lapply(x,function(y) y[['RECORD_TITLE']])
+		lapply(x,function(y) y[['ACCESSION']])
 	})
 	
 	

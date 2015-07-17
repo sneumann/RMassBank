@@ -2,21 +2,22 @@
 #' 
 #' Validates a plain text MassBank record, or recursively all
 #' records within a directory. The Unit Tests to be used are
-#' installed in RMassBank/inst/unitTests and currently include 
+#' installed in RMassBank/inst/validationTests and currently include 
 #' checks for NAs, peaks versus precursor, precursor mz, 
 #' precursor type, SMILES vs exact mass, total intensities and
 #' title versus type. The validation report is saved as 
 #' "report.html" in the working directory.
 #' 
 #' @aliases validate
-#' @usage validate(path)
+#' @usage validate(path, simple = TRUE)
 #' @param path The filepath to a single record, or a directory to search recursively
+#' @param simple If TRUE the function creates a simpler form of the RUnit .html report, better readable for humans. If FALSE it returns the unchanged RUnit report.
 #' @examples
 #' \dontrun{
 #' validate("/tmp/MassBank/OpenData/record/")
 #' }
 #' @export
-validate <- function(path) {
+validate <- function(path, simple = TRUE) {
 
         require(ontoCAT)
 		require(RUnit)
@@ -37,12 +38,12 @@ validate <- function(path) {
 	tests <- list()
 	for(i in 1:length(RMassBank.env$mb)){
 		if(RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS2" || RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS"){
-		tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "unitTests"), testFileRegexp = "runit.MS2.test.R",
+		tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "runit.MS2.test.R",
                 #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
 		} else{
-			tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "unitTests"), testFileRegexp = "^runit.MSn.test.[rR]$",
+			tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "^runit.MSn.test.[rR]$",
                 #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
@@ -50,9 +51,42 @@ validate <- function(path) {
 	}
 	print("Starting Tests")
 	# Testing the list of Testsuites
-	testData <- suppressWarnings(runTestSuite(tests))
+	testData <- suppressWarnings(runTestSuite(tests,verbose=0))
 	# Prints the HTML-record
-	printHTMLProtocol(testData, fileName = paste(getwd(),"/report.html", sep = ""))
+	printHTMLProtocol(testData, fileName = paste0(getwd(),"/report.html"))
+	if(simple){
+		fileConnection <- file(paste0(getwd(),"/report.html"), open = "r")
+		htmlFile <- readLines(fileConnection)
+		close(fileConnection)
+		htmlFile <- gsub(">test.NA", ">No NAs contained in peak list", htmlFile)
+		htmlFile <- gsub(">test.peaksvsprecursor", ">One peak m/z  with no noticable difference from the precursor mass", htmlFile)
+		htmlFile <- gsub(">test.precursormz", ">Mass of precursor m/z possible with given mass and type", htmlFile)
+		htmlFile <- gsub(">test.PrecursorType", ">Precursor type valid", htmlFile)
+		htmlFile <- gsub(">test.smilesvsexactmass", ">Smiles code represents a molecule with specified exact mass", htmlFile)
+		htmlFile <- gsub(">test.sumintensities", ">All intensies greater than zero", htmlFile)
+		htmlFile <- gsub(">test.TitleVsType", ">Precursor type are the same in the title and in the document", htmlFile)
+		htmlFile <- gsub("\\(1 checks\\)", "", htmlFile)
+		htmlFile <- gsub("\\({1}.{1,6}seconds\\)", "", htmlFile)
+		htmlFile <- gsub("Test Suite: ", "", htmlFile)
+		htmlFile <- gsub("h5", "h2", htmlFile)
+		##Remove ending
+		poshr <- grep("<hr>", htmlFile, fixed=TRUE)
+		poshr <- poshr[length(poshr)]
+		htmlFile <- htmlFile[1:(poshr)]
+		
+		ullines <- grep("<ul>", htmlFile)
+		htmlFile[ullines] <- gsub("</a><ul>", "</a></li>", htmlFile[ullines])
+		htmlFile[ullines] <- gsub("</li></ul></li></ul>", "</li></ul>", htmlFile[ullines])
+		htmlFile[ullines] <- gsub('<li><a href=".+">Test file: runit.MS2.test.R</a></li>', "", htmlFile[ullines])
+		htmlFile[ullines] <- gsub('</a>.+RMassBank/validationTests<br/>',"</a>", htmlFile[ullines])
+		
+		##Remove superfluous information
+		htmlFile <- gsub("Test function regexp: ^test.+<br/>Test file regexp: runit.MS2.test.R<br/>Involved directory:<br/>", "", htmlFile, fixed=TRUE)
+		
+		fileConnection <- file(paste0(getwd(),"/report.html"), open = "w")
+		writeLines(htmlFile, fileConnection)
+		close(fileConnection)
+	}
 	print(paste("Report for the file(s) finished"))
 }
 
@@ -139,4 +173,44 @@ smiles2mass <- function(SMILES){
 	do.isotopes(massfromformula)
 	mass <- get.exact.mass(massfromformula)
 	return(mass)
+}
+
+.unitTestRMB <- function(WD=getwd()){
+	require(RUnit)
+	library(RMassBank)
+	library(RMassBankData)
+	oldwd <- getwd()
+	setwd(WD)
+	w <- newMsmsWorkspace()
+	RmbDefaultSettings()
+	files <- list.files(system.file("spectra", package="RMassBankData"),
+		 ".mzML", full.names = TRUE)
+	basename(files)
+	# To make the workflow faster here, we use only 2 compounds:
+	w@files <- files
+	loadList(system.file("list/NarcoticsDataset.csv", 
+		package="RMassBankData"))
+	w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
+					"pH_narcotics")
+	w <- msmsWorkflow(w, mode="pH", steps=c(5:8), archivename = 
+			"pH_narcotics")	
+	w2 <- newMbWorkspace(w)
+	#w2 <- mbWorkflow(w2)
+	#w2 <- loadInfolist(w2, "infolist.csv")
+	#w2 <- mbWorkflow(w2)
+	
+	testSuite <- defineTestSuite("Electronic noise and formula calculation Test", dirs = system.file("unitTests", 
+		package="RMassBank"), testFileRegexp = "runit.EN_FC.R",
+					#testFuncRegexp = "^test.+",
+					rngKind = "Marsaglia-Multicarry",
+					rngNormalKind = "Kinderman-Ramage")
+					
+	testData <- suppressWarnings(runTestSuite(testSuite))
+	
+	file.remove(c("pH_narcotics_Failpeaks.csv","pH_narcotics.RData","pH_narcotics_RA.RData","pH_narcotics_RF.RData"))
+	
+	# Prints the HTML-record
+	printTextProtocol(testData)
+	setwd(oldwd)
+	return(testData)
 }

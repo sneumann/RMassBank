@@ -282,29 +282,6 @@ First, create a workspace for the \Rvar{msmsWorkflow}:
 w <- newMsmsWorkspace()
 @
 
-
-
-Temporary deposit for the script using msmsRead. Build into actual vignette!
-<<eval=FALSE>>=
-
-#####SCRIPT
-library(RMassBank)
-loadRmbSettings("settings_comrecal_QEx_EX.INI")
-loadList("QEx_10_compoundlist.csv")
-msmsmzR <- newMsmsWorkspace()
-msmsXCMS <- newMsmsWorkspace()
-Args <- list(method="centWave", ppm = 5, snthresh = 1.5,
-    peakwidth = c(20,60), integrate = 1, mzdiff = -0.001, mzCenterFun = "meanApex3")
-msmsmzR <- msmsRead(msmsmzR, filetable = "Filelist_QEx.csv", readMethod="mzR", mode="pH", Args=Args)
-
-datadir <- "/vol/data_extern/emma.schymanski@ufz.de/Qexactive/10_centroided_mzMLs"
-files <- list.files(datadir, pattern=".mzML", full.names=TRUE)
-cpdid <- c(3035,2845,3040,3041,139,3046,297,3050,2856,3052)
-msmsXCMS <- msmsRead(msmsXCMS, files=files, cpdids = cpdid, readMethod="xcms",mode="pH",Args=Args)
-@
-
-
-
 The full paths of the files must be loaded into the container in the array
 \Rvar{files}:
 
@@ -367,9 +344,12 @@ the mass deviation of MS precursor ions. The graph to the left is a complete xy
 plot while the graph to the right is a 2D histogram (if the package \Rpackage{gplots} is
 installed on the user's computer). 
 
-<<eval=TRUE,fig=TRUE>>=
-w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
-				"pH_narcotics")
+TODO: Workflow execution in Chunk 10 is currently disabled, I execute Chunk 11
+instead for steps that are already done.
+
+<<eval=FALSE,fig=TRUE>>=
+#w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
+#				"pH_narcotics")
 @
 
 The recalibration can also be plotted at a later stage:
@@ -384,10 +364,10 @@ advised to run the workflow step by step. This is because if an error occurs, yo
 lose all intermediate results from the workflow, which might complicate
 finding the errors. (E.g., if you process steps 2-4 and an error occurs in step
 3, you will lose the results from step 2.) 
-<<eval=FALSE>>=
+<<eval=TRUE>>=
 	w <- msmsWorkflow(w, mode="pH", steps=1)
 	w <- msmsWorkflow(w, mode="pH", steps=2)
-	w <- msmsWorkflow(w, mode="pH", steps=3)
+	#w <- msmsWorkflow(w, mode="pH", steps=3)
 	# etc.
 @
 

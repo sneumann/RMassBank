@@ -344,8 +344,23 @@ loadRmbSettings <- function(file_or_list)
 		# Fix the YAML file to suit our needs
 		if(is.null(o$deprofile))
 			o$deprofile <- NA
-		if(is.null(o$babeldir))
+		if(is.null(o$babeldir)){
 			o$babeldir <- NA
+		} else{
+			##Check if babeldir exists
+			babelcheck <- gsub('\"','',o$babeldir)
+			if(substring(babelcheck, nchar(babelcheck)) == "\\"){
+				babelexists <- file.exists(substring(babelcheck, 1, nchar(babelcheck)-1))
+			} else{
+				babelexists <- file.exists(babelcheck)
+			}
+			
+			if(!babelexists){
+				stop("The babeldir does not exist. Please check the babeldir in the settings and adjust it accordingly.")
+			}
+		}
+
+
 		if(nchar(o$annotations$entry_prefix) != 2){
 			stop("The entry prefix must be of length 2")
 		}

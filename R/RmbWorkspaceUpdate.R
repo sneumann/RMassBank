@@ -36,8 +36,8 @@
 					w.parent@aggregatedRcSpecs <- list()
 					w.parent@reanalyzedRcSpecs <- list()
 					w.parent@refilteredRcSpecs <- list()
-					w.old@specs <- w.old@recalibratedSpecs
-					w.old@analyzedSpecs <- w.old@analyzedRcSpecs
+					slot(w.old, "specs", check=FALSE) <- w.old@recalibratedSpecs
+					slot(w.old, "analyzedSpecs", check=FALSE) <- w.old@analyzedRcSpecs
 					w.parent.new <- updateObject(w.parent)
 					w.new@parent <- w.parent.new
 				}
@@ -58,7 +58,7 @@
 				set <- new("RmbSpectraSet")
 				# identifiers and properties
 				set@mz <- spec$mz$mzCenter
-				set@id <- as.integer(spec$id)
+				set@id <- as.character(as.integer(spec$id))
 				set@formula <- spec$formula
 				set@found <- as.logical(spec$foundOK)
 				# now parent and child MS

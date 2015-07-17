@@ -87,6 +87,7 @@ rmbo$spectraList <- list(
   list(mode="CID", ces="20eV", ce="20eV", res=12000)
 )
 
+rmbo$multiplicityFilter <- 1
 rmbo$annotations$instrument <- "Bruker micrOTOFq"
 rmbo$annotations$instrument_type <- "LC-ESI-QTOF"
 rmbo$recalibrator$MS1 <- "recalibrate.identity"
@@ -150,9 +151,14 @@ Args <- list(method="centWave",
 
 If you want to utilize XCMS for Step 1 of the workflow, you have to set the readMethod-parameter to "xcms" and - if you don't want to use standard values for findPeaks - pass on findPeaksArgs to the workflow.
 
-<<eval=TRUE>>=
+<<echo=FALSE,eval=TRUE>>=
+par(mfcol=c(2,2))
+@
+
+
+<<eval=TRUE, fig=TRUE>>=
 msmsList <- msmsRead(msmsList, files= msmsList@files, 
-                     readMethod = "xcms", mode = "mH", Args = Args)
+                     readMethod = "xcms", mode = "mH", Args = Args, plots = TRUE)
 msmsList <- msmsWorkflow(msmsList, steps=2:8,
                          mode="mH", readMethod="xcms")
 @
