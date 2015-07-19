@@ -139,6 +139,12 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	else
 		headerData <- as.data.frame(header(msRaw))
 	
+	
+	###If no precursor scan number, fill the number
+	if(length(unique(headerData$precursorScanNum)) == 1){
+		fillPrecursorScan <- TRUE
+	}
+
 	if(fillPrecursorScan == TRUE)
 	{
 		# reset the precursor scan number. first set to NA, then
@@ -173,8 +179,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			})
 	validPrecursors <- validPrecursors[which(which_OK==TRUE)]
 	if(length(validPrecursors) == 0){
-		warning(paste0("No precursor was detected for compound, ", cpdID, " with m/z ", mz, ". Please check the mass and retention time window. 
-		If this happens for all cases, try using the setting fillPrecursorScan: TRUE in the ini-file"))
+		warning(paste0("No precursor was detected for compound, ", cpdID, " with m/z ", mz, ". Please check the mass and retention time window."))
 	}
 	# Crop the "EIC" to the valid precursor scans
 	eic <- eic[eic$scan %in% validPrecursors,]
@@ -194,7 +199,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				childHeaders <- headerData[(headerData$precursorScanNum == masterScan) 
 								& (headerData$precursorMZ > mz - limit.coarse) 
 								& (headerData$precursorMZ < mz + limit.coarse) ,]
-				childScans <- childHeaders$acquisitionNum
+				childScans <- childHeaders$seqNum
 				
 				msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
 				# if deprofile option is set: run deprofiling
@@ -449,7 +454,7 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 	}
 	intensity <- unlist(lapply(1:nrow(headerMS1), function(row)
 					{
-						peaktable <- mzR::peaks(msRaw, headerMS1[row,"acquisitionNum"])
+						peaktable <- mzR::peaks(msRaw, headerMS1[row,"seqNum"]) ##Was "acquisitionNum" before; doesn't matter most of the time... unless you actively exclude things in the conversion of the mzML-file
 						sum(peaktable[
 										which((peaktable[,1] >= headerMS1[row,"mzMin"]) & (peaktable[,1] <= headerMS1[row,"mzMax"])),
 										2])

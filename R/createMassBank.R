@@ -331,10 +331,10 @@ createMolfile <- function(id_or_smiles, fileName = FALSE)
 	{
 		res <- getCactus(smiles, "sdf")
 		
-		if(is.na(res)){
+		if(any(is.na(res))){
 			res <- getPcSDF(smiles)
 		}
-		if(is.na(res)){
+		if(any(is.na(res))){
 			stop("Pubchem and Cactus both seem to be down.")
 		}
 		if(is.character(fileName))
@@ -1263,7 +1263,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, refiltered, additionalP
 	  if(getOption("RMassBank")$recomputeRelativeScan == "fromFirstChild")
 		  relativeScan <- "fromFirstChild"
   if(relativeScan == "fromParent")
-	  mbdata[["SUBSCAN"]] <- msmsdata$scan - spec$parentHeader$acquisitionNum #relative scan
+	  mbdata[["SUBSCAN"]] <- msmsdata$scan - spec$parentHeader$seqNum #relative scan
   else if(relativeScan == "fromFirstChild")
   {
 	  firstChild <- min(unlist(lapply(spec,function(d) d$header$acquisitionNum)))
