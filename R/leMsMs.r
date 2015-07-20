@@ -130,7 +130,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(3 %in% steps)
   {
 	message("msmsWorkflow: Step 3. Aggregate all spectra")
-    w@aggregatedSpecs <- aggregateSpectra(w@analyzedSpecs, addIncomplete=TRUE,
+    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE,
 			spectraList = settings$spectraList)
   }
   # Step 4: recalibrate all m/z values in raw spectra
@@ -139,7 +139,8 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	message("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
 	if(newRecalibration)
 	{
-		recal <- makeRecalibration(w@aggregatedSpecs, mode,
+		# note: makeRecalibration takes w as argument now, because it needs to get the MS1 spectra from @spectra
+		recal <- makeRecalibration(w, mode,
 				recalibrateBy = settings$recalibrateBy,
 				recalibrateMS1 = settings$recalibrateMS1,
 				recalibrator = settings$recalibrator,
@@ -147,9 +148,12 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		w@rc <- recal$rc
 		w@rc.ms1 <- recal$rc.ms1
 	}
-    w@recalibratedSpecs <- recalibrateSpectra(mode, w@specs, w = w,
+	w@parent <- w
+	w@aggregated <- data.frame()
+    spectra <- recalibrateSpectra(mode, w@spectra, w = w,
 			recalibrateBy = settings$recalibrateBy,
 			recalibrateMS1 = settings$recalibrateMS1)
+	w@spectra <- spectra
   }
   # Step 5: re-analysis on recalibrated spectra
   if(5 %in% steps)
@@ -157,39 +161,41 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	nProg <- 0
 	message("msmsWorkflow: Step 5. Reanalyze recalibrated spectra")
 	pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
-    w@analyzedRcSpecs <- lapply(w@recalibratedSpecs, function(spec) {
-      s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="recalibrated",
-			  filterSettings = settings$filterSettings,
-			  spectraList = settings$spectraList, method = analyzeMethod)
-	  # Progress
-	  nProg <<- nProg + 1
-	  pb <- do.call(progressbar, list(object=pb, value= nProg))
-	  
-      return(s)
-    }
-      )
-    for(f in w@files)
-      w@analyzedRcSpecs[[basename(as.character(f))]]$name <- basename(as.character(f))
+	
+	w@spectra <- as(lapply(w@spectra, function(spec) {
+						#print(spec$id)
+						s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="recalibrated",
+								filterSettings = settings$filterSettings,
+								spectraList = settings$spectraList, method = analyzeMethod)
+						# Progress:
+						nProg <<- nProg + 1
+						pb <- do.call(progressbar, list(object=pb, value= nProg))
+						
+						return(s)
+					}), "SimpleList")
+	for(f in w@files)
+		w@spectra[[basename(as.character(f))]]@name <- basename(as.character(f))
+	suppressWarnings(do.call(progressbar, list(object=pb, close=TRUE)))
+	
   do.call(progressbar, list(object=pb, close=TRUE))
   }
   # Step 6: aggregate recalibrated results
   if(6 %in% steps)
   {
     message("msmsWorkflow: Step 6. Aggregate recalibrated results")
-    w@aggregatedRcSpecs <- aggregateSpectra(w@analyzedRcSpecs, addIncomplete=TRUE,
+    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE,
 			spectraList = settings$spectraList)
     if(!is.na(archivename))
       archiveResults(w, paste(archivename, ".RData", sep=''), settings)
-    w@aggregatedRcSpecs$peaksUnmatchedC <- 
-			cleanElnoise(w@aggregatedRcSpecs$peaksUnmatched,
-					settings$electronicNoise, settings$electronicNoiseWidth)
+    w@aggregated <- cleanElnoise(w@aggregated,
+			settings$electronicNoise, settings$electronicNoiseWidth)
   }
   # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
   if(7 %in% steps)
   {
 	message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
     w@reanalyzedRcSpecs <- reanalyzeFailpeaks(
-			w@aggregatedRcSpecs, custom_additions="N2O", mode=mode,
+			w@aggregated, custom_additions="N2O", mode=mode,
 				filterSettings=settings$filterSettings,
 				progressbar=progressbar)
     if(!is.na(archivename))
@@ -372,21 +378,32 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 	## );
 	.checkMbSettings()
 	
+		
 	if(msmsPeaks@found == FALSE)
-		return(msmsPeaks)
+		r <- (msmsPeaks)
 	
 	if(method=="formula")
 	{
-		return(analyzeMsMs.formula(msmsPeaks, mode, detail, run, filterSettings,
+		r <- (analyzeMsMs.formula(msmsPeaks, mode, detail, run, filterSettings,
 						spectraList
 						))
 	}
 	else if(method == "intensity")
 	{
-		return(analyzeMsMs.intensity(msmsPeaks, mode, detail, run, filterSettings,
+		r <- (analyzeMsMs.intensity(msmsPeaks, mode, detail, run, filterSettings,
 						spectraList
 				))
 	}
+	
+	#nspectra <- length(spectraList)
+	ok <- unlist(lapply(r@children, function(c) c@ok))
+	r@complete <- FALSE
+	r@empty <- FALSE
+	if(all(ok))
+		r@complete <- TRUE
+	if(all(!ok))
+		r@empty <- TRUE
+	return(r)
 }
 
 
@@ -1000,76 +1017,36 @@ filterLowaccResults <- function(peaks, mode="fine", filterSettings  = getOption(
 #' @export
 aggregateSpectra <- function(spec,  addIncomplete=FALSE, spectraList = getOption("RMassBank")$spectraList)
 {
-  # Filter all spectra datasets: split into not-identified spectra, 
-  # incomplete spectra and complete spectra
-  foundOK <- which(lapply(spec, function(f) f$foundOK) == TRUE)
-  foundFail <- which(lapply(spec, function(f) f$foundOK) == FALSE)
-  resFOK <- spec[foundOK]
-  resFFail <- spec[foundFail]
-  specOK <- lapply(resFOK, function(f) 
-      sum(unlist(lapply(f$msmsdata, function(f) ifelse(f$specOK==TRUE, 1, 0)))))
-  # complete spectra have length(spectraList) annotated peaklists
-  nspectra <- length(spectraList)
-  resSFail <- resFOK[which(specOK!=nspectra)]
-  resSOK <- resFOK[which(specOK==nspectra)]
-  
-  # Aggregate the incomplete spectra into the set?
-  if(addIncomplete)
-      resOK <- resFOK
-  else
-      resOK <- resSOK
-  
-  # Aggregate all identified and unidentified peaks into tables
-  # collect all unmatched peaks from all examined samples:
-  failpeaks <- lapply(resOK, function(f) lapply(f$msmsdata, function(g)
-    {
-		
-      if(!is.null(g$childBad))
-      {
-        g$childBad$cpdID <- f$id
-        g$childBad$scan <- g$scan
-        g$childBad$parentScan <- f$parentHeader$acquisitionNum
-      }
-      if(!is.null(g$childUnmatched))
-      {
-		  g$childUnmatched$cpdID <- rep(f$id, nrow(g$childUnmatched))
-		  g$childUnmatched$scan <- rep(g$scan, nrow(g$childUnmatched))
-		  g$childUnmatched$parentScan <- rep(f$parentHeader$acquisitionNum, nrow(g$childUnmatched))
-      }
-      return(rbind(g$childBad, g$childUnmatched))
-      }))
-  # returns a n x length(spectraList) list of lists with the unmatched/excluded peaks from each sample and spectrum
-  # aggregate to one big list:
-  failpeaks_s <- lapply(failpeaks, function(f) do.call(rbind, f))
-  failpeaks_t <- do.call(rbind, failpeaks_s)
-  
-  # generate list of all winpeaks for recalibration
-  winpeaks <- lapply(resOK, function(f) do.call(rbind, lapply(f$msmsdata, function(g)
-    {
-    if(!is.null(g$childFilt))
-    {
-      g$childFilt$cpdID <- f$id
-      g$childFilt$scan <- g$scan
-      g$childFilt$parentScan <- f$parentHeader$acquisitionNum
-    }
-    return(g$childFilt)
-    })))
-  winpeaks_t <- do.call(rbind, winpeaks)
-  
-  # calculate dppm values
-  winpeaks_t$dppmRc <- (winpeaks_t$mzFound/winpeaks_t$mzCalc - 1)*1e6
+	
+	if(addIncomplete)
+		aggSpectra <- selectSpectra(spec, "found", "object")
+	else
+		aggSpectra <- selectSpectra(spec, "complete", "object")
+	
+	compoundTables <- lapply(aggSpectra, function(s)
+			{
+				tables.c <- lapply(s@children, function(c)
+						{
+							table.c <- getData(c)
+							table.c <- table.c[table.c$rawOK,,drop=FALSE]
+							table.c$scan <- rep(c@acquisitionNum, nrow(table.c))
+							return(table.c)
+						})
+				table.cpd <- do.call(rbind, tables.c)
+				table.cpd$cpdID <- rep(s@id, nrow(table.cpd))
+				table.cpd$parentScan <- rep(s@parent@acquisitionNum, nrow(table.cpd))
+				return(table.cpd)
+			})
+	#return(compoundTables)
+	aggTable <- do.call(rbind, compoundTables)
+	colnames(aggTable)[1] <- "mzFound"
 
-  return(list(
-      foundOK = foundOK,
-      foundFail = foundFail,
-      spectraFound = specOK,
-      specFound = resFOK,
-      specEmpty = resFFail,
-      specComplete = resSOK,
-      specIncomplete = resSFail,
-      peaksMatched = winpeaks_t,
-      peaksUnmatched = failpeaks_t
-      ))
+	aggTable$dppmRc <- rep(NA, nrow(aggTable))
+	
+	aggTable[aggTable$good, "dppmRc"] <- (aggTable[aggTable$good, "mzFound"]/aggTable[aggTable$good, "mzCalc"] - 1)*1e6
+	
+	
+	return(aggTable)
 }
 
 #' Remove electronic noise
@@ -1098,16 +1075,20 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE, spectraList = getOption
 cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 		width = getOption("RMassBank")$electronicNoiseWidth)
 {
-      # use only best peaks
-      p_best <- peaks[is.na(peaks$dppmBest) | (peaks$dppm == peaks$dppmBest),]
+	
+	  peaks$noise <- as.logical(rep(FALSE, nrow(peaks)))
+	  
+	  # I don't think this makes sense if using one big table...
+	  ## # use only best peaks
+	  ## p_best <- peaks[is.na(peaks$dppmBest) | (peaks$dppm == peaks$dppmBest),]
       
       # remove known electronic noise
-      p_eln <- p_best
+      p_eln <- peaks
       for(noisePeak in noise)
       {
-        p_eln <- p_eln[
-				(p_eln$mzFound > noisePeak + width)
-                | (p_eln$mzFound < noisePeak - width),]
+		noiseMatches <- which((p_eln$mzFound > noisePeak + width)	| (p_eln$mzFound < noisePeak - width))
+		if(length(noiseMatches) > 0)
+			p_eln[noiseMatches, "noise"] <- TRUE
       }
       return(p_eln)
 }
@@ -1239,21 +1220,24 @@ problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
 #' 
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export 
-makeRecalibration <- function(spec, mode, 
+makeRecalibration <- function(w, mode, 
 		recalibrateBy = getOption("RMassBank")$recalibrateBy,
 		recalibrateMS1 = getOption("RMassBank")$recalibrateMS1,
 		recalibrator = getOption("RMassBank")$recalibrator,
 		recalibrateMS1Window = getOption("RMassBank")$recalibrateMS1Window 
 		)
 {
-	if(is.null(spec))
+	if(is.null(w@spectra))
 		stop("No spectra present to generate recalibration curve.")
 
-	if(length(spec$peaksMatched$formulaCount)==0)
+	rcdata <- peaksMatched(w)
+	rcdata <- rcdata[rcdata$formulaCount == 1, ,drop=FALSE]
+	
+	
+	if(nrow(rcdata) == 0)
 		stop("No peaks matched to generate recalibration curve.")
 	
-	rcdata <- spec$peaksMatched[spec$peaksMatched$formulaCount==1,,drop=FALSE]
-	ms1data <- recalibrate.addMS1data(spec, mode, recalibrateMS1Window)
+	ms1data <- recalibrate.addMS1data(w@spectra, mode, recalibrateMS1Window)
 
 	if (recalibrateMS1 != "none") {
           ## Add m/z values from MS1 to calibration datapoints
@@ -1285,7 +1269,7 @@ makeRecalibration <- function(spec, mode,
 	par(mfrow=c(2,2))
 	if(nrow(rcdata)>0)
 		plotRecalibration.direct(rcdata, rc, rc.ms1, "MS2", 
-				range(spec$peaksMatched$mzFound),
+				range(rcdata$mzFound),
 				recalibrateBy)
 	if(nrow(ms1data)>0)
 		plotRecalibration.direct(ms1data, rc, rc.ms1, "MS1",
@@ -1391,32 +1375,23 @@ recalibrateSpectra <- function(mode, rawspec = NULL, rc = NULL, rc.ms1=NULL, w =
 	  # go through all raw spectra and recalculate m/z values
 	  recalibratedSpecs <- lapply(rawspec, function(s)
 			  {
-				  # recalculate tandem spectrum peaks
-				  s$peaks <- lapply(s$peaks, function(p)
-						  {
-							  recalibrateSingleSpec(p, rc, recalibrateBy)
-						  })
-				  # recalculate MS1 spectrum if required
-				  if(recalibrateMS1 != "none")
+				  if(s@found)
 				  {
-					  p <- s$parentPeak;
-					  p <- as.data.frame(p)
-					  if(nrow(p) > 0)
+					  # recalculate tandem spectrum peaks
+					  recalSpectra <- lapply(s@children, function(p)
+							  {
+								  recalibrateSingleSpec(p, rc, recalibrateBy)
+							  })
+					  s@children <- as(recalSpectra, "SimpleList")
+					  # recalculate MS1 spectrum if required
+					  if(recalibrateMS1 != "none")
 					  {
-						  colnames(p) <- c("mzFound", "int")
-						  drecal <- predict(rc.ms1, newdata= p)
-						  if(recalibrateBy == "dppm")
-							  p$mzRecal <- p$mzFound / ( 1 + drecal/1e6 )
-						  else
-							  p$mzRecal <- p$mzFound - drecal
-						  colnames(p) <- c("mz", "int", "mzRecal")
+						  s@parent <- recalibrateSingleSpec(s@parent, rc.ms1, recalibrateBy)
 					  }
-					  p <- as.matrix(p)
-					  s$parentPeak <- p
 				  }
 				  return(s)
-			  })
-	  return(recalibratedSpecs)
+			  } )
+	  return(as(recalibratedSpecs, "SimpleList"))
   }
   else # no rawspec passed
 	  return(list())
@@ -1426,24 +1401,47 @@ recalibrateSpectra <- function(mode, rawspec = NULL, rc = NULL, rc.ms1=NULL, w =
 recalibrateSingleSpec <- function(spectrum, rc, 
 		recalibrateBy = getOption("RMassBank")$recalibrateBy)
 {
-	p <- as.data.frame(spectrum)
-	if(nrow(p) > 0)
+	spectrum.df <- as.data.frame(spectrum)
+	spectrum.df <- spectrum.df[!duplicated(spectrum.df$mz),,drop=FALSE]
+	spectrum.df <- spectrum.df[order(spectrum.df$mz),,drop=FALSE]
+
+	mzVals <- spectrum.df$mz
+	if(length(mzVals) > 0)
 	{
 		# Fix the column names so our
 		# prediction functions choose the right
 		# rows. 
-		colnames(p) <- c("mzFound", "int")
-		drecal <- predict(rc, newdata= p)
+		drecal <- predict(rc, mzVals)
 		if(recalibrateBy == "dppm")
-			p$mzRecal <- p$mzFound / ( 1 + drecal/1e6 )
+			mzRecal <- mzVals / ( 1 + drecal/1e6 )
 		else
-			p$mzRecal <- p$mzFound - drecal
+			mzRecal <- mzVals - drecal
 		# And rename them back so our "mz" column is
 		# called "mz" again
-		colnames(p) <- c("mz", "int", "mzRecal")
 	}
-	p <- as.matrix(p)
-	return(p)
+	spectrum.df$mz <- mzRecal
+	
+	
+	# now comes the part that I don't like too much; this could be improved by using as.data.frame instead of getData and correspondingly
+	# also not use setData. For now I leave it like this.
+	# The problem is that I am not sure whether the default behaviour of as.RmbSpectrum2 should be clean=TRUE or FALSE,
+	# and vice versa, I am not sure if as.data.frame should return only mz/int or the whole table.
+	
+	if(is(spectrum, "RmbSpectrum2"))
+	{
+		# this removes all evaluated data that were added in step 2 except for @ok I think
+		colnames(spectrum.df) <- c("mz", "intensity")
+		spectrum <- setData(spectrum, spectrum.df, clean=TRUE)
+		# It also avoids making a new object when we don't know what class it should be 
+	}
+	else
+	{
+		# for Spectrum1 or all others that we don't know
+		spectrum@mz <- spectrum.df$mz
+		spectrum@intensity <- spectrum.df$i
+	}
+		
+	return(spectrum)
 }
 
 
@@ -1570,8 +1568,11 @@ reanalyzeFailpeaks <- function(specs, custom_additions, mode, filterSettings =
 				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook")
 {
 	
-	
-  fp <- specs$peaksUnmatchedC
+
+	specs$index <- 1:nrow(specs)
+  pu <- peaksUnmatched(specs)
+  fp <- pu[!pu$noise,,drop=FALSE]
+  
   custom_additions_l <- as.list(rep(x=custom_additions, times=nrow(fp)))
   mode_l <- as.list(rep(x=mode, times=nrow(fp)))
   nLen <- nrow(fp)
@@ -1601,7 +1602,17 @@ reanalyzeFailpeaks <- function(specs, custom_additions, mode, filterSettings =
 					  "reanalyzed.formulaCount", "reanalyzed.dbe")]	  
   }
 
-  specs$peaksReanalyzed <- cbind(fp, temp)
+  peaksRetained <- rbind(
+		  peaksMatched(specs),
+		  pu[pu$noise,,drop=FALSE])
+  peaksRetained$reanalyzed.formula <- as.character(rep(NA, nrow(peaksRetained)))
+  peaksRetained$reanalyzed.mzCalc <- as.numeric(rep(NA, nrow(peaksRetained)))
+  peaksRetained$reanalyzed.dppm <- as.numeric(rep(NA, nrow(peaksRetained)))
+  peaksRetained$reanalyzed.formulaCount <- as.numeric(rep(NA, nrow(peaksRetained)))
+  peaksRetained$reanalyzed.dbe <- as.numeric(rep(NA, nrow(peaksRetained)))
+  peaksRetained$matchedReanalysis <- as.logical(rep(NA, nrow(peaksRetained)))
+  
+  peaksReanalyzed <- cbind(fp, temp)
   
   # Since some columns are in "list" type, they disturb later on.
   # therefore, fix them and make them normal vectors.
@@ -1611,12 +1622,12 @@ reanalyzeFailpeaks <- function(specs, custom_additions, mode, filterSettings =
     specs$peaksReanalyzed[,col] <- 
       unlist(specs$peaksReanalyzed[,col])
   
-  # Now only the matching ones:
-  specs$peaksMatchedReanalysis <- specs$peaksReanalyzed[
-		  !is.na(specs$peaksReanalyzed$reanalyzed.dppm),]
+  peaksReanalyzed$matchedReanalysis <- !is.na(peaksReanalyzed$reanalyzed.dppm)
   
+  peaksTotal <- rbind(peaksRetained, peaksReanalyzed)
+  # Now only the matching ones:
   do.call(progressbar, list(object=pb, close=TRUE))
-  return(specs)
+  return(peaksTotal)
 }
 
 
@@ -2055,26 +2066,30 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 	##             return(FALSE)
 	##         })
 	
-	ms1peaks <- lapply(spec$specFound, function(cpd)
+	specFound <- selectSpectra(spec, "found", "object")
+	
+	ms1peaks <- lapply(specFound, function(cpd)
 			{
-				mzL <- findMz.formula(cpd$formula,mode,recalibrateMS1Window,0)
+				mzL <- findMz.formula(cpd@formula,mode,recalibrateMS1Window,0)
 				mzCalc <- mzL$mzCenter
-				ms1 <- as.data.frame(cpd$parentMs)
-				pplist <- ms1[(ms1$mz >= mzL$mzMin) & (ms1$mz <= mzL$mzMax),]
-				mzFound <- pplist[which.max(pplist$int),"mz"]
+				ms1 <- mz(cpd@parent)
+				mzFound <- ms1[(ms1 >= mzL$mzMin) & (ms1 <= mzL$mzMax)]
 				dppmRc <- (mzFound/mzCalc - 1)*1e6
 				return(c(
 								mzFound = mzFound,
-								formula = "",
-								mzCalc = mzCalc,
-								dppm = dppmRc,
-								dbe = 0,
-								int = 100,
-								dppmBest = dppmRc,
-								formulaCount = 1,
+								intensity = 100,
+								satellite = FALSE,
+								low = FALSE, 
+								rawOK = TRUE,
 								good = TRUE,
-								cpdID = cpd$id,
+								mzCalc = mzCalc,
+								formula = "",
+								dbe = 0,
+								formulaCount = 1,
+								dppm = dppmRc,
+								dppmBest = dppmRc,
 								scan = 0,
+								cpdID = cpd@id,
 								parentScan = 0,
 								dppmRc = dppmRc
 						))

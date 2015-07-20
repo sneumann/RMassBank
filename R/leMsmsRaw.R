@@ -1,8 +1,8 @@
 ## For generating the NAMESPACE
 #' @import mzR
-# # importClassesFrom mzR ## Causes error 
-# # importMethodsFrom mzR 
-#' @import Rcpp ## Was not in manually written NAMESPACE ?
+
+#' @import Rcpp 
+## Was not in manually written NAMESPACE ?
 #' @import RCurl 
 #' @import XML 
 #' @import methods 
@@ -11,6 +11,10 @@
 #' @import rjson 
 #' @import yaml 
 NULL # This is required so that roxygen knows where the first manpage starts
+
+
+# # importClassesFrom mzR ## Causes error 
+# # importMethodsFrom mzR 
 
 #' Extract MS/MS spectra for specified precursor
 #' 
