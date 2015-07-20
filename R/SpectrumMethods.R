@@ -3,6 +3,7 @@
 # Author: stravsmi
 ###############################################################################
 
+#' @export
 setMethod("getData", c("RmbSpectrum2"), function(s)
 		{
 			peaks <- s@peaksCount
@@ -14,7 +15,7 @@ setMethod("getData", c("RmbSpectrum2"), function(s)
 			df
 		})
 
-
+#' @export
 setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TRUE)
 		{
 			cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dppm")

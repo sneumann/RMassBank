@@ -49,9 +49,10 @@ Collate:
     'SpectrumMethods.R'
     'RmbWorkspace.R'
     'RmbWorkspaceUpdate.R'
+    'SpectraSetMethods.R'
+    'AggregateMethods.R'
     'validateMassBank.R'
-    'zzz.R'
     'tools.R'
     'msmsRead.R'
-
+	'zzz.R'
     

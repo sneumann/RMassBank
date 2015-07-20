@@ -62,9 +62,11 @@ setClassUnion("msmsWorkspaceOrNULL", "NULL")
 		representation = representation(
 				files = "character",
 				spectra = "RmbSpectraSetList",
+				aggregated = "data.frame",
 				parent = "msmsWorkspaceOrNULL",
 				analyzedSpecs = "list",
 				aggregatedSpecs = "list",
+				
 				rc = "ANY",
 				rc.ms1 = "ANY",
 				recalibratedSpecs = "list",
