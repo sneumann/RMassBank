@@ -150,6 +150,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 	sp@id <- as.character(as.integer(cpdID))
 	sp@name <- findName(cpdID)
 	sp@formula <- findFormula(cpdID)
+	sp@mode <- mode
 	
 	# If we had to open the file, we have to close it again
 	if(!is.null(fileName))

@@ -17,7 +17,8 @@
 				formulaCount = "integer",
 				dppm = "numeric",
 				dppmBest = "numeric",
-				ok = "logical"
+				ok = "logical",
+				info = "list"
 		),
 		contains=c("Spectrum2"),
 		prototype = prototype(
@@ -32,6 +33,7 @@
 				dppm = numeric(),
 				dppmBest = numeric(),
 				ok = logical(),
+				info = list(),
 				new("Versioned", versions=c(classVersion("Spectrum2"), RmbSpectrum2 = "0.1.0"))
 		),
 )
@@ -58,8 +60,8 @@
 				id = "character",
 				mz = "numeric",
 				name = "character",
-				mode = "character",
-				annotations = "list"
+				mode = "character"
+				#annotations = "list"
 				),
 		prototype = prototype(
 				parent = new("Spectrum1"),
@@ -71,8 +73,7 @@
 				id = character(),
 				mz = numeric(),
 				name = character(),
-				mode = character(),
-				annotations = list()
+				mode = character()
 		)
 );
 

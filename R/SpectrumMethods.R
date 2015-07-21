@@ -10,7 +10,9 @@ setMethod("getData", c("RmbSpectrum2"), function(s)
 			cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dbe", "formulaCount", "dppm", "dppmBest")
 			cols.isFilled <- unlist(lapply(cols, function(col) length(slot(s, col)) == peaks))
 			cols.filled <- cols[cols.isFilled]
-			df <- do.call(data.frame, lapply(cols.filled, function(col) slot(s, col)))
+			data <- lapply(cols.filled, function(col) slot(s, col))
+			data$stringsAsFactors <- FALSE
+			df <- do.call(data.frame,data)
 			colnames(df) <- cols.filled
 			df
 		})

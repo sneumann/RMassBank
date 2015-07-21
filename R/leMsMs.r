@@ -728,9 +728,26 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   ## mzmin <- min(mzranges[,1], na.rm=TRUE)
   ## mzmax <- max(mzranges[,2], na.rm=TRUE)
   children <- lapply(msmsPeaks@children, analyzeTandemShot)
+  
+  
+	# Add the spectrum labels to the spectra here.
+	# If there is any better place to do this, please tell me. I hate it.
+	# However, the info should be added in msmsWorkflow not in mbWorkflow, because two msmsWorkspaces with different spectraLists can be
+	# merged together with all the combine / pack stuff.
+	children <- mapply(function(spec, info)
+			{
+				spec@info <- info
+				spec
+			}, children, spectraList, SIMPLIFY=FALSE)
+
+## shots <- mapply(function(shot, scan, info)
+  ##         {
+  ##             shot$scan <- scan
+  ##             shot$info <- info
+  ##             shot$header <- msmsPeaks$childHeaders[as.character(scan),]
+  ##             return(shot)
+  ##         }, shots, msmsPeaks$childScans, spectraList, SIMPLIFY=FALSE)
   msmsPeaks@children <- as(children, "SimpleList")
-  
-  
   return(msmsPeaks)
 }
 
