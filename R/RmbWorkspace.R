@@ -139,8 +139,10 @@ setIs("msmsWorkspace", "msmsWorkspaceOrNULL")
 setClass("mbWorkspace",
 		representation(
 				# input data:
-				aggregatedRcSpecs = "list",
-				refilteredRcSpecs = "list",
+				spectra = "RmbSpectraSetList",
+				aggregated = "data.frame",
+				## aggregatedRcSpecs = "list",
+				## refilteredRcSpecs = "list",
 				additionalPeaks = "data.frame", # ex additional_peaks
 				# infolists data:
 				mbdata = "list",
@@ -257,8 +259,9 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 newMbWorkspace <- function(w)
 {
 	mb <- new("mbWorkspace",
-			aggregatedRcSpecs = w@aggregatedRcSpecs,
-			refilteredRcSpecs = w@refilteredRcSpecs)
+			spectra = w@spectra,
+			aggregated = w@aggregated
+			)
 	return(mb)
 }
 
