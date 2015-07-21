@@ -16,12 +16,16 @@ setMethod("getData", c("RmbSpectrum2"), function(s)
 		})
 
 #' @export
+
+
+
+
 setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TRUE)
 		{
-			cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dppm")
+			cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dbe", "formulaCount", "dppm", "dppmBest")
 			types <- c("mz" = "numeric", "intensity" = "numeric", "satellite" = "logical", "low" = "logical",
 					"rawOK" = "logical", "good" = "logical", "mzCalc" = "numeric", "formula" = "character", 
-					"dppm" = "numeric", "ok" = "numeric"
+					"dbe" = "numeric", "formulaCount" = "integer", "dppm" = "numeric", "dppmBest" = "numeric"
 					)
 			s@peaksCount <- as.integer(nrow(df))
 			cols.inDf <- which(cols %in% colnames(df))

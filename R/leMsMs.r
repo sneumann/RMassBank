@@ -194,7 +194,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(7 %in% steps)
   {
 	message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
-    w@reanalyzedRcSpecs <- reanalyzeFailpeaks(
+    w@aggregated <- reanalyzeFailpeaks(
 			w@aggregated, custom_additions="N2O", mode=mode,
 				filterSettings=settings$filterSettings,
 				progressbar=progressbar)
@@ -210,8 +210,9 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
       message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
     } else {
       # apply heuristic filter      
-      w@refilteredRcSpecs <- filterMultiplicity(
-			w@reanalyzedRcSpecs, archivename, mode, settings$multiplicityFilter )
+      w@aggregated <- filterMultiplicity(
+			w, archivename, mode, settings$multiplicityFilter )
+	  w@aggregated <- processProblematicPeaks(w, mode, archivename)
 
       if(!is.na(archivename))
         archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
@@ -1041,7 +1042,10 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE, spectraList = getOption
 	aggTable <- do.call(rbind, compoundTables)
 	colnames(aggTable)[1] <- "mzFound"
 
-	aggTable$dppmRc <- rep(NA, nrow(aggTable))
+	aggTable <- addProperty(aggTable, "dppmRc", "numeric")
+	aggTable <- addProperty(aggTable, "index", "integer")
+	if(nrow(aggTable) > 0)
+		aggTable$index <- 1:nrow(aggTable)
 	
 	aggTable[aggTable$good, "dppmRc"] <- (aggTable[aggTable$good, "mzFound"]/aggTable[aggTable$good, "mzCalc"] - 1)*1e6
 	
@@ -1076,7 +1080,7 @@ cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 		width = getOption("RMassBank")$electronicNoiseWidth)
 {
 	
-	  peaks$noise <- as.logical(rep(FALSE, nrow(peaks)))
+	peaks <- addProperty(peaks, "noise", "logical", FALSE)
 	  
 	  # I don't think this makes sense if using one big table...
 	  ## # use only best peaks
@@ -1086,7 +1090,7 @@ cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
       p_eln <- peaks
       for(noisePeak in noise)
       {
-		noiseMatches <- which((p_eln$mzFound > noisePeak + width)	| (p_eln$mzFound < noisePeak - width))
+		noiseMatches <- which(!((p_eln$mzFound > noisePeak + width)	| (p_eln$mzFound < noisePeak - width)))
 		if(length(noiseMatches) > 0)
 			p_eln[noiseMatches, "noise"] <- TRUE
       }
@@ -1142,6 +1146,45 @@ problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
   return(p_control_noMH)
 }
 
+
+processProblematicPeaks <- function(w, mode, archivename = NA)
+{
+	
+	specs <- w@aggregated
+	fp <- problematicPeaks(specs[!specs$filterOK & !specs$noise & 
+							((specs$dppm == specs$dppmBest) | (is.na(specs$dppmBest)))
+					,,drop=FALSE], peaksMatched(w), mode)
+	fp$OK <- rep('', nrow(fp))
+	fp$name <- rownames(fp)
+	fp <- fp[with(fp, 
+					order(cpdID, mzCalc, scan)),
+	]
+	
+	# Select the correct precursor scans. This serves to filter the list
+	# for the cases where multiple workspaces were combined after step 7
+	# with combineMultiplicities.
+	# Note that this has drawbacks. Leaving the "duplicates" in would make it more easy
+	# to identify legitimate unformulaed peaks. We might experiment by marking them up
+	# somehow. 
+	precursors <- unlist(lapply(selectSpectra(w, "found", "object"), function(s) s@parent@acquisitionNum))
+	fp <- fp[
+			fp$parentScan %in% precursors
+			,]
+	
+	# Add the info to specs
+	specs <- addProperty(specs, "problematicPeak", "logical", FALSE)
+	specs[match(fp$index, specs$index),"problematicPeak"] <- TRUE
+	
+	# Select the columns for output into the failpeaks file
+	fp <- fp[,c("OK", "name", "cpdID", "scan", "mzFound", "formula", 
+					"reanalyzed.formula", "mzCalc", "reanalyzed.mzCalc", "dppm", "reanalyzed.dppm", "dbe", "reanalyzed.dbe", "intensity",
+					"formulaCount", "reanalyzed.formulaCount", "parentScan", "aMax", "mzCenter")]		
+	if(!is.na(archivename))
+		write.csv(fp, file=
+						paste(archivename,"_Failpeaks.csv", sep=''), row.names=FALSE)
+	
+	return(specs)
+}
 
 #' Recalibrate MS/MS spectra
 #' 
@@ -1564,14 +1607,13 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' }
 #' 
 #' @export
-reanalyzeFailpeaks <- function(specs, custom_additions, mode, filterSettings =
+reanalyzeFailpeaks <- function(aggregated, custom_additions, mode, filterSettings =
 				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook")
 {
 	
-
-	specs$index <- 1:nrow(specs)
-  pu <- peaksUnmatched(specs)
-  fp <- pu[!pu$noise,,drop=FALSE]
+  fp <- peaksUnmatched(aggregated, cleaned=TRUE)
+  fp <- fp[is.na(fp$dppm) | (fp$dppm == fp$dppmBest),]
+  #fp <- pu[!pu$noise,,drop=FALSE]
   
   custom_additions_l <- as.list(rep(x=custom_additions, times=nrow(fp)))
   mode_l <- as.list(rep(x=mode, times=nrow(fp)))
@@ -1602,32 +1644,33 @@ reanalyzeFailpeaks <- function(specs, custom_additions, mode, filterSettings =
 					  "reanalyzed.formulaCount", "reanalyzed.dbe")]	  
   }
 
-  peaksRetained <- rbind(
-		  peaksMatched(specs),
-		  pu[pu$noise,,drop=FALSE])
-  peaksRetained$reanalyzed.formula <- as.character(rep(NA, nrow(peaksRetained)))
-  peaksRetained$reanalyzed.mzCalc <- as.numeric(rep(NA, nrow(peaksRetained)))
-  peaksRetained$reanalyzed.dppm <- as.numeric(rep(NA, nrow(peaksRetained)))
-  peaksRetained$reanalyzed.formulaCount <- as.numeric(rep(NA, nrow(peaksRetained)))
-  peaksRetained$reanalyzed.dbe <- as.numeric(rep(NA, nrow(peaksRetained)))
-  peaksRetained$matchedReanalysis <- as.logical(rep(NA, nrow(peaksRetained)))
+  # Add columns to the aggregated table (they are then filled in with the obtained values for reanalyzed peaks and left
+	# empty otherwise
+  aggregated <- addProperty(aggregated, "reanalyzed.formula", "character")
+  aggregated <- addProperty(aggregated, "reanalyzed.mzCalc", "numeric")
+  aggregated <- addProperty(aggregated, "reanalyzed.dppm", "numeric")
+  aggregated <- addProperty(aggregated, "reanalyzed.formulaCount", "numeric")
+  aggregated <- addProperty(aggregated, "reanalyzed.dbe", "numeric")
+  aggregated <- addProperty(aggregated, "matchedReanalysis", "logical", NA)
+  
   
   peaksReanalyzed <- cbind(fp, temp)
   
   # Since some columns are in "list" type, they disturb later on.
   # therefore, fix them and make them normal vectors.
-  listcols <- unlist(lapply(colnames(specs$peaksReanalyzed), function(col) 
-    is.list(specs$peaksReanalyzed[,col])))
-  for(col in colnames(specs$peaksReanalyzed)[which(listcols==TRUE)])
-    specs$peaksReanalyzed[,col] <- 
-      unlist(specs$peaksReanalyzed[,col])
+  listcols <- unlist(lapply(colnames(peaksReanalyzed), function(col) 
+    is.list(peaksReanalyzed[,col])))
+  for(col in colnames(peaksReanalyzed)[which(listcols==TRUE)])
+    peaksReanalyzed[,col] <- 
+      unlist(peaksReanalyzed[,col])
   
   peaksReanalyzed$matchedReanalysis <- !is.na(peaksReanalyzed$reanalyzed.dppm)
   
-  peaksTotal <- rbind(peaksRetained, peaksReanalyzed)
-  # Now only the matching ones:
+  # Substitute in the reanalyzed peaks into the aggregated table
+  aggregated[match(peaksReanalyzed$index, aggregated$index),] <- peaksReanalyzed
+  
   do.call(progressbar, list(object=pb, close=TRUE))
-  return(peaksTotal)
+  return(aggregated)
 }
 
 
@@ -1874,9 +1917,11 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
   #q <- quantile(peakMultiplicitySets_best[[1]], c(0,.25,.5,.75,.95,1))
   #peakMultiplicityHist_best <- lapply(peakMultiplicitySets_best, length)
   #q
-  
+  pks_best$fM_factor <- NULL
   # this returns the "best" peaks (first by formula multiplicity, then by dppm)
   # before actually cutting the bad ones off.
+
+
   return(pks_best)  
 }
 
@@ -1930,7 +1975,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 #' 			reanalyzedRcSpecs, "myarchive", "pH")
 #' }
 #' @export
-filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TRUE,
+filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 		multiplicityFilter = getOption("RMassBank")$multiplicityFilter)
 {
     # Read multiplicity filter setting
@@ -1938,88 +1983,57 @@ filterMultiplicity <- function(specs, archivename=NA, mode="pH", recalcBest = TR
     # (which was the behaviour before we introduced the option)
     if(is.null(multiplicityFilter))
       multiplicityFilter <- 2
+  
+  specs <- w@aggregated
     
-    peaksFiltered <- filterPeaksMultiplicity(specs$peaksMatched,
+    peaksFiltered <- filterPeaksMultiplicity(peaksMatched(specs),
                                                         "formula", recalcBest)
+												
+												
     peaksFilteredReanalysis <- 
-      filterPeaksMultiplicity(specs$peaksMatchedReanalysis, "reanalyzed.formula", FALSE)
+      filterPeaksMultiplicity(specs[!is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE], "reanalyzed.formula", FALSE)
     
-    peaksNoformula <- specs$peaksReanalyzed[is.na(specs$peaksReanalyzed$reanalyzed.formula),]
-    peaksNoformula$formulaMultiplicity <- rep(0, nrow(peaksNoformula))
-    peaksNoformula$fM_factor <- as.factor( rep(0, nrow(peaksNoformula)))
-    
-	# Reorder the columns of peaksNoformula such that they match the columns
-	# of peaksFilteredReanalysis; such that rbind gives an identical result
-	# when peaksFilteredReanalysis is empty. (Otherwise peaksFilterReanalysis
-	# would be dropped as 0x0, and rbind's output column order would be the one originally
-	# in peaksNoformula. See ?cbind)
-	peaksNoformula <- peaksNoformula[,colnames(peaksFilteredReanalysis)]
+			
 	
-    # export the peaks which drop through reanalysis or filter criteria
-    fp_rean <-  problematicPeaks(
-                rbind(
-                  peaksFilteredReanalysis[ 
-						  peaksFilteredReanalysis$formulaMultiplicity < multiplicityFilter,],
-                  peaksNoformula),
-                specs$peaksMatched,
-                mode)
-    fp_mult <-  problematicPeaks(
-                peaksFiltered[
-						peaksFiltered$formulaMultiplicity < multiplicityFilter,],
-                specs$peaksMatched,
-                mode)
-    fp_mult$good <- NULL
-    fp_mult$dppmRc <- NULL
-    colnames(fp_rean) <- c("cpdID", "scan", "formula", "mzFound", "formula.old", "mzCalc.old",
-                           "dppm.old", "dbe.old", "mz", "int", "dppmBest", "formulaCount.old", 
-                           "good.old", "parentScan", 
-                           "mzCalc", "dppm",
-                           "formulaCount", "dbe", "formulaMultiplicity", "fM_factor", 
-                           "aMax", "mzCenter")
-    fp_tot <- rbind(fp_rean[,colnames(fp_mult)], fp_mult)
-    
-    # Reorder and reformat for output
-    fp_tot <- fp_tot[with(fp_tot, 
-                    order(cpdID, mzCalc, scan)),
-               ]
+	specs <- addProperty(specs, "formulaMultiplicity", "numeric", 0)
+	
+	# Reorder the columns of the filtered peaks such that they match the columns
+	# of the original aggregated table; such that the columns can be substituted in.
+	
+	peaksFiltered <- peaksFiltered[,colnames(specs)]
+	peaksFilteredReanalysis <- peaksFilteredReanalysis[,colnames(specs)]
+	
+	# substitute into the parent dataframe
+	specs[match(peaksFiltered$index,specs$index),] <- peaksFiltered
+	specs[match(peaksFilteredReanalysis$index,specs$index),] <- peaksFilteredReanalysis
+	
+	
+	specs <- addProperty(specs, "filterOK", "logical", FALSE)
+	
+	specs[specs$formulaMultiplicity > (multiplicityFilter - 1),"filterOK"] <- TRUE
+	
 
-   fp_tot$OK <- rep('', nrow(fp_tot))
-   fp_tot$name <- rownames(fp_tot)
-
-   # Select the columns for output into the failpeaks file
-    fp_tot <- fp_tot[,c("OK", "name", "cpdID", "scan", "mzFound", "formula", "mzCalc", "dppm", "dbe", "mz", "int",
-                 "formulaCount", "parentScan", "aMax", "mzCenter")]
- 	# Select the correct precursor scans. This serves to filter the list
-	# for the cases where multiple workspaces were combined after step 7
-	# with combineMultiplicities.
-	# Note that this has drawbacks. Leaving the "duplicates" in would make it more easy
-	# to identify legitimate unformulaed peaks. We might experiment by marking them up
-	# somehow. 
-	precursors <- unlist(lapply(specs$specFound, function(s) s$parentHeader$acquisitionNum))
-	fp_tot <- fp_tot[
-			fp_tot$parentScan %in% precursors
-			,]
-
-    
+	
     peaksOK <- peaksFiltered[
                       peaksFiltered$formulaMultiplicity > (multiplicityFilter - 1),]
     peaksReanOK <- peaksFilteredReanalysis[
 						(peaksFilteredReanalysis$formulaMultiplicity > (multiplicityFilter - 1)) &
 						!is.na(peaksFilteredReanalysis$reanalyzed.formula),]
+		
+		
+	peaksReanOK <- specs[
+			specs$filterOK & !is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE]
+		
     # Kick the M+H+ satellites out of peaksReanOK:
     peaksReanOK$mzCenter <- as.numeric(
       unlist(lapply(peaksReanOK$cpdID, function(id) findMz(id)$mzCenter)) )
-    peaksReanOK <- peaksReanOK[
-			(peaksReanOK$mzFound < peaksReanOK$mzCenter - 1) |
-			(peaksReanOK$mzFound > peaksReanOK$mzCenter + 1) ,]
+    peaksReanBad <- peaksReanOK[
+			!((peaksReanOK$mzFound < peaksReanOK$mzCenter - 1) |
+			(peaksReanOK$mzFound > peaksReanOK$mzCenter + 1)),]
+    specs[match(peaksReanBad$index, specs$index),"filterOK"] <- FALSE
     
-    if(!is.na(archivename))
-      write.csv(fp_tot, file=
-        paste(archivename,"_Failpeaks.csv", sep=''), row.names=FALSE)
-    return(list(peaksOK = peaksOK, peaksReanOK = peaksReanOK, peaksFiltered = peaksFiltered,
-                peaksFilteredReanalysis = peaksFilteredReanalysis,
-                peaksProblematic = fp_tot))
-
+	
+	return(specs)
 }
 
 #' Return MS1 peaks to be used for recalibration
@@ -2091,12 +2105,13 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 								scan = 0,
 								cpdID = cpd@id,
 								parentScan = 0,
-								dppmRc = dppmRc
+								dppmRc = dppmRc,
+								index = 0
 						))
 			})
 	ms1peaks <- as.data.frame(do.call(rbind, ms1peaks), stringsAsFactors=FALSE)
 	# convert numbers to numeric
-	tonum <- c("mzFound", "dppm", "dppmRc", "mzCalc", "dppmBest")
+	tonum <- c("mzFound", "dppm", "dppmRc", "mzCalc", "dppmBest", "index")
 	ms1peaks[,tonum] <- as.numeric(unlist(ms1peaks[,tonum]))
 	# throw out NA stuff
 	ms1peaks <- ms1peaks[!is.na(ms1peaks$mzFound),]
