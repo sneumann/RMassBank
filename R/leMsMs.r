@@ -98,6 +98,25 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	analyzeMethod <- "intensity"
   }
 
+  # clean rerun functionality:
+  # if any step after 3 has been run, rerunning steps 4 or below needs moving back to the parent workspace.
+  # However, the recalibration must be preserved, because:
+  # if someone runs       
+  # w <- msmsWorkflow(w, steps=c(1:4)),
+  # then substitutes the recalibration
+  # w@rc <- myrecal
+  # then runs step 4 again
+  # w <- msmsWorkflow(w, steps=c(4), newRecalibration=FALSE)
+  # the rc and rc.ms1 must be preserved and not taken from the parent workspace
+  if(!all(steps > 4) & !is.null(w@parent))
+  {
+    rc <- w@rc
+    rc.ms1 <- w@rc.ms1
+    w <- w@parent
+    w@rc <- rc
+    w@rc.ms1 <- rc.ms1
+  }
+  
   # Step 1: acquire all MSMS spectra from files
   if(1 %in% steps)
   {
@@ -1047,6 +1066,11 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE, spectraList = getOption
 						{
 							table.c <- getData(c)
 							table.c <- table.c[table.c$rawOK,,drop=FALSE]
+							# remove superfluous columns, since only rawOK peaks are selected anyway
+							table.c$rawOK <- NULL
+							table.c$low <- NULL
+							table.c$satellite <- NULL
+							# add scan no
 							table.c$scan <- rep(c@acquisitionNum, nrow(table.c))
 							return(table.c)
 						})
@@ -1293,12 +1317,16 @@ makeRecalibration <- function(w, mode,
 	rcdata <- peaksMatched(w)
 	rcdata <- rcdata[rcdata$formulaCount == 1, ,drop=FALSE]
 	
+  rcdata <- rcdata[,c(
+    "mzFound", "dppm", "mzCalc")]
 	
 	if(nrow(rcdata) == 0)
 		stop("No peaks matched to generate recalibration curve.")
 	
 	ms1data <- recalibrate.addMS1data(w@spectra, mode, recalibrateMS1Window)
-
+	ms1data <- ms1data[,c(
+	  "mzFound", "dppm", "mzCalc")]
+  
 	if (recalibrateMS1 != "none") {
           ## Add m/z values from MS1 to calibration datapoints
           rcdata <- rbind(rcdata, ms1data)
@@ -2029,15 +2057,6 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 	
 	specs[specs$formulaMultiplicity > (multiplicityFilter - 1),"filterOK"] <- TRUE
 	
-
-	
-    peaksOK <- peaksFiltered[
-                      peaksFiltered$formulaMultiplicity > (multiplicityFilter - 1),]
-    peaksReanOK <- peaksFilteredReanalysis[
-						(peaksFilteredReanalysis$formulaMultiplicity > (multiplicityFilter - 1)) &
-						!is.na(peaksFilteredReanalysis$reanalyzed.formula),]
-		
-		
 	peaksReanOK <- specs[
 			specs$filterOK & !is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE]
 		
@@ -2108,27 +2127,13 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 				dppmRc <- (mzFound/mzCalc - 1)*1e6
 				return(c(
 								mzFound = mzFound,
-								intensity = 100,
-								satellite = FALSE,
-								low = FALSE, 
-								rawOK = TRUE,
-								good = TRUE,
 								mzCalc = mzCalc,
-								formula = "",
-								dbe = 0,
-								formulaCount = 1,
-								dppm = dppmRc,
-								dppmBest = dppmRc,
-								scan = 0,
-								cpdID = cpd@id,
-								parentScan = 0,
-								dppmRc = dppmRc,
-								index = 0
+								dppm = dppmRc
 						))
 			})
 	ms1peaks <- as.data.frame(do.call(rbind, ms1peaks), stringsAsFactors=FALSE)
 	# convert numbers to numeric
-	tonum <- c("mzFound", "dppm", "dppmRc", "mzCalc", "dppmBest", "index")
+	tonum <- c("mzFound", "dppm", "mzCalc")
 	ms1peaks[,tonum] <- as.numeric(unlist(ms1peaks[,tonum]))
 	# throw out NA stuff
 	ms1peaks <- ms1peaks[!is.na(ms1peaks$mzFound),]

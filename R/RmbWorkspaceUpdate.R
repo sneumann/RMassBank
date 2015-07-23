@@ -31,18 +31,35 @@
 				if(4 %in% progress)
 				{
 					w.parent <- w.old
-					w.parent@recalibratedSpecs <- list()
-					w.parent@analyzedRcSpecs <- list()
-					w.parent@aggregatedRcSpecs <- list()
-					w.parent@reanalyzedRcSpecs <- list()
-					w.parent@refilteredRcSpecs <- list()
+          slot(w.parent, "recalibratedSpecs", check=FALSE) <- NULL
+					slot(w.parent, "analyzedRcSpecs", check=FALSE) <- NULL
+					slot(w.parent, "aggregatedRcSpecs", check=FALSE) <- NULL
+					slot(w.parent, "reanalyzedRcSpecs", check=FALSE) <- NULL
+					slot(w.parent, "refilteredRcSpecs", check=FALSE) <- NULL
 					slot(w.old, "specs", check=FALSE) <- w.old@recalibratedSpecs
 					slot(w.old, "analyzedSpecs", check=FALSE) <- w.old@analyzedRcSpecs
 					w.parent.new <- updateObject(w.parent)
 					w.new@parent <- w.parent.new
 				}
 				w.new@spectra <- .updateObject.spectra(w.old@specs, w.old@analyzedSpecs)
-				w.new@aggregatedSpecs <- w.old@aggregatedSpecs
+				if(7 %in% progress)
+				{
+					w.new@aggregated <- .updateObject.aggregated(w.old@reanalyzedRcSpecs)
+				}
+				else if(6 %in% progress)
+				{
+					w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedRcSpecs)
+				}
+        else if(3 %in% progress)
+        {
+          w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedSpecs)
+        }
+        
+        if(8 %in% progress)
+        {
+          w.new@aggregated <- .updateObject.refiltered(w.new, w.new@aggregated, w.old@refilteredRcSpecs)
+        }
+        
 			}
 			
 			return(w.new)
@@ -286,6 +303,7 @@
 													rep(NA,nrow(msmsrecord$childRawLow)), 
 													rep(NA,nrow(msmsrecord$childRawSatellite)))
 									)
+									spectrum@info <- msmsrecord$info
 								}
 								else
 								{
@@ -343,10 +361,124 @@
 	
 }
 
-## .updateObject.aggregated <- function(aggregatedSpecs)
-## {
-## 
-## }
+.updateObject.aggregated <- function(aggregatedSpecs, refilteredSpecs =  NULL)
+{
+  # Note: instead of rbind()ing peaksMatched and peaksUnmatched together from the start, they are treated separately
+  # and rbind()ed at the end. This makes the process easier because everything can be substituted in by matching rownames
+  # (note: for refilteredRcSpecs this doesn't work anymore, that's why it's treated separately)
+	aggregatedSpecs$peaksUnmatched$dppmRc <- NA
+	
+	if(!is.null(aggregatedSpecs$peaksUnmatchedC))
+	{
+    # add noise columns
+		aggregatedSpecs$peaksUnmatched <- addProperty(aggregatedSpecs$peaksUnmatched, "noise", "logical", TRUE)
+		aggregatedSpecs$peaksMatched <- addProperty(aggregatedSpecs$peaksMatched, "noise", "logical", FALSE)
+		# Set the peaks which are in peaksUnmatchedC to non-noise
+		aggregatedSpecs$peaksUnmatched[match(rownames(aggregatedSpecs$peaksUnmatchedC), rownames(aggregatedSpecs$peaksUnmatched)),
+				"noise"] <- FALSE	
+		
+		
+		if(!is.null(aggregatedSpecs$peaksReanalyzed))
+		{
+      # to both matched and unmatched peaks, add the reanalysis result columns.
+      # Into the unmatched peaks table, substitute the results (with the corresponding row names) from old-workspace peaksReanalyzed
+      
+			aggregatedSpecs$peaksUnmatched <- addProperty(aggregatedSpecs$peaksUnmatched, "reanalyzed.formula", "character")
+			aggregatedSpecs$peaksUnmatched <- addProperty(aggregatedSpecs$peaksUnmatched, "reanalyzed.mzCalc", "numeric")
+			aggregatedSpecs$peaksUnmatched <- addProperty(aggregatedSpecs$peaksUnmatched, "reanalyzed.dppm", "numeric")
+			aggregatedSpecs$peaksUnmatched <- addProperty(aggregatedSpecs$peaksUnmatched, "reanalyzed.formulaCount", "numeric")
+			aggregatedSpecs$peaksUnmatched <- addProperty(aggregatedSpecs$peaksUnmatched, "reanalyzed.dbe", "numeric")
+			aggregatedSpecs$peaksUnmatched <- addProperty(aggregatedSpecs$peaksUnmatched, "matchedReanalysis", "logical", FALSE)
+			
+			aggregatedSpecs$peaksUnmatched[match(rownames(aggregatedSpecs$peaksReanalyzed), rownames(aggregatedSpecs$peaksUnmatched)),
+					c("reanalyzed.formula","reanalyzed.mzCalc","reanalyzed.dppm","reanalyzed.formulaCount","reanalyzed.dbe")] <-
+					aggregatedSpecs$peaksReanalyzed[,
+					c("reanalyzed.formula","reanalyzed.mzCalc","reanalyzed.dppm","reanalyzed.formulaCount","reanalyzed.dbe")]
+			aggregatedSpecs$peaksUnmatched$matchedReanalysis <- !is.na(aggregatedSpecs$peaksUnmatched$reanalyzed.dppm)
+			
+			aggregatedSpecs$peaksMatched <- addProperty(aggregatedSpecs$peaksMatched, "reanalyzed.formula", "character")
+			aggregatedSpecs$peaksMatched <- addProperty(aggregatedSpecs$peaksMatched, "reanalyzed.mzCalc", "numeric")
+			aggregatedSpecs$peaksMatched <- addProperty(aggregatedSpecs$peaksMatched, "reanalyzed.dppm", "numeric")
+			aggregatedSpecs$peaksMatched <- addProperty(aggregatedSpecs$peaksMatched, "reanalyzed.formulaCount", "numeric")
+			aggregatedSpecs$peaksMatched <- addProperty(aggregatedSpecs$peaksMatched, "reanalyzed.dbe", "numeric")
+			aggregatedSpecs$peaksMatched <- addProperty(aggregatedSpecs$peaksMatched, "matchedReanalysis", "logical", NA)
+		}
+		
+	}
+	
+	
+	specs <- rbind(aggregatedSpecs$peaksMatched, aggregatedSpecs$peaksUnmatched)
+	
+	# index the spectra
+	specs <- addProperty(specs, "index", "integer")
+	if(nrow(specs) > 0)
+		specs$index <- 1:nrow(specs)
+	
+  # remove the mz column if present - it formerly held the unrecalibrated mz value in recalibrated aggregated tables
+	specs$mz <- NULL
+	
+  # rename the int column to intensity
+	specs$intensity <- specs$int
+	specs$int <- NULL
+		
+	return(specs)
+}
+
+.updateObject.refiltered <- function(w, specs, refilteredSpecs)
+{
+  # Filter peaks again, and redetermine the filterMultiplicity settings heuristically - 
+  # it is much easier than substituting the info in from the refiltering table
+  
+  peaksFiltered <- filterPeaksMultiplicity(peaksMatched(specs),
+                                           "formula", TRUE)
+  
+  
+  peaksFilteredReanalysis <- 
+    filterPeaksMultiplicity(specs[!is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE], "reanalyzed.formula", FALSE)
+  
+  
+  
+  specs <- addProperty(specs, "formulaMultiplicity", "numeric", 0)
+  
+  # Reorder the columns of the filtered peaks such that they match the columns
+  # of the original aggregated table; such that the columns can be substituted in.
+  
+  peaksFiltered <- peaksFiltered[,colnames(specs)]
+  peaksFilteredReanalysis <- peaksFilteredReanalysis[,colnames(specs)]
+  
+  # substitute into the parent dataframe
+  specs[match(peaksFiltered$index,specs$index),] <- peaksFiltered
+  specs[match(peaksFilteredReanalysis$index,specs$index),] <- peaksFilteredReanalysis
+  
+  multiplicityFilter <- min(refilteredSpecs$peaksOK$formulaMultiplicity, refilteredSpecs$peaksReanOK$formulaMultiplicity)
+  
+  specs <- addProperty(specs, "filterOK", "logical", FALSE)
+  
+  specs[specs$formulaMultiplicity > (multiplicityFilter - 1),"filterOK"] <- TRUE
+  
+  
+  
+  peaksReanOK <- specs[
+    specs$filterOK & !is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE]
+  
+  # build M+H+ table
+  mhsat <- lapply(w@spectra, function(s) c(s@id, findMz.formula(s@formula, "pH", 10, 0)$mzCenter))
+  mhsat.df <- as.data.frame(do.call(rbind, mhsat))
+  colnames(mhsat.df) <- c("cpdID", "mass")
+  mhsat.df$mass <- as.numeric(as.character(mhsat.df$mass))
+  
+  # Kick the M+H+ satellites out of peaksReanOK:
+  peaksReanOK$mzCenter <- mhsat.df[match(as.numeric(as.character(peaksReanOK$cpdID)), as.numeric(as.character(mhsat.df$cpdID))),"mass"]
+    
+  peaksReanBad <- peaksReanOK[
+    !((peaksReanOK$mzFound < peaksReanOK$mzCenter - 1) |
+        (peaksReanOK$mzFound > peaksReanOK$mzCenter + 1)),]
+  specs[match(peaksReanBad$index, specs$index),"filterOK"] <- FALSE
+  
+  return(specs)
+  
+}
+
 
 # Finds progress in the "old workspace version" to determine whether to take the old spectra or the recalibrated ones (and
 # make a parent workspace)
