@@ -347,9 +347,9 @@ installed on the user's computer).
 TODO: Workflow execution in Chunk 10 is currently disabled, I execute Chunk 11
 instead for steps that are already done.
 
-<<eval=FALSE,fig=TRUE>>=
-#w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
-#				"pH_narcotics")
+<<eval=TRUE,fig=TRUE>>=
+w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
+				"pH_narcotics")
 @
 
 The recalibration can also be plotted at a later stage:
@@ -364,16 +364,16 @@ advised to run the workflow step by step. This is because if an error occurs, yo
 lose all intermediate results from the workflow, which might complicate
 finding the errors. (E.g., if you process steps 2-4 and an error occurs in step
 3, you will lose the results from step 2.) 
-<<eval=TRUE>>=
+<<eval=FALSE>>=
 	w <- msmsWorkflow(w, mode="pH", steps=1)
 	w <- msmsWorkflow(w, mode="pH", steps=2)
-	#w <- msmsWorkflow(w, mode="pH", steps=3)
+	w <- msmsWorkflow(w, mode="pH", steps=3)
 	# etc.
 @
 
 It can be useful to check if any data is retrieved at step 1:
 <<eval=FALSE>>=
-lapply(w@specs,function(s) s$foundOK)
+lapply(w@spectra,function(s) s@found)
 @
 
 To check the progress through the workflow, call e.g.:
