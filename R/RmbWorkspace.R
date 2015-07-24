@@ -277,37 +277,43 @@ setMethod("show", "msmsWorkspace",
 			cat(" with files: \n")
 			sapply(basename(object@files), function(x) cat("  -", x, "\n"))
                         
+						progress <- findProgress(w)
+						
+						if(4 %in% progress)
+							o123 <- object@parent
+						else
+							o123 <- object
 						
 						## msmsWorkflow: Step 1. Get peaks ?
-						if(length(object@specs) > 0){
+						if(1 %in% progress){
 							numspecs <- 0
-							dummy <- sapply(object@specs, function(x) cat(" -", x$id, "\t foundOK:", x$foundOK, "\n"))
+							dummy <- sapply(o123@spectra, function(x) cat(" -", x@id, "\t foundOK:", x@found, "\n"))
 							cat("Peaks found:\n")
 							ids <- vector()
-							dummy1 <- sapply(object@specs, function(x) {
-								cat(" -", x$id, "\t peaks:",
-								sapply(x$peaks, nrow), "\n")
-								ids <<- c(ids, x$id)
+							dummy1 <- sapply(o123@spectra, function(x) {
+								cat(" -", x@id, "\t peaks:",
+								sapply(x@children, function(s) s@peaksCount), "\n")
+								ids <<- c(ids, x@id)
 								numspecs <<- numspecs + 1
-								return(sapply(x$peaks, nrow))
+								return(sapply(x@children, function(s) s@peaksCount))
 							})
 						}
 									
 									
                         ## msmsWorkflow: Step 2. First analysis pre recalibration
-                        if(length(object@analyzedSpecs) > 0){
+                        if(2 %in% progress){
 							cat("Peaks annotated after Step 2:\n")
-							dummy2 <- sapply(object@analyzedSpecs, function(x) {
-								cat(" -", x$id, "\t peaks:",
-								sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))), "\n")
-								return(sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))))
+							dummy2 <- sapply(o123@spectra, function(x) {
+								cat(" -", x@id, "\t peaks:",
+								sapply(x@children, function(s) length(which(s@good))), "\n")
+								return(sapply(x@children, function(s) length(which(s@good))))
 							})
 							
 							whichok <- which(sapply(dummy1,length) != 0)
 							anyok <- whichok[1]
 							
-							dummy2 <- matrix(unlist(dummy2), ncol = length(dummy1[[anyok]]), byrow = TRUE)
-							dummy1 <- matrix(unlist(dummy1), ncol = length(dummy1[[anyok]]), byrow = TRUE)
+							dummy2 <- matrix(unlist(dummy2), ncol = nrow(dummy1), byrow = TRUE)
+							dummy1 <- matrix(unlist(dummy1), ncol = nrow(dummy1), byrow = TRUE)
 							
 							PeakMat <- dummy1-dummy2
 							
@@ -319,13 +325,14 @@ setMethod("show", "msmsWorkspace",
 							})
 						}
                         ## msmsWorkflow: Step 3. Aggregate all spectra
-						if(length(object@aggregatedSpecs) > 0){
+						if(3 %in% progress){
 							cat("Peaks aggregated after Step 3:\n")
 							cat("Matched Peaks:\n")
-							dummy <- sapply(unique(object@aggregatedSpecs$peaksMatched[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+							pm <- peaksMatched(o123)
+							dummy <- sapply(unique(pm[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
 																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@aggregatedSpecs$peaksMatched[,"cpdID"] == y)
-																			  peaksMatched <- object@aggregatedSpecs$peaksMatched[compoundIndex,]
+																			  compoundIndex <- which(pm[,"cpdID"] == y)
+																			  peaksMatched <- pm[compoundIndex,]
 																			  uscans <- unique(peaksMatched[,"scan"])
 																			  return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksMatched[,"scan"] == z)
@@ -333,10 +340,11 @@ setMethod("show", "msmsWorkspace",
 																			  }))
 																		  }), "\n"))
 							cat("Unmatched Peaks:\n")
-							dummy <- sapply(unique(object@aggregatedSpecs$peaksUnmatched[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+							pu <- peaksUnmatched(o123)
+							dummy <- sapply(unique(pu[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
 																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@aggregatedSpecs$peaksUnmatched[,"cpdID"] == y)
-																			  peaksUnmatched <- object@aggregatedSpecs$peaksUnmatched[compoundIndex,]
+																			  compoundIndex <- which(pu[,"cpdID"] == y)
+																			  peaksUnmatched <- pu[compoundIndex,]
 																			  uscans <- unique(peaksUnmatched[,"scan"])
 																			  return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksUnmatched[,"scan"] == z)
@@ -346,31 +354,32 @@ setMethod("show", "msmsWorkspace",
 						}
 						
                         ## msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra
-						if(length(object@recalibratedSpecs) > 0){
+						if(4 %in% progress){
 							cat("Peaks found after Step 4:\n")
-							dummy <- sapply(object@recalibratedSpecs, function(x) cat(" -", x$id, "\t foundOK:", x$foundOK, "\n"))
-							cat("Peaks found:\n")
-							dummy4 <- sapply(object@recalibratedSpecs, function(x){ 
-																		cat(" -", x$id, "\t peaks:",
-																			sapply(x$peaks, nrow), "\n")
-																			return(sapply(x$peaks, nrow))
+							dummy <- sapply(object@spectra, function(x) cat(" -", x@id, "\t found:", x@found, "\n"))
+							cat("Peaks found:\n")							
+							dummy4 <- sapply(object@spectra, function(x){ 
+																		cat(" -", x@id, "\t peaks:",
+																			sapply(x@children, function(s) s@peaksCount), "\n")
+																			return(sapply(x@children, function(s) s@peaksCount))
 																		})
 						}
 						
                         ## msmsWorkflow: Step 5. Reanalyze recalibrated spectra
-						if(length(object@analyzedRcSpecs) > 0){
+						if(5 %in% progress){
 							cat("Peaks found after Step 5:\n")
-							dummy5 <- sapply(object@analyzedRcSpecs, function(x){
-																		cat(" -", x$id, "\t peaks:",
-																		sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))), "\n")
-																		return(sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))))
-																	})
-							
+
+							dummy5 <- sapply(object@spectra, function(x) {
+										cat(" -", x@id, "\t peaks:",
+												sapply(x@children, function(s) length(which(s@good))), "\n")
+										return(sapply(x@children, function(s) length(which(s@good))))
+									})
+															
 							whichok <- which(sapply(dummy4,length) != 0)
 							anyok <- whichok[1]
 							
-							dummy5 <- matrix(unlist(dummy5), ncol = length(dummy4[[anyok]]), byrow = TRUE)
-							dummy4 <- matrix(unlist(dummy4), ncol = length(dummy4[[anyok]]), byrow = TRUE)
+							dummy5 <- matrix(unlist(dummy5), ncol = nrow(dummy4), byrow = TRUE)
+							dummy4 <- matrix(unlist(dummy4), ncol = nrow(dummy4), byrow = TRUE)
 							
 							PeakMat <- dummy4-dummy5
 							
@@ -383,38 +392,45 @@ setMethod("show", "msmsWorkspace",
 						}
 						
                         ## msmsWorkflow: Step 6. Aggregate recalibrated results
-						if(length(object@aggregatedRcSpecs) > 0){
+						if(6 %in% progress){
 							cat("Peaks found after Step 6:\n")
+
 							cat("Matched Peaks:\n")
-							dummy <- sapply(unique(object@aggregatedRcSpecs$peaksMatched[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
-																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@aggregatedRcSpecs$peaksMatched[,"cpdID"] == y)
-																			  peaksMatched <- object@aggregatedRcSpecs$peaksMatched[compoundIndex,]
-																			  uscans <- unique(peaksMatched[,"scan"])
-																			  return(sapply(uscans, function(z){
+							pm <- peaksMatched(object)
+							dummy <- sapply(unique(pm[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+												sapply(x, function(y){ 
+															compoundIndex <- which(pm[,"cpdID"] == y)
+															peaksMatched <- pm[compoundIndex,]
+															uscans <- unique(peaksMatched[,"scan"])
+															return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksMatched[,"scan"] == z)
 																				return(length(unique(peaksMatched[uscantemp,"mzFound"])))
-																			  }))
-																		  }), "\n"))
+																			}))
+														}), "\n"))
 							cat("Unmatched Peaks:\n")
-							dummy <- sapply(unique(object@aggregatedRcSpecs$peaksUnmatched[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
-																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@aggregatedRcSpecs$peaksUnmatched[,"cpdID"] == y)
-																			  peaksUnmatched <- object@aggregatedRcSpecs$peaksUnmatched[compoundIndex,]
-																			  uscans <- unique(peaksUnmatched[,"scan"])
-																			  return(sapply(uscans, function(z){
+							pu <- peaksUnmatched(object)
+							dummy <- sapply(unique(pu[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+												sapply(x, function(y){ 
+															compoundIndex <- which(pu[,"cpdID"] == y)
+															peaksUnmatched <- pu[compoundIndex,]
+															uscans <- unique(peaksUnmatched[,"scan"])
+															return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksUnmatched[,"scan"] == z)
 																				return(length(unique(peaksUnmatched[uscantemp,"mzFound"])))
-																			  }))
-																		  }), "\n"))
+																			}))
+														}), "\n"))
 						}
+							
                         ## msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O
-						if(length(object@reanalyzedRcSpecs) > 0){
+						if(7 %in% progress){
 							cat("Peaks added in Step 7:\n")
-							dummy <- sapply(unique(object@reanalyzedRcSpecs$peaksMatchedReanalysis[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+							
+							pmr <- object@aggregated[object@aggregated$matchedReanalysis & !is.na(object@aggregated$matchedReanalysis),,drop=FALSE]
+							
+							dummy <- sapply(unique(pmr[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
 																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@reanalyzedRcSpecs$peaksMatchedReanalysis[,"cpdID"] == y)
-																			  peaksMatchedReanalysis <- object@reanalyzedRcSpecs$peaksMatchedReanalysis[compoundIndex,]
+																			  compoundIndex <- which(pmr[,"cpdID"] == y)
+																			  peaksMatchedReanalysis <- pmr[compoundIndex,]
 																			  uscans <- unique(peaksMatchedReanalysis[,"scan"])
 																			  return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksMatchedReanalysis[,"scan"] == z)
@@ -424,10 +440,10 @@ setMethod("show", "msmsWorkspace",
 						}
 						
                         ## msmsWorkflow: Step 8. Peak multiplicity filtering 
-                        if(length(object@refilteredRcSpecs) > 0){
+                        if(8 %in% progress){
 							cat("After Step 8: multiplicity filtering:\n")
-							show(table(object@refilteredRcSpecs$peaksOK$cpdID))
-							show(table(object@refilteredRcSpecs$peaksReanOK$cpdID))
+							show(table(object@aggregated[object@aggregated$filterOK & is.na(object@aggregated$matchedReanalysis), "cpdID"]))
+							show(table(object@aggregated[object@aggregated$filterOK & !is.na(object@aggregated$matchedReanalysis), "cpdID"]))
 						}
                       })
 

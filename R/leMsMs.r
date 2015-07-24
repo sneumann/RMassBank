@@ -1477,6 +1477,8 @@ recalibrateSpectra <- function(mode, rawspec = NULL, rc = NULL, rc.ms1=NULL, w =
 						  s@parent <- recalibrateSingleSpec(s@parent, rc.ms1, recalibrateBy)
 					  }
 				  }
+				  s@empty <- NA
+				  s@complete <- NA
 				  return(s)
 			  } )
 	  return(as(recalibratedSpecs, "SimpleList"))
