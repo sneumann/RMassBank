@@ -244,7 +244,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 	  # check which compounds have useful spectra
 	  mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
 	  mb@problems <- which(is.na(mb@compiled))
-	  mb@compiled_ok <- mb@compiled[mb@ok]    
+	  mb@compiled_ok <- mb@compiled[mb@ok]
   }
   # Step 5: Convert the internal tree-like representation of the MassBank data into
   # flat-text string arrays (basically, into text-file style, but still in memory)
@@ -327,6 +327,13 @@ createMolfile <- function(id_or_smiles, fileName = FALSE)
 	if(is.na(babeldir))
 	{
 		res <- getCactus(smiles, "sdf")
+		
+		if(any(is.na(res))){
+			res <- getPcSDF(smiles)
+		}
+		if(any(is.na(res))){
+			stop("Pubchem and Cactus both seem to be down.")
+		}
 		if(is.character(fileName))
 			writeLines(res, fileName)
 	}
@@ -489,8 +496,12 @@ gatherData <- function(id)
 		inchikey_split <- system(cmdinchikey, intern=TRUE, input=smiles, ignore.stderr=TRUE)
 	} else{
 		inchikey <- getCactus(smiles, 'stdinchikey')
-		##Split the "InChiKey=" part off the key
-		inchikey_split <- strsplit(inchikey, "=", fixed=TRUE)[[1]][[2]]
+		if(!is.na(inchikey)){
+			##Split the "InChiKey=" part off the key
+			inchikey_split <- strsplit(inchikey, "=", fixed=TRUE)[[1]][[2]]
+		} else{
+		    inchikey_split <- getPcInchiKey(smiles)
+		}
 	}
 	
 	##Use Pubchem to retrieve information
@@ -525,7 +536,7 @@ gatherData <- function(id)
 		warning(paste0("Compound ID ",id,": no IUPAC name could be identified."))
 	}
 	
-	names <- as.list(unique(c(dbname, synonym, iupacName)))
+	names <- as.list(unique(toupper(c(dbname, synonym, iupacName))))
 	
 	##If no name is found, it must be supplied in one way or another
 	if(all(sapply(names, function(x) x == ""))){
@@ -617,7 +628,7 @@ gatherData <- function(id)
 	}
 	# HMDB
 	if(!is.na(CTSinfo[1])){
-		if("HMDB" %in% CTS.externalIdTypes(CTSinfo))
+		if("Human Metabolome Database" %in% CTS.externalIdTypes(CTSinfo))
 			link[["HMDB"]] <- CTS.externalIdSubset(CTSinfo,"HMDB")[[1]]
 		# KEGG
 		if("KEGG" %in% CTS.externalIdTypes(CTSinfo))
@@ -632,7 +643,7 @@ gatherData <- function(id)
 			if("PubChem CID" %in% CTS.externalIdTypes(CTSinfo))
 			{
 				pc <- CTS.externalIdSubset(CTSinfo,"PubChem CID")
-				link[["PUBCHEM"]] <- paste0("CID:",min(pc))
+				link[["PUBCHEM"]] <- paste0(min(pc))
 			}
 		}
 	} else{
@@ -1745,26 +1756,36 @@ makeMollist <- function(compiled)
 #' @export 
 addPeaks <- function(mb, filename_or_dataframe)
 {
+	
+	errorvar <- 0
+	currEnvir <- environment()
+	d <- 1
+	
 	if(is.data.frame(filename_or_dataframe))
 		df <- filename_or_dataframe
 	else
-		df <- read.csv(filename_or_dataframe)
+	tryCatch(
+		df <- read.csv(filename_or_dataframe),
+		error=function(e){
+		currEnvir$errorvar <- 1
+	})
 	# I change your heuristic fix to another heuristic fix, because I will have to test for a column name change...
-	if(ncol(df) < 2)
-		df <- read.csv2(filename_or_dataframe, stringsAsFactors=FALSE)
-	# here: the column int was renamed to intensity, and we need to be able to read old files. sorry.
-	if(!("intensity" %in% colnames(df)) & ("int" %in% colnames(df)))
-		df$intensity <- df$int
+	
+	if(!errorvar){
+	
+		if(ncol(df) < 2)
+			df <- read.csv(filename_or_dataframe, sep=";")
+		# here: the column int was renamed to intensity, and we need to be able to read old files. sorry.
+		if(!("intensity" %in% colnames(df)) & ("int" %in% colnames(df)))
+			df$intensity <- df$int
 		
-	cols <- c("cpdID", "scan", "mzFound", "intensity", "OK")
-	
-	n <- colnames(df)
-	
-	# Check if comma-separated or semicolon-separated
-	d <- setdiff(cols, n)
-	
-	if(length(d)>0){
-		stop("Some columns are missing in the additional peak list. Needs at least cpdID, scan, mzFound, int, OK.")
+		cols <- c("cpdID", "scan", "mzFound", "intensity", "OK")
+		n <- colnames(df)
+		# Check if comma-separated or semicolon-separated
+		d <- setdiff(cols, n)
+		if(length(d)>0){
+			stop("Some columns are missing in the additional peak list. Needs at least cpdID, scan, mzFound, intensity, OK.")
+		}
 	}
 	
 	culled_df <- df[,c("cpdID", "scan", "mzFound", "intensity", "OK")]

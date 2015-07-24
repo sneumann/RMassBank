@@ -139,7 +139,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 		rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
 	}
 	spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
-			,fillPrecursorScan, deprofile, peaksCache)
+			,fillPrecursorScan, deprofile, peaksCache, cpdID)
 	# check whether a) spectrum was found and b) enough spectra were found
 	if(length(spectra) < (confirmMode + 1))
 		sp <- new("RmbSpectraSet", found=FALSE)
@@ -162,17 +162,9 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
 		headerCache = NULL, fillPrecursorScan = FALSE,
-		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL)
+		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA)
 {
 	eic <- findEIC(msRaw, mz, limit.fine, rtLimits, headerCache=headerCache, 
-			
-			
-			
-			
-			
-			
-			
-			
 			peaksCache=peaksCache)
 	#	if(!is.na(rtLimits))
 	#	{  
@@ -183,6 +175,12 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	else
 		headerData <- as.data.frame(header(msRaw))
 	
+	
+	###If no precursor scan number, fill the number
+	if(length(unique(headerData$precursorScanNum)) == 1){
+		fillPrecursorScan <- TRUE
+	}
+
 	if(fillPrecursorScan == TRUE)
 	{
 		# reset the precursor scan number. first set to NA, then
@@ -217,7 +215,10 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			})
 	validPrecursors <- validPrecursors[which(which_OK==TRUE)]
 	if(length(validPrecursors) == 0){
-		warning("No precursor was detected. It is recommended to try to use the setting fillPrecursorScan: TRUE in the ini-file")
+		if(!is.na(cpdID))
+			warning(paste0("No precursor was detected for compound, ", cpdID, " with m/z ", mz, ". Please check the mass and retention time window."))
+		else
+			warning(paste0("No precursor was detected for m/z ", mz, ". Please check the mass and retention time window."))
 	}
 	# Crop the "EIC" to the valid precursor scans
 	eic <- eic[eic$scan %in% validPrecursors,]
@@ -239,7 +240,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				childHeaders <- headerData[(headerData$precursorScanNum == masterScan) 
 								& (headerData$precursorMZ > mz - limit.coarse) 
 								& (headerData$precursorMZ < mz + limit.coarse) ,]
-				childScans <- childHeaders$acquisitionNum
+				childScans <- childHeaders$seqNum
 				
 				msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
 				# if deprofile option is set: run deprofiling

@@ -40,8 +40,8 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' workflow.
 #' 
 #' @param w A \code{msmsWorkspace} to work with.
-#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
+#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA", "pNH4"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-, [M+NH4]+).
 #' @param steps Which steps of the workflow to process. See the vignette 
 #' 			\code{vignette("RMassBank")} for details.
 #' @param confirmMode Defaults to false (use most intense precursor). Value 1 uses
@@ -79,7 +79,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		progressbar = "progressBarHook", MSe = FALSE)
 {
     .checkMbSettings()
-  if(!any(mode %in% c("pH","pNa","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+  if(!any(mode %in% c("pH","pNa","pNH4","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
   
   if(!is.na(archivename))
 	  w@archivename <- archivename
@@ -1875,9 +1875,9 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	# rename (because "formulacol" is not the actually correct name)
 	colnames(multInfo) <- c("cpdID", formulacol, "formulaMultiplicity")
 	
-	if(!is.data.frame(peaks))
+	if(!is.data.frame(peaks) || (nrow(peaks) == 0) )
 	{
-		stop("filterPeaksMultiplicity: All peaks have been filtered.")
+		warning("filterPeaksMultiplicity: All peaks have been filtered.")
 		peaks <- cbind(peaks, data.frame(formulaMultiplicity=numeric()))
 	}
 	else
