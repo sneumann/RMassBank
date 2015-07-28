@@ -12,29 +12,22 @@ setClassUnion("msmsWorkspaceOrNULL", "NULL")
 #' 
 #'  \describe{
 #' 	\item{files}{The input file names}
-#' 	\item{specs}{The spectra extracted from the raw files}
-#'  \item{analyzedSpecs}{The spectra with annotated peaks after workflow step 2.}
-#'  \item{aggregatedSpecs}{The \code{analyzedSpec} data regrouped and aggregated, 
-#' 		after workflow step 3.}
+#' 	\item{spectra}{The spectra per compound (\code{RmbSpectraSet}) extracted from the raw files}
+#'  \item{aggregated}{A data.frame with an aggregated peak table from all \code{spectra}.
+#' 		Further columns are added during processing.}
 #'  \item{rc, rc.ms1}{The recalibration curves generated in workflow step 4.}
-#'  \item{recalibratedSpecs}{The spectra from \code{specs} recalibrated with the curves
-#' 		from \code{rc, rc,ms1}.} 
-#' 	\item{analyzedRcSpecs}{The recalibrated spectra with annotated peaks after 
-#' 		workflow step 5.}
-#' 	\item{aggregatedRcSpecs}{The \code{analyzedRcSpec} data regrouped and aggregated, 
-#' 		after workflow step 6.}
-#'  \item{reanalyzedRcSpecs}{The regrouped and aggregated spectra, with added reanalyzed
-#' 		peaks (after step 7, see \code{\link{reanalyzeFailpeaks}}).}
-#'  \item{refilteredRcSpecs}{Final data to use for MassBank record creation after 
-#' 		multiplicity filtering (step 8).}
+#'  \item{parent}{For the workflow steps after 4: the parent workspace containing the state (spectra, aggregate)
+#' 		before recalibration, such that the workflow can be reprocessed from start.}
+#' 	\item{archivename}{The base name of the files the archive is stored to during the workflow.}
+#' \item{settings}{The RMassBank settings used during the workflow, if stored with the workspace.}#' 
 #' }
 #' 
 #' Methods: \describe{
-#' 	\item{show}{Shows a brief summary of the object. Currently only the included files.}
+#' 	\item{show}{Shows a brief summary of the object and processing progress.}
 #' 	}
 #' 
 ## ' @slot files The input file names
-## ' @slot specs The spectra extracted from the raw files
+## ' @slot spectra The spectra extracted from the raw files
 ## ' @slot analyzedSpecs The spectra with annotated peaks after workflow step 2.
 ## ' @slot aggregatedSpecs The \code{analyzedSpec} data regrouped and aggregated, 
 ## ' 		after workflow step 3.
@@ -108,7 +101,7 @@ setIs("msmsWorkspace", "msmsWorkspaceOrNULL")
 #' 
 #' Slots:
 #'  \describe{
-#' 	\item{aggregatedRcSpecs, refilteredRcSpecs}{The corresponding
+#' 	\item{spectra, aggregated}{The corresponding
 #' 		 input data from \code{\link{msmsWorkspace-class}}}
 #'  \item{additionalPeaks}{A list of additional peaks which can be loaded
 #' 		using \code{\link{addPeaks}}.}
@@ -268,6 +261,7 @@ newMbWorkspace <- function(w)
 
 #' @name show,msmsWorkspace-method
 #' @aliases show,msmsWorkspace-method
+#' @param object The \code{msmsWorkspace} to display.
 #' @docType methods
 #' @rdname msmsWorkspace-class
 #' @export
@@ -277,7 +271,7 @@ setMethod("show", "msmsWorkspace",
 			cat(" with files: \n")
 			sapply(basename(object@files), function(x) cat("  -", x, "\n"))
                         
-						progress <- findProgress(w)
+						progress <- findProgress(object)
 						
 						if(4 %in% progress)
 							o123 <- object@parent
@@ -452,6 +446,7 @@ setMethod("show", "msmsWorkspace",
 #' @name show,mbWorkspace-method 
 #' @aliases show,mbWorkspace-method
 #' @rdname mbWorkspace-class
+#' @param object The \code{mbWorkspace} to display.
 #' @docType methods
 #' @export
 setMethod("show", "mbWorkspace",

@@ -149,8 +149,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(3 %in% steps)
   {
 	message("msmsWorkflow: Step 3. Aggregate all spectra")
-    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE,
-			spectraList = settings$spectraList)
+    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
   }
   # Step 4: recalibrate all m/z values in raw spectra
   if(4 %in% steps)
@@ -202,8 +201,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(6 %in% steps)
   {
     message("msmsWorkflow: Step 6. Aggregate recalibrated results")
-    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE,
-			spectraList = settings$spectraList)
+    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
     if(!is.na(archivename))
       archiveResults(w, paste(archivename, ".RData", sep=''), settings)
     w@aggregated <- cleanElnoise(w@aggregated,
@@ -249,20 +247,22 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 #' that in this step, \emph{satellite peaks} are removed by a simple heuristic
 #' rule (refer to the documentation of \code{\link{filterPeakSatellites}} for details.)
 #' 
-#' @usage analyzeMsMs(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
-#' 			filterSettings = getOption("RMassBank")$filterSettings,
-#' 			spectraList = getOption("RMassBank")$spectraList, method="formula")
+## # @usage analyzeMsMs(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
+## # 			filterSettings = getOption("RMassBank")$filterSettings,
+## # 			spectraList = getOption("RMassBank")$spectraList, method="formula")
+## # 
+## # 		analyzeMsMs.formula(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
+## # 			filterSettings = getOption("RMassBank")$filterSettings,
+## # 			spectraList = getOption("RMassBank")$spectraList)
+## # 
+## # 		analyzeMsMs.intensity(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
+## # 			filterSettings = getOption("RMassBank")$filterSettings,
+## # 			spectraList = getOption("RMassBank")$spectraList)
 #' 
-#' 		analyzeMsMs.formula(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
-#' 			filterSettings = getOption("RMassBank")$filterSettings,
-#' 			spectraList = getOption("RMassBank")$spectraList)
-#' 
-#' 		analyzeMsMs.intensity(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
-#' 			filterSettings = getOption("RMassBank")$filterSettings,
-#' 			spectraList = getOption("RMassBank")$spectraList)
-#' 
-#' @param msmsPeaks A group of parent spectrum and data-dependent MSMS spectra
-#' as returned from \code{\link{findMsMsHR}} (refer to the corresponding
+#' @param msmsPeaks A \code{RmbSpectraSet} object.
+#' 	Corresponds to a parent spectrum and children MSMS spectra of one compound (plus some metadata).
+#'  The objects are typically generated with \code{\link{findMsMsHR}}, and populate the \code{@@spectrum} slot
+#'  in a \code{msmsWorkspace} (refer to the corresponding
 #' documentation for the precise format specifications).
 #' @param mode Specifies the processing mode, i.e. which molecule species the
 #' spectra contain. \code{\var{pH}} (positive H) specifies [M+H]+,
@@ -315,46 +315,25 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 #' 		formula assignment and filters peaks purely based on intensity cutoffs and the
 #' 		satellite filtering. (In this case, the ppm and dbe related settings in filterSettings
 #' 		are ignored.)
-#' @return \item{list("foundOK")}{
-#'  	Boolean. Whether or not child spectra are
-#' 		present for this compound (inherited from \code{msmsdata}).}
-#' \item{list("mzrange")}{ 
-#' 		The maximum m/z range over all child spectra.}
-#' \item{list("id")}{ 
-#' 		The compound ID (inherited from \code{msmsdata})}
-#' \item{list("mode")}{
-#' 		processing mode} 
-#' \item{list("parentHeader")}{ 
-#' 		Parent spectrum header data (ex \code{msmsdata})} 
-#' \item{list("parentMs")}{ 
-#' 		Parent spectrum (ex \code{msmsdata}) in matrix format} 
-#' \item{list("msmsdata")}{
-#'		 Analysis results for all child spectra: \itemize{
-#' 			 \item\code{specOK} Boolean. Whether or not the spectrum contains
-#' 			any useful peaks. If \code{specOK = FALSE}, all other information
-#' 			(except scan info and compound ID) may be missing!
-#' 			\item\code{parent} Parent mass and formula in a one-row data frame
-#' 			format. Currently rather obsolete, originally contained data from 
-#' 			MolgenMsMs results.  
-#' 			\item \code{childFilt} Annotated peaks of the MSMS spectrum (after 
-#' 			filtering by accuracy) 
-#'			\item \code{childRaw} Raw (\code{mz, int}) spectrum before any 
-#' 			treatment. (With recalibrated data, this is (\code{mz, int, mzRecal}).  
+#' @return The processed \code{RmbSpectraSet} object.
+#' Added (or filled, respectively, since the slots are present before) data include
+#' \item{list("complete")}{whether all spectra have useful value}
+#' \item{list("empty")}{whether there are no useful spectra}
+#' \item{list("children")}{
+#' 		The processed \code{RmbSpectrum2} objects (in a \code{RmbSpectrum2List}).
+#' 		\itemize{
+#' 			\item \code{ok} if the spectrum was successfully processed with at least one resulting peak
+#' 			\item \code{mz}, \code{intensity}: note that mz/int pairs can be duplicated when multiple matches
+#' 				are found for one mz value, therefore the two slots are not necessarily unchanged from before
+#'			\item \code{rawOK} (logical) whether the m/z peak passes satellite/low removal
+#' 			\item \code{low}, \code{satellite} if \code{TRUE}, the peak failed cutoff (\code{low}) or was removed as \code{satellite}
+#' 			\item \code{formula}, \code{mzCalc}, \code{dppm}, \code{dbe} Formula, calculated mass, ppm deviation and dbe assigned to a peak
+#' 			\item \code{formulaCount}, \code{dppmBest} Number of formulae matched for this m/z value and ppm deviation of the best match
+#' 			\item \code{info} Spectrum identifying information (collision energy, resolution, collision mode) from
+#' 				the \code{spectraList} 
+#' 			\item All other entries are retained from the original \code{RmbSpectrum2}.
 #' 			}
-#'  		For \code{detail = TRUE}, additionally:
-#' 			\itemize{
-#'			\item\code{childRawLow} Peaks cut away because of low (absolute or
-#' 			relative) intensity
-#' 			\item\code{childRawSatellite} Peaks cut away as"satellites" 
-#' 			\item\code{childRawOK} Peaks after cutting away low/satellite
-#' 			peaks. Used for further analysis steps 
-#' 			\item\code{child} Annotated peaks of the MSMS spectrum before filtering 
-#' 			by accuracy 
-#' 			\item \code{childBad} Annotated peaks of the MSMS spectrum which didn't
-#' 			pass the accuracy threshold
-#' 			\item\code{childUnmatched} Peaks of the MSMS spectrum with no annotated
-#' 			formula 
-#' }}
+#' }
 #' @aliases analyzeMsMs analyzeMsMs.formula analyzeMsMs.intensity
 #' @author Michael Stravs
 #' @seealso \code{\link{msmsWorkflow}}, \code{\link{filterLowaccResults}},
@@ -398,22 +377,43 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 	## );
 	.checkMbSettings()
 	
+	
+	# Check whether the spectra can be fitted to the spectra list correctly!
+	if(length(msmsPeaks@children) != length(spectraList))
+	{
+		warning(paste0(
+						"The spectra count of the substance ", msmsPeaks@id, " (", length(msmsPeaks@children), " spectra) doesn't match the provided spectra list (", length(spectraList), " spectra)."
+				))
+		msmsPeaks@found <- FALSE
+		return(msmsPeaks)
 		
+	}
+	
 	if(msmsPeaks@found == FALSE)
-		r <- (msmsPeaks)
+		return(msmsPeaks)
 	
 	if(method=="formula")
 	{
-		r <- (analyzeMsMs.formula(msmsPeaks, mode, detail, run, filterSettings,
-						spectraList
+		r <- (analyzeMsMs.formula(msmsPeaks, mode, detail, run, filterSettings
 						))
 	}
 	else if(method == "intensity")
 	{
-		r <- (analyzeMsMs.intensity(msmsPeaks, mode, detail, run, filterSettings,
-						spectraList
+		r <- (analyzeMsMs.intensity(msmsPeaks, mode, detail, run, filterSettings
 				))
 	}
+	
+	# Add the spectrum labels to the spectra here.
+	# If there is any better place to do this, please tell me. I hate it.
+	# However, the info should be added in msmsWorkflow not in mbWorkflow, because two msmsWorkspaces with different spectraLists can be
+	# merged together with all the combine / pack stuff.
+	children <- mapply(function(spec, info)
+			{
+				spec@info <- info
+				spec
+			}, r@children, spectraList, SIMPLIFY=FALSE)
+	r@children <- as(children, "SimpleList")
+	
 	
 	#nspectra <- length(spectraList)
 	ok <- unlist(lapply(r@children, function(c) c@ok))
@@ -427,10 +427,10 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 }
 
 
+#' @describeIn analyzeMsMs
 #' @export
 analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
-			filterSettings = getOption("RMassBank")$filterSettings,
-			spectraList = getOption("RMassBank")$spectraList)
+			filterSettings = getOption("RMassBank")$filterSettings)
 {
   cut <- 0
   cut_ratio <- 0
@@ -440,7 +440,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	cut <- filterSettings$prelimCut
     if(is.na(cut))
     {
-      if(mode %in% c("pH", "pM", "pNa"))
+      if(mode %in% c("pH", "pM", "pNa", "pNH4"))
         cut <- 1e4
       else if(mode %in% c("mH", "mFA","mM"))
         cut <- 0
@@ -461,16 +461,6 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   parentSpectrum <- msmsPeaks@parent
 
 
-  # Check whether the spectra can be fitted to the spectra list correctly!
-  if(length(msmsPeaks@children) != length(spectraList))
-  {
-    warning(paste0(
-            "The spectra count of the substance ", msmsPeaks@id, " (", length(msmsPeaks@children), " spectra) doesn't match the provided spectra list (", length(spectraList), " spectra)."
-                ))
-	msmsPeaks@found <- FALSE
-    return(msmsPeaks)
-    
-  }
   
   # On each spectrum the following function analyzeTandemShot will be applied.
   # It takes the raw peaks matrix as argument (mz, int) and processes the spectrum by
@@ -749,15 +739,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   children <- lapply(msmsPeaks@children, analyzeTandemShot)
   
   
-	# Add the spectrum labels to the spectra here.
-	# If there is any better place to do this, please tell me. I hate it.
-	# However, the info should be added in msmsWorkflow not in mbWorkflow, because two msmsWorkspaces with different spectraLists can be
-	# merged together with all the combine / pack stuff.
-	children <- mapply(function(spec, info)
-			{
-				spec@info <- info
-				spec
-			}, children, spectraList, SIMPLIFY=FALSE)
+
 
 ## shots <- mapply(function(shot, scan, info)
   ##         {
@@ -771,11 +753,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 }
 
 
-
+#' @describeIn analyzeMsMs
 #' @export
 analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
-		filterSettings = getOption("RMassBank")$filterSettings,
-		spectraList = getOption("RMassBank")$spectraList)
+		filterSettings = getOption("RMassBank")$filterSettings)
 {
 	cut <- 0
 	cut_ratio <- 0
@@ -809,106 +790,75 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 	# filtering out low-intensity (<1e4) and shoulder peaks (deltam/z < 0.5, intensity
 	# < 5%) and subsequently matching the peaks to formulas using Rcdk, discarding peaks
 	# with insufficient match accuracy or no match.
-	analyzeTandemShot <- function(shot_mat)
+	analyzeTandemShot <- function(child)
 	{
-		shot <- as.data.frame(shot_mat)
-		shot_orig <- shot
+		shot <- getData(child)
+		shot$row <- which(!is.na(shot$mz))
+		
 		# Filter out low intensity peaks:
-		shot_lo <- shot[(shot$int < cut) | (shot$int < max(shot$int)*cut_ratio),]
-		shot <- shot[(shot$int >= cut) & (shot$int > max(shot$int) * cut_ratio),]
+		child@low <- (shot$intensity < cut) | (shot$intensity < max(shot$intensity)*cut_ratio)
+		shot <- shot[!child@low,,drop=FALSE]
 		shot_full <- shot
 		
 		# Is there still anything left?
-		if(nrow(shot)==0)
-			return(list(specOK=FALSE))
+		if(length(which(!child@low))==0)
+		{
+			child@ok <- FALSE
+			return(child)
+		}
 		
 		# Filter out satellite peaks:
 		shot <- filterPeakSatellites(shot, filterSettings)
-		shot_satellite_n <- setdiff(row.names(shot_full), row.names(shot))
-		shot_satellite <- shot_full[shot_satellite_n,]
+		child@satellite <- rep(TRUE, child@peaksCount)
+		child@satellite[which(child@low == TRUE)] <- NA
+		child@satellite[shot$row] <- FALSE
 		
 		# Is there still anything left?
 		if(nrow(shot)==0)
-			return(list(specOK=FALSE))
+		{
+			child@ok <- FALSE
+			return(child)
+		}
 		
-		if(max(shot$int) < as.numeric(filterSettings$specOkLimit))
-			return(list(specOK=FALSE))
-		# Crop to 4 digits (necessary because of the recalibrated values)
-		shot[,mzColname] <- round(shot[,mzColname], 5)
+		if(max(shot$intensity) < as.numeric(filterSettings$specOkLimit))
+		{
+			child@ok <- FALSE
+			return(child)
+		}
 		
-		parentPeaks <- data.frame(mzFound=msmsPeaks$mz$mzCenter, 
-				formula=msmsPeaks$formula,
+
+		# here follows the fake analysis
+		#------------------------------------
+		parentPeaks <- data.frame(mzFound=msmsPeaks@mz, 
+				formula=msmsPeaks@formula,
 				dppm=0,
 				x1=0,x2=0,x3=0)
 		
-		childPeaks <- data.frame(mzFound = as.numeric(shot[,mzColname]),
-						formula = "",
-						mzCalc = as.numeric(shot[,mzColname])
-						)
 		
-		childPeaks$dppm <- 0
-		childPeaks <- childPeaks[!is.na(childPeaks$formula),]
-		# check if a peak was recognized (here for the first time,
-		# otherwise the next command would fail)
-		if(nrow(childPeaks)==0)
-			return(list(specOK=FALSE))
+		childPeaks <- addProperty(shot, "good", "logical", FALSE)
+		childPeaks[childPeaks$rawOK,"good"] <- TRUE
+
+		childPeaks <- addProperty(childPeaks, "mzCalc", "numeric")
+		childPeaks[childPeaks$rawOK,"mzCalc"] <- childPeaks[childPeaks$rawOK,"mz"]
 		
-		# write dummy values for everything
-		childPeaks$dbe <- 0
+		childPeaks <- addProperty(childPeaks, "formula", "character")
+		childPeaks[childPeaks$rawOK,"formula"] <- ""
 		
-		# trim mz to 5 digits
-		shot[,mzColname] <- round(shot[,mzColname], 5)
+		childPeaks <- addProperty(childPeaks, "dbe", "numeric")
+		childPeaks[childPeaks$rawOK,"dbe"] <- 0
 		
-		childPeaksInt <- merge(childPeaks, shot, by.x = "mzFound", by.y = mzColname, all.x = TRUE, all.y = FALSE )
-		# find the best ppm value
-		bestPpm <- aggregate(childPeaksInt$dppm, list(childPeaksInt$mzFound),
-				function(dppm) dppm[[which.min(abs(dppm))]])
-		colnames(bestPpm) <- c("mzFound", "dppmBest")
-		childPeaksInt <- merge(childPeaksInt, bestPpm, by="mzFound", all.x=TRUE)
-		# count formulas found per mass
-		countFormulasTab <- xtabs( ~formula + mzFound, data=childPeaksInt)
-		countFormulas <- colSums(countFormulasTab)
-		childPeaksInt$formulaCount <- countFormulas[as.character(childPeaksInt$mzFound)]
-		# filter results
-		childPeaksFilt <- filterLowaccResults(childPeaksInt, filterMode, filterSettings)
-		childPeaksGood <- childPeaksFilt[["TRUE"]]
-		childPeaksBad <- childPeaksFilt[["FALSE"]]
-		# count formulas within new limits
-		# (the results of the "old" count stay in childPeaksInt and are returned
-		# in $childPeaks)
-		if(!is.null(childPeaksGood))
-		{
-			countFormulasTab <- xtabs( ~formula + mzFound, data=childPeaksGood)
-			countFormulas <- colSums(countFormulasTab)
-			childPeaksGood$formulaCount <- countFormulas[as.character(childPeaksGood$mzFound)]
-		}
+		childPeaks <- addProperty(childPeaks, "formulaCount", "integer")
+		childPeaks[childPeaks$rawOK,"formulaCount"] <- 1
 		
-		childPeaksUnmatched <- merge(childPeaks, shot, by.x = "mzFound", by.y = mzColname, 
-				all.x = TRUE, all.y = TRUE )
-		childPeaksUnmatched$dppmBest <- NA
-		childPeaksUnmatched$formulaCount <- 0
-		childPeaksUnmatched$good <- FALSE
-		childPeaksUnmatched <- childPeaksUnmatched[is.na(childPeaksUnmatched$mzCalc),]
+		childPeaks <- addProperty(childPeaks, "dppm", "numeric")
+		childPeaks[childPeaks$rawOK,"dppm"] <- 0
 		
-		# return list:
-		rl <- list(
-				specOK = !is.null(childPeaksGood),
-				parent = parentPeaks,
-				childFilt = childPeaksGood,
-				childRaw=shot_orig
-		)
-		# if "detail" is set to TRUE, return more detailed results including
-		# all the deleted peaks and the stages when they were culled
-		if(detail)
-		{
-			rl$childRawLow = shot_lo
-			rl$childRawSatellite = shot_satellite
-			rl$childRawOK = shot
-			rl$child =childPeaksInt
-			rl$childBad = childPeaksBad
-			rl$childUnmatched = childPeaksUnmatched
-		}
-		return(rl)
+		childPeaks <- addProperty(childPeaks, "dppmBest", "numeric")
+		childPeaks[childPeaks$rawOK,"dppmBest"] <- 0
+		
+		child <- setData(child, childPeaks)
+		child@ok <- TRUE
+		return(child)
 	}
 	children <- lapply(msmsPeaks@children, analyzeTandemShot)
 	msmsPeaks@children <- as(children, "SimpleList")
@@ -1013,46 +963,34 @@ filterLowaccResults <- function(peaks, mode="fine", filterSettings  = getOption(
 #' list for actually generating MassBank records, we want to include all peaks
 #' into the peak tables.
 #' 
-#' @usage aggregateSpectra(spec,  addIncomplete=FALSE, spectraList = getOption("RMassBank")$spectraList)
-#' @param spec The set of spectra to aggregate
+#' @usage aggregateSpectra(spec,  addIncomplete=FALSE)
+#' @param spec The \code{RmbSpectraSetList} of spectra sets (\code{RmbSpectraSet} objects) to aggregate
 #' @param addIncomplete Whether or not the peaks from incomplete files (files
 #' for which less than the maximal number of spectra are present)
-#' @param spectraList The list of MS/MS spectra present in each data block. As also
-#' 		defined in the settings file.  
 #' @return 
-#' \item{foundOK }{ A numeric vector with the compound IDs of all files
-#' for which spectra were found. \code{names(foundOK)} are the filenames.}
-#' \item{foundFail }{ A numeric vector with the compound IDs of all files for
-#' which no spectra were found. \code{names(foundOK)} are the filenames.}
-#' \item{spectraFound }{ A numeric vector indicated the number of found spectra
-#' per compound} 
-#' \item{specFound }{ A list of processed spectral data for all
-#' 		compounds with at least 1 found spectrum, as returned by
-#' 		\code{\link{analyzeMsMs}}.} 
-#' \item{specEmpty }{ A list of (not-really-)processed spectral data for
-#'  	compounds without spectra.}
-#' \item{specComplete }{ A list of processed spectral data for all compounds
-#' 		with the full spectrum count (i.e. \code{length(getOption("RMassBank")$spectraList)}
-#'  	spectra.)  As such, \code{specComplete} is a subset of \code{specFound}.}
-#' \item{specIncomplete}{ A list of processed spectral data for all compounds 
-#' 		with incomplete spectrum count. The complement to \code{specComplete}.}
-#' \item{peaksMatched }{ A dataframe of all peaks with a matched formula, 
-#' 		which survived the elimination criteria. } 
-#' \item{peaksUnmatched }{ A dataframe of all peaks without a matched formula, 
-#' 		or with a formula which failed the filter criteria.} 
+#' A summary \code{data.frame} with all peaks (possibly multiple rows for one m/z value from a spectrum, see below) with columns:
+#' \item{mzFound, intensity}{Mass and intensity of the peak}
+#' \item{good}{if the peak passes filter criteria}
+#' \item{mzCalc, formula, dbe, dppm}{calculated mass, formula, dbe and ppm deviation of the assigned formula}
+#' \item{formulaCount, dppmBest}{Number of matched formulae for this m/z value, and ppm deviation of the best match}
+#' \item{scan, cpdID, parentScan}{Scan number of the child and parent spectrum in the raw file, also the compound ID to which the peak belongs}
+#' \item{dppmRc}{ppm deviation recalculated from the aggregation function}
+#' \item{index}{Aggregate-table peak index, so the table can be subsetted, edited and results reinserted back into this table easily}
+#' Further columns are later added by workflow steps 6 (electronic noise culler), 7 and 8.
+#' 
 #' @author Michael Stravs
 #' @seealso \code{\link{msmsWorkflow}}, \code{\link{analyzeMsMs}}
 #' @examples
 #' 
 #' ## As used in the workflow:
 #' \dontrun{%
-#' 	analyzedRcSpecs <- lapply(recalibratedSpecs, function(spec)
+#' 	w@@spectra <- lapply(w@@spectra, function(spec)
 #' 		analyzeMsMs(spec, mode="pH", detail=TRUE, run="recalibrated", cut=0, cut_ratio=0 ) )
-#' 	aggregatedSpecs <- aggregateSpectra(analyzedSpecs)
+#' 	w@@aggregate <- aggregateSpectra(w@@spectra)
 #' }
 #' 
 #' @export
-aggregateSpectra <- function(spec,  addIncomplete=FALSE, spectraList = getOption("RMassBank")$spectraList)
+aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 {
 	
 	if(addIncomplete)
@@ -1100,21 +1038,21 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE, spectraList = getOption
 #' 
 #' @usage cleanElnoise(peaks, noise=getOption("RMassBank")$electronicNoise,
 #' 		width = getOption("RMassBank")$electronicNoiseWidth)
-#' @param peaks A data frame with peaks containing at least the columns
-#' \code{mzFound}, \code{dppm} and \code{dppmBest}.
+#' @param peaks An aggregated peak frame as described in \code{\link{aggregateSpectra}}. Columns
+#' \code{mzFound}, \code{dppm} and \code{dppmBest} are needed.
 #' @param noise A numeric vector of known m/z of electronic noise peaks from the instrument
 #' 		Defaults to the	entries in the RMassBank settings.
 #' @param width The window for the noise peak in m/z units. Defaults to the entries in 
 #' 		the RMassBank settings.
-#' @return Returns a dataframe where the rows matching electronic noise
-#'		criteria are removed.  %% ...
+#' @return Extends the aggregate data frame by column \code{noise} (logical), which is \code{TRUE} if the peak is marked as noise.
+#' 
 #' @author Michael Stravs
 #' @seealso \code{\link{msmsWorkflow}}
 #' @examples
 #' # As used in the workflow:
 #' \dontrun{
-#' 	    aggregatedRcSpecs$peaksUnmatchedC <- 
-#' 		cleanElnoise(aggregatedRcSpecs$peaksUnmatched)	
+#' 	    w@@aggregated <- 
+#' 		cleanElnoise(w@@aggregated)	
 #' }
 #' @export
 cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
@@ -1158,25 +1096,24 @@ cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 #' @seealso \code{\link{msmsWorkflow}}
 #' @examples \dontrun{
 #' # As used in the workflow: 
-#'     fp_rean <-  problematicPeaks(
-#'                 peaksNoformula,
-#'                 specs$peaksMatched,
-#'                 mode)
+#' fp <- problematicPeaks(specs[!specs$filterOK & !specs$noise & 
+#' 						((specs$dppm == specs$dppmBest) | (is.na(specs$dppmBest)))
+#' 				,,drop=FALSE], peaksMatched(w), mode)
 #' }
 #' @export
 problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
 {
   # find spectrum maximum for each peak, and merge into table
-  assIntMax <- as.data.frame(aggregate(peaks_matched$int, 
+  assIntMax <- as.data.frame(aggregate(peaks_matched$intensity, 
         by=list(peaks_matched$cpdID, peaks_matched$scan), max))
   colnames(assIntMax) <- c("cpdID", "scan", "aMax")
   peaks_unmatched <- merge(peaks_unmatched, assIntMax)
   # which of these peaks are intense?
   p_control <- peaks_unmatched[
-  	( (peaks_unmatched$int > 1e5) &
-	(peaks_unmatched$int > 0.01*peaks_unmatched$aMax)) 
-			| ( (peaks_unmatched$int > 1e4) &
-				(peaks_unmatched$int > 0.1* peaks_unmatched$aMax)) ,]
+  	( (peaks_unmatched$intensity > 1e5) &
+	(peaks_unmatched$intensity > 0.01*peaks_unmatched$aMax)) 
+			| ( (peaks_unmatched$intensity > 1e4) &
+				(peaks_unmatched$intensity > 0.1* peaks_unmatched$aMax)) ,]
   # find parent m/z to exclude co-isolated peaks
   #p_control$mzCenter <- numeric(nrow(p_control))
   p_control$mzCenter <- as.numeric(
@@ -1188,6 +1125,17 @@ problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
 }
 
 
+#' Generate list of problematic peaks
+#' 
+#' Generates a list of intense unmatched peaks for further review (the "failpeak list") and exports it if the archive name is given.
+#' 
+#' @param w \code{msmsWorkspace} to analyze. 
+#' @param mode Processing mode (pH etc)
+#' @param archivename Base name of the archive to write to (for "abc" the exported failpeaks list will be "abc_Failpeaks.csv"). 
+#' @return  Returns the aggregate data.frame with added column "\code{problematic}" (logical) which marks peaks which match the problematic criteria 
+#' 
+#' @author stravsmi
+#' @export
 processProblematicPeaks <- function(w, mode, archivename = NA)
 {
 	
@@ -1250,7 +1198,7 @@ processProblematicPeaks <- function(w, mode, archivename = NA)
 #' (\code{msmsWorkflow(mode="pNa", steps=c(1:8), newRecalibration=FALSE)}).
 #' This also ensures a consistent recalibration across all spectra of the same batch. 
 #' 
-#' @usage makeRecalibration(spec, mode, 
+#' @usage makeRecalibration(w, mode, 
 #'  	recalibrateBy = getOption("RMassBank")$recalibrateBy,
 #' 		recalibrateMS1 = getOption("RMassBank")$recalibrateMS1,
 #' 		recalibrator = getOption("RMassBank")$recalibrator,
@@ -1264,14 +1212,14 @@ processProblematicPeaks <- function(w, mode, archivename = NA)
 #'  recalibrateSingleSpec(spectrum, rc, 
 #' 		recalibrateBy = getOption("RMassBank")$recalibrateBy)
 #' @aliases makeRecalibration recalibrateSpectra recalibrateSingleSpec
-#' @param spec For \code{recalibrateSpectra}: a list of \code{aggregatedSpecs} type
-#' 			(i.e. as returned by \code{aggregateSpectra}). 
+#' @param w For \code{makeRecalibration}: to perform the recalibration with. For \code{recalibrateSpectra}: 
+#' 			the \code{msmsWorkspace} which contains the recalibration curves (alternatively to specifying \code{rc, rc.ms1}). 
 #' @param spectrum For \code{recalibrateSingleSpec}:
-#' 			a matrix with columns \code{mz, int} to be recalibrated.
+#' 			a \code{MSnbase} \code{Spectrum}-derived object, commonly a \code{RmbSpectrum2} for MS2 or \code{Spectrum1} for MS1.
 #' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
-#' @param rawspec For \code{recalibrateSpectra}:a \code{list} of \code{specs}-type
-#' 			object, i.e. as returned by the \code{\link{findMsMsHR}} function family.
+#' @param rawspec For \code{recalibrateSpectra}:an \code{RmbSpectraSetList} of \code{RmbSpectraSet} objects
+#' 			, as the \code{w@@spectra} slot from \code{msmsWorkspace} or any object returned by \code{\link{findMsMsHR}}.
 #' 			If empty, no spectra are recalibrated, but the recalibration curve is
 #' 			returned.  
 #' @param rc,rc.ms1 The recalibration curves to be used in the recalibration.
@@ -1281,25 +1229,19 @@ processProblematicPeaks <- function(w, mode, archivename = NA)
 #' @param recalibrator The recalibrator functions to be used.
 #' 		 Refer to \code{\link{recalibrate}} for details. Usually taken from settings.
 #' @param recalibrateMS1Window Window width to look for MS1 peaks to recalibrate (in ppm).
-#' @param w The \code{msmsWorkspace} to write the calibration to or to get the calibration from.
 #' @return \code{makeRecalibration}: a \code{list(rc, rc.ms1)} with recalibration curves
 #' 			for the MS2 and MS1 spectra.
 #' 
 #' 			\code{recalibrateSpectra}: if \code{rawspec} is not \code{NULL}, returns the recalibrated
-#' 			spectra in the same structure as the input spectra. Each spectrum matrix has
-#' 			an additional column \code{mzRecal} with the recalibrated mass.
+#' 			spectra as \code{RmbSpectraSetList}. All spectra have their mass recalibrated and evaluation data deleted.
 #' 
-#' 			\code{recalibrateSingleSpec}: a matrix with the single recalibrated spectrum. 
-#' 			Column \code{mzRecal} contains the recalibrated value.
+#' 			\code{recalibrateSingleSpec}: the recalibrated \code{Spectrum} (same object, recalibrated masses,
+#' 				 evaluation data like assigned formulae etc. deleted). 
 #' 
 #' @examples \dontrun{ 
-#' 			rcCurve <- recalibrateSpectra(aggregatedSpecs, "pH")
-#' 			recalibratedSpecs <- recalibrateSpectra(aggregatedSpecs, "pH", specs, w=myWorkspace)
-#' 			recalibratedSpecs <- recalibrateSpectra(aggregatedSpecs, "pH", specs,
-#' 				rcCurve$rc, rcCurve$rc.ms1)
-#' 			s <- matrix(c(100,150,200,88.8887,95.0005,222.2223), ncol=2)
-#' 			colnames(s) <- c("mz", "int")
-#' 			recalS <- recalibrateSingleSpec(s, rcCurve$rc)
+#' 			rcCurve <- recalibrateSpectra(w, "pH")
+#' 			w@@spectra <- recalibrateSpectra(mode="pH", rawspec=w@@spectra, w=myWorkspace)
+#' 			w@@spectra <- recalibrateSpectra(mode="pH", rawspec=w@@spectra,	rcCurve$rc, rcCurve$rc.ms1)
 #' 			}
 #' 
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -1617,12 +1559,11 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' \code{specs} and sends every peak through \code{reanalyzeFailpeak}.
 #' 
 #' @aliases reanalyzeFailpeaks reanalyzeFailpeak
-#' @usage reanalyzeFailpeaks(specs, custom_additions, mode, filterSettings =
+#' @usage reanalyzeFailpeaks(aggregated, custom_additions, mode, filterSettings =
 #' 				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook")
 #' reanalyzeFailpeak(custom_additions, mass, cpdID, counter, pb = NULL, mode,
 #' 				filterSettings = getOption("RMassBank")$filterSettings)
-#' @param specs An \code{aggregatedRcSpecs} object (after the electronic noise
-#' was cleared from the unmatched peaks).
+#' @param aggregated A peake aggregate table (\code{w@@aggregate}) (after processing electronic noise removal!)
 #' @param custom_additions The allowed additions, e.g. "N2O".
 #' @param mode Processing mode (\code{"pH", "pNa", "mH"} etc.)
 #' @param mass (Usually recalibrated) m/z value of the peak.
@@ -1635,10 +1576,9 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' @param progressbar The progress bar callback to use. Only needed for specialized
 #'  applications.	Cf. the documentation of \code{\link{progressBarHook}} for usage.
 #' @param filterSettings Settings for filtering data. Refer to\code{\link{analyzeMsMs}} for settings.
-#' @return The returning list contains two tables: 
-#' \item{peaksReanalyzed}{All reanalyzed peaks with or without matching formula.}
-#' \item{peaksMatchedReanalysis}{Only the peaks with a matched reanalysis
-#' formula.}
+#' @return The aggregate data frame extended by the columns:
+#' #' \item{reanalyzed.???}{If reanalysis (step 7) has already been processed: matching values from the reanalyzed peaks}
+#' \item{matchedReanalysis}{Whether reanalysis has matched (\code{TRUE}), not matched(\code{FALSE}) or has not been conducted for the peak(\code{NA}).}
 #' 
 #' It would be good to merge the analysis functions of \code{analyzeMsMs} with
 #' the one used here, to simplify code changes.
@@ -1648,7 +1588,7 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' 
 #' ## As used in the workflow:
 #' \dontrun{    
-#' 	reanalyzedRcSpecs <- reanalyzeFailpeaks(aggregatedRcSpecs, custom_additions="N2O", mode="pH")
+#' 	reanalyzedRcSpecs <- reanalyzeFailpeaks(w@@aggregated, custom_additions="N2O", mode="pH")
 #' # A single peak:
 #' reanalyzeFailpeak("N2O", 105.0447, 1234, 1, 1, "pH")
 #' }
@@ -1842,10 +1782,11 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 #' on only one collision energy setting. The function was not tested in a different
 #' setup. Therefore, use with a bit of caution.
 #' @usage filterPeaksMultiplicity(peaks, formulacol, recalcBest = TRUE)
-#' @param peaks A data frame containing all peaks to be analyzed; with at least
+#' @param peaks An aggregate peak data.frame containing all peaks to be analyzed; with at least
 #' 			the columns \code{cpdID, scan, mzFound} and one column for the formula
 #' 			specified with the \code{formulacol} parameter. 
-#' @param formulacol Which column the assigned formula is stored in.
+#' @param formulacol Which column the assigned formula is stored in. (Needed to separately process \code{"formula"} and
+#' 			\code{"reanalyzed.formula"} multiplicites.)
 #' @param recalcBest Whether the best formula for each peak should be re-determined.
 #' 			This is necessary for results from the ordinary \code{\link{analyzeMsMs}}
 #' 			analysis which allows multiple potential formulas per peak - the old best match
@@ -1856,11 +1797,9 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 #' 			\itemize{
 #' 				\item{\code{formulaMultiplicity}}{The # of occurrences of this formula
 #' 					in the spectra of its compounds.}
-#' 				\item{\code{fM_factor}}{\code{formulaMultiplicity} converted to \code{factor} type
-#' 					for use with \code{\link{split}}}
 #' 			}
 #' @examples \dontrun{
-#' 		peaksFiltered <- filterPeaksMultiplicity(aggregatedRcSpecs$peaksMatched, 
+#' 		peaksFiltered <- filterPeaksMultiplicity(peaksMatched(w), 
 #' 			"formula", TRUE)
 #' 		peaksOK <- subset(peaksFiltered, formulaMultiplicity > 1)
 #' }
@@ -1986,11 +1925,11 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 #' \code{\link{problematicPeaks}}. The results are returned in a format ready
 #' for further processing with \code{\link{mbWorkflow}}.
 #' 
-#' @usage filterMultiplicity(specs, archivename=NA, mode="pH", recalcBest = TRUE,
+#' @usage filterMultiplicity(w, archivename=NA, mode="pH", recalcBest = TRUE,
 #' 		multiplicityFilter = getOption("RMassBank")$multiplicityFilter)
-#' @param specs aggregatedSpecs object whose peaks should be filtered
+#' @param w Workspace containing the data to be processed (aggregate table and \code{RmbSpectraSet} objects)
 #' @param archivename The archive name, used for generation of
-#' archivename_failpeaks.csv
+#' archivename_Failpeaks.csv
 #' @param mode Mode of ion analysis
 #' @param recalcBest Boolean, whether to recalculate the formula multiplicity 
 #' 		after the first multiplicity filtering step. Sometimes, setting this
@@ -2087,7 +2026,7 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 #' 
 #' @usage  recalibrate.addMS1data(spec,mode="pH", recalibrateMS1Window = 
 #' 				getOption("RMassBank")$recalibrateMS1Window)
-#' @param spec A \code{aggregatedSpecs}-like object.
+#' @param spec A \code{msmsWorkspace} or \code{RmbSpectraSetList} containing spectra for which MS1 "peaks" should be "constructed". 
 #' @param mode \code{"pH", "pNa", "pM", "pNH4",  "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+,  [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
 #' @param recalibrateMS1Window Window width to look for MS1 peaks to recalibrate (in ppm).
@@ -2097,8 +2036,9 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 #' 		real information and are provided only as fillers.
 #' @examples \dontrun{
 #' # More or less as used in recalibrateSpectra:
-#' 		rcdata <- subset(aggregatedSpecs$peaksMatched, formulaCount==1)
-#' 		ms1data <- recalibrate.addMS1data(aggregatedSpecs, "pH", 15)
+#' 		rcdata <- peaksMatched(w)
+#' 		rcdata <- rcdata[rcdata$formulaCount == 1, ,drop=FALSE]
+#' 		ms1data <- recalibrate.addMS1data(w, "pH", 15)
 #' 		rcdata <- rbind(rcdata, ms1data)
 #'  # ... continue constructing recalibration curve with rcdata
 #' }

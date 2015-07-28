@@ -955,25 +955,13 @@ readMbdata <- function(row)
 #' list('FRAGMENTATION_MODE' = 'CID', ...), ...)} etc.
 #' 
 #' @aliases gatherCompound gatherSpectrum
-#' @usage gatherCompound(spec, refiltered, additionalPeaks = NULL)
+#' @usage gatherCompound(spec, aggregated, additionalPeaks = NULL)
 #' 
-#' 		gatherSpectrum(spec, msmsdata, ac_ms, ac_lc, refiltered, 
+#' 		gatherSpectrum(spec, msmsdata, ac_ms, ac_lc, aggregated, 
 #'	 		additionalPeaks = NULL)
-#' @param spec An object of "analyzedSpectrum" type (i.e. contains \code{info},
-#' \code{mzrange}, a list of \code{msmsdata}, compound ID, parent MS1, cpd
-#' id...)
-#' @param refiltered The \code{refilteredRcSpecs} dataset which contains our
-#' good peaks.  Contains \code{peaksOK}, \code{peaksReanOK},
-#' \code{peaksFiltered}, \code{peaksFilteredReanalysis},
-#' \code{peaksProblematic}. Currently we use \code{peaksOK} and
-#' \code{peaksReanOK} to create the spectra.
-#' @param msmsdata The \code{msmsdata} sub-object from the compound's
-#' \code{spec} which is the child scan which is currently processed.  Contains
-#' \code{childFilt, childBad}, scan number, etc. Note that the peaks are
-#' actually not taken from this list! They were taken from \code{msmsdata}
-#' initially, but after introduction of the refiltration and multiplicity
-#' filtering, this was changed. Now only the scan information is actually taken
-#' from \code{msmsdata}.
+#' @param spec A \code{RmbSpectraSet} object, representing a compound with multiple spectra.
+#' @param aggregated An aggregate peak table where the peaks are extracted from.
+#' @param msmsdata A \code{RmbSpectrum2} object from the \code{spec} spectra set, representing a single spectrum to give a record.
 #' @param ac_ms,ac_lc Information for the AC\$MASS_SPECTROMETRY and
 #' AC\$CHROMATOGRAPHY fields in the MassBank record, created by
 #' \code{gatherCompound} and then fed into \code{gatherSpectrum}.
@@ -989,14 +977,14 @@ readMbdata <- function(row)
 #' @references MassBank record format:
 #' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
 #' @examples \dontrun{
-#'      myspectrum <- aggregatedRcSpecs$specComplete[[1]]
-#' 		massbankdata <- gatherCompound(myspectrum, refilteredRcSpecs)
+#'      myspectrum <- w@@spectra[[1]]
+#' 		massbankdata <- gatherCompound(myspectrum, w@@aggregated)
 #' 		# Note: ac_lc and ac_ms are data blocks usually generated in gatherCompound and
 #' 		# passed on from there. The call below gives a relatively useless result :)
 #' 		ac_lc_dummy <- list()
 #' 		ac_ms_dummy <- list() 
-#' 		justOneSpectrum <- gatherSpectrum(myspectrum, myspectrum$msmsdata[[2]],
-#' 			ac_ms_dummy, ac_lc_dummy, refilteredRcSpecs)
+#' 		justOneSpectrum <- gatherSpectrum(myspectrum, myspectrum@@child[[2]],
+#' 			ac_ms_dummy, ac_lc_dummy, w@@aggregated)
 #' }
 #' 
 #' 
@@ -1283,20 +1271,15 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
 #' spectrum data, and finally fills in the record title and accession number,
 #' renames the "internal ID" comment field and removes dummy fields.
 #' 
-#' @usage compileRecord(spec, mbdata, refiltered, additionalPeaks = NULL)
-#' @param spec A spectra block for a compound, as returned from
-#' \code{\link{analyzeMsMs}}. Note that \bold{peaks are not read from this
-#' object anymore}: Peaks come from the \code{refiltered} dataframe (and from
+#' @usage compileRecord(spec, mbdata, aggregated, additionalPeaks = NULL)
+#' @param spec A \code{RmbSpectraSet} for a compound, after analysis (\code{\link{analyzeMsMs}}).
+#' Note that \bold{peaks are not read from this
+#' object anymore}: Peaks come from the \code{aggregated} dataframe (and from
 #' the global \code{additionalPeaks} dataframe; cf. \code{\link{addPeaks}} for
 #' usage information.)
 #' @param mbdata The information data block for the record header, as stored in
 #' \code{mbdata_relisted} after loading an infolist.
-#' @param refiltered A list with at least the member \code{peaksOK}, and if
-#' peaks from reanalysis should be used, also \code{peaksReanOK}.
-#' \code{peaksOK} must be a dataframe with at least the, containing at least
-#' the columns \code{cpdID, scan, mzFound, formula, int, dppm}. If reanalyzed
-#' peaks are used, the column setup of \code{peaksReanOK} must be such as
-#' returned from \code{\link{filterMultiplicity}}.
+#' @param aggregated An aggregated peak data table containing information about refiltered spectra etc.
 #' @param additionalPeaks If present, a table with additional peaks to add into the spectra.
 #' 		As loaded with \code{\link{addPeaks}}.
 #' @return Returns a MassBank record in list format: e.g.
@@ -1310,10 +1293,10 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
 #' @examples
 #' 
 #' #
-#' \dontrun{myspec <- aggregatedRcSpecs\$specFound[[1]]}
+#' \dontrun{myspec <- w@@spectra[[2]]}
 #' # after having loaded an infolist:
 #' \dontrun{mbdata <- mbdata_relisted[[which(mbdata_archive\$id == as.numeric(myspec\$id))]]}
-#' \dontrun{compiled <- compileRecord(myspec, mbdata, reanalyzedRcSpecs)}
+#' \dontrun{compiled <- compileRecord(myspec, mbdata, w@@aggregated)}
 #' 
 #' @export
 compileRecord <- function(spec, mbdata, aggregated, additionalPeaks = NULL)

@@ -28,29 +28,29 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 		is a low-level function which uses the mass directly for lookup and is intended for
 #' 		use as a standalone function in unrelated applications.
 #' 
-#' @usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
-#' 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
-#' 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
-#' 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
-#' 		rtMargin = getOption("RMassBank")$rtMargin,
-#' 		deprofile = getOption("RMassBank")$deprofile)
-#' 		
-#' 		findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-#' 		headerCache = NULL, fillPrecursorScan = FALSE,
-#' 		deprofile = getOption("RMassBank")$deprofile)
-#'
-#' findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
-#'			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
-#'			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
-#'			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
-#'			rtMargin = getOption("RMassBank")$rtMargin,
-#'			deprofile = getOption("RMassBank")$deprofile, headerCache = NULL)
+#' @note \code{findMsMs.direct} is deactivated
 #' 
-#' @aliases findMsMsHR.mass findMsMsHR.direct findMsMsHR
+## # @usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
+## # 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+## # 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+## # 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+## # 		rtMargin = getOption("RMassBank")$rtMargin,
+## # 		deprofile = getOption("RMassBank")$deprofile,
+## # 		headerCache = NULL,
+## # 		peaksCache = NULL)
+## # 		
+## # findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
+## # 		headerCache = NULL, fillPrecursorScan = FALSE,
+## # 		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA)
+#' 
+#' 
+#' @aliases findMsMsHR.mass findMsMsHR
 #' @param fileName The file to open and search the MS2 spectrum in.
-#' @param msRaw The opened raw file (mzR file handle) to search the MS2 spectrum in.
+#' @param msRaw The opened raw file (mzR file handle) to search the MS2 spectrum in. Specify either this
+#' 			or \code{fileName}.
 #' @param cpdID The compound ID in the compound list (see \code{\link{loadList}})
-#' 			to use for formula lookup.
+#' 			to use for formula lookup. Note: In \\code{findMsMsHR.mass}, this is entirely optional and
+#' 			used only in case a warning must be displayed; compound lookup is done via mass only. 
 #' @param mz The mass to use for spectrum search.
 #' @param ppmFine The limit in ppm to use for fine limit (see below) calculation.
 #' @param mzCoarse The coarse limit to use for locating potential MS2 scans:
@@ -74,6 +74,8 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 			this value is useful if spectra for multiple compounds should be 
 #' 			extracted from the same mzML file, since it avoids getting the data
 #' 			freshly from \code{msRaw} for every compound.
+#' @param peaksCache If present, the complete output of \code{mzR::peaks(msRaw)}. This speeds up the lookup
+#' 			if multiple compounds should be searched in the same file.
 #' @param maxCount The maximal number of spectra groups to return. One spectra group
 #' 			consists of all data-dependent scans from the same precursor whose precursor
 #' 			mass matches the specified search mass.
@@ -82,27 +84,19 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' @param rtMargin	The retention time tolerance to use.
 #' @param deprofile	Whether deprofiling should take place, and what method should be
 #' 			used (cf. \code{\link{deprofile}}) 
-#' @return	For \code{findMsMsHR} and \code{findMsMsHR.direct}: A "spectrum set", a list with items:
-#' 			\item{foundOK}{\code{TRUE} if a spectrum was found, \code{FALSE} otherwise.
-#' 				Note: if \code{FALSE}, all other values can be missing!}
-#' 			\item{parentScan}{The scan number of the precursor scan.}
-#' 			\item{parentHeader}{The header row of the parent scan, as returned by 
-#' 				\code{mzR::header}.}
-#' 			\item{childScans}{The scan numbers of the data-dependent MS2 scans.}
-#' 			\item{childHeaders}{The header rows of the MS2 scan, as returned by
-#' 				\code{mzR::header}.}
-#' 			\item{parentPeak}{The MS1 precursor spectrum as a 2-column matrix}
-#' 			\item{peaks}{A list of  2-column \code{mz, int} matrices of the MS2 scans.}
-#' 			For \code{findMsMsHR.mass}: a list of "spectrum sets" as defined above, sorted
+#' @return	An \code{RmbSpectraSet} (for \code{findMsMsHR}). Contains parent MS1 spectrum (\code{@@parent}), a block of dependent MS2 spectra ((\code{@@children})
+#' 			and some metadata (\code{id},\code{mz},\code{name},\code{mode} in which the spectrum was acquired.
+#' 
+#' 			For \code{findMsMsHR.mass}: a list of \code{RmbSpectraSet}s as defined above, sorted
 #' 			by decreasing precursor intensity.
 #' 
 #' @examples \dontrun{
 #' 			loadList("mycompoundlist.csv")
 #' 			# if Atrazine has compound ID 1:
-#' 			msms_atrazine <- findMsMsHR("Atrazine_0001_pos.mzML", 1, "pH")
+#' 			msms_atrazine <- findMsMsHR(fileName = "Atrazine_0001_pos.mzML", cpdID = 1, mode = "pH")
 #' 			# Or alternatively:
 #' 			msRaw <- openMSfile("Atrazine_0001_pos.mzML")
-#' 			msms_atrazine <- findMsMsHR.direct(msRaw, 1, "pH")
+#' 			msms_atrazine <- findMsMsHR(msRaw=msRaw, cpdID = 1, mode = "pH")
 #' 			# Or directly by mass (this will return a list of spectra sets):
 #' 			mz <- findMz(1)$mzCenter
 #' 			msms_atrazine_all <- findMsMsHR.mass(msRaw, mz, 1, ppm(msRaw, 10, p=TRUE))
@@ -159,6 +153,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 	return(sp)
 }
 
+#' @describeIn findMsMsHR
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
 		headerCache = NULL, fillPrecursorScan = FALSE,
@@ -310,6 +305,26 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	return(spectra)
 }
 
+
+#' Discontinued: find MS/MS spectrum from open raw file
+#' 
+#' This interface has been discontinued. \code{\link{findMsMsHR}} now supports the same parameters (use named
+#' parameters).
+#' 
+#' @param msRaw x
+#' @param cpdID x
+#' @param mode x
+#' @param confirmMode x 
+#' @param useRtLimit x
+#' @param ppmFine x
+#' @param mzCoarse x
+#' @param fillPrecursorScan x 
+#' @param rtMargin x
+#' @param deprofile x
+#' @param headerCache x
+#' @return an error
+#' 
+#' @author stravsmi
 #' @export
 findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
 			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
@@ -457,6 +472,8 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 #' 			this value is useful if spectra for multiple compounds should be 
 #' 			extracted from the same mzML file, since it avoids getting the data
 #' 			freshly from \code{msRaw} for every compound.
+#' @param peaksCache If present, the complete output of \code{mzR::peaks(msRaw)}. This speeds up the lookup
+#' 			if multiple compounds should be searched in the same file.
 #' @param floatingRecalibration 
 #' 			A fitting function that \code{predict()}s a mass shift based on the retention time. Can be used
 #' 			if a lockmass calibration is known (however you have to build the calibration yourself.)
@@ -520,6 +537,17 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 }
 
 
+#' Generate peaks cache
+#' 
+#' Generates a peak cache table for use with \code{\link{findMsMsHR}} functions.
+#' 
+#' @param msRaw the input raw datafile (opened)
+#' @param headerCache the cached header, or subset thereof for which peaks should be extracted. Peak extraction goes
+#' 		by \code{seqNum}.
+#' @return A list of dataframes as from \code{mzR::peaks}.
+#' 
+#' @author stravsmi
+#' @export
 makePeaksCache <- function(msRaw, headerCache) 
 {
 	mzR::peaks(msRaw, headerCache$seqNum)
