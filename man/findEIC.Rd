@@ -5,7 +5,7 @@
 \title{Extract EICs}
 \usage{
 findEIC(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL,
-  floatingRecalibration = NULL)
+  floatingRecalibration = NULL, peaksCache = NULL)
 }
 \arguments{
 \item{msRaw}{The mzR file handle}
@@ -26,6 +26,9 @@ freshly from \code{msRaw} for every compound.}
 
 \item{floatingRecalibration}{A fitting function that \code{predict()}s a mass shift based on the retention time. Can be used
 if a lockmass calibration is known (however you have to build the calibration yourself.)}
+
+\item{peaksCache}{If present, the complete output of \code{mzR::peaks(msRaw)}. This speeds up the lookup
+if multiple compounds should be searched in the same file.}
 }
 \value{
 A \code{[rt, intensity, scan]} matrix (\code{scan} being the scan number.)

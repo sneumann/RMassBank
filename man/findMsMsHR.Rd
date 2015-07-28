@@ -2,33 +2,32 @@
 % Please edit documentation in R/leMsmsRaw.R
 \name{findMsMsHR}
 \alias{findMsMsHR}
-\alias{findMsMsHR.direct}
 \alias{findMsMsHR.mass}
 \title{Extract MS/MS spectra for specified precursor}
 \usage{
-findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
-		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
-		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
-		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
-		rtMargin = getOption("RMassBank")$rtMargin,
-		deprofile = getOption("RMassBank")$deprofile)
+findMsMsHR(fileName = NULL, msRaw = NULL, cpdID, mode = "pH",
+  confirmMode = 0, useRtLimit = TRUE,
+  ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+  mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+  fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+  rtMargin = getOption("RMassBank")$rtMargin,
+  deprofile = getOption("RMassBank")$deprofile, headerCache = NULL,
+  peaksCache = NULL)
 
-		findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-		headerCache = NULL, fillPrecursorScan = FALSE,
-		deprofile = getOption("RMassBank")$deprofile, cpdID)
-
-findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE,
-			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
-			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
-			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
-			rtMargin = getOption("RMassBank")$rtMargin,
-			deprofile = getOption("RMassBank")$deprofile, headerCache = NULL)
+findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
+  maxCount = NA, headerCache = NULL, fillPrecursorScan = FALSE,
+  deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL,
+  cpdID = NA)
 }
 \arguments{
 \item{fileName}{The file to open and search the MS2 spectrum in.}
 
+\item{msRaw}{The opened raw file (mzR file handle) to search the MS2 spectrum in. Specify either this
+or \code{fileName}.}
+
 \item{cpdID}{The compound ID in the compound list (see \code{\link{loadList}})
-to use for formula lookup.}
+to use for formula lookup. Note: In \\code{findMsMsHR.mass}, this is entirely optional and
+used only in case a warning must be displayed; compound lookup is done via mass only.}
 
 \item{mode}{The processing mode (determines which ion/adduct is searched):
 \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions
@@ -53,43 +52,36 @@ To be used for data where the precursor scan is not stored in the raw data.}
 \item{deprofile}{Whether deprofiling should take place, and what method should be
 used (cf. \code{\link{deprofile}})}
 
-\item{msRaw}{The opened raw file (mzR file handle) to search the MS2 spectrum in.}
+\item{headerCache}{If present, the complete \code{mzR::header(msRaw)}. Passing
+this value is useful if spectra for multiple compounds should be
+extracted from the same mzML file, since it avoids getting the data
+freshly from \code{msRaw} for every compound.}
+
+\item{peaksCache}{If present, the complete output of \code{mzR::peaks(msRaw)}. This speeds up the lookup
+if multiple compounds should be searched in the same file.}
 
 \item{mz}{The mass to use for spectrum search.}
-
-\item{limit.fine}{The fine limit to use for locating MS2 scans: this tolerance
-is used when locating an appropriate analyte peak in the MS1 precursor
-spectrum.}
 
 \item{limit.coarse}{Parameter in \code{findMsMsHR.mass} corresponding to \code{mzCoarse}.
 (The parameters are distinct to clearly conceptually distinguish findMsMsHR.mass
 (a standalone useful function) from the cpdID based functions (workflow functions).)}
 
+\item{limit.fine}{The fine limit to use for locating MS2 scans: this tolerance
+is used when locating an appropriate analyte peak in the MS1 precursor
+spectrum.}
+
 \item{rtLimits}{\code{c(min, max)}: Minimum and maximum retention time to use
 when locating the MS2 scans.}
-
-\item{headerCache}{If present, the complete \code{mzR::header(msRaw)}. Passing
-this value is useful if spectra for multiple compounds should be
-extracted from the same mzML file, since it avoids getting the data
-freshly from \code{msRaw} for every compound.}
 
 \item{maxCount}{The maximal number of spectra groups to return. One spectra group
 consists of all data-dependent scans from the same precursor whose precursor
 mass matches the specified search mass.}
 }
 \value{
-For \code{findMsMsHR} and \code{findMsMsHR.direct}: A "spectrum set", a list with items:
-			\item{foundOK}{\code{TRUE} if a spectrum was found, \code{FALSE} otherwise.
-				Note: if \code{FALSE}, all other values can be missing!}
-			\item{parentScan}{The scan number of the precursor scan.}
-			\item{parentHeader}{The header row of the parent scan, as returned by
-				\code{mzR::header}.}
-			\item{childScans}{The scan numbers of the data-dependent MS2 scans.}
-			\item{childHeaders}{The header rows of the MS2 scan, as returned by
-				\code{mzR::header}.}
-			\item{parentPeak}{The MS1 precursor spectrum as a 2-column matrix}
-			\item{peaks}{A list of  2-column \code{mz, int} matrices of the MS2 scans.}
-			For \code{findMsMsHR.mass}: a list of "spectrum sets" as defined above, sorted
+An \code{RmbSpectraSet} (for \code{findMsMsHR}). Contains parent MS1 spectrum (\code{@parent}), a block of dependent MS2 spectra ((\code{@children})
+			and some metadata (\code{id},\code{mz},\code{name},\code{mode} in which the spectrum was acquired.
+
+			For \code{findMsMsHR.mass}: a list of \code{RmbSpectraSet}s as defined above, sorted
 			by decreasing precursor intensity.
 }
 \description{
@@ -104,14 +96,21 @@ Different versions of the function get the data from different sources. Note tha
 		is a low-level function which uses the mass directly for lookup and is intended for
 		use as a standalone function in unrelated applications.
 }
+\section{Functions}{
+\itemize{
+\item \code{findMsMsHR.mass}: 
+}}
+\note{
+\code{findMsMs.direct} is deactivated
+}
 \examples{
 \dontrun{
 			loadList("mycompoundlist.csv")
 			# if Atrazine has compound ID 1:
-			msms_atrazine <- findMsMsHR("Atrazine_0001_pos.mzML", 1, "pH")
+			msms_atrazine <- findMsMsHR(fileName = "Atrazine_0001_pos.mzML", cpdID = 1, mode = "pH")
 			# Or alternatively:
 			msRaw <- openMSfile("Atrazine_0001_pos.mzML")
-			msms_atrazine <- findMsMsHR.direct(msRaw, 1, "pH")
+			msms_atrazine <- findMsMsHR(msRaw=msRaw, cpdID = 1, mode = "pH")
 			# Or directly by mass (this will return a list of spectra sets):
 			mz <- findMz(1)$mzCenter
 			msms_atrazine_all <- findMsMsHR.mass(msRaw, mz, 1, ppm(msRaw, 10, p=TRUE))
