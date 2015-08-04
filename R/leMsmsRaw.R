@@ -127,9 +127,22 @@ findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = T
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
 		headerCache = NULL, fillPrecursorScan = FALSE,
+<<<<<<< HEAD
 		deprofile = getOption("RMassBank")$deprofile, cpdID)
+=======
+		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL)
+>>>>>>> bc06fbffa78117e642d1e8a95083aca89706d473
 {
-	eic <- findEIC(msRaw, mz, limit.fine, rtLimits)
+	eic <- findEIC(msRaw, mz, limit.fine, rtLimits, headerCache=headerCache, 
+			
+			
+			
+			
+			
+			
+			
+			
+			peaksCache=peaksCache)
 	#	if(!is.na(rtLimits))
 	#	{  
 	#		eic <- subset(eic, rt >= rtLimits[[1]] & rt <= rtLimits[[2]])
@@ -419,7 +432,8 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @seealso findMsMsHR
 #' @export
-findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, floatingRecalibration = NULL)
+findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, floatingRecalibration = NULL,
+		peaksCache = NULL)
 {
 	# calculate mz upper and lower limits for "integration"
 	if(all(c("mzMin", "mzMax") %in% names(mz)))
@@ -431,6 +445,12 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 		headerData <- as.data.frame(headerCache)
 	else
 		headerData <- as.data.frame(header(msRaw))
+	# Add row numbering because I'm not sure if seqNum or acquisitionNum correspond to anything really
+	if(nrow(headerData) > 0)
+		headerData$rowNum <- 1:nrow(headerData)
+	else
+		headerData$rowNum <- integer(0)
+	
 	# If RT limit is already given, retrieve only candidates in the first place,
 	# since this makes everything much faster.
 	if(all(!is.na(rtLimit)))
@@ -440,7 +460,11 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 				,]
 	else
 		headerMS1 <- headerData[headerData$msLevel == 1,]
-	pks <- mzR::peaks(msRaw, headerMS1$seqNum)
+	if(is.null(peaksCache))
+		pks <- mzR::peaks(msRaw, headerMS1$seqNum)
+	else
+		pks <- peaksCache[headerData$rowNum]
+		
 	# Sum intensities in the given mass window for each scan
 	if(is.null(floatingRecalibration))
 	{
@@ -454,13 +478,19 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 	}
 	intensity <- unlist(lapply(1:nrow(headerMS1), function(row)
 					{
-						peaktable <- mzR::peaks(msRaw, headerMS1[row,"seqNum"]) ##Was "acquisitionNum" before; doesn't matter most of the time... unless you actively exclude things in the conversion of the mzML-file
+						peaktable <- pks[[row]]
 						sum(peaktable[
 										which((peaktable[,1] >= headerMS1[row,"mzMin"]) & (peaktable[,1] <= headerMS1[row,"mzMax"])),
 										2])
 						
 					}))
 	return(data.frame(rt = headerMS1$retentionTime, intensity=intensity, scan=headerMS1$acquisitionNum))
+}
+
+
+makePeaksCache <- function(msRaw, headerCache) 
+{
+	mzR::peaks(msRaw, headerCache$seqNum)
 }
 
 #' Conversion of XCMS-pseudospectra into RMassBank-spectra
