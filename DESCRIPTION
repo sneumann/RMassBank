@@ -35,7 +35,6 @@ Suggests:
     ontoCAT,
     RUnit
 Collate:
-	'alternateAnalyze.R'
     'createMassBank.R'
     'formulaCalculator.R'
     'leCsvAccess.R'
