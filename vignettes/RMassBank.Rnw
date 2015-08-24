@@ -344,6 +344,9 @@ the mass deviation of MS precursor ions. The graph to the left is a complete xy
 plot while the graph to the right is a 2D histogram (if the package \Rpackage{gplots} is
 installed on the user's computer). 
 
+TODO: Workflow execution in Chunk 10 is currently disabled, I execute Chunk 11
+instead for steps that are already done.
+
 <<eval=TRUE,fig=TRUE>>=
 w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
 				"pH_narcotics")
@@ -370,7 +373,7 @@ finding the errors. (E.g., if you process steps 2-4 and an error occurs in step
 
 It can be useful to check if any data is retrieved at step 1:
 <<eval=FALSE>>=
-lapply(w@specs,function(s) s$foundOK)
+lapply(w@spectra,function(s) s@found)
 @
 
 To check the progress through the workflow, call e.g.:

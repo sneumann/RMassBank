@@ -1,6 +1,9 @@
 #' @import methods
 NULL
 
+
+setClassUnion("msmsWorkspaceOrNULL", "NULL")
+
 #' Workspace for \code{msmsWorkflow} data
 #' 
 #' A workspace which stores input and output data for \code{\link{msmsWorkflow}}.
@@ -9,29 +12,22 @@ NULL
 #' 
 #'  \describe{
 #' 	\item{files}{The input file names}
-#' 	\item{specs}{The spectra extracted from the raw files}
-#'  \item{analyzedSpecs}{The spectra with annotated peaks after workflow step 2.}
-#'  \item{aggregatedSpecs}{The \code{analyzedSpec} data regrouped and aggregated, 
-#' 		after workflow step 3.}
+#' 	\item{spectra}{The spectra per compound (\code{RmbSpectraSet}) extracted from the raw files}
+#'  \item{aggregated}{A data.frame with an aggregated peak table from all \code{spectra}.
+#' 		Further columns are added during processing.}
 #'  \item{rc, rc.ms1}{The recalibration curves generated in workflow step 4.}
-#'  \item{recalibratedSpecs}{The spectra from \code{specs} recalibrated with the curves
-#' 		from \code{rc, rc,ms1}.} 
-#' 	\item{analyzedRcSpecs}{The recalibrated spectra with annotated peaks after 
-#' 		workflow step 5.}
-#' 	\item{aggregatedRcSpecs}{The \code{analyzedRcSpec} data regrouped and aggregated, 
-#' 		after workflow step 6.}
-#'  \item{reanalyzedRcSpecs}{The regrouped and aggregated spectra, with added reanalyzed
-#' 		peaks (after step 7, see \code{\link{reanalyzeFailpeaks}}).}
-#'  \item{refilteredRcSpecs}{Final data to use for MassBank record creation after 
-#' 		multiplicity filtering (step 8).}
+#'  \item{parent}{For the workflow steps after 4: the parent workspace containing the state (spectra, aggregate)
+#' 		before recalibration, such that the workflow can be reprocessed from start.}
+#' 	\item{archivename}{The base name of the files the archive is stored to during the workflow.}
+#' \item{settings}{The RMassBank settings used during the workflow, if stored with the workspace.}#' 
 #' }
 #' 
 #' Methods: \describe{
-#' 	\item{show}{Shows a brief summary of the object. Currently only the included files.}
+#' 	\item{show}{Shows a brief summary of the object and processing progress.}
 #' 	}
 #' 
 ## ' @slot files The input file names
-## ' @slot specs The spectra extracted from the raw files
+## ' @slot spectra The spectra extracted from the raw files
 ## ' @slot analyzedSpecs The spectra with annotated peaks after workflow step 2.
 ## ' @slot aggregatedSpecs The \code{analyzedSpec} data regrouped and aggregated, 
 ## ' 		after workflow step 3.
@@ -46,7 +42,7 @@ NULL
 ## ' 		peaks (after step 7, see \code{\link{reanalyzeFailpeaks}}).
 ## ' @slot refilteredRcSpecs Final data to use for MassBank record creation after 
 ## ' 		multiplicity filtering (step 8).
-#' 
+##' 
 ## ' @method show,msmsWorkflow Shows a brief summary of the object. Currently only the included files.
 #' 
 #' @seealso \code{\link{msmsWorkflow}}
@@ -55,23 +51,49 @@ NULL
 #' @docType class
 #' @exportClass msmsWorkspace
 #' @export
-setClass("msmsWorkspace",
-		representation(
+.msmsWorkspace <- setClass("msmsWorkspace",
+		representation = representation(
 				files = "character",
-				specs = "list",
-				analyzedSpecs = "list",
-				aggregatedSpecs = "list",
+				spectra = "RmbSpectraSetList",
+				aggregated = "data.frame",
+				parent = "msmsWorkspaceOrNULL",
 				rc = "ANY",
 				rc.ms1 = "ANY",
-				recalibratedSpecs = "list",
-				analyzedRcSpecs = "list",
-				aggregatedRcSpecs = "list",
-				reanalyzedRcSpecs = "list",
-				refilteredRcSpecs = "list",
 				archivename = "character",
 				settings = "list"
-				),
+		),
+		contains=c("Versioned"),
+		prototype = prototype(
+				new("Versioned", versions=c(msmsWorkspace = "2.0.1")),
+				parent = NULL
 		)
+)
+
+setIs("msmsWorkspace", "msmsWorkspaceOrNULL")
+
+#.msmsWorkspace <- setClass("msmsWorkspace",
+#		representation = representation(
+#				files = "character",
+#				specs = "list",
+#				analyzedSpecs = "list",
+#				aggregatedSpecs = "list",
+#				rc = "ANY",
+#				rc.ms1 = "ANY",
+#				recalibratedSpecs = "list",
+#				analyzedRcSpecs = "list",
+#				aggregatedRcSpecs = "list",
+#				reanalyzedRcSpecs = "list",
+#				refilteredRcSpecs = "list",
+#				archivename = "character",
+#				settings = "list"
+#				),
+#		contains=c("Versioned"),
+#		prototype = prototype(
+#				new("Versioned", versions=c(msmsWorkspace = "1.0.1"))
+#				)
+#		)
+		
+
 
 #' Workspace for \code{mbWorkflow} data
 #' 
@@ -79,7 +101,7 @@ setClass("msmsWorkspace",
 #' 
 #' Slots:
 #'  \describe{
-#' 	\item{aggregatedRcSpecs, refilteredRcSpecs}{The corresponding
+#' 	\item{spectra, aggregated}{The corresponding
 #' 		 input data from \code{\link{msmsWorkspace-class}}}
 #'  \item{additionalPeaks}{A list of additional peaks which can be loaded
 #' 		using \code{\link{addPeaks}}.}
@@ -110,8 +132,10 @@ setClass("msmsWorkspace",
 setClass("mbWorkspace",
 		representation(
 				# input data:
-				aggregatedRcSpecs = "list",
-				refilteredRcSpecs = "list",
+				spectra = "RmbSpectraSetList",
+				aggregated = "data.frame",
+				## aggregatedRcSpecs = "list",
+				## refilteredRcSpecs = "list",
 				additionalPeaks = "data.frame", # ex additional_peaks
 				# infolists data:
 				mbdata = "list",
@@ -159,7 +183,7 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 	load(fileName, envir=tempEnv)
 	# Look if there is a msmsWorkspace in the file
 	objs <- ls(tempEnv)
-	isWs <- unlist(lapply(objs, function(obj) "msmsWorkspace" %in% class(tempEnv[[obj]])))
+	isWs <- unlist(lapply(objs, function(obj) is(tempEnv[[obj]], "msmsWorkspace")))
 	whichWs <- match(TRUE, isWs)
 	# Found? Then just return it.
 	if(!is.na(whichWs))
@@ -169,7 +193,7 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 		if(loadSettings == FALSE)
 			w@settings <- list()
 	}
-	# Otherwise hope to load the dataset into a new workspace
+	# If there is no msmsWorkspace object in the workspace, this means that the workspace is version 1!
 	else
 	{
 		w <- new("msmsWorkspace")
@@ -188,12 +212,22 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 		for(var in dataset)
 		{
 			if(exists(var, envir=tempEnv))
-				slot(w, var) <- tempEnv[[var]]
+				slot(w, var, check=FALSE) <- tempEnv[[var]]
+			classVersion(w)["msmsWorkspace"] <- "1.0.0"
 		}
 		# Check if settings exist...
 		if((loadSettings == TRUE) && exists("RmbSettings", envir=tempEnv))
 			w@settings <- tempEnv$RmbSettings
 	}
+	# process version updates
+	updateClass <- FALSE
+	if(!isVersioned(w)) updateClass <- TRUE
+	else if(!all(isCurrent(w))) updateClass <- TRUE
+	if(updateClass)
+	{
+		w <- updateObject(w)
+	}
+	
 	# If loadSettings is set: load the settings into RMassBank
 	if((loadSettings == TRUE) && (length(w@settings) > 0))
 		loadRmbSettings(w@settings)
@@ -218,14 +252,16 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 newMbWorkspace <- function(w)
 {
 	mb <- new("mbWorkspace",
-			aggregatedRcSpecs = w@aggregatedRcSpecs,
-			refilteredRcSpecs = w@refilteredRcSpecs)
+			spectra = w@spectra,
+			aggregated = w@aggregated
+			)
 	return(mb)
 }
 
 
 #' @name show,msmsWorkspace-method
 #' @aliases show,msmsWorkspace-method
+#' @param object The \code{msmsWorkspace} to display.
 #' @docType methods
 #' @rdname msmsWorkspace-class
 #' @export
@@ -235,37 +271,43 @@ setMethod("show", "msmsWorkspace",
 			cat(" with files: \n")
 			sapply(basename(object@files), function(x) cat("  -", x, "\n"))
                         
+						progress <- findProgress(object)
+						
+						if(4 %in% progress)
+							o123 <- object@parent
+						else
+							o123 <- object
 						
 						## msmsWorkflow: Step 1. Get peaks ?
-						if(length(object@specs) > 0){
+						if(1 %in% progress){
 							numspecs <- 0
-							dummy <- sapply(object@specs, function(x) cat(" -", x$id, "\t foundOK:", x$foundOK, "\n"))
+							dummy <- sapply(o123@spectra, function(x) cat(" -", x@id, "\t foundOK:", x@found, "\n"))
 							cat("Peaks found:\n")
 							ids <- vector()
-							dummy1 <- sapply(object@specs, function(x) {
-								cat(" -", x$id, "\t peaks:",
-								sapply(x$peaks, nrow), "\n")
-								ids <<- c(ids, x$id)
+							dummy1 <- sapply(o123@spectra, function(x) {
+								cat(" -", x@id, "\t peaks:",
+								sapply(x@children, function(s) s@peaksCount), "\n")
+								ids <<- c(ids, x@id)
 								numspecs <<- numspecs + 1
-								return(sapply(x$peaks, nrow))
+								return(sapply(x@children, function(s) s@peaksCount))
 							})
 						}
 									
 									
                         ## msmsWorkflow: Step 2. First analysis pre recalibration
-                        if(length(object@analyzedSpecs) > 0){
+                        if(2 %in% progress){
 							cat("Peaks annotated after Step 2:\n")
-							dummy2 <- sapply(object@analyzedSpecs, function(x) {
-								cat(" -", x$id, "\t peaks:",
-								sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))), "\n")
-								return(sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))))
+							dummy2 <- sapply(o123@spectra, function(x) {
+								cat(" -", x@id, "\t peaks:",
+								sapply(x@children, function(s) length(which(s@good))), "\n")
+								return(sapply(x@children, function(s) length(which(s@good))))
 							})
 							
 							whichok <- which(sapply(dummy1,length) != 0)
 							anyok <- whichok[1]
 							
-							dummy2 <- matrix(unlist(dummy2), ncol = length(dummy1[[anyok]]), byrow = TRUE)
-							dummy1 <- matrix(unlist(dummy1), ncol = length(dummy1[[anyok]]), byrow = TRUE)
+							dummy2 <- matrix(unlist(dummy2), ncol = nrow(dummy1), byrow = TRUE)
+							dummy1 <- matrix(unlist(dummy1), ncol = nrow(dummy1), byrow = TRUE)
 							
 							PeakMat <- dummy1-dummy2
 							
@@ -277,13 +319,14 @@ setMethod("show", "msmsWorkspace",
 							})
 						}
                         ## msmsWorkflow: Step 3. Aggregate all spectra
-						if(length(object@aggregatedSpecs) > 0){
+						if(3 %in% progress){
 							cat("Peaks aggregated after Step 3:\n")
 							cat("Matched Peaks:\n")
-							dummy <- sapply(unique(object@aggregatedSpecs$peaksMatched[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+							pm <- peaksMatched(o123)
+							dummy <- sapply(unique(pm[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
 																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@aggregatedSpecs$peaksMatched[,"cpdID"] == y)
-																			  peaksMatched <- object@aggregatedSpecs$peaksMatched[compoundIndex,]
+																			  compoundIndex <- which(pm[,"cpdID"] == y)
+																			  peaksMatched <- pm[compoundIndex,]
 																			  uscans <- unique(peaksMatched[,"scan"])
 																			  return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksMatched[,"scan"] == z)
@@ -291,10 +334,11 @@ setMethod("show", "msmsWorkspace",
 																			  }))
 																		  }), "\n"))
 							cat("Unmatched Peaks:\n")
-							dummy <- sapply(unique(object@aggregatedSpecs$peaksUnmatched[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+							pu <- peaksUnmatched(o123)
+							dummy <- sapply(unique(pu[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
 																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@aggregatedSpecs$peaksUnmatched[,"cpdID"] == y)
-																			  peaksUnmatched <- object@aggregatedSpecs$peaksUnmatched[compoundIndex,]
+																			  compoundIndex <- which(pu[,"cpdID"] == y)
+																			  peaksUnmatched <- pu[compoundIndex,]
 																			  uscans <- unique(peaksUnmatched[,"scan"])
 																			  return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksUnmatched[,"scan"] == z)
@@ -304,31 +348,32 @@ setMethod("show", "msmsWorkspace",
 						}
 						
                         ## msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra
-						if(length(object@recalibratedSpecs) > 0){
+						if(4 %in% progress){
 							cat("Peaks found after Step 4:\n")
-							dummy <- sapply(object@recalibratedSpecs, function(x) cat(" -", x$id, "\t foundOK:", x$foundOK, "\n"))
-							cat("Peaks found:\n")
-							dummy4 <- sapply(object@recalibratedSpecs, function(x){ 
-																		cat(" -", x$id, "\t peaks:",
-																			sapply(x$peaks, nrow), "\n")
-																			return(sapply(x$peaks, nrow))
+							dummy <- sapply(object@spectra, function(x) cat(" -", x@id, "\t found:", x@found, "\n"))
+							cat("Peaks found:\n")							
+							dummy4 <- sapply(object@spectra, function(x){ 
+																		cat(" -", x@id, "\t peaks:",
+																			sapply(x@children, function(s) s@peaksCount), "\n")
+																			return(sapply(x@children, function(s) s@peaksCount))
 																		})
 						}
 						
                         ## msmsWorkflow: Step 5. Reanalyze recalibrated spectra
-						if(length(object@analyzedRcSpecs) > 0){
+						if(5 %in% progress){
 							cat("Peaks found after Step 5:\n")
-							dummy5 <- sapply(object@analyzedRcSpecs, function(x){
-																		cat(" -", x$id, "\t peaks:",
-																		sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))), "\n")
-																		return(sapply(x$msmsdata, function(x) length(unique(x$childFilt[,1]))))
-																	})
-							
+
+							dummy5 <- sapply(object@spectra, function(x) {
+										cat(" -", x@id, "\t peaks:",
+												sapply(x@children, function(s) length(which(s@good))), "\n")
+										return(sapply(x@children, function(s) length(which(s@good))))
+									})
+															
 							whichok <- which(sapply(dummy4,length) != 0)
 							anyok <- whichok[1]
 							
-							dummy5 <- matrix(unlist(dummy5), ncol = length(dummy4[[anyok]]), byrow = TRUE)
-							dummy4 <- matrix(unlist(dummy4), ncol = length(dummy4[[anyok]]), byrow = TRUE)
+							dummy5 <- matrix(unlist(dummy5), ncol = nrow(dummy4), byrow = TRUE)
+							dummy4 <- matrix(unlist(dummy4), ncol = nrow(dummy4), byrow = TRUE)
 							
 							PeakMat <- dummy4-dummy5
 							
@@ -341,38 +386,45 @@ setMethod("show", "msmsWorkspace",
 						}
 						
                         ## msmsWorkflow: Step 6. Aggregate recalibrated results
-						if(length(object@aggregatedRcSpecs) > 0){
+						if(6 %in% progress){
 							cat("Peaks found after Step 6:\n")
+
 							cat("Matched Peaks:\n")
-							dummy <- sapply(unique(object@aggregatedRcSpecs$peaksMatched[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
-																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@aggregatedRcSpecs$peaksMatched[,"cpdID"] == y)
-																			  peaksMatched <- object@aggregatedRcSpecs$peaksMatched[compoundIndex,]
-																			  uscans <- unique(peaksMatched[,"scan"])
-																			  return(sapply(uscans, function(z){
+							pm <- peaksMatched(object)
+							dummy <- sapply(unique(pm[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+												sapply(x, function(y){ 
+															compoundIndex <- which(pm[,"cpdID"] == y)
+															peaksMatched <- pm[compoundIndex,]
+															uscans <- unique(peaksMatched[,"scan"])
+															return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksMatched[,"scan"] == z)
 																				return(length(unique(peaksMatched[uscantemp,"mzFound"])))
-																			  }))
-																		  }), "\n"))
+																			}))
+														}), "\n"))
 							cat("Unmatched Peaks:\n")
-							dummy <- sapply(unique(object@aggregatedRcSpecs$peaksUnmatched[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
-																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@aggregatedRcSpecs$peaksUnmatched[,"cpdID"] == y)
-																			  peaksUnmatched <- object@aggregatedRcSpecs$peaksUnmatched[compoundIndex,]
-																			  uscans <- unique(peaksUnmatched[,"scan"])
-																			  return(sapply(uscans, function(z){
+							pu <- peaksUnmatched(object)
+							dummy <- sapply(unique(pu[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+												sapply(x, function(y){ 
+															compoundIndex <- which(pu[,"cpdID"] == y)
+															peaksUnmatched <- pu[compoundIndex,]
+															uscans <- unique(peaksUnmatched[,"scan"])
+															return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksUnmatched[,"scan"] == z)
 																				return(length(unique(peaksUnmatched[uscantemp,"mzFound"])))
-																			  }))
-																		  }), "\n"))
+																			}))
+														}), "\n"))
 						}
+							
                         ## msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O
-						if(length(object@reanalyzedRcSpecs) > 0){
+						if(7 %in% progress){
 							cat("Peaks added in Step 7:\n")
-							dummy <- sapply(unique(object@reanalyzedRcSpecs$peaksMatchedReanalysis[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
+							
+							pmr <- object@aggregated[object@aggregated$matchedReanalysis & !is.na(object@aggregated$matchedReanalysis),,drop=FALSE]
+							
+							dummy <- sapply(unique(pmr[,"cpdID"]), function(x) cat(" -", x, "\t peaks:",
 																		  sapply(x, function(y){ 
-																			  compoundIndex <- which(object@reanalyzedRcSpecs$peaksMatchedReanalysis[,"cpdID"] == y)
-																			  peaksMatchedReanalysis <- object@reanalyzedRcSpecs$peaksMatchedReanalysis[compoundIndex,]
+																			  compoundIndex <- which(pmr[,"cpdID"] == y)
+																			  peaksMatchedReanalysis <- pmr[compoundIndex,]
 																			  uscans <- unique(peaksMatchedReanalysis[,"scan"])
 																			  return(sapply(uscans, function(z){
 																				uscantemp <- which(peaksMatchedReanalysis[,"scan"] == z)
@@ -382,10 +434,10 @@ setMethod("show", "msmsWorkspace",
 						}
 						
                         ## msmsWorkflow: Step 8. Peak multiplicity filtering 
-                        if(length(object@refilteredRcSpecs) > 0){
+                        if(8 %in% progress){
 							cat("After Step 8: multiplicity filtering:\n")
-							show(table(object@refilteredRcSpecs$peaksOK$cpdID))
-							show(table(object@refilteredRcSpecs$peaksReanOK$cpdID))
+							show(table(object@aggregated[object@aggregated$filterOK & is.na(object@aggregated$matchedReanalysis), "cpdID"]))
+							show(table(object@aggregated[object@aggregated$filterOK & !is.na(object@aggregated$matchedReanalysis), "cpdID"]))
 						}
                       })
 
@@ -394,6 +446,7 @@ setMethod("show", "msmsWorkspace",
 #' @name show,mbWorkspace-method 
 #' @aliases show,mbWorkspace-method
 #' @rdname mbWorkspace-class
+#' @param object The \code{mbWorkspace} to display.
 #' @docType methods
 #' @export
 setMethod("show", "mbWorkspace",

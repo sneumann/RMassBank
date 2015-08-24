@@ -86,15 +86,23 @@ w <- loadMsmsWorkspace(system.file("results/pH_narcotics_RF.RData",
 				package="RMassBankData"))
 @
 
-The stored recalibration curve:
+The recalibration curve:
 <<fig=TRUE>>=
+recal <- makeRecalibration(w@parent, "pH",
+				recalibrateBy = rmbo$recalibrateBy,
+				recalibrateMS1 = rmbo$recalibrateMS1,
+				recalibrator = list(MS1="recalibrate.loess",MS2="recalibrate.loess"),
+				recalibrateMS1Window = 15)
+w@rc <- recal$rc
+w@rc.ms1 <- recal$rc.ms1
+w@parent <- w
 plotRecalibration(w)
 @
 
 Some example peaks to show the effect of recalibration:
 <<>>=
-w@recalibratedSpecs[[1]]$parentPeak[30:32,]
-w@recalibratedSpecs[[1]]$peaks[[1]][15:17,]
+w@spectra[[1]]@parent@mz[30:32]
+w@spectra[[1]]@children[[1]]@mz[15:17]
 @
 
 Now reprocess the recalibration step with the
@@ -108,8 +116,8 @@ The recalibration graph shows that the recalibration "curve" will do no
 recalibration. To verify, we can show the same peaks as before:
 
 <<>>=
-w@recalibratedSpecs[[1]]$parentPeak[30:32,]
-w@recalibratedSpecs[[1]]$peaks[[1]][15:17,]
+w@spectra[[1]]@parent@mz[30:32]
+w@spectra[[1]]@children[[1]]@mz[15:17]
 @
 
 \section{Combining multiplicities}
@@ -153,13 +161,11 @@ First, the spectra are read and processed until reanalysis (step 7) normally:
 <<>>=
 w1 <- msmsWorkflow(w, mode="pH", steps=c(1))
 # Here we artificially cut spectra out to make the workflow run faster for the vignette:
-w1@specs <- lapply(w1@specs, function(s)
+w1@spectra <- as(lapply(w1@spectra, function(s)
     {
-      s$childScans <- s$childScans[1:3]
-      s$childHeaders <- s$childHeaders[1:3,]
-      s$peaks <- s$peaks[1:3]
-      s
-    })
+		s@children <- s@children[1:3]
+		s
+    }),"SimpleList")
 w1 <- msmsWorkflow(w1, mode="pH", steps=c(2:7))
 @
 
@@ -169,13 +175,12 @@ for each compound and every real peak should in theory occur twice.
 <<>>=
 w2 <- msmsWorkflow(w, mode="pH", steps=c(1), confirmMode = 1)
 # Here we artificially cut spectra out to make the workflow run faster for the vignette:
-w2@specs <- lapply(w2@specs, function(s)
+
+w2@spectra <- as(lapply(w2@spectra, function(s)
     {
-      s$childScans <- s$childScans[1:3]
-      s$childHeaders <- s$childHeaders[1:3,]
-      s$peaks <- s$peaks[1:3]
-      s
-    })
+		s@children <- s@children[1:3]
+		s
+    }),"SimpleList")
 w2 <- msmsWorkflow(w2, mode="pH", steps=c(2:7))
 @
 

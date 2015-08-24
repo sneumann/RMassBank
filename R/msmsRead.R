@@ -75,9 +75,11 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(length(w@files) != length(cpdids)){
 		stop("There are a different number of cpdids than files")
 	}
+	
 	if(!(readMethod %in% c("mzR","peaklist","xcms","minimal"))){
 		stop("The supplied method does not exist")
 	}
+	
 	if(!all(file.exists(w@files))){
 		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist")
 	}
@@ -106,23 +108,87 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 		
 		count <- 1
-		w@specs <-  lapply(w@files, function(fileName){
-			spec <- findMsMsHR(fileName, cpdids[count], mode, confirmMode, useRtLimit,
-		 		ppmFine = settings$findMsMsRawSettings$ppmFine,
-		 		mzCoarse = settings$findMsMsRawSettings$mzCoarse,
-		 		fillPrecursorScan = settings$findMsMsRawSettings$fillPrecursorScan,
-		 		rtMargin = settings$rtMargin,
-		 		deprofile = settings$deprofile)
-			
-			## Progress:
-			nProg <<- nProg + 1
-			pb <- do.call(progressbar, list(object=pb, value= nProg))
-			
-			##Counting the index of cpdids
-			count <<- count + 1
-			return(spec)
-		})
-		names(w@specs) <- basename(as.character(w@files))
+		envir <- environment()
+		w@spectra <- as(lapply(w@files, function(fileName) {
+							
+							# Find compound ID
+							cpdID <- cpdids[count]
+							
+							# Set counter up
+							envir$count <- envir$count + 1
+							
+							# Retrieve spectrum data
+							spec <- findMsMsHR(fileName = fileName, 
+									cpdID = cpdID, mode = mode, confirmMode = confirmMode, useRtLimit = useRtLimit,
+									ppmFine = settings$findMsMsRawSettings$ppmFine,
+									mzCoarse = settings$findMsMsRawSettings$mzCoarse,
+									fillPrecursorScan = settings$findMsMsRawSettings$fillPrecursorScan,
+									rtMargin = settings$rtMargin,
+									deprofile = settings$deprofile)
+							gc()
+														
+							# Progress:
+							nProg <<- nProg + 1
+							pb <- do.call(progressbar, list(object=pb, value= nProg))
+							
+							return(spec)
+						} ), "SimpleList")
+		names(w@spectra) <- basename(as.character(w@files))
+		return(w)
+	}
+	
+	##xcms-readmethod 
+	if(readMethod == "xcms"){
+		
+		##Load libraries
+		require(xcms)
+		require(CAMERA)
+		
+		##Find unique files and cpdIDs
+		ufiles <- unique(w@files)
+		uIDs <- unique(cpdids)
+		nLen <- length(ufiles)
+		
+		##Progressbar
+		nProg <- 0
+		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
+		i <- 1
+		
+		##Routine for the case of multiple cpdIDs per file
+		if(length(uIDs) > length(ufiles)){
+			w@spectra <- as(unlist(lapply(ufiles, function(currentFile){
+						fileIDs <- cpdids[which(w@files == currentFile)]
+						spec <- findMsMsHRperxcms(currentFile, fileIDs, mode=mode, findPeaksArgs=Args, plots, MSe = MSe)
+						gc()
+					
+						# Progress:
+						nProg <<- nProg + 1
+						pb <- do.call(progressbar, list(object=pb, value= nProg))
+						
+						return(spec)
+					}),FALSE),"SimpleList")
+			return(w)
+		}
+		
+		##Routine for the other cases
+		w@spectra <- as(lapply(uIDs, function(ID){
+					# Find files corresponding to the compoundID
+					currentFile <- w@files[which(cpdids == ID)]
+					
+					# Retrieve spectrum data
+					spec <- findMsMsHRperxcms(currentFile, ID, mode=mode, findPeaksArgs=Args, plots, MSe = MSe)
+					gc()
+					
+					# Progress:
+					nProg <<- nProg + 1
+					pb <- do.call(progressbar, list(object=pb, value= nProg))
+					
+					return(spec)
+				}),"SimpleList")
+		##If there are more files than unique cpdIDs, only remember the first file for every cpdID
+		w@files <- w@files[sapply(uIDs, function(ID){
+			return(which(cpdids == ID)[1])
+		})]
 		return(w)
 	}
 	
@@ -151,59 +217,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		return(w)
 	}
 	
-	##xcms-readmethod 
-	if(readMethod == "xcms"){
-		require(xcms)
-		require(CAMERA)
-		ufiles <- unique(w@files)
-		uIDs <- unique(cpdids)
-		##Routine for the case of multiple cpdIDs per file and multiple files per cpdID
-		dummySpecs <- list()
-		w@specs <- list()
-		
-		nLen <- length(ufiles)
-		nProg <- 0
-		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
-		i <- 1
-		FileIDs <- vector()
-		metaSpec <- list()
-		dummyapply <- lapply(ufiles, function(currfile){
-			
-			dummySpecs[[i]] <<- newMsmsWorkspace()
-			dummySpecs[[i]]@specs <<- list()
-			FileIDs <<- cpdids[which(w@files == currfile)]
-			dummylinebreak <- capture.output(metaSpec <<- findMsMsHRperxcms.direct(currfile, FileIDs, mode=mode, findPeaksArgs=Args, plots, MSe = MSe))
-			
-			for(j in 1:length(FileIDs)){
-				dummySpecs[[i]]@specs[[length(dummySpecs[[i]]@specs)+1]] <<- metaSpec[[j]]
-			}
-			
-			##Progress
-			nProg <<- nProg + 1
-			pb <- do.call(progressbar, list(object=pb, value= nProg))
-			i <<- i+1
-			})
-			
-			if(length(dummySpecs) > 1){
-				for(j in 2:length(dummySpecs)){
-					dummySpecs[[1]] <- c.msmsWSspecs(dummySpecs[[1]],dummySpecs[[j]])
-				}
-			}
-			
-			##You need as many names as there were different IDs
-			##And the Names and IDs have to go together in some way
-			##Find out Names that make sense: (cpdID with Name of File that uses cpdID)
-			FNames <- vector()
-			for(i in uIDs){
-				nindex <- min(which(i == cpdids))
-				FNames <- c(FNames,paste(w@files[nindex],"_",cpdids[nindex],sep=""))
-			}
-			
-			w@specs <- dummySpecs[[1]]@specs
-			names(w@specs) <- basename(as.character(FNames))
-			w@files <- basename(as.character(FNames))
-			return(w)
-	}
+	
 }
 
 #' 

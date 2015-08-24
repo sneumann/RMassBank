@@ -20,6 +20,7 @@ test.mzRRead <- function(){
 		close(gen)
 		close(rig)
 		if(!identical(genLines,rigLines)){
+			print(i)
 			allOK <- FALSE
 			break
 		}

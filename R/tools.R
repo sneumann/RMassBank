@@ -43,14 +43,9 @@ combineMultiplicities <- function(workspaces)
 {
 	# get the first workspace for output
 	wOut <- workspaces[[1]]
-	# Combine: reanalyzedRcSpecs$peaksMatched, peaksMatchedReanalysis, peaksReanalyzed
-	# (which are the result of step 7 and used in step 8)
-	wOut@reanalyzedRcSpecs$peaksMatched = do.call(rbind,
-			lapply(workspaces, function(w) w@reanalyzedRcSpecs$peaksMatched))
-	wOut@reanalyzedRcSpecs$peaksMatchedReanalysis = do.call(rbind,
-			lapply(workspaces, function(w) w@reanalyzedRcSpecs$peaksMatchedReanalysis))
-	wOut@reanalyzedRcSpecs$peaksReanalyzed = do.call(rbind,
-			lapply(workspaces, function(w) w@reanalyzedRcSpecs$peaksReanalyzed))
+	# Combine: aggregated peaks
+	wOut@aggregated = do.call(rbind,
+			lapply(workspaces, function(w) w@aggregated))
 	
 	return(wOut)
 }
@@ -73,14 +68,21 @@ combineMultiplicities <- function(workspaces)
 #' @export
 findProgress <- function(workspace)
 {
-    step1 <- (length(workspace@specs) > 0)
-    step2 <- (length(workspace@analyzedSpecs) > 0)
-    step3 <- (length(workspace@aggregatedSpecs) > 0)
-    step4 <- (length(workspace@recalibratedSpecs) > 0)
-    step5 <- (length(workspace@analyzedRcSpecs) > 0)
-    step6 <- (length(workspace@aggregatedRcSpecs) > 0)
-    step7 <- (length(workspace@reanalyzedRcSpecs) > 0)
-    step8 <- (length(workspace@refilteredRcSpecs) > 0)
+	step4 <- (!is.null(workspace@parent))
+	
+	if(step4)
+		w123 <- workspace@parent
+	else
+		w123 <- workspace
+    step1 <- (length(w123@spectra) > 0)
+    step2 <- step1 && !all(is.na(lapply(w123@spectra, function(s) s@empty))) 
+    step3 <- (nrow(w123@aggregated) > 0)
+	
+	step5 <- step4 && !all(is.na(lapply(workspace@spectra, function(s) s@empty))) 
+	step6 <- step5 && (nrow(workspace@aggregated) > 0)
+	step7 <- step6 && ("matchedReanalysis" %in% colnames(workspace@aggregated))
+	step8 <- step7 && ("filterOK" %in% colnames(workspace@aggregated))
+	
     steps <- which(c(step1, step2, step3, step4, step5, step6, step7, step8))
     return(steps)
 }
