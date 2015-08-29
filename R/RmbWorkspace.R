@@ -306,8 +306,13 @@ setMethod("show", "msmsWorkspace",
 							whichok <- which(sapply(dummy1,length) != 0)
 							anyok <- whichok[1]
 							
-							dummy2 <- matrix(unlist(dummy2), ncol = nrow(dummy1), byrow = TRUE)
-							dummy1 <- matrix(unlist(dummy1), ncol = nrow(dummy1), byrow = TRUE)
+							nrowd1 <- nrow(dummy1)
+							if(is.null(nrowd1)) 
+							nrowd1 <- 1
+							
+							
+							dummy2 <- matrix(unlist(dummy2), ncol = nrowd1, byrow = TRUE)
+							dummy1 <- matrix(unlist(dummy1), ncol = nrowd1, byrow = TRUE)
 							
 							PeakMat <- dummy1-dummy2
 							
@@ -372,8 +377,12 @@ setMethod("show", "msmsWorkspace",
 							whichok <- which(sapply(dummy4,length) != 0)
 							anyok <- whichok[1]
 							
-							dummy5 <- matrix(unlist(dummy5), ncol = nrow(dummy4), byrow = TRUE)
-							dummy4 <- matrix(unlist(dummy4), ncol = nrow(dummy4), byrow = TRUE)
+							nrowd4 <- nrow(dummy4)
+							if(is.null(nrowd4)) 
+							nrowd4 <- 1
+							
+							dummy5 <- matrix(unlist(dummy5), ncol = nrowd4, byrow = TRUE)
+							dummy4 <- matrix(unlist(dummy4), ncol = nrowd4, byrow = TRUE)
 							
 							PeakMat <- dummy4-dummy5
 							
