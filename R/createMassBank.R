@@ -649,6 +649,14 @@ gatherData <- function(id)
 	} else{
 		link[["PUBCHEM"]] <- PcInfo$PcID[1]
 	}
+	
+	
+	if(!is.null(link[["PUBCHEM"]])){
+		if(substr(link[["PUBCHEM"]],1,4) != "CID:"){
+			link[["PUBCHEM"]] <- paste0("CID:", link[["PUBCHEM"]])
+		}
+	}
+	
 	link[["INCHIKEY"]] <- inchikey_split
 	if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid)))
 	mbdata[['CH$LINK']] <- link
