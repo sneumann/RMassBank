@@ -7,7 +7,7 @@
 #' @param intensity_precision The difference that is accepted between the calculated and observed intensity of a possible isotopic peak. Further details down below.
 #' @param conflict Either "isotopic"(Peak formulas are always chosen if they fit the requirements for an isotopic peak)
 #' 		  or "strict"(Peaks are only marked as isotopic when there hasn't been a formula assigned before.)
-#' @param isolationWindow The isolation window in Da
+#' @param isolationWindow The width of the isolation window in Da 
 #' @param evalMode Currently no function yet, but planned
 #' @param plotSpectrum A boolean specifiying whether the spectrumshould be plotted
 #' @param settings Options to be used for processing. Defaults to the options loaded via
@@ -21,7 +21,7 @@
 #  "check" checks matched peaks with formulas for isotopes and removes them if no isotopic peaks have been found for all formulas. The formula is also
 #  adjusted, if the one with matching isotopes doesn't have the lowest dppm. "complete" does both.}
 #' }
-#' @return The \code{msmsWorkspace} with .
+#' @return The \code{msmsWorkspace} with annotated isolation peaks
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @author Erik Mueller, UFZ
 #' @export
@@ -135,35 +135,56 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 				pattern <- as.data.frame(isopattern(formula, isotopes = isotopes)[[1]])
 				mass <- findMz.formula(formula,"")$mzCenter
 				
-				# Find index of nonisotopic molecule
+				# Find index of nonisotopic molecule and
+				# normalize abundance that nonisotopic molecule has always "1"
 				mainIndex <- which.min(abs(pattern[,"m/z"]-mass))
+				pattern[,"abundance"] <- round(pattern[,"abundance"] * (100/pattern[mainIndex,"abundance"]),3)
 				
+				# Find all isotope atom names (only in colnames of patterns, sadly)
 				isoCols <- colnames(pattern)[3:ncol(pattern)]
 				
-				pattern[,"abundance"] <- round(pattern[,"abundance"] * (100/pattern[mainIndex,"abundance"]),3)
-				defAtoms <- which(isoCols %in% defIsotopes)
+				# Order the formulas to be in Hill system:
+				# First the Cs, then the Hs, then lexicographical
+				# First: Split isotope names so that there only are atoms
+				# Find position of C and H
 				
-				# Indices of isotope notation string to find atomname
+				splitNames <- gsub('^([0-9]+)(.+)$', '\\2', isoCols)
+				CHPos <- c(which(splitNames == "C"),which(splitNames == "H"))
 				
-				atomIndices <- regexpr("[A-Z][a-z]?",isoCols)
-				
-				
-				newnames <- vector()
-				
-				for(i in 1:length(atomIndices)){
-					if(i %in% defAtoms){
-						newnames[i] <- substr(isoCols[i],atomIndices[i],nchar(isoCols[i]))
-					}else{
-						lhs <- paste0('^(.{', atomIndices[i]-1, '})(.+)$')
-						newnames[i] <- gsub(lhs, '\\1]\\2', isoCols[i])
-						newnames[i] <- gsub('^(.{0})(.+)$', '\\1[\\2', newnames[i])
-					}
+				# Account for special case: No Cs or Hs
+				if(length(CHPos)){
+					# If there are Cs and Hs, overwrite the positions so the always get sorted to the front
+					splitNames[CHPos] <- ""
 				}
 				
+				# Default isotopes are always first in the colnames, so no need to order internally between isotopes
+				atomOrder <- order(splitNames)
+				
+				# If there are Cs and Hs, the order must be preserved
+				if(length(CHPos)){
+					atomOrder[1:length(CHPos)] <- CHPos
+				}
+				# else it is already ordered
+				
+				# Mark new names for formula creation.
+				newnames <- unname(sapply(isoCols, function(currentCol){
+					if(currentCol %in% defIsotopes){
+						# "Default" isotope (no isotope mass in formula, e.g. "C")
+						return(gsub('^(.{0})([0-9]+)(.+)$', '\\3', currentCol))
+					}else{
+						# Other isotopes (isotope mass in formula, e.g. "[13]C")
+						return(gsub('^(.{0})([0-9]+)(.+)$', '\\1[\\2]\\3', currentCol))
+					}
+				}))
+				
+				# Generate the formula for every pattern
 				pattern$formula <- apply(pattern,1,function(p){
-					paste0(sapply(3:ncol(pattern),function(isoIndex){
+					paste0(sapply(atomOrder+2,function(isoIndex){
 						if(p[isoIndex] == 0){ 
 							return("")
+						}
+						if(p[isoIndex] == 1){
+							return(newnames[isoIndex-2])
 						}
 						return(paste0(newnames[isoIndex-2],p[isoIndex]))
 					}),collapse="")
