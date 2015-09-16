@@ -29,9 +29,9 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 							isolationWindow = 4, evalMode = "complete", plotSpectrum = TRUE, settings = getOption("RMassBank")){
 
 	# Load library and data
-	require(enviPat)
-	data("isotopes")
+	requireNamespace("enviPat",quietly=TRUE)
 	
+	data("isotopes", package="enviPat")
 	
 	if(!(intensity_precision %in% c("none","low","high"))){
 		stop('intensity_precision must be specified as either "none", "low" or "high"')
@@ -116,10 +116,13 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 		# Find parent formula and cpdID
 		parent_formula <- add.formula(spec@formula, allowed_additions)
 		id <- as.numeric(spec@id)
-		
+		specNum <- 0
+		specEnv <- environment()
 
 		# lapply over all extracted MS2 spectra
 		lapply(spec@children, function(msmsdata){
+			
+			specEnv$specNum <- specEnv$specNum + 1
 			
 			# Extract currently relevant peaks
 			currentMPeaks <- matchedPeaks[(matchedPeaks$cpdID == id) & (matchedPeaks$scan == msmsdata@acquisitionNum),,drop=FALSE]
@@ -132,7 +135,7 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 			# Sort pattern by abundance
 			isoMPatterns <- lapply(currentMPeaks$formula, function(formula){
 				# Find pattern
-				pattern <- as.data.frame(isopattern(formula, isotopes = isotopes)[[1]])
+				pattern <- as.data.frame(enviPat::isopattern(formula, isotopes = isotopes)[[1]])
 				mass <- findMz.formula(formula,"")$mzCenter
 				
 				# Find index of nonisotopic molecule and
@@ -220,6 +223,14 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 			
 			# Which isotope patterns still have theoretical intensities above the cutoff?
 			peaksToCheck <- which(as.logical(sapply(isoMPatterns,nrow)))
+			
+			if(!length(peaksToCheck)){
+				warning(paste0("The peaks of compound ", id, " in spectrum #", specEnv$specNum," are not intense enough to search for isotopic peaks"))
+				if(plotSpectrum){
+					plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), col="black", xlab="m/z", ylab="intensity", lwd=3)
+				}
+				return(0)
+			}
 			
 			# Now, look for isotopic patterns in unmatched peaks with all specified parameters
 			if("add" %in% evalMode){
@@ -384,10 +395,11 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 			        }
 			        if(nrow(correctionMatrix)){
 			            points(correctionMatrix$mzFound, correctionMatrix$intensity,type="h", col="yellow", lwd=3)
+						if(nrow(conflictedMatrix)){
+							points(conflictedMatrix$mzFound, conflictedMatrix$intensity,type="h", col="red", lwd=3)
+						}
 			        }
-			        if(nrow(conflictedMatrix)){
-			            points(conflictedMatrix$mzFound, conflictedMatrix$intensity,type="h", col="red", lwd=3)
-			        }
+
 			    }
 			}
 			return(0)

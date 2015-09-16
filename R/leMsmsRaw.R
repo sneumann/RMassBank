@@ -359,12 +359,12 @@ findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtL
 #' @export
 findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE, MSe = FALSE){
 	
-	
-	
+	# Find mz
 	mzLimits <- findMz(cpdID, mode)
 	mz <- mzLimits$mzCenter
 	
-
+	
+	# If there are more files than cpdIDs
 	if(length(fileName) > 1){
 		fspectra <- list()
 		
@@ -374,7 +374,8 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 		
 		spectra <- toRMB(unlist(unlist(fspectra, FALSE),FALSE), cpdID, mode)
 		
-	} else if(length(cpdID) > 1){
+	} else if(length(cpdID) > 1){ # If there are more cpdIDs than files
+	
 		spectra <- findMsMsHRperxcms.direct(fileName, cpdID, mode=mode, findPeaksArgs = findPeaksArgs, plots = plots, MSe = MSe)
 		
 		P <- lapply(1:length(spectra), function(i){
@@ -387,7 +388,7 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 		})
 		return(P)
 		
-	} else {
+	} else { # There is a file for every cpdID
 		spectra <- toRMB(unlist(findMsMsHRperxcms.direct(fileName, cpdID, mode=mode, findPeaksArgs = NULL, plots = FALSE, MSe = FALSE),FALSE))
 	}
 	
@@ -406,15 +407,15 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 #' @export
 findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE, MSe = FALSE) {
 	
-	require(CAMERA)
-	require(xcms)
+	requireNamespace("CAMERA",quietly=TRUE)
+	requireNamespace("xcms",quietly=TRUE)
 	
 	##
 	## getRT function
 	##
 	
 	getRT <- function(xa) {
-		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
+		rt <- sapply(xa@pspectra, function(x) {median(xcms::peaks(xa@xcmsSet)[x, "rt"])})
 	}
 	
 	##
@@ -422,13 +423,13 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	##
 	
 	# Read file
-	suppressWarnings(xrmsms <- xcmsRaw(fileName, includeMSn=TRUE))
+	suppressWarnings(xrmsms <- xcms::xcmsRaw(fileName, includeMSn=TRUE))
 	
 	
 	# If file is not MSe, split by collision energy
 	if(MSe == FALSE){
 		# Also, fake MS1 from the MSn data
-		suppressWarnings(xrs <- split(msn2xcmsRaw(xrmsms), f = xrmsms@msnCollisionEnergy))
+		suppressWarnings(xrs <- split(xcms::msn2xcmsRaw(xrmsms), f = xrmsms@msnCollisionEnergy))
 	} else{
 		# Else, MSn data will already be in MS1
 		xrs <- list()
@@ -436,7 +437,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	}
 	
 	# Fake s simplistic xcmsSet
-	suppressWarnings(setReplicate <- xcmsSet(files=fileName, method="MS1"))
+	suppressWarnings(setReplicate <- xcms::xcmsSet(files=fileName, method="MS1"))
 	xsmsms <- as.list(replicate(length(xrs),setReplicate))
 	
 	mzabs <- 0.1
@@ -470,23 +471,23 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		# Go over every collision energy of the MS2
 		for(i in 1:length(xrs)){
 		
-			suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
+			suppressWarnings(capture.output(xcms::peaks(xsmsms[[i]]) <- do.call(xcms::findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
 			
-			if (nrow(peaks(xsmsms[[i]])) == 0) {
+			if (nrow(xcms::peaks(xsmsms[[i]])) == 0) {
 			  XCMSspectra[[i]] <- matrix(0,2,7)
 			  next
 			} else{	
 			
 				# Get the peaklist
-				pl <- peaks(xsmsms[[i]])[,c("mz", "rt"), drop=FALSE]
+				pl <- xcms::peaks(xsmsms[[i]])[,c("mz", "rt"), drop=FALSE]
 
 				# Find precursor peak within limits
 				candidates <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
 								& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
 				
 				# Annotate and group by FWHM (full width at half maximum)
-				capture.output(anmsms <- xsAnnotate(xsmsms[[i]]))
-				capture.output(anmsms <- groupFWHM(anmsms))
+				capture.output(anmsms <- CAMERA::xsAnnotate(xsmsms[[i]]))
+				capture.output(anmsms <- CAMERA::groupFWHM(anmsms))
 				
 				# If a candidate fulfills the condition, choose the closest and retrieve the index of those pesudospectra
 				if(length(candidates) > 0){
@@ -502,12 +503,12 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 				
 				# If the plot parameter was supplied, plot it
 				if((plots == TRUE) && (length(pspIndex) > 0)){
-					plotPsSpectrum(anmsms, pspIndex, log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
+					CAMERA::plotPsSpectrum(anmsms, pspIndex, log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
 				}
 				
 				# If there is a number of indexes, retrieve the pseudospectra
 				if(length(pspIndex) != 0){
-					XCMSspectra[[i]] <- getpspectra(anmsms, pspIndex)
+					XCMSspectra[[i]] <- CAMERA::getpspectra(anmsms, pspIndex)
 				} else {
 				# Else note the spectrum as missing
 					whichmissing <- c(whichmissing,i)
@@ -695,7 +696,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 				mz = pks[,"mz"],
 				intensity = pks[,"int"],
 				precScanNum = as.integer(1),
-				precursorMz = findMz(cpdID)[[3]],
+				precursorMz = findMz(cpdID)$mzCenter,
 				precursorIntensity = 0,
 				precursorCharge = as.integer(1),
 				collisionEnergy = 0,
@@ -707,14 +708,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		))
 	})
 	
-	msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
-	
-	parentPeak <- matrix(nrow = 1, ncol = 2)
-	colnames(parentPeak) <- c("mz","int")
-	parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
-
-				
-				
+	msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")			
 				
 	##Build the new objects
 	masterSpec <- new("Spectrum1",
@@ -761,78 +755,71 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 #' 		addPeaksManually(w, cpdID, handSpec)
 #' }
 #' @export
-addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
+addPeaksManually <- function(w, cpdID = NA, handSpec, mode = "pH"){
+
+			
+	if(is.na(cpdID)){
+			stop("Please supply the compoundID!")
+	}
 	
-	##Where do the peaks and the header need to be added?
-	pos <- sapply(w@specs,function(spec){cpdID == spec$id})
-	if(length(pos) == 0) pos <- FALSE
-	
-	childHeader <- matrix(0,1,20)
-	childHeader[,4] <- length(handSpec[,1])
-	childHeader[,5] <- 0
-	childHeader[,6] <- findRt(cpdID)$RT * 60
-	childHeader[,7] <- handSpec[which.max(handSpec[,"int"]),1]
-	childHeader[,8] <- max(handSpec)
-	childHeader[,10] <- 0
-	childHeader[,11] <- min(handSpec[,"mz"])
-	childHeader[,12] <- max(handSpec[,"mz"])
-	childHeader[,13] <- 1
-	childHeader[,14] <- findMz(cpdID)[[3]]
-	childHeader[,15] <- 1 ##Will be changed for different charges
-	childHeader[,16] <- 0 ##There sadly isn't any precursor intensity to find in the msms-scans. Workaround?
-	childHeader[,17:20] <- 0 ##Will be changed if merge is wanted
-	colnames(childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-										"mergedResultStartScanNum", "mergedResultEndScanNum")
-	
-	##If the compound for the cpdID isn't in specs yet, add a new spectrum
-	if(length(which(pos)) == 0){
-		pos <- length(w@specs) + 1
-		childHeader[,1:3] <- 2
-		w@specs[[pos]] <- list()
-		w@specs[[pos]]$foundOK <- 1
-		w@specs[[pos]]$parentscan <- 1
-		w@specs[[pos]]$parentHeader <- matrix(0, ncol = 20, nrow = 1)
-		rownames(w@specs[[pos]]$parentHeader) <- 1
-		colnames(w@specs[[pos]]$parentHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-									"mergedResultStartScanNum", "mergedResultEndScanNum")
-		w@specs[[pos]]$parentHeader[1,1:3] <- 1
-		w@specs[[pos]]$parentHeader[1,4:20] <- 0
-		w@specs[[pos]]$parentHeader[1,6] <- findRt(cpdID)$RT * 60
-		w@specs[[pos]]$parentHeader <- as.data.frame(w@specs[[pos]]$parentHeader)
-		w@specs[[pos]]$childScans <- 2
-		w@specs[[pos]]$childHeaders <- as.data.frame(childHeader)
-		w@specs[[pos]]$parentPeak <- matrix(nrow = 1, ncol = 2)
-		colnames(w@specs[[pos]]$parentPeak) <- c("mz","int")
-		w@specs[[pos]]$parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
-		w@specs[[pos]]$peaks <- list()
-		w@specs[[pos]]$peaks[[1]] <- handSpec
-		w@specs[[pos]]$mz <- findMz(cpdID,mode=mode)
-		w@specs[[pos]]$id <- cpdID
-		w@specs[[pos]]$formula <- findFormula(cpdID)
-		colnames(w@specs[[pos]]$childHeaders) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-										"mergedResultStartScanNum", "mergedResultEndScanNum")
-	} else { 
-			pos <- which(pos)
-			w@specs[[pos]]$childHeaders <- rbind(w@specs[[pos]]$childHeaders,childHeader)
-			w@specs[[pos]]$childHeaders[,1] <- 2:(nrow(w@specs[[pos]]$childHeaders)+1)
-			w@specs[[pos]]$childHeaders[,2] <- w@specs[[pos]]$childHeaders[,1]
-			w@specs[[pos]]$childScans <- c(w@specs[[pos]]$childScans,max(w@specs[[pos]]$childScans)+1)
-			w@specs[[pos]]$peaks[[length(w@specs[[pos]]$peaks)+1]] <- handSpec
-		}
+	# For the case that the cpdID turns up for the first time
+	# a new spectrumset needs to be created
+	if(!(cpdID %in% sapply(w@spectra,function(s) s@id))){
 		
-		return(w)
+		# Create fake MS1 spectrum
+		masterSpec <- new("Spectrum1",
+			mz = findMz(cpdID,mode=mode)$mzCenter,
+			intensity = 100,
+			polarity = as.integer(0),
+			peaksCount = as.integer(1),
+			rt = findRt(cpdID)$RT,
+			acquisitionNum = as.integer(1),
+			tic = 0,
+			centroided = TRUE
+		)
+		
+		# Create fake spectrumset
+		spectraSet <- new("RmbSpectraSet",
+			parent = masterSpec,
+			found = TRUE,
+			#complete = NA,
+			#empty = NA,
+			id = as.character(as.integer(cpdID)),
+			formula = findFormula(cpdID),
+			mz = findMz(cpdID,mode=mode)$mzCenter,
+			name = findName(cpdID),
+			mode = mode
+			#annotations = list()
+		)
+		
+		w@spectra[[length(w@spectra) + 1]] <- spectraSet
+	}
+	
+	specIndex <- which(cpdID == sapply(w@spectra, function(s) s@id))
+	
+	# New spectrum object
+	w@spectra[[specIndex]]@children[[length(w@spectra[[specIndex]]@children) + 1]] <- new("RmbSpectrum2",
+				mz = handSpec[,"mz"],
+				intensity = handSpec[,"int"],
+				precScanNum = as.integer(1),
+				precursorMz = findMz(cpdID)$mzCenter,
+				precursorIntensity = 0,
+				precursorCharge = as.integer(1),
+				collisionEnergy = 0,
+				tic = 0,
+				peaksCount = nrow(handSpec),
+				rt = findRt(cpdID)$RT,
+				acquisitionNum = as.integer(length(w@spectra[[specIndex]]@children) + 2),
+				centroided = TRUE)
+	return(w)
 }
 
+
 createSpecsFromPeaklists <- function(w, cpdIDs, filenames, mode="pH"){
-		for(j in 1:length(filenames)){
-			w <- addPeaksManually(w,cpdIDs[j],as.matrix(read.csv(filenames[j]), header=TRUE),mode)
-		}
+	for(j in 1:length(filenames)){
+		w <- addPeaksManually(w,cpdIDs[j],as.matrix(read.csv(filenames[j]), header=TRUE),mode)
+	}
+	
 	return(w)
 }
 

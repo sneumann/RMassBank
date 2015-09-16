@@ -33,7 +33,8 @@ Suggests:
     xcms (>= 1.37.1),
     CAMERA,
     ontoCAT,
-    RUnit
+    RUnit,
+	enviPat
 Collate:
 	'alternateAnalyze.R'
     'createMassBank.R'

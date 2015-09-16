@@ -83,14 +83,11 @@ analyzeMsMs.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
   if(method=="formula")
   {
     return(analyzeMsMs.formula.optimized(msmsPeaks, mode, detail, run, filterSettings,
-                               spectraList, fragData, fragDataIndex
-    ))
+                               spectraList, fragData, fragDataIndex))
   }
   else if(method == "intensity")
   {
-    return(analyzeMsMs.intensity(msmsPeaks, mode, detail, run, filterSettings,
-                                 spectraList
-    ))
+    return(analyzeMsMs.intensity(msmsPeaks, mode, detail, run, filterSettings))
   }
 }
 

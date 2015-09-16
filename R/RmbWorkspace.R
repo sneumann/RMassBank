@@ -354,14 +354,7 @@ setMethod("show", "msmsWorkspace",
 						
                         ## msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra
 						if(4 %in% progress){
-							cat("Peaks found after Step 4:\n")
-							dummy <- sapply(object@spectra, function(x) cat(" -", x@id, "\t found:", x@found, "\n"))
-							cat("Peaks found:\n")							
-							dummy4 <- sapply(object@spectra, function(x){ 
-																		cat(" -", x@id, "\t peaks:",
-																			sapply(x@children, function(s) s@peaksCount), "\n")
-																			return(sapply(x@children, function(s) s@peaksCount))
-																		})
+							cat("Peaks successfully recalibrated:\n")
 						}
 						
                         ## msmsWorkflow: Step 5. Reanalyze recalibrated spectra

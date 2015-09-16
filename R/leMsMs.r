@@ -1145,6 +1145,7 @@ processProblematicPeaks <- function(w, mode, archivename = NA)
 					,,drop=FALSE], peaksMatched(w), mode)
 	fp$OK <- rep('', nrow(fp))
 	fp$name <- rownames(fp)
+	
 	fp <- fp[with(fp, 
 					order(cpdID, mzCalc, scan)),
 	]
@@ -1367,10 +1368,10 @@ plotRecalibration.direct <- function(rcdata, rc, rc.ms1, title, mzrange,
 	if((length(unique(rcdata$mzFound))>1) & 
 			(length(unique(rcdata$recalfield))>1))
 	{
-		if(require(gplots))
+		if(requireNamespace("gplots",quietly=TRUE))
 		{
 			
-			hist2d(rcdata$mzFound, rcdata$recalfield, 
+			gplots::hist2d(rcdata$mzFound, rcdata$recalfield, 
 					col=c("white", heat.colors(12)), xlab="m/z", 
 					ylab = ylab.plot, main=paste(title, "density"))
 			lines(RcModelMz, RcModelRecal, col="blue")

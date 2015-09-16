@@ -141,8 +141,8 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(readMethod == "xcms"){
 		
 		##Load libraries
-		require(xcms)
-		require(CAMERA)
+		requireNamespace("xcms",quietly=TRUE)
+		requireNamespace("CAMERA",quietly=TRUE)
 		
 		##Find unique files and cpdIDs
 		ufiles <- unique(w@files)
@@ -204,15 +204,6 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		}
 		
 		w@files <- sapply(files,function(file){return(file[1])})
-		specnames <- basename(as.character(w@files))
-		if(length(unique(specnames)) == length(specnames)){
-			names(w@specs) <- basename(as.character(w@files))
-		} else {
-			for(i in 1:length(specnames)){
-				specnames[i] <- paste(i,"_",specnames[i],sep="")
-			}
-		}
-		names(w@specs) <- specnames
 		message("Peaks read")
 		return(w)
 	}
@@ -251,7 +242,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NULL, 
 							settings = getOption("RMassBank"), progressbar = "progressBarHook", plots = FALSE){
 	
-	require(xcms)
+	requireNamespace("xcms", quietly=TRUE)
 	
 	##xRAW will be coerced into a list of length 1 if it is an xcmsRaw-object
 	if(class(xRAW) == "xcmsRaw"){
@@ -275,7 +266,7 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 	#	stop(paste("No msn data in list elements", setdiff(1:length(xRAW),msnExist)))
 	#}
 	
-	require(CAMERA)
+	requireNamespace("CAMERA",quietly=TRUE)
 	
 	parentMass <- findMz(cpdids[1], mode=mode)$mzCenter
 	if(is.na(parentMass)){
@@ -289,7 +280,7 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
 	}
 	
-	suppressWarnings(setReplicate <- xcmsSet(files=xRAW[[1]]@filepath, method="MS1"))
+	suppressWarnings(setReplicate <- xcms::xcmsSet(files=xRAW[[1]]@filepath, method="MS1"))
 	xsmsms <- as.list(replicate(length(xRAW),setReplicate))
 	candidates <- list()
 	anmsms <- list()
@@ -298,20 +289,20 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 	whichmissing <- vector()
 	metaspec <- list()
 	for(i in 1:length(xRAW)){
-		devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xRAW[[i]]))))
+		devnull <- suppressWarnings(capture.output(xcms::peaks(xsmsms[[i]]) <- do.call(xcms::findPeaks,c(findPeaksArgs, object = xRAW[[i]]))))
 		
-		if (nrow(peaks(xsmsms[[i]])) == 0) { ##If there are no peaks
+		if (nrow(xcms::peaks(xsmsms[[i]])) == 0) { ##If there are no peaks
 			spectra[[i]] <- matrix(0,2,7)
 			next
 		} else{	
 			## Get pspec 
-			pl <- peaks(xsmsms[[i]])[,c("mz", "rt"), drop=FALSE]
+			pl <- xcms::peaks(xsmsms[[i]])[,c("mz", "rt"), drop=FALSE]
 
 			## Best: find precursor peak
 			candidates[[i]] <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
 							& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
-			devnull <- capture.output(anmsms[[i]] <- xsAnnotate(xsmsms[[i]]))
-			devnull <- capture.output(anmsms[[i]] <- groupFWHM(anmsms[[i]]))
+			devnull <- capture.output(anmsms[[i]] <- CAMERA::xsAnnotate(xsmsms[[i]]))
+			devnull <- capture.output(anmsms[[i]] <- CAMERA::groupFWHM(anmsms[[i]]))
 
 				if(length(candidates[[i]]) > 0){
 				closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]))
@@ -325,10 +316,10 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 				## 3rd Best: find pspec closest to RT from spreadsheet
 				##psp <- which.min( abs(getRT(anmsms) - RT) )
 				if((plots == TRUE) && (length(psp[[i]]) > 0)){
-					plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdids[1])[[3]]), maxlabel=10)
+					CAMERA::plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdids[1])[[3]]), maxlabel=10)
 				}
 				if(length(psp[[i]]) != 0){
-					spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
+					spectra[[i]] <- CAMERA::getpspectra(anmsms[[i]], psp[[i]])
 				} else {whichmissing <- c(whichmissing,i)}
 			}
 		}

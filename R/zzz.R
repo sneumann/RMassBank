@@ -5,3 +5,5 @@
   mb <- list()
   attach(RMassBank.env)
 }
+
+utils::globalVariables(c("cpdID", "isotopes","mzCalc"))
