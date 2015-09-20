@@ -280,8 +280,6 @@ msmsRead.ticms2 <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
   }
 }
 
-
-#' @export
 findMsMsHR.ticms2.d <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
     ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
     mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,

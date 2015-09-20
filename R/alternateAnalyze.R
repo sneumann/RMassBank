@@ -91,8 +91,6 @@ analyzeMsMs.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
   }
 }
 
-
-#' @export
 analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
                                 filterSettings = getOption("RMassBank")$filterSettings,
                                 spectraList = getOption("RMassBank")$spectraList, fragData, fragDataIndex)
