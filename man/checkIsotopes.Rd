@@ -22,7 +22,7 @@ checkIsotopes(w, mode = "pH", intensity_cutoff = 5000,
 \item{conflict}{Either "isotopic"(Peak formulas are always chosen if they fit the requirements for an isotopic peak)
 or "strict"(Peaks are only marked as isotopic when there hasn't been a formula assigned before.)}
 
-\item{isolationWindow}{The isolation window in Da}
+\item{isolationWindow}{The width of the isolation window in Da}
 
 \item{evalMode}{Currently no function yet, but planned}
 
@@ -32,7 +32,7 @@ or "strict"(Peaks are only marked as isotopic when there hasn't been a formula a
 \code{\link{loadRmbSettings}} et al. Refer to there for specific settings.}
 }
 \value{
-The \code{msmsWorkspace} with .
+The \code{msmsWorkspace} with annotated isolation peaks
 }
 \description{
 Checks for isotopes in a \code{msmsWorkspace}
