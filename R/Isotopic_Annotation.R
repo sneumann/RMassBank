@@ -7,7 +7,7 @@
 #' @param intensity_precision The difference that is accepted between the calculated and observed intensity of a possible isotopic peak. Further details down below.
 #' @param conflict Either "isotopic"(Peak formulas are always chosen if they fit the requirements for an isotopic peak)
 #' 		  or "strict"(Peaks are only marked as isotopic when there hasn't been a formula assigned before.)
-#' @param isolationWindow The width of the isolation window in Da 
+#' @param isolationWindow Half of the width of the isolation window in Da 
 #' @param evalMode Currently no function yet, but planned
 #' @param plotSpectrum A boolean specifiying whether the spectrumshould be plotted
 #' @param settings Options to be used for processing. Defaults to the options loaded via
@@ -25,7 +25,7 @@
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @author Erik Mueller, UFZ
 #' @export
-checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_precision = "low", conflict = "dppm", 
+checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_precision = "low", conflict = "dppm", 
 							isolationWindow = 4, evalMode = "complete", plotSpectrum = TRUE, settings = getOption("RMassBank")){
 
 	# Load library and data
@@ -128,104 +128,35 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 			currentMPeaks <- matchedPeaks[(matchedPeaks$cpdID == id) & (matchedPeaks$scan == msmsdata@acquisitionNum),,drop=FALSE]
 			currentUPeaks <- unmatchedPeaks[(unmatchedPeaks$cpdID == id) & (unmatchedPeaks$scan == msmsdata@acquisitionNum),,drop=FALSE]
 			
-			rownames(currentMPeaks) <- 1:nrow(currentMPeaks)
-			rownames(currentUPeaks) <- 1:nrow(currentUPeaks)
+			if(nrow(currentMPeaks)){
+				rownames(currentMPeaks) <- 1:nrow(currentMPeaks)
+			} else {
+				message(paste0("Compound ", id, " in spectrum #", specEnv$specNum," does not have matched peaks, so no isotopes can be found"))
+				if(plotSpectrum){
+					plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), col="black", xlab="m/z", ylab="intensity", lwd=3)
+				}
+				return(0)
+			}
+			
+			if(nrow(currentUPeaks)){
+				rownames(currentUPeaks) <- 1:nrow(currentUPeaks)
+			}
 			
 			# Generate isotopic patterns of the matched peaks
-			# Sort pattern by abundance
-			isoMPatterns <- lapply(currentMPeaks$formula, function(formula){
-				# Find pattern
-				pattern <- as.data.frame(enviPat::isopattern(formula, isotopes = isotopes)[[1]])
-				mass <- findMz.formula(formula,"")$mzCenter
-				
-				# Find index of nonisotopic molecule and
-				# normalize abundance that nonisotopic molecule has always "1"
-				mainIndex <- which.min(abs(pattern[,"m/z"]-mass))
-				pattern[,"abundance"] <- round(pattern[,"abundance"] * (100/pattern[mainIndex,"abundance"]),3)
-				
-				# Find all isotope atom names (only in colnames of patterns, sadly)
-				isoCols <- colnames(pattern)[3:ncol(pattern)]
-				
-				# Order the formulas to be in Hill system:
-				# First the Cs, then the Hs, then lexicographical
-				# First: Split isotope names so that there only are atoms
-				# Find position of C and H
-				
-				splitNames <- gsub('^([0-9]+)(.+)$', '\\2', isoCols)
-				CHPos <- c(which(splitNames == "C"),which(splitNames == "H"))
-				
-				# Account for special case: No Cs or Hs
-				if(length(CHPos)){
-					# If there are Cs and Hs, overwrite the positions so the always get sorted to the front
-					splitNames[CHPos] <- ""
-				}
-				
-				# Default isotopes are always first in the colnames, so no need to order internally between isotopes
-				atomOrder <- order(splitNames)
-				
-				# If there are Cs and Hs, the order must be preserved
-				if(length(CHPos)){
-					atomOrder[1:length(CHPos)] <- CHPos
-				}
-				# else it is already ordered
-				
-				# Mark new names for formula creation.
-				newnames <- unname(sapply(isoCols, function(currentCol){
-					if(currentCol %in% defIsotopes){
-						# "Default" isotope (no isotope mass in formula, e.g. "C")
-						return(gsub('^(.{0})([0-9]+)(.+)$', '\\3', currentCol))
-					}else{
-						# Other isotopes (isotope mass in formula, e.g. "[13]C")
-						return(gsub('^(.{0})([0-9]+)(.+)$', '\\1[\\2]\\3', currentCol))
-					}
-				}))
-				
-				# Generate the formula for every pattern
-				pattern$formula <- apply(pattern,1,function(p){
-					paste0(sapply(atomOrder+2,function(isoIndex){
-						if(p[isoIndex] == 0){ 
-							return("")
-						}
-						if(p[isoIndex] == 1){
-							return(newnames[isoIndex-2])
-						}
-						return(paste0(newnames[isoIndex-2],p[isoIndex]))
-					}),collapse="")
-				})
-				pattern <- pattern[order(pattern[,"abundance"],decreasing = T),][-mainIndex,]
-			})
+			# sort out possible isotopic peaks according to
+			# isolationwindow and intensity
+			isoMPatterns <- apply(currentMPeaks, 1, .findPattern, defIsotopes = defIsotopes, intensity_cutoff = intensity_cutoff, 
+									precisionVal = precisionVal, ppmlimit = ppmlimit, isolationWindow = isolationWindow)
 			
+			# Name the isopatterns
 			names(isoMPatterns) <- currentMPeaks$formula
 			
-			
-			# Order patterns by abundance and make sure that the normal abundance is at 100%
-			
-			# Calculate the expected intensities according to the abundance
-			# See which expected isotope peaks have an intensity higher than the cutoff
-			
-			for(foundAnnotation in 1:nrow(currentMPeaks)){
-				intensities <- vector()
-				
-				for(pattern in 1:nrow(isoMPatterns[[foundAnnotation]])){
-					intensities[pattern]  <- currentMPeaks$int[foundAnnotation] * isoMPatterns[[foundAnnotation]]$abundance[pattern]/100
-				}
-				
-				roundedInt <- round(intensities,digits=-2)
-				keepIndex <- which(roundedInt >= intensity_cutoff)
-				isoMPatterns[[foundAnnotation]] <- isoMPatterns[[foundAnnotation]][keepIndex,,drop=FALSE]
-				if(nrow(isoMPatterns[[foundAnnotation]])){
-					isoMPatterns[[foundAnnotation]]$minintensity <- roundedInt[keepIndex] - roundedInt[keepIndex] * precisionVal
-					isoMPatterns[[foundAnnotation]]$maxintensity <- roundedInt[keepIndex] + roundedInt[keepIndex] * precisionVal
-					# Calculate the expected mz range of the isotope peak
-					isoMPatterns[[foundAnnotation]] <- cbind(isoMPatterns[[foundAnnotation]],t(sapply(isoMPatterns[[foundAnnotation]][,"m/z"], ppm, dppm=ppmlimit,l=T)))
-				}
-			}
 			
 			# Which isotope patterns still have theoretical intensities above the cutoff?
 			peaksToCheck <- which(as.logical(sapply(isoMPatterns,nrow)))
 			
 			if(!length(peaksToCheck)){
-				warning(paste0("The peaks of compound ", id, " in spectrum #", specEnv$specNum," are not intense enough to search for isotopic peaks"))
+				message(paste0("The peaks of compound ", id, " in spectrum #", specEnv$specNum," are not intense enough to search for isotopic peaks"))
 				if(plotSpectrum){
 					plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), col="black", xlab="m/z", ylab="intensity", lwd=3)
 				}
@@ -233,114 +164,56 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 			}
 			
 			# Now, look for isotopic patterns in unmatched peaks with all specified parameters
-			if("add" %in% evalMode){
-				# Which peaks have no correct formula annotation as of now?
-				currentUPeaks <- currentUPeaks[which(is.na(currentUPeaks$dppm) | abs(currentUPeaks$dppmBest) > ppmlimit/2.25),]
+
+			# Which peaks have no formula annotation within the dppm as of now?
+			peaksNoAnnotation <- currentUPeaks[which(is.na(currentUPeaks$dppm) | abs(currentUPeaks$dppmBest) > ppmlimit/2.25),]
+			
+			# If there are any peaks without annotation:
+			if(nrow(peaksNoAnnotation)){
+				UPList <- .findMatchingPeaks(peaksNoAnnotation,isoMPatterns[peaksToCheck])
+			} else{
+				# If there are no peaks, fake an empty dataset
+				UPList <- list(list(data.frame(dummy=character())),list(data.frame(dummy=character())))
 				
-				# If there are any peaks without annotation:
-				if(nrow(currentUPeaks)){
-					j <- 1
-					UPList <- list()
-					# Iterate over all patterns that have relevant intensities
-					for(i in peaksToCheck){
-						UPList[[j]] <- list()
-						# Iterate over every isotopic permutation that is still in the pattern
-						for(k in 1:nrow(isoMPatterns[[i]])){
-							# Find peaks that fit the specified intensities and m/z
-							pIndex <- which(currentUPeaks[,"mzFound"] < isoMPatterns[[i]][k,"1"] & currentUPeaks[,"mzFound"] > isoMPatterns[[i]][k,"2"]
-													& currentUPeaks[,"intensity"] < isoMPatterns[[i]][k,"maxintensity"] & currentUPeaks[,"intensity"] > isoMPatterns[[i]][k,"minintensity"]
-												)
-							# Note these Peaks
-							UPList[[j]][[k]] <- currentUPeaks[pIndex,]
-							# If there are any: Change parameters in the aggregated matrix
-							if(nrow(UPList[[j]][[k]])){ 
-								UPList[[j]][[k]]$dppm <- (currentUPeaks[pIndex,]$mzFound / isoMPatterns[[i]][k,"m/z"] - 1) * 1e6
-								UPList[[j]][[k]]$mzCalc <- isoMPatterns[[i]][k,"m/z"]
-								UPList[[j]][[k]]$formula <- isoMPatterns[[i]][k,"formula"]
-								UPList[[j]][[k]]$matchedReanalysis <- NA
-								UPList[[j]][[k]]$filterOK <- TRUE
-								UPList[[j]][[k]]$good <- TRUE
-								UPList[[j]][[k]]$dppmBest <- UPList[[j]][[k]]$dppm
-								UPList[[j]][[k]]$formulaCount <- 1
-							}
-						}
-						j <- j + 1
-					}
-				} else{
-					# If there are no peaks, fake an empty dataset
-					UPList <- list(list(data.frame()),list(data.frame()))
-				}
-				
-				
-				additionMatrix <- do.call(rbind, unlist(UPList,recursive=FALSE))
+			}
+			
+			# Generate matrix of peaks that should be added
+			additionMatrix <- .peakReasoner(UPList, currentMPeaks)
+			
+			# If conflict is "strict", end here
+			if(conflict == "strict"){
 				if(nrow(additionMatrix)){
-					# Add all the peaks that could be annotated as isotopic
 					wEnv$w@aggregated[additionMatrix$index,] <- additionMatrix
 				}
 				
-				# If conflict is "strict", end here
-				if(conflict == "strict"){
-					if(plotSpectrum){
-						plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), col="black", xlab="m/z", ylab="intensity", lwd=3)
-						if(nrow(additionMatrix)){
-							points(additionMatrix$mzFound, additionMatrix$intensity,type="h", col="green", lwd=3)
-						}
+				if(plotSpectrum){
+					plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), col="black", xlab="m/z", ylab="intensity", lwd=3)
+					if(nrow(additionMatrix)){
+						points(additionMatrix$mzFound, additionMatrix$intensity,type="h", col="green", lwd=3)
+						# Add all the peaks that could be annotated as isotopic
+						wEnv$w@aggregated[additionMatrix$index,] <- additionMatrix
 					}
-					return(0)
 				}
+				return(0)
 			}
 			
 			
-			# Now check the matched peaks for the patterns
-			j <- 1
-			MPList <- list()
-			for(i in peaksToCheck){
-				MPList[[j]] <- list()
-				for(k in 1:nrow(isoMPatterns[[i]])){
-					pIndex <- which(currentMPeaks[,"mzFound"] < isoMPatterns[[i]][k,"1"] & currentMPeaks[,"mzFound"] > isoMPatterns[[i]][k,"2"]
-											& currentMPeaks[,"intensity"] < isoMPatterns[[i]][k,"maxintensity"] & currentMPeaks[,"intensity"] > isoMPatterns[[i]][k,"minintensity"]
-											& currentMPeaks[,"filterOK"])
-					MPList[[j]][[k]] <- currentMPeaks[pIndex,]
-
-					if(nrow(MPList[[j]][[k]])){ 
-						MPList[[j]][[k]]$dppm <- (currentMPeaks[pIndex,]$mzFound / isoMPatterns[[i]][k,"m/z"] - 1) * 1e6
-						MPList[[j]][[k]]$mzCalc <- isoMPatterns[[i]][k,"m/z"]
-						MPList[[j]][[k]]$formula <- isoMPatterns[[i]][k,"formula"]
-						MPList[[j]][[k]]$matchedReanalysis <- NA
-						MPList[[j]][[k]]$filterOK <- TRUE
-						MPList[[j]][[k]]$good <- TRUE
-						MPList[[j]][[k]]$dppmBest <- MPList[[j]][[k]]$dppm
-						MPList[[j]][[k]]$formulaCount <- 1
-					}
-				}
-				j <- j + 1
-			}
+			# Now check the matched peaks for the patterns and put all peaks in a matrix
+			MPList <- .findMatchingPeaks(currentMPeaks[currentMPeaks$filterOK,], isoMPatterns[peaksToCheck])
 			
-			# Peakindices of peaksToCheck where no isotopes have been found in Unmatched Peaks
+			# Generate matrix of peaks that should be corrected
+			correctionMatrix <- .peakReasoner(MPList, currentMPeaks)
+		
+			IsoPeaksMindex   <- which(sapply(MPList, function(x) any(sapply(x,nrow))))
+			noIsoPeaksMindex <- which(!sapply(MPList, function(x) any(sapply(x,nrow))))
+			IsoPeaksUindex   <- which(sapply(UPList, function(x) any(sapply(x,nrow))))
 			noIsoPeaksUindex <- which(!sapply(UPList, function(x) any(sapply(x,nrow))))
 			
-			# Peakindices of peaksToCheck where isotopes have been found in Unmatched Peaks
-			IsoPeaksUindex <- setdiff(1:length(peaksToCheck),noIsoPeaksUindex)
-			
-			# Peakindices of peaksToCheck where no isotopes have been found in Matched Peaks
-			noIsoPeaksMindex <- which(!sapply(MPList, function(x) any(sapply(x,nrow))))
-			
-			# Peakindices of peaksToCheck where isotopes have been found in Matched Peaks
-			IsoPeaksMindex <- setdiff(1:length(peaksToCheck),noIsoPeaksMindex)
-			
-			if("add" %in% evalMode && conflict=="isotopic"){
-			    correctionMatrix <- do.call(rbind, unlist(MPList,recursive=FALSE))
-			    correctionMatrix <- correctionMatrix[order(abs(correctionMatrix$dppm)),]
-			    for(ind in unique(correctionMatrix$index)){
-			        if(length(which(correctionMatrix$index==ind))>1){
-			            correctionMatrix <- correctionMatrix[-which(correctionMatrix$index==ind)[-1],]
-			        }
-			    }
-			    
+			if(conflict=="isotopic"){
 			    if(nrow(correctionMatrix)){
 			        
 			        # Peaks that are changed but also seem to have isotopes themselves
-			        confPeaksIndex <- which(correctionMatrix$index %in% currentMPeaks[peaksToCheck[IsoPeaksMindex],"index"])
+			        confPeaksIndex <- which(correctionMatrix$index %in% currentMPeaks$index[peaksToCheck[IsoPeaksMindex]])
 			        conflictedMatrix <- correctionMatrix[confPeaksIndex,,drop=FALSE]
 			        
 			        if(length(confPeaksIndex)){
@@ -371,15 +244,33 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 			}
 			
 			if("check" %in% evalMode){
-			    # Matched Peaks where no isotopes have been found
-			    noIsoPeaksMatrix <- currentMPeaks[peaksToCheck[noIsoPeaksMindex[which(noIsoPeaksMindex %in% noIsoPeaksUindex)]],]
-			    
-			    # Matched Peaks where no isotopes have been found and which haven't been marked as isotopic themselves
-			    noIsoPeaksMatrix <- noIsoPeaksMatrix[which(!grepl("[",wEnv$w@aggregated$formula[noIsoPeaksMatrix$index],fixed=TRUE)),]
+
 			    if(plotSpectrum){
-			        plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), col="black", xlab="m/z", ylab="intensity", lwd=3)
+			        plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), xlim=c(min(currentMPeaks$mzFound), max(currentMPeaks$mzFound)), col="black", xlab="m/z", ylab="intensity", lwd=3)
 			    }
 			    
+				indexList <- lapply(unique(currentMPeaks$mzFound[peaksToCheck]),function(mz){
+					which(currentMPeaks$mzFound[peaksToCheck] == mz)
+				})
+				
+				# Matched Peaks where no isotopes have been found
+				hasNoIsoIndex <- unlist(sapply(indexList,function(indices){
+					if(any(IsoPeaksMindex %in% indices) || any(IsoPeaksUindex %in% indices)){
+						return(vector())
+					} else{
+						return(currentMPeaks$index[peaksToCheck[indices]])
+					}
+				}))
+				
+				# Matched Peaks which should have isotopes and are no isotopes themselves
+				isNoIsoIndex <- currentMPeaks$index[peaksToCheck[
+					which(!(currentMPeaks$mzFound[peaksToCheck] %in% additionMatrix$mzFound) | !(currentMPeaks$mzFound[peaksToCheck] %in% correctionMatrix$mzFound))
+				]]
+				
+				noIsoPeaksMatrix <- wEnv$w@aggregated[intersect(hasNoIsoIndex,isNoIsoIndex),]
+				
+				
+				
 			    if(nrow(noIsoPeaksMatrix)){
 			        wEnv$w@aggregated[noIsoPeaksMatrix$index,]$good <- FALSE
 			        wEnv$w@aggregated[noIsoPeaksMatrix$index,]$filterOK <- FALSE
@@ -407,4 +298,198 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 5000, intensity_pre
 		})
 	})
 	return(w)
+}
+
+# Pattern finding and evaluation of these patterns inside the checkIsotopes function harmed readability and complicated debugging
+# So modularize this function
+.findPattern <- function(aggregateRow, defIsotopes, intensity_cutoff, precisionVal, ppmlimit, isolationWindow){
+	
+	# Find pattern
+	capture.output(pattern <- as.data.frame(enviPat::isopattern(aggregateRow["formula"], isotopes = isotopes)[[1]]))
+	mass <- findMz.formula(as.character(aggregateRow["formula"]),"")$mzCenter
+	
+	# Find index of monoisotopic molecule and
+	# normalize abundance that monoisotopic molecule has always "1"
+	mainIndex <- which.min(abs(pattern[,"m/z"]-mass))
+	pattern[,"abundance"] <- round(pattern[,"abundance"] * (100/pattern[mainIndex,"abundance"]),3)
+	
+	# Find all isotope atom names (only in colnames of patterns, sadly)
+	isoCols <- colnames(pattern)[3:ncol(pattern)]
+	
+	# Order the formulas to be in Hill system:
+	# First the Cs, then the Hs, then lexicographical
+	# First: Split isotope names so that there only are atoms
+	# Find position of C and H
+	splitNames <- gsub('^([0-9]+)(.+)$', '\\2', isoCols)
+	CHPos <- c(which(splitNames == "C"),which(splitNames == "H"))
+	
+	# Account for special case: No Cs or Hs
+	if(length(CHPos)){
+		# If there are Cs and Hs, overwrite the positions so they always get sorted to the front
+		splitNames[CHPos] <- ""
+	}
+	
+	# Default isotopes are always first in the colnames, so no need to order internally between isotopes
+	atomOrder <- order(splitNames)
+	
+	# If there are Cs and Hs, the order must be preserved
+	if(length(CHPos)){
+		atomOrder[1:length(CHPos)] <- CHPos
+	}
+	# else it is already ordered
+	
+	# Mark new names for formula creation.
+	newnames <- unname(sapply(isoCols, function(currentCol){
+		if(currentCol %in% defIsotopes){
+			# "Default" isotope (no isotope mass in formula, e.g. "C")
+			return(gsub('^(.{0})([0-9]+)(.+)$', '\\3', currentCol))
+		}else{
+			# Other isotopes (isotope mass in formula, e.g. "[13]C")
+			return(gsub('^(.{0})([0-9]+)(.+)$', '\\1[\\2]\\3', currentCol))
+		}
+	}))
+	
+	# Generate the formula for every pattern
+	pattern$formula <- apply(pattern,1,function(p){
+		paste0(sapply(atomOrder+2,function(isoIndex){
+			if(p[isoIndex] == 0){ 
+				return("")
+			}
+			if(p[isoIndex] == 1){
+				return(newnames[isoIndex-2])
+			}
+			return(paste0(newnames[isoIndex-2],p[isoIndex]))
+		}),collapse="")
+	})
+	
+	# Sort pattern by abundance
+	pattern <- pattern[order(pattern[,"abundance"],decreasing = T),][-mainIndex,]
+	
+	# Look up which patterns have their m/z inside the isolation window +- 0.5
+	# and delete all others 
+	keepMzIndex <- which(pattern[,"m/z"] < mass + isolationWindow + 0.2 & pattern[,"m/z"] > mass - isolationWindow - 0.2)
+	pattern <- pattern[keepMzIndex,,drop=FALSE]
+	if(nrow(pattern) == 0){
+		return(pattern)
+	}
+	
+	# Calculate the expected intensities according to the abundance
+	# See which expected isotope peaks have an intensity higher than the cutoff
+	
+	# Find the absolute intensity ranges
+	intensities <- apply(pattern, 1, function(patternRow){
+		as.numeric(aggregateRow["intensity"]) * as.numeric(patternRow["abundance"])/100
+	})
+	
+	roundedInt <- round(intensities,digits=-2)
+	keepIntIndex <- which(roundedInt >= intensity_cutoff)
+	pattern <- pattern[keepIntIndex,,drop=FALSE]
+	if(nrow(pattern)){
+		pattern$minintensity <- roundedInt[keepIntIndex] - roundedInt[keepIntIndex] * precisionVal
+		pattern$maxintensity <- roundedInt[keepIntIndex] + roundedInt[keepIntIndex] * precisionVal
+		
+		# Calculate the expected mz range of the isotope peak
+		mzCols <- t(sapply(pattern[,"m/z"], ppm, dppm=ppmlimit/2.25,l=T))
+		colnames(mzCols) <- c("maxMZ","minMZ")
+		pattern <- cbind(pattern,mzCols)
+	}
+	
+	return(pattern)
+}
+
+.findMatchingPeaks <- function(aggregatedPeakMatrix, isoPatterns){
+	# Only unique mzs (peaks can be annotated multiple times and will therefore be included multiple times)
+	# It doesn't matter which one, so take the first
+	aggregatedPeakMatrix <- aggregatedPeakMatrix[sapply(unique(aggregatedPeakMatrix$mzFound), function(mz){
+		which(aggregatedPeakMatrix$mzFound == mz)[1]
+	}),]
+	
+	# Iterate over all supplied patterns
+	lapply(isoPatterns, function(pattern){
+		x <- list()
+		for(r in 1:nrow(pattern)){}
+		
+		apply(pattern, 1, function(patternRow){
+			# Find peaks that fit the specified intensities and m/z
+			pIndex <- which(aggregatedPeakMatrix[,"mzFound"] < as.numeric(patternRow["maxMZ"])
+									& aggregatedPeakMatrix[,"mzFound"] > as.numeric(patternRow["minMZ"])
+									& aggregatedPeakMatrix[,"intensity"] < as.numeric(patternRow["maxintensity"])
+									& aggregatedPeakMatrix[,"intensity"] > as.numeric(patternRow["minintensity"])
+			)
+			
+			# Note these Peaks
+			candidates <- aggregatedPeakMatrix[pIndex,]
+			# If there are any: Change parameters in the aggregated matrix
+			if(nrow(candidates)){
+				candidates$dppm <- (candidates$mzFound /  as.numeric(patternRow["m/z"]) - 1) * 1e6
+				candidates$mzCalc <-  as.numeric(patternRow["m/z"])
+				candidates$formula <-  patternRow["formula"]
+				candidates$matchedReanalysis <- NA
+				candidates$filterOK <- TRUE
+				candidates$good <- TRUE
+				candidates$dppmBest <- candidates$dppm
+				candidates$formulaCount <- 1
+			}
+			return(candidates)
+		})
+	})
+}
+
+.peakReasoner <- function(adjustmentList, aggregatedPeakMatrix){
+				
+	adjustmentMatrix <- do.call(rbind, unlist(adjustmentList,recursive=FALSE))
+	
+	if(!as.logical(nrow(adjustmentMatrix))){
+		return(adjustmentMatrix)
+	}
+	
+	# Peaks can turn up multiple times, take the one that actually fits the "base" formula,
+	# i.e. that of the peak that is actually written into the record
+	
+	# For each possible parent peak: Find out which peaks have possible children
+	# and how many, group these peaks (by adding a column to the adjustmentMatrix)
+	# Note: Grouping happens here, because we also need to split the peaks by mz
+	summaryList <- lapply(adjustmentList, function(x) sapply(x,nrow))
+	groupLengths <- unlist(lapply(summaryList, function(entry){
+		if(all(entry == 0)) return(vector()) else return(length(which(entry > 0)))
+	}))
+	adjustmentMatrix$group <- unlist(lapply(1:length(groupLengths),function(i) rep(i,groupLengths[i])))
+	
+	# Technically, you only need to look at one peak in each group and can adjust the rest alongside
+	# Since we only want to check if the parent formula is currently passed through
+	groupAdjustmentMatrix <- adjustmentMatrix[sapply(1:length(groupLengths),function(i) which(adjustmentMatrix$group == i)[1]),]
+	
+	# Extract the parent formulas of the isotopic formula groups
+	parentFormulas <- names(groupLengths)
+	
+	# Find out which of the possible found isotopes formulas are competing (by checking which have the same mz)
+	indexList <- lapply(unique(groupAdjustmentMatrix$mzFound),function(mz){
+		which(groupAdjustmentMatrix$mzFound == mz)
+	})
+	
+	# For every set of indices, find the parent formula in the aggregated matrix
+	return(do.call(rbind, lapply(indexList, function(indices){
+		# All peaks which fit the parent formulas
+		cutAggregateMatrix <- aggregatedPeakMatrix[which(aggregatedPeakMatrix$formula %in% parentFormulas[indices]),,drop=FALSE]
+		correctParentIndex <- which(cutAggregateMatrix$filterOK == TRUE)
+		if(length(correctParentIndex)){
+			# If there is a Peak that will be passed and fits one of the parent formulas, take that Peak and all belonging to that group
+			# Also, drop the group column
+			correctGroup <- groupAdjustmentMatrix$group[indices[correctParentIndex]]
+			returnMatrix <- adjustmentMatrix[which(adjustmentMatrix$group == correctGroup),-25,drop=FALSE]
+			return(returnMatrix)
+		} else{
+			# Else calculate the Peak-isotope relationship with the lowest average dppm
+			# And correct the Peak that currently has filterOK to not have it
+			correctParentIndex <- which.min((abs(cutAggregateMatrix$dppm) + abs(adjustmentMatrix[indices,]$dppm))/2)
+			correctionLine <- aggregatedPeakMatrix[which(aggregatedPeakMatrix$mzFound == groupAdjustmentMatrix$mzFound[indices[1]] & aggregatedPeakMatrix$filterOK),,drop=FALSE]
+			correctionLine$filterOK <- FALSE
+			correctGroup <- groupAdjustmentMatrix$group[indices[correctParentIndex]]
+			returnMatrix <- adjustmentMatrix[which(adjustmentMatrix$group == correctGroup),-25,drop=FALSE]
+			return(rbind(
+				returnMatrix,
+				correctionLine
+			))
+		}
+	})))
 }
