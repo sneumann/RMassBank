@@ -19,8 +19,8 @@
 #' @export
 validate <- function(path, simple = TRUE) {
 
-        requireNamespace("ontoCAT",quietly=TRUE)
-		requireNamespace("RUnit",quietly=TRUE)
+    requireNamespace("ontoCAT",quietly=TRUE)
+	requireNamespace("RUnit",quietly=TRUE)
 
 	# Is the argument a directory?
 	# If yes, list the files
@@ -216,7 +216,12 @@ smiles2mass <- function(SMILES){
 		package="RMassBank"), testFileRegexp = "runit.DA.R",
 					#testFuncRegexp = "^test.+",
 					rngKind = "Marsaglia-Multicarry",
-					rngNormalKind = "Kinderman-Ramage")			
+					rngNormalKind = "Kinderman-Ramage")
+	testSuite3 <- RUnit::defineTestSuite("Evaluation of correct handling ig no peaks are found", dirs = system.file("unitTests", 
+		package="RMassBank"), testFileRegexp = "runit.NOPEAKS.R",
+					#testFuncRegexp = "^test.+",
+					rngKind = "Marsaglia-Multicarry",
+					rngNormalKind = "Kinderman-Ramage")	
 	testData <- suppressWarnings(RUnit::runTestSuite(testSuite))
 	testData2 <- suppressWarnings(RUnit::runTestSuite(testSuite2))
 	

@@ -1104,8 +1104,12 @@ cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
 {
   # find spectrum maximum for each peak, and merge into table
-  assIntMax <- as.data.frame(aggregate(peaks_matched$intensity, 
+  if(nrow(peaks_matched) == 0){
+	assIntMax <- data.frame(list(integer(0),integer(0),integer(0)))
+  } else{
+	assIntMax <- as.data.frame(aggregate(peaks_matched$intensity, 
         by=list(peaks_matched$cpdID, peaks_matched$scan), max))
+  }
   colnames(assIntMax) <- c("cpdID", "scan", "aMax")
   peaks_unmatched <- merge(peaks_unmatched, assIntMax)
   # which of these peaks are intense?
@@ -1818,8 +1822,12 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	
 	if(!is.data.frame(peaks) || (nrow(peaks) == 0) )
 	{
-		warning("filterPeaksMultiplicity: All peaks have been filtered.")
 		peaks <- cbind(peaks, data.frame(formulaMultiplicity=numeric()))
+		if(recalcBest){
+			warning("filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point.")
+			peaks$fM_factor <- as.factor(peaks$formulaMultiplicity)
+			return(peaks)
+		}
 	}
 	else
 	{
@@ -1960,7 +1968,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 #' @examples
 #' \dontrun{
 #'     refilteredRcSpecs <- filterMultiplicity(
-#' 			reanalyzedRcSpecs, "myarchive", "pH")
+#' 			w, "myarchive", "pH")
 #' }
 #' @export
 filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
@@ -1972,7 +1980,7 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
     if(is.null(multiplicityFilter))
       multiplicityFilter <- 2
   
-  specs <- w@aggregated
+    specs <- w@aggregated
     
     peaksFiltered <- filterPeaksMultiplicity(peaksMatched(specs),
                                                         "formula", recalcBest)
@@ -1998,7 +2006,11 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 	
 	specs <- addProperty(specs, "filterOK", "logical", FALSE)
 	
-	specs[specs$formulaMultiplicity > (multiplicityFilter - 1),"filterOK"] <- TRUE
+	OKindex <- which(specs$formulaMultiplicity > (multiplicityFilter - 1))
+	
+	if(length(OKindex)){
+		specs[OKindex,"filterOK"] <- TRUE
+	}
 	
 	peaksReanOK <- specs[
 			specs$filterOK & !is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE]
@@ -2009,7 +2021,10 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
     peaksReanBad <- peaksReanOK[
 			!((peaksReanOK$mzFound < peaksReanOK$mzCenter - 1) |
 			(peaksReanOK$mzFound > peaksReanOK$mzCenter + 1)),]
-    specs[match(peaksReanBad$index, specs$index),"filterOK"] <- FALSE
+	notOKindex <- match(peaksReanBad$index, specs$index)
+	if(length(notOKindex)){
+		specs[notOKindex,"filterOK"] <- FALSE
+	}
     
 	
 	return(specs)

@@ -8,7 +8,7 @@
 #' @param conflict Either "isotopic"(Peak formulas are always chosen if they fit the requirements for an isotopic peak)
 #' 		  or "strict"(Peaks are only marked as isotopic when there hasn't been a formula assigned before.)
 #' @param isolationWindow Half of the width of the isolation window in Da 
-#' @param evalMode Currently no function yet, but planned
+#' @param evalMode Currently no function yet, but planned. Currently must be "complete"
 #' @param plotSpectrum A boolean specifiying whether the spectrumshould be plotted
 #' @param settings Options to be used for processing. Defaults to the options loaded via
 #' 			\code{\link{loadRmbSettings}} et al. Refer to there for specific settings.

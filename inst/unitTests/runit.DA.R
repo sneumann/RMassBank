@@ -26,5 +26,5 @@ test.mzRRead <- function(){
 		}
 
 	}
-	checkTrue(allOK)
+	RUnit::checkTrue(allOK)
 }
