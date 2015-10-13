@@ -599,19 +599,13 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 		headerMS1$mzMin <- mzlimits[[1]] + predict(floatingRecalibration, headerMS1$retentionTime)
 		headerMS1$mzMax <- mzlimits[[2]] + predict(floatingRecalibration, headerMS1$retentionTime)
 	}
-	intensity <- unlist(lapply(1:nrow(headerMS1), function(row)
-# <<<<<<< HEAD
-					# {
-						# peaktable <- pks[[row]]
-# =======
-					{
+	intensity <- unlist(lapply(1:nrow(headerMS1), function(row){
 						peaktable <- pks[[row]]
-#>>>>>>> origin/refactoring
 						sum(peaktable[
-										which((peaktable[,1] >= headerMS1[row,"mzMin"]) & (peaktable[,1] <= headerMS1[row,"mzMax"])),
-										2])
+							which((peaktable[,1] >= headerMS1[row,"mzMin"]) & (peaktable[,1] <= headerMS1[row,"mzMax"])),2
+						])
 						
-					}))
+	}))
 	return(data.frame(rt = headerMS1$retentionTime, intensity=intensity, scan=headerMS1$acquisitionNum))
 }
 
