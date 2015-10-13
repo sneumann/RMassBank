@@ -217,17 +217,19 @@ smiles2mass <- function(SMILES){
 					#testFuncRegexp = "^test.+",
 					rngKind = "Marsaglia-Multicarry",
 					rngNormalKind = "Kinderman-Ramage")
-	testSuite3 <- RUnit::defineTestSuite("Evaluation of correct handling ig no peaks are found", dirs = system.file("unitTests", 
+	testSuite3 <- RUnit::defineTestSuite("Evaluation of correct handling if no peaks are found", dirs = system.file("unitTests", 
 		package="RMassBank"), testFileRegexp = "runit.NOPEAKS.R",
 					#testFuncRegexp = "^test.+",
 					rngKind = "Marsaglia-Multicarry",
 					rngNormalKind = "Kinderman-Ramage")	
 	testData <- suppressWarnings(RUnit::runTestSuite(testSuite))
 	testData2 <- suppressWarnings(RUnit::runTestSuite(testSuite2))
+	testData3 <- suppressWarnings(RUnit::runTestSuite(testSuite3))
 	
 	file.remove(c("pH_narcotics_Failpeaks.csv","pH_narcotics.RData","pH_narcotics_RA.RData","pH_narcotics_RF.RData"))
 	RUnit::printTextProtocol(testData)
 	RUnit::printTextProtocol(testData2)
+	RUnit::printTextProtocol(testData3)
 	setwd(oldwd)
 	return(testData)
 }
