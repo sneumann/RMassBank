@@ -366,18 +366,10 @@ setMethod("show", "msmsWorkspace",
 												sapply(x@children, function(s) length(which(s@good))), "\n")
 										return(sapply(x@children, function(s) length(which(s@good))))
 									})
-															
-							whichok <- which(sapply(dummy4,length) != 0)
-							anyok <- whichok[1]
 							
-							nrowd4 <- nrow(dummy4)
-							if(is.null(nrowd4)) 
-							nrowd4 <- 1
+							dummy5 <- matrix(unlist(dummy5), ncol = nrowd1, byrow = TRUE)
 							
-							dummy5 <- matrix(unlist(dummy5), ncol = nrowd4, byrow = TRUE)
-							dummy4 <- matrix(unlist(dummy4), ncol = nrowd4, byrow = TRUE)
-							
-							PeakMat <- dummy4-dummy5
+							PeakMat <- dummy1-dummy5
 							
 							tempids <- ids[whichok]
 							cat("Peaks without annotation in reanalyzed recalibrated peaks:\n")
