@@ -380,9 +380,9 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 		
 		P <- lapply(1:length(spectra), function(i){
 			sp <- toRMB(spectra[[i]], cpdID[i], mode)
-			sp@id <- as.character(as.integer(cpdID))
-			sp@name <- findName(cpdID)
-			sp@formula <- findFormula(cpdID)
+			sp@id <- as.character(as.integer(cpdID[i]))
+			sp@name <- findName(cpdID[i])
+			sp@formula <- findFormula(cpdID[i])
 			sp@mode <- mode
 			return(sp)
 		})
@@ -436,17 +436,11 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 		xrs[[1]] <- xrmsms
 	}
 	
-	# Fake s simplistic xcmsSet
+	# Fake a simplistic xcmsSet
 	suppressWarnings(setReplicate <- xcms::xcmsSet(files=fileName, method="MS1"))
 	xsmsms <- as.list(replicate(length(xrs),setReplicate))
 	
-	mzabs <- 0.1
-	
-	# Where is the wanted isolation ?
-	# precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
-
-
-	
+	mzabs <- 0.1	
 
 	# Definitions
 	whichmissing <- vector()

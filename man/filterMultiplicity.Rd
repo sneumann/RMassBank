@@ -56,7 +56,7 @@ for further processing with \code{\link{mbWorkflow}}.
 \examples{
 \dontrun{
     refilteredRcSpecs <- filterMultiplicity(
-			reanalyzedRcSpecs, "myarchive", "pH")
+			w, "myarchive", "pH")
 }
 }
 \author{

@@ -4,7 +4,7 @@
 \alias{checkIsotopes}
 \title{Checks for isotopes in a \code{msmsWorkspace}}
 \usage{
-checkIsotopes(w, mode = "pH", intensity_cutoff = 5000,
+checkIsotopes(w, mode = "pH", intensity_cutoff = 1000,
   intensity_precision = "low", conflict = "dppm", isolationWindow = 4,
   evalMode = "complete", plotSpectrum = TRUE,
   settings = getOption("RMassBank"))
@@ -22,9 +22,9 @@ checkIsotopes(w, mode = "pH", intensity_cutoff = 5000,
 \item{conflict}{Either "isotopic"(Peak formulas are always chosen if they fit the requirements for an isotopic peak)
 or "strict"(Peaks are only marked as isotopic when there hasn't been a formula assigned before.)}
 
-\item{isolationWindow}{The width of the isolation window in Da}
+\item{isolationWindow}{Half of the width of the isolation window in Da}
 
-\item{evalMode}{Currently no function yet, but planned}
+\item{evalMode}{Currently no function yet, but planned. Currently must be "complete"}
 
 \item{plotSpectrum}{A boolean specifiying whether the spectrumshould be plotted}
 

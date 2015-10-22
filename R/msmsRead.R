@@ -304,35 +304,51 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 			devnull <- capture.output(anmsms[[i]] <- CAMERA::xsAnnotate(xsmsms[[i]]))
 			devnull <- capture.output(anmsms[[i]] <- CAMERA::groupFWHM(anmsms[[i]]))
 
-				if(length(candidates[[i]]) > 0){
+			if(length(candidates[[i]]) > 0){
 				closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]))
 				psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
-				} else{psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )}
-				## Now find the pspec for compound       
+			} else{
+				psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )
+			}
+			## Now find the pspec for compound       
 
-				## 2nd best: Spectrum closest to MS1
-				##psp <- which.min( abs(getRT(anmsms) - actualRT))
+			## 2nd best: Spectrum closest to MS1
+			##psp <- which.min( abs(getRT(anmsms) - actualRT))
 
-				## 3rd Best: find pspec closest to RT from spreadsheet
-				##psp <- which.min( abs(getRT(anmsms) - RT) )
-				if((plots == TRUE) && (length(psp[[i]]) > 0)){
-					CAMERA::plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdids[1])[[3]]), maxlabel=10)
-				}
-				if(length(psp[[i]]) != 0){
-					spectra[[i]] <- CAMERA::getpspectra(anmsms[[i]], psp[[i]])
-				} else {whichmissing <- c(whichmissing,i)}
+			## 3rd Best: find pspec closest to RT from spreadsheet
+			##psp <- which.min( abs(getRT(anmsms) - RT) )
+			if((plots == TRUE) && (length(psp[[i]]) > 0)){
+				CAMERA::plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdids[1])[[3]]), maxlabel=10)
+			}
+			if(length(psp[[i]]) != 0){
+				spectra[[i]] <- CAMERA::getpspectra(anmsms[[i]], psp[[i]])
+			} else {
+				whichmissing <- c(whichmissing,i)
 			}
 		}
-		if(length(spectra) != 0){
-			for(i in whichmissing){
-				spectra[[i]] <- matrix(0,2,7)
-			}
+	}
+	if(length(spectra) != 0){
+		for(i in whichmissing){
+			spectra[[i]] <- matrix(0,2,7)
 		}
-		
-	if(length(w@specs) != 0){
-		w@specs <- c(w@specs,list(toRMB(spectra,cpdids[1],mode)))
-	} else {
-		w@specs[[1]] <- toRMB(spectra,cpdids[1],mode)
+	}
+	
+	sp <- toRMB(spectra,cpdids,"mH")
+	sp@id <- as.character(as.integer(cpdids))
+	sp@name <- findName(cpdids)
+	sp@formula <- findFormula(cpdids)
+	sp@mode <- mode
+
+	if(length(w@spectra) != 0){
+		IDindex <- sapply(w@spectra,function(s) s@id == cpdids)
+		if(length(IDindex)){
+			spectraNum <- length(w@spectra[[which(IDindex)]]@children)
+			w@spectra[[which(IDindex)]]@children[[spectraNum+1]] <- sp@children[[1]]
+		} else {
+			w@spectra[[length(www@spectra)+1]] <- sp
+		}
+	} else{
+		w@spectra[[1]] <- sp
 	}
 	
 	if(all(w@files != xRAW[[1]]@filepath)){
@@ -346,6 +362,7 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 			}
 		}
 	}
-	names(w@specs)[length(w@specs)] <- basename(w@files[length(w@files)])
+	
 	return(w)
 }
+
