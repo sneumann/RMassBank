@@ -1824,7 +1824,9 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	{
 		peaks <- cbind(peaks, data.frame(formulaMultiplicity=numeric()))
 		if(recalcBest){
-			warning("filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point.")
+			if(formulacol == formula){
+				warning("filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point.")
+			}
 			peaks$fM_factor <- as.factor(peaks$formulaMultiplicity)
 			return(peaks)
 		}
