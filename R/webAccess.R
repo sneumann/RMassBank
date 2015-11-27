@@ -352,7 +352,27 @@ getPcCHEBI <- function(query, from = "inchikey")
 	}
 }
 
-##This fucntion uses the chemspider-interface to collect the CSID
+#' Retrieve the Chemspider ID for a given compound
+#' 
+#' Given an InChIKey, this function queries the chemspider web API to retrieve
+#' the Chemspider ID of he compound with that InChIkey. 
+#'
+#' @usage getCSID(query)
+#'
+#' @param query The InChIKey of the compound 
+#' @return Returns the chemspide
+#' 
+#' @examples 
+#' 
+#' \dontrun{
+#' # Return all CAS registry numbers stored for benzene.
+#' data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
+#' cas <- CTS.externalIdSubset(data, "CAS")
+#' } 
+#' 
+#' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
+#' @author Erik Mueller, UFZ <erik.mueller@@ufz.de>
+#' @export
 getCSID <- function(query)
 {
 	baseURL <- "http://www.chemspider.com/InChI.asmx/InChIKeyToCSID?inchi_key="

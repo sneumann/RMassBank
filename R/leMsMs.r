@@ -427,7 +427,7 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 }
 
 
-#' @describeIn analyzeMsMs
+#' @describeIn analyzeMsMs Analyze the peaks using formula annotation
 #' @export
 analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 			filterSettings = getOption("RMassBank")$filterSettings)
@@ -753,7 +753,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 }
 
 
-#' @describeIn analyzeMsMs
+#' @describeIn analyzeMsMs Analyze the peaks going only by intensity values
 #' @export
 analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 		filterSettings = getOption("RMassBank")$filterSettings)

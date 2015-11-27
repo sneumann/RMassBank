@@ -153,7 +153,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 	return(sp)
 }
 
-#' @describeIn findMsMsHR
+#' @describeIn findMsMsHR A submethod of find MsMsHR that retrieves basic spectrum data 
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
 		headerCache = NULL, fillPrecursorScan = FALSE,
@@ -403,7 +403,7 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 	return(sp)
 }
 
-#' @describeIn findMsMsHRperxcms
+#' @describeIn findMsMsHRperxcms A submethod of findMsMsHrperxcms that retrieves basic spectrum data
 #' @export
 findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE, MSe = FALSE) {
 	

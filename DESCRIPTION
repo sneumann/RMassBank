@@ -24,25 +24,27 @@ Description: Workflow to process tandem MS files and build MassBank records.
 License: Artistic-2.0
 SystemRequirements: OpenBabel
 biocViews: Bioinformatics, MassSpectrometry, Metabolomics, Software
-Depends: Rcpp
+Depends:
+    Rcpp
 Encoding: UTF-8
 Imports:
-    XML,RCurl,rjson, rcdk,yaml,mzR,methods,Biobase,MSnbase,S4Vectors
+    XML,RCurl,rjson,
+    rcdk,yaml,mzR,methods,Biobase,MSnbase,S4Vectors
 Suggests:
     gplots,RMassBankData,
     xcms (>= 1.37.1),
     CAMERA,
     ontoCAT,
     RUnit,
-	enviPat
+    enviPat
 Collate:
-	'alternateAnalyze.R'
+    'alternateAnalyze.R'
     'createMassBank.R'
     'formulaCalculator.R'
     'leCsvAccess.R'
     'leMsMs.r'
     'leMsmsRaw.R'
-	'msmsRawExtensions.r'
+    'msmsRawExtensions.r'
     'settings_example.R'
     'webAccess.R'
     'deprofile.R'
@@ -56,6 +58,6 @@ Collate:
     'validateMassBank.R'
     'tools.R'
     'msmsRead.R'
-	'Isotopic_Annotation.R'
-	'zzz.R'
-    
+    'Isotopic_Annotation.R'
+    'zzz.R'
+RoxygenNote: 5.0.1

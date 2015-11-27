@@ -7,17 +7,17 @@
 #' 
 #' @author stravsmi
 #' @export
-setGeneric("peaksMatched", function(o) standardGeneric("peaksMatched"))
+setGeneric("peaksMatched", function(o){ standardGeneric("peaksMatched")})
 
 #' @export
-#' @describeIn peaksMatched
+#' @describeIn peaksMatched A method to retrieve the matched peaks from the "aggregated" slot (a data.frame object) in an msmsWorkSpace
 setMethod("peaksMatched", c("data.frame"), function(o)
 		{
 			o[o$good,,drop=FALSE]
 		})
 
 #' @export
-#' @describeIn peaksMatched
+#' @describeIn peaksMatched A method to retrieve the matched peaks from an msmsWorkSpace
 setMethod("peaksMatched", c("msmsWorkspace"), function(o) peaksMatched(o@aggregated))
 
 #' Select matching/unmatching peaks from aggregate table
@@ -32,7 +32,7 @@ setMethod("peaksMatched", c("msmsWorkspace"), function(o) peaksMatched(o@aggrega
 setGeneric("peaksUnmatched", function(o, cleaned=FALSE) standardGeneric("peaksUnmatched"))
 
 #' @export
-#' @describeIn peaksUnmatched
+#' @describeIn peaksUnmatched A method to retrieve the unmatched peaks from the "aggregated" slot (a data.frame object) in an msmsWorkSpace
 setMethod("peaksUnmatched", c("data.frame"), function(o, cleaned=FALSE)
 		{
 			if(cleaned)
@@ -46,7 +46,7 @@ setMethod("peaksUnmatched", c("data.frame"), function(o, cleaned=FALSE)
 		})
 
 #' @export
-#' @describeIn peaksUnmatched
+#' @describeIn peaksUnmatched A method to retrieve the unmatched peaks from an msmsWorkSpace
 setMethod("peaksUnmatched", c("msmsWorkspace"), function(o, cleaned=FALSE) peaksUnmatched(o@aggregated, cleaned))
 
 #' Select peaks from aggregate table
@@ -69,7 +69,7 @@ setMethod("peaksUnmatched", c("msmsWorkspace"), function(o, cleaned=FALSE) peaks
 setGeneric("selectPeaks", function(o, ...) standardGeneric("selectPeaks"))
 
 #' @export
-#' @describeIn selectPeaks
+#' @describeIn selectPeaks A method to retrieve the specified peaks from the "aggregated" slot (a data.frame object) in an msmsWorkSpace
 setMethod("selectPeaks", c("data.frame"), function(o, good=FALSE, bad=FALSE, cleaned=FALSE, best=FALSE)
 		{
 			if(!("noise" %in% colnames(o)))
@@ -84,7 +84,7 @@ setMethod("selectPeaks", c("data.frame"), function(o, good=FALSE, bad=FALSE, cle
 		})
 
 #' @export
-#' @describeIn selectPeaks
+#' @describeIn selectPeaks A method to retrieve the specified peaks from an msmsWorkSpace
 setMethod("selectPeaks", c("msmsWorkspace"), function(o, ...) selectPeaks(o@aggregated, ...))
 
 #' Add and initialize dataframe column
@@ -104,7 +104,7 @@ setMethod("selectPeaks", c("msmsWorkspace"), function(o, ...) selectPeaks(o@aggr
 setGeneric("addProperty", function(o, name, type, value=NA) standardGeneric("addProperty"))
 
 #' @export
-#' @describeIn addProperty
+#' @describeIn addProperty Add a new column to a data.frame
 setMethod("addProperty", c("data.frame", "character", "character", "ANY"), function(o, name, type, value=NA)
 		{
 			o[,name] <- as(rep(value, nrow(o)), type)

@@ -17,7 +17,7 @@
 setGeneric("checkSpectra", function(s, property) standardGeneric("checkSpectra"))
 
 # .checkSpectra.RmbSpectraSet <-
-#' @describeIn checkSpectra
+#' @describeIn checkSpectra 
 #' @export
 setMethod("checkSpectra", c("RmbSpectraSet", "character"), function(s, property)
 		{
@@ -48,7 +48,7 @@ setGeneric("selectSpectra",  def = function(s, property, value="logical") standa
 	signature = c("s", "property"))
 
 # .selectSpectra.RmbSpectraSetList <- 
-#' @describeIn selectSpectra
+#' @describeIn selectSpectra A method for selecting spectra from a spectra set list
 #' @export
 setMethod("selectSpectra", c("RmbSpectraSetList", "character"), function(s, property, value="logical")
 		{
@@ -64,7 +64,7 @@ setMethod("selectSpectra", c("RmbSpectraSetList", "character"), function(s, prop
 		})
 
 # .selectSpectra.msmsWorkspace <- 
-#' @describeIn selectSpectra
+#' @describeIn selectSpectra A method for selecting spectra from an msmsWorkspace
 #' @export
 setMethod("selectSpectra", c("msmsWorkspace", "character"), function(s, property, value="logical") 
 			selectSpectra(s@spectra, property, value))
@@ -83,7 +83,7 @@ setMethod("selectSpectra", c("msmsWorkspace", "character"), function(s, property
 setGeneric("spectraCount", function(s) standardGeneric("spectraCount"))
 
 # .spectraCount.RmbSpectraSet <-
-#' @describeIn spectraCount
+#' @describeIn spectraCount Counts the number of acquired spectra for an RmbSpectraSet
 #' @export
 setMethod("spectraCount", c("RmbSpectraSet"), function(s)
 		{
@@ -91,7 +91,7 @@ setMethod("spectraCount", c("RmbSpectraSet"), function(s)
 		})
 
 # .spectraCount.RmbSpectraSetList <- 
-#' @describeIn spectraCount
+#' @describeIn spectraCount Counts the number of acquired spectra for an RmbSpectraSetList
 #' @export
 setMethod("spectraCount", c("RmbSpectraSetList"), function(s)
 		{
@@ -100,7 +100,7 @@ setMethod("spectraCount", c("RmbSpectraSetList"), function(s)
 
 
 # .spectraCount.msmsWorkspace <-
-#' @describeIn spectraCount
+#' @describeIn spectraCount Counts the number of acquired spectra for an msmsWorkSpace
 #' @export
 setMethod("spectraCount", c("msmsWorkspace"), function(s) 
 			spectraCount(s@spectra))
