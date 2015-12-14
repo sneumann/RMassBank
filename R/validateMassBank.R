@@ -19,8 +19,8 @@
 #' @export
 validate <- function(path, simple = TRUE) {
 
-        require(ontoCAT)
-		require(RUnit)
+    requireNamespace("ontoCAT",quietly=TRUE)
+	requireNamespace("RUnit",quietly=TRUE)
 
 	# Is the argument a directory?
 	# If yes, list the files
@@ -38,12 +38,12 @@ validate <- function(path, simple = TRUE) {
 	tests <- list()
 	for(i in 1:length(RMassBank.env$mb)){
 		if(RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS2" || RMassBank.env$mb[[i]]@compiled_ok[[1]][['AC$MASS_SPECTROMETRY']][['MS_TYPE']] == "MS"){
-		tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "runit.MS2.test.R",
+		tests[[i]] <- RUnit::defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "runit.MS2.test.R",
                 #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
 		} else{
-			tests[[i]] <- defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "^runit.MSn.test.[rR]$",
+			tests[[i]] <- RUnit::defineTestSuite(Files[i], dirs = system.file(package="RMassBank", "validationTests"), testFileRegexp = "^runit.MSn.test.[rR]$",
                 #testFuncRegexp = "^test.+",
                 rngKind = "Marsaglia-Multicarry",
                 rngNormalKind = "Kinderman-Ramage")
@@ -51,9 +51,9 @@ validate <- function(path, simple = TRUE) {
 	}
 	print("Starting Tests")
 	# Testing the list of Testsuites
-	testData <- suppressWarnings(runTestSuite(tests,verbose=0))
+	testData <- suppressWarnings(RUnit::runTestSuite(tests,verbose=0))
 	# Prints the HTML-record
-	printHTMLProtocol(testData, fileName = paste0(getwd(),"/report.html"))
+	RUnit::printHTMLProtocol(testData, fileName = paste0(getwd(),"/report.html"))
 	if(simple){
 		fileConnection <- file(paste0(getwd(),"/report.html"), open = "r")
 		htmlFile <- readLines(fileConnection)
@@ -96,8 +96,8 @@ validate <- function(path, simple = TRUE) {
 	# getOntology() has a problem with reading relative Windows paths(it wants an URI),
 	# so the path has to be made absolute
 	# I reckon this should work under Linux without doing that
-	ont <- getOntology(normalizePath(filename))
-	if(is.null(getOntologyAccession(ont))){
+	ont <- ontoCAT::getOntology(normalizePath(filename))
+	if(is.null(ontoCAT::getOntologyAccession(ont))){
 		return(FALSE)
 	}
 	return(TRUE)
@@ -143,11 +143,11 @@ validate <- function(path, simple = TRUE) {
 
 # This is a list of the possible instrument names 
 .getInstruments <- function(){
-	Onto <- getOntology(system.file(package = "RMassBank", "psi-ms.obo"))
-	instrumentTerms <- getAllTermChildrenById(Onto,"MS_1000031")
+	Onto <- ontoCAT::getOntology(system.file(package = "RMassBank", "psi-ms.obo"))
+	instrumentTerms <- ontoCAT::getAllTermChildrenById(Onto,"MS_1000031")
 	instruments <- vector()	
 	for(i in 1:length(instrumentTerms)){
-		instruments[i] <- getLabel(instrumentTerms[[i]])
+		instruments[i] <- ontoCAT::getLabel(instrumentTerms[[i]])
 	}
 	return(instruments)
 }
@@ -176,41 +176,115 @@ smiles2mass <- function(SMILES){
 }
 
 .unitTestRMB <- function(WD=getwd()){
-	require(RUnit)
-	library(RMassBank)
-	library(RMassBankData)
+	requireNamespace("RUnit",quietly=TRUE)
+	requireNamespace("RMassBankData",quietly=TRUE)
 	oldwd <- getwd()
 	setwd(WD)
 	w <- newMsmsWorkspace()
 	RmbDefaultSettings()
 	files <- list.files(system.file("spectra", package="RMassBankData"),
 		 ".mzML", full.names = TRUE)
-	basename(files)
-	# To make the workflow faster here, we use only 2 compounds:
 	w@files <- files
 	loadList(system.file("list/NarcoticsDataset.csv", 
 		package="RMassBankData"))
 	w <- msmsWorkflow(w, mode="pH", steps=c(1:4), archivename = 
 					"pH_narcotics")
+	storedW <- loadMsmsWorkspace(system.file("results/pH_narcotics_RF.RData", 
+					package="RMassBankData"))
+	storedW <- msmsWorkflow(storedW, mode="pH", steps=4)
+	w@rc <- storedW@rc
+	w@rc.ms1 <- storedW@rc.ms1
+	w <- msmsWorkflow(w, mode="pH", steps=4, archivename = 
+	"pH_narcotics", newRecalibration = FALSE)
 	w <- msmsWorkflow(w, mode="pH", steps=c(5:8), archivename = 
 			"pH_narcotics")	
-	w2 <- newMbWorkspace(w)
-	#w2 <- mbWorkflow(w2)
-	#w2 <- loadInfolist(w2, "infolist.csv")
-	#w2 <- mbWorkflow(w2)
+	mb <- newMbWorkspace(w)
+	mb <- resetInfolists(mb)
+	mb <- loadInfolists(mb, system.file("infolists_incomplete",
+			package="RMassBankData"))
+	mb <- mbWorkflow(mb, infolist_path="./Narcotics_infolist.csv")
+	mb <- resetInfolists(mb)
+	mb <- loadInfolists(mb, system.file("infolists", package="RMassBankData"))
+	mb <- mbWorkflow(mb)
 	
-	testSuite <- defineTestSuite("Electronic noise and formula calculation Test", dirs = system.file("unitTests", 
+	testSuite <- RUnit::defineTestSuite("Electronic noise and formula calculation Test", dirs = system.file("unitTests", 
 		package="RMassBank"), testFileRegexp = "runit.EN_FC.R",
 					#testFuncRegexp = "^test.+",
 					rngKind = "Marsaglia-Multicarry",
 					rngNormalKind = "Kinderman-Ramage")
-					
-	testData <- suppressWarnings(runTestSuite(testSuite))
+	testSuite2 <- RUnit::defineTestSuite("Evaluation of data acquisition process", dirs = system.file("unitTests", 
+		package="RMassBank"), testFileRegexp = "runit.DA.R",
+					#testFuncRegexp = "^test.+",
+					rngKind = "Marsaglia-Multicarry",
+					rngNormalKind = "Kinderman-Ramage")
+	testSuite3 <- RUnit::defineTestSuite("Evaluation of correct handling if no peaks are found", dirs = system.file("unitTests", 
+		package="RMassBank"), testFileRegexp = "runit.NOPEAKS.R",
+					#testFuncRegexp = "^test.+",
+					rngKind = "Marsaglia-Multicarry",
+					rngNormalKind = "Kinderman-Ramage")	
+	testData <- suppressWarnings(RUnit::runTestSuite(testSuite))
+	testData2 <- suppressWarnings(RUnit::runTestSuite(testSuite2))
+	testData3 <- suppressWarnings(RUnit::runTestSuite(testSuite3))
 	
 	file.remove(c("pH_narcotics_Failpeaks.csv","pH_narcotics.RData","pH_narcotics_RA.RData","pH_narcotics_RF.RData"))
+	RUnit::printTextProtocol(testData)
+	RUnit::printTextProtocol(testData2)
+	RUnit::printTextProtocol(testData3)
+	setwd(oldwd)
+	return(testData)
+}
+
+.unitTestRMB2 <- function(WD=getwd()){
+	requireNamespace("RUnit",quietly=TRUE)
+	requireNamespace("RMassBankData",quietly=TRUE)
+	oldwd <- getwd()
+	setwd(WD)
+	w <- newMsmsWorkspace()
+	RmbDefaultSettings()
+	files <- list.files(system.file("spectra", package="RMassBankData"),
+		 ".mzML", full.names = TRUE)
+	w@files <- files
+	loadList(system.file("list/NarcoticsDataset.csv", 
+		package="RMassBankData"))
+	w <- msmsWorkflow(w, mode="pH", steps=c(1), archivename = 
+					"pH_narcotics")
+	w <- newStep2WorkFlow(w, mode="pH", analyzeMethod="formula")
+		w <- msmsWorkflow(w, mode="pH", steps=c(3:4), archivename = 
+					"pH_narcotics")
+	storedW <- loadMsmsWorkspace(system.file("results/pH_narcotics_RF.RData", 
+					package="RMassBankData"))
+	storedW <- msmsWorkflow(storedW, mode="pH", steps=4)
+	w@rc <- storedW@rc
+	w@rc.ms1 <- storedW@rc.ms1
+	w <- msmsWorkflow(w, mode="pH", steps=4, archivename = 
+	"pH_narcotics", newRecalibration = FALSE)
+	w <- msmsWorkflow(w, mode="pH", steps=c(5:8), archivename = 
+			"pH_narcotics")	
+	mb <- newMbWorkspace(w)
+	mb <- resetInfolists(mb)
+	mb <- loadInfolists(mb, system.file("infolists_incomplete",
+			package="RMassBankData"))
+	mb <- mbWorkflow(mb, infolist_path="./Narcotics_infolist.csv")
+	mb <- resetInfolists(mb)
+	mb <- loadInfolists(mb, system.file("infolists", package="RMassBankData"))
+	mb <- mbWorkflow(mb)
 	
-	# Prints the HTML-record
-	printTextProtocol(testData)
+	testSuite <- RUnit::defineTestSuite("Electronic noise and formula calculation Test", dirs = system.file("unitTests", 
+		package="RMassBank"), testFileRegexp = "runit.EN_FC.R",
+					#testFuncRegexp = "^test.+",
+					rngKind = "Marsaglia-Multicarry",
+					rngNormalKind = "Kinderman-Ramage")
+	testSuite2 <- RUnit::defineTestSuite("Evaluation of data acquisition process", dirs = system.file("unitTests", 
+		package="RMassBank"), testFileRegexp = "runit.DA.R",
+					#testFuncRegexp = "^test.+",
+					rngKind = "Marsaglia-Multicarry",
+					rngNormalKind = "Kinderman-Ramage")			
+	testData <- suppressWarnings(RUnit::runTestSuite(testSuite))
+	testData2 <- suppressWarnings(RUnit::runTestSuite(testSuite2))
+	
+	file.remove(c("pH_narcotics_Failpeaks.csv","pH_narcotics.RData","pH_narcotics_RA.RData","pH_narcotics_RF.RData"))
+	RUnit::printTextProtocol(testData)
+	RUnit::printTextProtocol(testData2)
 	setwd(oldwd)
 	return(testData)
 }

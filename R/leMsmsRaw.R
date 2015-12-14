@@ -1,8 +1,8 @@
 ## For generating the NAMESPACE
 #' @import mzR
-# # importClassesFrom mzR ## Causes error 
-# # importMethodsFrom mzR 
-#' @import Rcpp ## Was not in manually written NAMESPACE ?
+
+#' @import Rcpp 
+## Was not in manually written NAMESPACE ?
 #' @import RCurl 
 #' @import XML 
 #' @import methods 
@@ -11,6 +11,10 @@
 #' @import rjson 
 #' @import yaml 
 NULL # This is required so that roxygen knows where the first manpage starts
+
+
+# # importClassesFrom mzR ## Causes error 
+# # importMethodsFrom mzR 
 
 #' Extract MS/MS spectra for specified precursor
 #' 
@@ -24,29 +28,29 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 		is a low-level function which uses the mass directly for lookup and is intended for
 #' 		use as a standalone function in unrelated applications.
 #' 
-#' @usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
-#' 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
-#' 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
-#' 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
-#' 		rtMargin = getOption("RMassBank")$rtMargin,
-#' 		deprofile = getOption("RMassBank")$deprofile)
-#' 		
-#' 		findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-#' 		headerCache = NULL, fillPrecursorScan = FALSE,
-#' 		deprofile = getOption("RMassBank")$deprofile)
-#'
-#' findMsMsHR.direct(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
-#'			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
-#'			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
-#'			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
-#'			rtMargin = getOption("RMassBank")$rtMargin,
-#'			deprofile = getOption("RMassBank")$deprofile, headerCache = NULL)
+#' @note \code{findMsMs.direct} is deactivated
 #' 
-#' @aliases findMsMsHR.mass findMsMsHR.direct findMsMsHR
+## # @usage findMsMsHR(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
+## # 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+## # 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+## # 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+## # 		rtMargin = getOption("RMassBank")$rtMargin,
+## # 		deprofile = getOption("RMassBank")$deprofile,
+## # 		headerCache = NULL,
+## # 		peaksCache = NULL)
+## # 		
+## # findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
+## # 		headerCache = NULL, fillPrecursorScan = FALSE,
+## # 		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA)
+#' 
+#' 
+#' @aliases findMsMsHR.mass findMsMsHR
 #' @param fileName The file to open and search the MS2 spectrum in.
-#' @param msRaw The opened raw file (mzR file handle) to search the MS2 spectrum in.
+#' @param msRaw The opened raw file (mzR file handle) to search the MS2 spectrum in. Specify either this
+#' 			or \code{fileName}.
 #' @param cpdID The compound ID in the compound list (see \code{\link{loadList}})
-#' 			to use for formula lookup.
+#' 			to use for formula lookup. Note: In \\code{findMsMsHR.mass}, this is entirely optional and
+#' 			used only in case a warning must be displayed; compound lookup is done via mass only. 
 #' @param mz The mass to use for spectrum search.
 #' @param ppmFine The limit in ppm to use for fine limit (see below) calculation.
 #' @param mzCoarse The coarse limit to use for locating potential MS2 scans:
@@ -70,6 +74,8 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' 			this value is useful if spectra for multiple compounds should be 
 #' 			extracted from the same mzML file, since it avoids getting the data
 #' 			freshly from \code{msRaw} for every compound.
+#' @param peaksCache If present, the complete output of \code{mzR::peaks(msRaw)}. This speeds up the lookup
+#' 			if multiple compounds should be searched in the same file.
 #' @param maxCount The maximal number of spectra groups to return. One spectra group
 #' 			consists of all data-dependent scans from the same precursor whose precursor
 #' 			mass matches the specified search mass.
@@ -78,27 +84,19 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' @param rtMargin	The retention time tolerance to use.
 #' @param deprofile	Whether deprofiling should take place, and what method should be
 #' 			used (cf. \code{\link{deprofile}}) 
-#' @return	For \code{findMsMsHR} and \code{findMsMsHR.direct}: A "spectrum set", a list with items:
-#' 			\item{foundOK}{\code{TRUE} if a spectrum was found, \code{FALSE} otherwise.
-#' 				Note: if \code{FALSE}, all other values can be missing!}
-#' 			\item{parentScan}{The scan number of the precursor scan.}
-#' 			\item{parentHeader}{The header row of the parent scan, as returned by 
-#' 				\code{mzR::header}.}
-#' 			\item{childScans}{The scan numbers of the data-dependent MS2 scans.}
-#' 			\item{childHeaders}{The header rows of the MS2 scan, as returned by
-#' 				\code{mzR::header}.}
-#' 			\item{parentPeak}{The MS1 precursor spectrum as a 2-column matrix}
-#' 			\item{peaks}{A list of  2-column \code{mz, int} matrices of the MS2 scans.}
-#' 			For \code{findMsMsHR.mass}: a list of "spectrum sets" as defined above, sorted
+#' @return	An \code{RmbSpectraSet} (for \code{findMsMsHR}). Contains parent MS1 spectrum (\code{@@parent}), a block of dependent MS2 spectra ((\code{@@children})
+#' 			and some metadata (\code{id},\code{mz},\code{name},\code{mode} in which the spectrum was acquired.
+#' 
+#' 			For \code{findMsMsHR.mass}: a list of \code{RmbSpectraSet}s as defined above, sorted
 #' 			by decreasing precursor intensity.
 #' 
 #' @examples \dontrun{
 #' 			loadList("mycompoundlist.csv")
 #' 			# if Atrazine has compound ID 1:
-#' 			msms_atrazine <- findMsMsHR("Atrazine_0001_pos.mzML", 1, "pH")
+#' 			msms_atrazine <- findMsMsHR(fileName = "Atrazine_0001_pos.mzML", cpdID = 1, mode = "pH")
 #' 			# Or alternatively:
 #' 			msRaw <- openMSfile("Atrazine_0001_pos.mzML")
-#' 			msms_atrazine <- findMsMsHR.direct(msRaw, 1, "pH")
+#' 			msms_atrazine <- findMsMsHR(msRaw=msRaw, cpdID = 1, mode = "pH")
 #' 			# Or directly by mass (this will return a list of spectra sets):
 #' 			mz <- findMz(1)$mzCenter
 #' 			msms_atrazine_all <- findMsMsHR.mass(msRaw, mz, 1, ppm(msRaw, 10, p=TRUE))
@@ -107,29 +105,62 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @seealso findEIC
 #' @export
-findMsMsHR <- function(fileName, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
+findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMode =0, useRtLimit = TRUE,
 		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
 		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
 		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
 		rtMargin = getOption("RMassBank")$rtMargin,
-		deprofile = getOption("RMassBank")$deprofile)
+		deprofile = getOption("RMassBank")$deprofile,
+		headerCache = NULL,
+		peaksCache = NULL)
 {
 	
 	# access data directly for finding the MS/MS data. This is done using
 	# mzR.
-	msRaw <- openMSfile(fileName)
-	ret <- findMsMsHR.direct(msRaw, cpdID, mode, confirmMode, useRtLimit, ppmFine, mzCoarse, fillPrecursorScan,
-			rtMargin, deprofile)
-	mzR::close(msRaw)
-	return(ret)
+	if(!is.null(fileName) & !is.null(msRaw))
+		stop("Both MS raw data and MS filename given. Only one can be handled at the same time.")
+	if(!is.null(fileName))
+		msRaw <- openMSfile(fileName)
+	
+	mzLimits <- findMz(cpdID, mode)
+	mz <- mzLimits$mzCenter
+	limit.fine <- ppm(mz, ppmFine, p=TRUE)
+	if(!useRtLimit)
+		rtLimits <- NA
+	else
+	{
+		dbRt <- findRt(cpdID)
+		rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
+	}
+	spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
+			,fillPrecursorScan, deprofile, peaksCache, cpdID)
+	# check whether a) spectrum was found and b) enough spectra were found
+	if(length(spectra) < (confirmMode + 1))
+		sp <- new("RmbSpectraSet", found=FALSE)
+	else
+		sp <- spectra[[confirmMode + 1]]
+	
+	#sp@mz <- mzLimits
+	sp@id <- as.character(as.integer(cpdID))
+	sp@name <- findName(cpdID)
+	sp@formula <- findFormula(cpdID)
+	sp@mode <- mode
+	
+	# If we had to open the file, we have to close it again
+	if(!is.null(fileName))
+		mzR::close(msRaw)
+	
+	return(sp)
 }
 
+#' @describeIn findMsMsHR A submethod of find MsMsHR that retrieves basic spectrum data 
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
 		headerCache = NULL, fillPrecursorScan = FALSE,
-		deprofile = getOption("RMassBank")$deprofile)
+		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA)
 {
-	eic <- findEIC(msRaw, mz, limit.fine, rtLimits)
+	eic <- findEIC(msRaw, mz, limit.fine, rtLimits, headerCache=headerCache, 
+			peaksCache=peaksCache)
 	#	if(!is.na(rtLimits))
 	#	{  
 	#		eic <- subset(eic, rt >= rtLimits[[1]] & rt <= rtLimits[[2]])
@@ -139,6 +170,12 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	else
 		headerData <- as.data.frame(header(msRaw))
 	
+	
+	###If no precursor scan number, fill the number
+	if(length(unique(headerData$precursorScanNum)) == 1){
+		fillPrecursorScan <- TRUE
+	}
+
 	if(fillPrecursorScan == TRUE)
 	{
 		# reset the precursor scan number. first set to NA, then
@@ -173,14 +210,19 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			})
 	validPrecursors <- validPrecursors[which(which_OK==TRUE)]
 	if(length(validPrecursors) == 0){
-		warning("No precursor was detected. It is recommended to try to use the setting fillPrecursorScan: TRUE in the ini-file")
+		if(!is.na(cpdID))
+			warning(paste0("No precursor was detected for compound, ", cpdID, " with m/z ", mz, ". Please check the mass and retention time window."))
+		else
+			warning(paste0("No precursor was detected for m/z ", mz, ". Please check the mass and retention time window."))
 	}
 	# Crop the "EIC" to the valid precursor scans
 	eic <- eic[eic$scan %in% validPrecursors,]
 	# Order by intensity, descending
 	eic <- eic[order(eic$intensity, decreasing=TRUE),]
 	if(nrow(eic) == 0)
-		return(list(list(foundOK = FALSE)))
+		return(list(
+						new("RmbSpectraSet",
+								found=FALSE)))
 	if(!is.na(maxCount))
 	{
 		spectraCount <- min(maxCount, nrow(eic))
@@ -193,7 +235,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				childHeaders <- headerData[(headerData$precursorScanNum == masterScan) 
 								& (headerData$precursorMZ > mz - limit.coarse) 
 								& (headerData$precursorMZ < mz + limit.coarse) ,]
-				childScans <- childHeaders$acquisitionNum
+				childScans <- childHeaders$seqNum
 				
 				msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
 				# if deprofile option is set: run deprofiling
@@ -203,189 +245,281 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 							msPeaks, method = deprofile.setting, noise = NA, colnames = FALSE
 					)
 				colnames(msPeaks) <- c("mz","int")
-				msmsPeaks <- lapply(childHeaders$seqNum, function(scan)
+				
+				msmsSpecs <- apply(childHeaders, 1, function(line)
 						{
-							pks <- mzR::peaks(msRaw, scan)
+							pks <- mzR::peaks(msRaw, line["seqNum"])
+							
 							if(!is.na(deprofile.setting))
 							{								
 								pks <- deprofile.scan(
 										pks, method = deprofile.setting, noise = NA, colnames = FALSE
 								)
 							}
-							colnames(pks) <- c("mz","int")
-							return(pks)
-						}
-				)
-				return(list(
-								foundOK = TRUE,
-								parentScan = masterScan,
-								parentHeader = masterHeader,
-								childScans = childScans,
-								childHeaders= childHeaders,
-								parentPeak=msPeaks,
-								peaks=msmsPeaks
-						#xset=xset#,
-						#msRaw=msRaw
-						))
+							
+							new("RmbSpectrum2",
+									mz = pks[,1],
+									intensity = pks[,2],
+									precScanNum = as.integer(line["precursorScanNum"]),
+									precursorMz = line["precursorMZ"],
+									precursorIntensity = line["precursorIntensity"],
+									precursorCharge = as.integer(line["precursorCharge"]),
+									collisionEnergy = line["collisionEnergy"],
+									tic = line["totIonCurrent"],
+									peaksCount = line["peaksCount"],
+									rt = line["retentionTime"],
+									acquisitionNum = as.integer(line["acquisitionNum"]),
+									centroided = TRUE
+									)
+						})
+				msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
+				
+				
+				
+				# build the new objects
+				masterSpec <- new("Spectrum1",
+						mz = msPeaks[,"mz"],
+						intensity = msPeaks[,"int"],
+						polarity = as.integer(masterHeader$polarity),
+						peaksCount = as.integer(masterHeader$peaksCount),
+						rt = masterHeader$retentionTime,
+						acquisitionNum = as.integer(masterHeader$acquisitionNum),
+						tic = masterHeader$totIonCurrent,
+						centroided = TRUE
+						)
+						
+				spectraSet <- new("RmbSpectraSet",
+						parent = masterSpec,
+						children = msmsSpecs,
+						found = TRUE,
+						#complete = NA,
+						#empty = NA,
+						#formula = character(),
+						mz = mz
+						#name = character(),
+						#annotations = list()
+						)
+				return(spectraSet)
 			})
 	names(spectra) <- eic$acquisitionNum
 	return(spectra)
 }
 
+
+#' Discontinued: find MS/MS spectrum from open raw file
+#' 
+#' This interface has been discontinued. \code{\link{findMsMsHR}} now supports the same parameters (use named
+#' parameters).
+#' 
+#' @param msRaw x
+#' @param cpdID x
+#' @param mode x
+#' @param confirmMode x 
+#' @param useRtLimit x
+#' @param ppmFine x
+#' @param mzCoarse x
+#' @param fillPrecursorScan x 
+#' @param rtMargin x
+#' @param deprofile x
+#' @param headerCache x
+#' @return an error
+#' 
+#' @author stravsmi
 #' @export
 findMsMsHR.direct <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
-		ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
-		mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
-		fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
-		rtMargin = getOption("RMassBank")$rtMargin,
-		deprofile = getOption("RMassBank")$deprofile,
-		headerCache = NULL)
+			ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
+			mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,
+			fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
+			rtMargin = getOption("RMassBank")$rtMargin,
+			deprofile = getOption("RMassBank")$deprofile,
+      headerCache = NULL)
 {
-	# for finding the peak RT: use the gauss-fitted centwave peak
-	# (centroid data converted with TOPP is necessary. save as
-	# mzData, since this is correctly read :P)
-	#xset <- xcmsSet(fileName, method="centWave",ppm=5, fitgauss=TRUE)
-	
-	# find cpd m/z
-	mzLimits <- findMz(cpdID, mode)
-	mz <- mzLimits$mzCenter
-	limit.fine <- ppm(mz, ppmFine, p=TRUE)
-	if(!useRtLimit)
-		rtLimits <- NA
-	else
-	{
-		dbRt <- findRt(cpdID)
-		rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
-	}
-	spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
-			,fillPrecursorScan, deprofile)
-	# check whether a) spectrum was found and b) enough spectra were found
-	if(length(spectra) < (confirmMode + 1))
-		sp <- list(foundOK = FALSE)
-	else
-		sp <- spectra[[confirmMode + 1]]
-	
-	sp$mz <- mzLimits
-	sp$id <- cpdID
-	sp$formula <- findFormula(cpdID)
-	return(sp)
+	stop("Support for this interface has been discontinued. Use findMsMsHR with the same parameters instead (use named parameter msRaw)")
 }
-
 
 #' Read in mz-files using XCMS
 #' 
 #' Picks peaks from mz-files and returns the pseudospectra that CAMERA creates with the help of XCMS
 #'
+#' @aliases findMsMsHRperxcms.direct findMsMsHRperxcms
 #' @param fileName The path to the mz-file that should be read
-#' @param cpdID The compoundID of the compound that has been used for the file
+#' @param cpdID The compoundID(s) of the compound that has been used for the file
 #' @param mode The ionization mode that has been used for the spectrum represented by the peaklist
 #' @param findPeaksArgs A list of arguments that will be handed to the xcms-method findPeaks via do.call
 #' @param plots A parameter that determines whether the spectra should be plotted or not
 #' @param MSe A boolean value that determines whether the spectra were recorded using MSe or not
-#' @return The \code{msmsWorkspace} with the additional peaklist added to the right spectrum
-#' @seealso \code{\link{msmsWorkflow}}
+#' @return The spectra generated from XCMS
+#' @seealso \code{\link{msmsWorkflow}} \code{\link{toRMB}}
 #' @author Erik Mueller
 #' @examples \dontrun{
 #' 		fileList <- list.files(system.file("XCMSinput", package = "RMassBank"), "Glucolesquerellin", full.names=TRUE)[3]
 #'		loadList(system.file("XCMSinput/compoundList.csv",package="RMassBank"))
-#'      psp <- findMsMsHRperxcms.direct(fileList,2184)
+#'      psp <- findMsMsHRperxcms(fileList,2184)
 #' }
+#' @export
+findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE, MSe = FALSE){
+	
+	# Find mz
+	mzLimits <- findMz(cpdID, mode)
+	mz <- mzLimits$mzCenter
+	
+	
+	# If there are more files than cpdIDs
+	if(length(fileName) > 1){
+		fspectra <- list()
+		
+		for(i in 1:length(fileName)){
+			fspectra[[i]] <- findMsMsHRperxcms.direct(fileName[i], cpdID, mode=mode, findPeaksArgs = findPeaksArgs, plots = plots, MSe = MSe)
+		}
+		
+		spectra <- toRMB(unlist(unlist(fspectra, FALSE),FALSE), cpdID, mode)
+		
+	} else if(length(cpdID) > 1){ # If there are more cpdIDs than files
+	
+		spectra <- findMsMsHRperxcms.direct(fileName, cpdID, mode=mode, findPeaksArgs = findPeaksArgs, plots = plots, MSe = MSe)
+		
+		P <- lapply(1:length(spectra), function(i){
+			sp <- toRMB(spectra[[i]], cpdID[i], mode)
+			sp@id <- as.character(as.integer(cpdID[i]))
+			sp@name <- findName(cpdID[i])
+			sp@formula <- findFormula(cpdID[i])
+			sp@mode <- mode
+			return(sp)
+		})
+		return(P)
+		
+	} else { # There is a file for every cpdID
+		spectra <- toRMB(unlist(findMsMsHRperxcms.direct(fileName, cpdID, mode=mode, findPeaksArgs = NULL, plots = FALSE, MSe = FALSE),FALSE))
+	}
+	
+	sp <- spectra
+	
+	#sp@mz <- mzLimits
+	sp@id <- as.character(as.integer(cpdID))
+	sp@name <- findName(cpdID)
+	sp@formula <- findFormula(cpdID)
+	sp@mode <- mode
+		
+	return(sp)
+}
+
+#' @describeIn findMsMsHRperxcms A submethod of findMsMsHrperxcms that retrieves basic spectrum data
 #' @export
 findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, plots = FALSE, MSe = FALSE) {
 	
-	require(CAMERA)
-	require(xcms)
-	parentMass <- findMz(cpdID[1], mode=mode)$mzCenter
+	requireNamespace("CAMERA",quietly=TRUE)
+	requireNamespace("xcms",quietly=TRUE)
 	
-	if(is.na(parentMass)){
-                  stop(paste("There was no matching entry to the supplied cpdID", cpdID[1] ,"\n Please check the cpdIDs and the compoundlist."))
-	}
-	
-	RT <- findRt(cpdID[1])$RT * 60
-	mzabs <- 0.1
+	##
+	## getRT function
+	##
 	
 	getRT <- function(xa) {
-		rt <- sapply(xa@pspectra, function(x) {median(peaks(xa@xcmsSet)[x, "rt"])})
+		rt <- sapply(xa@pspectra, function(x) {median(xcms::peaks(xa@xcmsSet)[x, "rt"])})
 	}
 	
 	##
 	## MSMS
 	##
-	suppressWarnings(xrmsms <- xcmsRaw(fileName, includeMSn=TRUE))
 	
-	## Where is the wanted isolation ?
-	##precursorrange <- range(which(xrmsms@msnPrecursorMz == parentMass)) ## TODO: add ppm one day
-
+	# Read file
+	suppressWarnings(xrmsms <- xcms::xcmsRaw(fileName, includeMSn=TRUE))
+	
+	
+	# If file is not MSe, split by collision energy
 	if(MSe == FALSE){
-		## Fake MS1 from MSn scans
-		## xrmsmsAsMs <- msn2xcmsRaw(xrmsms)
-		suppressWarnings(xrs <- split(msn2xcmsRaw(xrmsms), f = xrmsms@msnCollisionEnergy))
+		# Also, fake MS1 from the MSn data
+		suppressWarnings(xrs <- split(xcms::msn2xcmsRaw(xrmsms), f = xrmsms@msnCollisionEnergy))
 	} else{
+		# Else, MSn data will already be in MS1
 		xrs <- list()
 		xrs[[1]] <- xrmsms
 	}
-	## Fake s simplistic xcmsSet
-	suppressWarnings(setReplicate <- xcmsSet(files=fileName, method="MS1"))
+	
+	# Fake a simplistic xcmsSet
+	suppressWarnings(setReplicate <- xcms::xcmsSet(files=fileName, method="MS1"))
 	xsmsms <- as.list(replicate(length(xrs),setReplicate))
-	candidates <- list()
-	anmsms <- list()
-	psp <- list()
-	spectra <- list()
+	
+	mzabs <- 0.1	
+
+	# Definitions
 	whichmissing <- vector()
 	metaspec <- list()
+	
+	##
+	## Retrieval over all supplied cpdIDs
+	##
+	
 	for(ID in 1:length(cpdID)){
-		spectra <- list()
+	
+		# Find all relevant information for the current cpdID
+		XCMSspectra <- list()
 		RT <- findRt(cpdID[ID])$RT * 60
 		parentMass <- findMz(cpdID[ID], mode=mode)$mzCenter
-
-                if(is.na(parentMass)){
-                  stop(paste("There was no matching entry to the supplied cpdID", cpdID[ID] ,"\n Please check the cpdIDs and the compoundlist."))
-                }
 		
-		for(i in 1:length(xrs)){
-			##peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))
-			devnull <- suppressWarnings(capture.output(peaks(xsmsms[[i]]) <- do.call(findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
-			
-					if (nrow(peaks(xsmsms[[i]])) == 0) {
-					  spectra[[i]] <- matrix(0,2,7)
-					  next
-					} else{	
-						## Get pspec 
-						pl <- peaks(xsmsms[[i]])[,c("mz", "rt"), drop=FALSE]
-
-						## Best: find precursor peak
-						candidates[[i]] <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
-										& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
-						devnull <- capture.output(anmsms[[i]] <- xsAnnotate(xsmsms[[i]]))
-						devnull <- capture.output(anmsms[[i]] <- groupFWHM(anmsms[[i]]))
-
-						if(length(candidates[[i]]) > 0){
-						closestCandidate <- which.min (abs( RT - pl[candidates[[i]], "rt", drop=FALSE]))
-						psp[[i]] <- which(sapply(anmsms[[i]]@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
-						} else{psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )}
-						## Now find the pspec for compound       
-
-						## 2nd best: Spectrum closest to MS1
-						##psp <- which.min( abs(getRT(anmsms) - actualRT))
-
-						## 3rd Best: find pspec closest to RT from spreadsheet
-						##psp <- which.min( abs(getRT(anmsms) - RT) )
-						if((plots == TRUE) && (length(psp[[i]]) > 0)){
-							plotPsSpectrum(anmsms[[i]], psp[[i]], log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
-						}
-						if(length(psp[[i]]) != 0){
-						spectra[[i]] <- getpspectra(anmsms[[i]], psp[[i]])
-						} else {whichmissing <- c(whichmissing,i)}
-					}
+		# Is the information in the compound list?
+		if(is.na(parentMass)){
+		  stop(paste("There was no matching entry to the supplied cpdID", cpdID[ID] ,"\n Please check the cpdIDs and the compoundlist."))
 		}
-		if(length(spectra) != 0){
-			for(i in whichmissing){
-				spectra[[i]] <- matrix(0,2,7)
+		
+		# Go over every collision energy of the MS2
+		for(i in 1:length(xrs)){
+		
+			suppressWarnings(capture.output(xcms::peaks(xsmsms[[i]]) <- do.call(xcms::findPeaks,c(findPeaksArgs, object = xrs[[i]]))))
+			
+			if (nrow(xcms::peaks(xsmsms[[i]])) == 0) {
+			  XCMSspectra[[i]] <- matrix(0,2,7)
+			  next
+			} else{	
+			
+				# Get the peaklist
+				pl <- xcms::peaks(xsmsms[[i]])[,c("mz", "rt"), drop=FALSE]
+
+				# Find precursor peak within limits
+				candidates <- which( pl[,"mz", drop=FALSE] < parentMass + mzabs & pl[,"mz", drop=FALSE] > parentMass - mzabs
+								& pl[,"rt", drop=FALSE] < RT * 1.1 & pl[,"rt", drop=FALSE] > RT * 0.9 )
+				
+				# Annotate and group by FWHM (full width at half maximum)
+				capture.output(anmsms <- CAMERA::xsAnnotate(xsmsms[[i]]))
+				capture.output(anmsms <- CAMERA::groupFWHM(anmsms))
+				
+				# If a candidate fulfills the condition, choose the closest and retrieve the index of those pesudospectra
+				if(length(candidates) > 0){
+					closestCandidate <- which.min(abs(RT - pl[candidates, "rt", drop=FALSE]))
+					pspIndex <- which(sapply(anmsms@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
+				} else{
+				# Else choose the candidate with the closest RT
+					pspIndex <- which.min(abs(getRT(anmsms) - RT))
+				}
+				
+				# 2nd best: Spectrum closest to MS1
+				# pspIndex <- which.min( abs(getRT(anmsms) - actualRT))
+				
+				# If the plot parameter was supplied, plot it
+				if((plots == TRUE) && (length(pspIndex) > 0)){
+					CAMERA::plotPsSpectrum(anmsms, pspIndex, log=TRUE,  mzrange=c(0, findMz(cpdID)[[3]]), maxlabel=10)
+				}
+				
+				# If there is a number of indexes, retrieve the pseudospectra
+				if(length(pspIndex) != 0){
+					XCMSspectra[[i]] <- CAMERA::getpspectra(anmsms, pspIndex)
+				} else {
+				# Else note the spectrum as missing
+					whichmissing <- c(whichmissing,i)
+				}
 			}
 		}
-		spectra <- toRMB(spectra,cpdID[ID],mode)
-		metaspec[[ID]] <- spectra
+		
+		# If XCMSspectra were found but there are some missing for some collision energies, fill these XCMSspectra
+		if((length(XCMSspectra) != 0) && length(whichmissing)){
+			for(i in whichmissing){
+				XCMSspectra[[i]] <- matrix(0,2,7)
+			}
+		}
+
+		metaspec[[ID]] <- XCMSspectra
 	}
+	
 	return(metaspec)
 }
 
@@ -406,6 +540,8 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 #' 			this value is useful if spectra for multiple compounds should be 
 #' 			extracted from the same mzML file, since it avoids getting the data
 #' 			freshly from \code{msRaw} for every compound.
+#' @param peaksCache If present, the complete output of \code{mzR::peaks(msRaw)}. This speeds up the lookup
+#' 			if multiple compounds should be searched in the same file.
 #' @param floatingRecalibration 
 #' 			A fitting function that \code{predict()}s a mass shift based on the retention time. Can be used
 #' 			if a lockmass calibration is known (however you have to build the calibration yourself.)
@@ -413,7 +549,8 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @seealso findMsMsHR
 #' @export
-findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, floatingRecalibration = NULL)
+findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, floatingRecalibration = NULL,
+		peaksCache = NULL)
 {
 	# calculate mz upper and lower limits for "integration"
 	if(all(c("mzMin", "mzMax") %in% names(mz)))
@@ -425,6 +562,12 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 		headerData <- as.data.frame(headerCache)
 	else
 		headerData <- as.data.frame(header(msRaw))
+	# Add row numbering because I'm not sure if seqNum or acquisitionNum correspond to anything really
+	if(nrow(headerData) > 0)
+		headerData$rowNum <- 1:nrow(headerData)
+	else
+		headerData$rowNum <- integer(0)
+	
 	# If RT limit is already given, retrieve only candidates in the first place,
 	# since this makes everything much faster.
 	if(all(!is.na(rtLimit)))
@@ -434,7 +577,11 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 				,]
 	else
 		headerMS1 <- headerData[headerData$msLevel == 1,]
-	pks <- mzR::peaks(msRaw, headerMS1$seqNum)
+	if(is.null(peaksCache))
+		pks <- mzR::peaks(msRaw, headerMS1$seqNum)
+	else
+		pks <- peaksCache[headerMS1$rowNum]
+		
 	# Sum intensities in the given mass window for each scan
 	if(is.null(floatingRecalibration))
 	{
@@ -446,20 +593,36 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 		headerMS1$mzMin <- mzlimits[[1]] + predict(floatingRecalibration, headerMS1$retentionTime)
 		headerMS1$mzMax <- mzlimits[[2]] + predict(floatingRecalibration, headerMS1$retentionTime)
 	}
-	intensity <- unlist(lapply(1:nrow(headerMS1), function(row)
-					{
-						peaktable <- mzR::peaks(msRaw, headerMS1[row,"acquisitionNum"])
+	intensity <- unlist(lapply(1:nrow(headerMS1), function(row){
+						peaktable <- pks[[row]]
 						sum(peaktable[
-										which((peaktable[,1] >= headerMS1[row,"mzMin"]) & (peaktable[,1] <= headerMS1[row,"mzMax"])),
-										2])
+							which((peaktable[,1] >= headerMS1[row,"mzMin"]) & (peaktable[,1] <= headerMS1[row,"mzMax"])),2
+						])
 						
-					}))
+	}))
 	return(data.frame(rt = headerMS1$retentionTime, intensity=intensity, scan=headerMS1$acquisitionNum))
+}
+
+
+#' Generate peaks cache
+#' 
+#' Generates a peak cache table for use with \code{\link{findMsMsHR}} functions.
+#' 
+#' @param msRaw the input raw datafile (opened)
+#' @param headerCache the cached header, or subset thereof for which peaks should be extracted. Peak extraction goes
+#' 		by \code{seqNum}.
+#' @return A list of dataframes as from \code{mzR::peaks}.
+#' 
+#' @author stravsmi
+#' @export
+makePeaksCache <- function(msRaw, headerCache) 
+{
+	mzR::peaks(msRaw, headerCache$seqNum)
 }
 
 #' Conversion of XCMS-pseudospectra into RMassBank-spectra
 #' 
-#' Converts a pseudospectrum extracted from XCMS using CAMERA into the msmsWorkspace(at)specs-format that RMassBank uses
+#' Converts a pseudospectrum extracted from XCMS using CAMERA into the msmsWorkspace(at)spectrum-format that RMassBank uses
 #'
 #' @usage toRMB(msmsXCMSspecs, cpdID, mode, MS1spec)
 #' @param msmsXCMSspecs The compoundID of the compound that has been used for the peaklist
@@ -475,104 +638,91 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 #' }
 #' @export
 toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
-	ret <- list()
-	ret$mz <- findMz(cpdID,mode=mode)
-	ret$id <- cpdID
-	ret$formula <- findFormula(cpdID)
+
+	
+	##Basic parameters
+	mz <- findMz(cpdID,mode=mode)$mzCenter
+	id <- cpdID
+	formula <- findFormula(cpdID)
+	
 	if(length(msmsXCMSspecs) == 0){
-		ret$foundOK <- FALSE
-		return(ret)
+		return(new("RmbSpectraSet",found=FALSE))
 	}
 	
-	ret$foundOK <- !any(sapply(msmsXCMSspecs, function(x) all(x == 0)))
+	foundOK <- !any(sapply(msmsXCMSspecs, function(x) all(x == 0)))
 	
-	if(!ret$foundOK){
-		return(ret)
+	
+	if(!foundOK){
+		return(new("RmbSpectraSet",found=FALSE))
 	}
 	
-	if(is.na(msmsXCMSspecs[1])){
+	if(suppressWarnings(is.na(msmsXCMSspecs)[1])){
 			stop("You need a readable spectrum!")
 	}
 	
 	if(is.na(cpdID)){
 			stop("Please supply the compoundID!")
 	}
-	numScan <- length(msmsXCMSspecs)
-	ret$parentscan <- 1
-	ret$parentHeader <- matrix(0, ncol = 20, nrow = 1)
 	
-	rownames(ret$parentHeader) <- 1
-	colnames(ret$parentHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-									"mergedResultStartScanNum", "mergedResultEndScanNum")
-	ret$parentHeader[1,1:3] <- 1
-	##Write nothing in the parents if there is no MS1-spec
-	if(is.na(MS1spec)){
-		ret$parentHeader[1,4:20] <- 0
-                ret$parentHeader[1,6] <- NA
-	} else { ##Else use the MS1spec spec to write everything into the parents
-		ret$parentHeader[1,4] <- length(MS1spec[,1])
-		ret$parentHeader[1,5] <- 0
-		ret$parentHeader[1,6] <- findRt(cpdID)
-		ret$parentHeader[1,7] <- MS1spec[which.max(MS1spec[,7]),1]
-		ret$parentHeader[1,8] <- max(MS1spec[,7])
-		ret$parentHeader[1,9] <- 0
-		ret$parentHeader[1,10] <- 0
-		ret$parentHeader[1,11] <- min(MS1spec[,1])
-		ret$parentHeader[1,12] <- max(MS1spec[,1])
-		ret$parentHeader[1,13:20] <- 0 ##Has no precursor and merge is not yet implemented
-	}
+	mockAcqnum <- 1
+	mockenv <- environment()
 	
+	msmsSpecs <- lapply(msmsXCMSspecs, function(spec){
+		## Mock acquisition num
+		mockenv$mockAcqnum <- mockenv$mockAcqnum + 1
+		
+		## Find peak table
+		pks <- matrix(nrow = length(spec[,1]), ncol = 2)
+		colnames(pks) <- c("mz","int")
+		pks[,1] <- spec[,1]
+		pks[,2] <- spec[,7]
+		
+		## Deprofiling not necessary for XCMS
+		
+		## New spectrum object
+		return(new("RmbSpectrum2",
+				mz = pks[,"mz"],
+				intensity = pks[,"int"],
+				precScanNum = as.integer(1),
+				precursorMz = findMz(cpdID)$mzCenter,
+				precursorIntensity = 0,
+				precursorCharge = as.integer(1),
+				collisionEnergy = 0,
+				tic = 0,
+				peaksCount = nrow(spec),
+				rt = median(spec[,4]),
+				acquisitionNum = as.integer(mockenv$mockAcqnum),
+				centroided = TRUE
+		))
+	})
 	
-	##Write the peaks into the childscans
-	ret$childScans <- 2:(numScan+1)
-
-	childHeader <- t(sapply(msmsXCMSspecs, function(spec){
-		header <- vector()
-		header[3] <- 2
-		header[4] <- length(spec[,1])
-		header[5] <- 0 ##Does this matter?
-		header[6] <- median(spec[,4])
-		header[7] <- spec[which.max(spec[,7]),1]
-		header[8] <- max(spec[,7])
-		header[9] <- 0 ##Does this matter?
-		header[10] <- 0 ##Does this matter?
-		header[11] <- min(spec[,1])
-		header[12] <- max(spec[,1]) 
-		header[13] <- 1
-		header[14] <- findMz(cpdID)[[3]]
-		header[15] <- 1 ##Will be changed for different charges
-		header[16] <- 0 ##There sadly isnt any precursor intensity to find in the msms-scans. Workaround? msmsXCMS@files[1]
-		header[17:20] <- 0 ##Will be changed if merge is wanted
-		return(header)
-		}))
-		childHeader[,1:2] <- 2:(length(msmsXCMSspecs)+1)
+	msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")			
+				
+	##Build the new objects
+	masterSpec <- new("Spectrum1",
+				mz = findMz(cpdID,mode=mode)$mzCenter,
+				intensity = 100,
+				polarity = as.integer(0),
+				peaksCount = as.integer(1),
+				rt = msmsSpecs[[1]]@rt,
+				acquisitionNum = as.integer(1),
+				tic = 0,
+				centroided = TRUE
+			)
+						
+	spectraSet <- new("RmbSpectraSet",
+				parent = masterSpec,
+				children = msmsSpecs,
+				found = TRUE,
+				#complete = NA,
+				#empty = NA,
+				#formula = character(),
+				mz = mz
+				#name = character(),
+				#annotations = list()
+			)
 	
-	ret$parentHeader <- as.data.frame(ret$parentHeader)
-	ret$childHeaders <- as.data.frame(childHeader)
-	rownames(ret$childHeaders) <- 2:(numScan+1)
-	colnames(ret$childHeaders) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-									"mergedResultStartScanNum", "mergedResultEndScanNum")
-        if (is.na(ret$parentHeader[1,"retentionTime"])) {
-          ## Overwrite MS1 RT with average from MS2 
-          ret$parentHeader[1,"retentionTime"] <- median(ret$childHeaders[which(ret$childHeaders[,"retentionTime"] != 0), "retentionTime"])
-        }
-	
-	ret$parentPeak <- matrix(nrow = 1, ncol = 2)
-	colnames(ret$parentPeak) <- c("mz","int")
-	ret$parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
-	ret$peaks <- list()
-	ret$peaks <- lapply (msmsXCMSspecs, function(specs){
-									peaks <- matrix(nrow = length(specs[,1]), ncol = 2)
-									colnames(peaks) <- c("mz","int")
-									peaks[,1] <- specs[,1]
-									peaks[,2] <- specs[,7]
-									return(peaks)
-								})
-	return(ret)
+	return(spectraSet)
 }
 
 #' Addition of manual peaklists
@@ -593,78 +743,71 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 #' 		addPeaksManually(w, cpdID, handSpec)
 #' }
 #' @export
-addPeaksManually <- function(w, cpdID, handSpec, mode = "pH"){
+addPeaksManually <- function(w, cpdID = NA, handSpec, mode = "pH"){
+
+			
+	if(is.na(cpdID)){
+			stop("Please supply the compoundID!")
+	}
 	
-	##Where do the peaks and the header need to be added?
-	pos <- sapply(w@specs,function(spec){cpdID == spec$id})
-	if(length(pos) == 0) pos <- FALSE
-	
-	childHeader <- matrix(0,1,20)
-	childHeader[,4] <- length(handSpec[,1])
-	childHeader[,5] <- 0
-	childHeader[,6] <- findRt(cpdID)$RT * 60
-	childHeader[,7] <- handSpec[which.max(handSpec[,"int"]),1]
-	childHeader[,8] <- max(handSpec)
-	childHeader[,10] <- 0
-	childHeader[,11] <- min(handSpec[,"mz"])
-	childHeader[,12] <- max(handSpec[,"mz"])
-	childHeader[,13] <- 1
-	childHeader[,14] <- findMz(cpdID)[[3]]
-	childHeader[,15] <- 1 ##Will be changed for different charges
-	childHeader[,16] <- 0 ##There sadly isn't any precursor intensity to find in the msms-scans. Workaround?
-	childHeader[,17:20] <- 0 ##Will be changed if merge is wanted
-	colnames(childHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-										"mergedResultStartScanNum", "mergedResultEndScanNum")
-	
-	##If the compound for the cpdID isn't in specs yet, add a new spectrum
-	if(length(which(pos)) == 0){
-		pos <- length(w@specs) + 1
-		childHeader[,1:3] <- 2
-		w@specs[[pos]] <- list()
-		w@specs[[pos]]$foundOK <- 1
-		w@specs[[pos]]$parentscan <- 1
-		w@specs[[pos]]$parentHeader <- matrix(0, ncol = 20, nrow = 1)
-		rownames(w@specs[[pos]]$parentHeader) <- 1
-		colnames(w@specs[[pos]]$parentHeader) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-									"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-									"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-									"mergedResultStartScanNum", "mergedResultEndScanNum")
-		w@specs[[pos]]$parentHeader[1,1:3] <- 1
-		w@specs[[pos]]$parentHeader[1,4:20] <- 0
-		w@specs[[pos]]$parentHeader[1,6] <- findRt(cpdID)$RT * 60
-		w@specs[[pos]]$parentHeader <- as.data.frame(w@specs[[pos]]$parentHeader)
-		w@specs[[pos]]$childScans <- 2
-		w@specs[[pos]]$childHeaders <- as.data.frame(childHeader)
-		w@specs[[pos]]$parentPeak <- matrix(nrow = 1, ncol = 2)
-		colnames(w@specs[[pos]]$parentPeak) <- c("mz","int")
-		w@specs[[pos]]$parentPeak[1,] <- c(findMz(cpdID,mode=mode)$mzCenter,100)
-		w@specs[[pos]]$peaks <- list()
-		w@specs[[pos]]$peaks[[1]] <- handSpec
-		w@specs[[pos]]$mz <- findMz(cpdID,mode=mode)
-		w@specs[[pos]]$id <- cpdID
-		w@specs[[pos]]$formula <- findFormula(cpdID)
-		colnames(w@specs[[pos]]$childHeaders) <- c("seqNum", "acquisitionNum", "msLevel", "peaksCount", "totIonCurrent", "retentionTime", "basepeakMZ", 
-										"basePeakIntensity", "collisionEnergy", "ionisationEnergy", "lowMZ", "highMZ", "precursorScanNum",
-										"precursorMZ", "precursorCharge", "precursorIntensity", "mergedScan", "mergedResultScanNum", 
-										"mergedResultStartScanNum", "mergedResultEndScanNum")
-	} else { 
-			pos <- which(pos)
-			w@specs[[pos]]$childHeaders <- rbind(w@specs[[pos]]$childHeaders,childHeader)
-			w@specs[[pos]]$childHeaders[,1] <- 2:(nrow(w@specs[[pos]]$childHeaders)+1)
-			w@specs[[pos]]$childHeaders[,2] <- w@specs[[pos]]$childHeaders[,1]
-			w@specs[[pos]]$childScans <- c(w@specs[[pos]]$childScans,max(w@specs[[pos]]$childScans)+1)
-			w@specs[[pos]]$peaks[[length(w@specs[[pos]]$peaks)+1]] <- handSpec
-		}
+	# For the case that the cpdID turns up for the first time
+	# a new spectrumset needs to be created
+	if(!(cpdID %in% sapply(w@spectra,function(s) s@id))){
 		
-		return(w)
+		# Create fake MS1 spectrum
+		masterSpec <- new("Spectrum1",
+			mz = findMz(cpdID,mode=mode)$mzCenter,
+			intensity = 100,
+			polarity = as.integer(0),
+			peaksCount = as.integer(1),
+			rt = findRt(cpdID)$RT,
+			acquisitionNum = as.integer(1),
+			tic = 0,
+			centroided = TRUE
+		)
+		
+		# Create fake spectrumset
+		spectraSet <- new("RmbSpectraSet",
+			parent = masterSpec,
+			found = TRUE,
+			#complete = NA,
+			#empty = NA,
+			id = as.character(as.integer(cpdID)),
+			formula = findFormula(cpdID),
+			mz = findMz(cpdID,mode=mode)$mzCenter,
+			name = findName(cpdID),
+			mode = mode
+			#annotations = list()
+		)
+		
+		w@spectra[[length(w@spectra) + 1]] <- spectraSet
+	}
+	
+	specIndex <- which(cpdID == sapply(w@spectra, function(s) s@id))
+	
+	# New spectrum object
+	w@spectra[[specIndex]]@children[[length(w@spectra[[specIndex]]@children) + 1]] <- new("RmbSpectrum2",
+				mz = handSpec[,"mz"],
+				intensity = handSpec[,"int"],
+				precScanNum = as.integer(1),
+				precursorMz = findMz(cpdID)$mzCenter,
+				precursorIntensity = 0,
+				precursorCharge = as.integer(1),
+				collisionEnergy = 0,
+				tic = 0,
+				peaksCount = nrow(handSpec),
+				rt = findRt(cpdID)$RT,
+				acquisitionNum = as.integer(length(w@spectra[[specIndex]]@children) + 2),
+				centroided = TRUE)
+	return(w)
 }
 
+
 createSpecsFromPeaklists <- function(w, cpdIDs, filenames, mode="pH"){
-		for(j in 1:length(filenames)){
-			w <- addPeaksManually(w,cpdIDs[j],as.matrix(read.csv(filenames[j]), header=TRUE),mode)
-		}
+	for(j in 1:length(filenames)){
+		w <- addPeaksManually(w,cpdIDs[j],as.matrix(read.csv(filenames[j]), header=TRUE),mode)
+	}
+	
 	return(w)
 }
 
@@ -692,74 +835,4 @@ addMB <- function(w, cpdID, fileName, mode){
 	peaklist[[1]] <- mb@compiled_ok[[1]][["PK$PEAK"]][,1:2]
 	w <- addPeaksManually(w, cpdID, peaklist[[1]], mode)
 	return(w)
-}
-
-
-#####
-#####Should the following function be exported or not? I guess you could, but then again, 
-#####its purpose is very specific and there is much room to misunderstand it.
-#####
-
-#' Concatenation of raw spectra in msmsWorkspace
-#' 
-#' Concatenates the (at)specs spectra of msmsWorkspace according to cpdIDs
-#'
-#' @usage c.msmsWSspecs(w1, w2)
-#' @param w1,w2 The msmsWorkspaces of which the spectra should be concatenated
-#' @return The \code{msmsWorkspace} with the spectra of two workspaces concatenated into one. Please note that the spectra from w2 will be concatenated to w1 and not vice versa.
-#' @seealso \code{\link{addPeaksManually}}
-#' @author Erik Mueller
-#' @examples \dontrun{
-#' 		c.msmsWSspecs(w1,w2)
-#' }
-#'@export
-c.msmsWSspecs <- function(w1 = NA, w2 = NA){
-
-	if(class(w1) != "msmsWorkspace" || class(w2) != "msmsWorkspace"){
-		stop("At least one of the supplied arguments is not of the msmsWorkspace class.") 
-	}
-	
-	cpdIDsw1 <- sapply(w1@specs, function(x) x$id)
-	cpdIDsw2 <- sapply(w2@specs, function(x) x$id)
-	
-	if(length(cpdIDsw2) == 0){
-		stop("w2 can't be empty.")
-	}
-	
-	if(length(cpdIDsw1) == 0){
-		w1@specs <- w2@specs
-		w1@files <- w2@files
-		return(w1)
-	}
-	
-	for(i in 1:length(cpdIDsw2)){
-		if(any(cpdIDsw2[i] == cpdIDsw1)){
-			
-			index <- which(cpdIDsw2[i] == cpdIDsw1)
-			
-				w1@specs[[index]]$peaks <- c(w1@specs[[index]]$peaks,w2@specs[[i]]$peaks)
-				w1@specs[[index]]$childScans <- c(w1@specs[[index]]$childScans,w2@specs[[i]]$childScans)
-				w1@specs[[index]]$childHeaders <- rbind(w1@specs[[index]]$childHeaders, w2@specs[[i]]$childHeaders)
-				
-				##Fake seqNums and/or acquisitionNums if the concatenation has doubled some of them
-				
-				seqNums <- w1@specs[[index]]$childHeaders[,"seqNum"]
-				if(length(seqNums) != length(unique(seqNums))){
-					w1@specs[[index]]$childHeaders[,"seqNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-					w1@specs[[index]]$childScans <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-				}
-				
-				
-				acqNums <- w1@specs[[index]]$childHeaders[,"acquisitionNum"]
-				if(length(acqNums) != length(unique(acqNums))){
-					w1@specs[[index]]$childHeaders[,"acquisitionNum"] <- 2:(nrow(w1@specs[[index]]$childHeaders) + 1)
-				}
-		}
-		
-		if(all(cpdIDsw2[i] != cpdIDsw1)){
-			w1@specs[[length(w1@specs) + 1]] <- w2@specs[[i]]
-			w1@files <- c(w1@files,w2@files[i])
-		}
-	}
-	return(w1)
 }

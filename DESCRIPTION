@@ -1,7 +1,7 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 1.13.0
+Version: 1.99.7
 Authors@R: c(
     person(given = "RMassBank at Eawag", email = "massbank@eawag.ch",
     role=c("cre")),
@@ -24,29 +24,40 @@ Description: Workflow to process tandem MS files and build MassBank records.
 License: Artistic-2.0
 SystemRequirements: OpenBabel
 biocViews: Bioinformatics, MassSpectrometry, Metabolomics, Software
-Depends: Rcpp
+Depends:
+    Rcpp
 Encoding: UTF-8
 Imports:
-    XML,RCurl,rjson, rcdk,yaml,mzR,methods
+    XML,RCurl,rjson,
+    rcdk,yaml,mzR,methods,Biobase,MSnbase,S4Vectors
 Suggests:
     gplots,RMassBankData,
     xcms (>= 1.37.1),
     CAMERA,
     ontoCAT,
-    RUnit
+    RUnit,
+    enviPat
 Collate:
+    'alternateAnalyze.R'
     'createMassBank.R'
     'formulaCalculator.R'
     'leCsvAccess.R'
     'leMsMs.r'
     'leMsmsRaw.R'
-	'msmsRawExtensions.r'
+    'msmsRawExtensions.r'
     'settings_example.R'
     'webAccess.R'
     'deprofile.R'
     'parseMassBank.R'
+    'SpectrumClasses.R'
+    'SpectrumMethods.R'
     'RmbWorkspace.R'
+    'RmbWorkspaceUpdate.R'
+    'SpectraSetMethods.R'
+    'AggregateMethods.R'
     'validateMassBank.R'
-    'zzz.R'
     'tools.R'
     'msmsRead.R'
+    'Isotopic_Annotation.R'
+    'zzz.R'
+RoxygenNote: 5.0.1

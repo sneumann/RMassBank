@@ -6,16 +6,44 @@
 
 # TODO: Add comment
 
+#' Extract an MS/MS spectrum from MS2 TIC
+#' 
+#' Extract an MS/MS spectrum or multiple MS/MS spectra based on the TIC of the MS2 and precursor mass, picking
+#' the most intense MS2 scan. Can be used, for example, to get a suitable MS2 from direct infusion data which was
+#' collected with purely targeted MS2 without MS1.
+#' 
+#' Note that this is not a precise function and only really makes sense in direct infusion and if
+#' the precursor is really known, because MS2 precursor data is only "roughly" accurate (to 2 dp).
+#' The regular \code{findMsMsHR} functions confirm the exact mass of the precursor in the MS1 scan.
+#' 
+#' @aliases findMsMsHR.ticMS2
+#' @param msRaw The mzR raw file
+#' @param mz Mass to find
+#' @param limit.coarse Allowed mass deviation for scan precursor (in m/z values)
+#' @param limit.fine Unused here, but present for interface compatiblity with findMsMsHR
+#' @param rtLimits Unused here, but present for interface compatiblity with findMsMsHR
+#' @param maxCount Maximal number of spectra to return
+#' @param headerCache Cached results of header(msRaw), either to speed up the operations or to operate with
+#' 			preselected header() data 
+#' @param fillPrecursorScan Unused here, but present for interface compatiblity with findMsMsHR
+#' @param deprofile Whether deprofiling should take place, and what method should be
+#' 			used (cf. \code{\link{deprofile}}) 
+#' @param trace Either \code{"ms2tic"} or \code{"ms2basepeak"}: Which intensity trace to use - can be either the
+#' 			TIC of the MS2 or the basepeak intensity of the MS2.
+#' @return	a list of "spectrum sets" as defined in \code{\link{findMsMsHR}}, sorted
+#' 			by decreasing precursor intensity.
+#' 
+#' @author stravsmi
 #' @export
 findMsMsHR.ticms2 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
-    headerCache = NA, fillPrecursorScan = FALSE,
+    headerCache = NULL, fillPrecursorScan = FALSE,
     deprofile = getOption("RMassBank")$deprofile, trace = "ms2tic")
 {
   #	if(!is.na(rtLimits))
   #	{  
   #		eic <- subset(eic, rt >= rtLimits[[1]] & rt <= rtLimits[[2]])
   #	}
-  if(!all(is.na(headerCache)))
+  if(!is.null(headerCache))
     headerData <- headerCache
   else
     headerData <- as.data.frame(header(msRaw))
@@ -252,9 +280,6 @@ msmsRead.ticms2 <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
   }
 }
 
-
-
-#' @export
 findMsMsHR.ticms2.d <- function(msRaw, cpdID, mode = "pH", confirmMode = 0, useRtLimit = TRUE, 
     ppmFine = getOption("RMassBank")$findMsMsRawSettings$ppmFine,
     mzCoarse = getOption("RMassBank")$findMsMsRawSettings$mzCoarse,

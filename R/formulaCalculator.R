@@ -158,7 +158,11 @@ order.formula <- function(formula, as.formula=TRUE, as.list=FALSE)
 dbe <- function(formula)
 {
   if(!is.list(formula))
-    formula <- formulastring.to.list(formula)
+  {
+	  if(is.na(formula))
+		  return(NA)
+	  formula <- formulastring.to.list(formula)
+  }
   # Valences are set to the "maximum" state. This is done
   # in order to not exclude peaks from high-valence SPN atoms.
   atomDBE <- list(

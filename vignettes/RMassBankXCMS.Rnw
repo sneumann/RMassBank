@@ -189,7 +189,7 @@ note that the naming of the csv has to be similar to the mzdata-files,
 with the only difference being the filename extension.  The readMethod
 name for this is "peaklist"
 
-<<>>=
+<<eval=TRUE>>=
 msmsPeaklist <- newMsmsWorkspace()
 msmsPeaklist@files <- list.files(system.file("spectra.Glucolesquerellin",
                                              package = "RMassBankData"),

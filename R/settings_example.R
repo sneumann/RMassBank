@@ -3,9 +3,11 @@ NULL
 
 .checkMbSettings <- function()
 {
-  o <- getOption("RMassBank", NULL)
-  if(is.null(o))
-    stop("Please load your settings before using the RMassBank workflow.")
+	o <- getOption("RMassBank", NULL)
+	if(is.null(o)){
+		stop("Please load your settings before using the RMassBank workflow.")
+	}
+	
 }
 
 
