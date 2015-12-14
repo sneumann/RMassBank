@@ -296,8 +296,8 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
           # Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
           # finally back-correct calculated masses for the charge
           mass.calc <- mass + mode.charge * .emass
-          peakformula <- tryCatch(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
-                                                   limits, charge=0), error=function(e) NA)
+          peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
+                                                   limits, charge=0)), error=function(e) NA)
           #peakformula <- tryCatch( 
           #  generate.formula(mass, 
           #                   ppm(mass, ppmlimit, p=TRUE),
@@ -327,8 +327,8 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
           # Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
           # finally back-correct calculated masses for the charge
           mass.calc <- mass + mode.charge * .emass
-          peakformula <- tryCatch(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
-                                                   limits, charge=0), error=function(e) NA)
+          peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
+                                                   limits, charge=0)), error=function(e) NA)
           #peakformula <- tryCatch( 
           #  generate.formula(mass, 
           #                   ppm(mass, ppmlimit, p=TRUE),
@@ -380,7 +380,7 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
     
     childPeaksInt <- merge(childPeaks, shot, by.x = "mzFound", by.y = mzColname, all.x = TRUE, all.y = FALSE )
     # find the best ppm value
-    bestPpm <- aggregate(childPeaksInt$dppm, list(childPeaksInt$mzFound),
+    bestPpm <- aggregate(as.data.frame(childPeaksInt$dppm), list(childPeaksInt$mzFound),
                          function(dppm) dppm[[which.min(abs(dppm))]])
     colnames(bestPpm) <- c("mzFound", "dppmBest")
     childPeaksInt <- merge(childPeaksInt, bestPpm, by="mzFound", all.x=TRUE)
