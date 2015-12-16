@@ -32,11 +32,7 @@ newStep2WorkFlow <- function(w, mode="pH",
                              confirmMode=FALSE, progressbar = "progressBarHook", 
                              settings = getOption("RMassBank"), analyzeMethod="formula", fragdataFile = NA){
   ##Load the fragment data (locally or from RMassBank package)
-  if(is.na(fragdataFile)){
-    fragData <- nfragData
-  } else{
-    fragData <- read.csv(fragdataFile,colClasses = c("character","numeric"))
-  }
+  fragData <- read.csv(fragdataFile,colClasses = c("character","numeric"))
   
   ##Progress bar
   nLen <- length(w@files)
@@ -119,17 +115,17 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
     if(is.na(cut)) cut <- 0
   }
   
-  # find whole spectrum of parent peak, so we have reasonable data to feed into
-  # MolgenMsMs
-  parentSpectrum <- msmsPeaks$parentPeak
-  
-  
-  # Check whether the spectra can be fitted to the spectra list correctly!
-  if(nrow(msmsPeaks$childHeaders) != length(spectraList))
-  {
-    warning(paste0(
-      "The spectra count of the substance ", msmsPeaks$id, " (", nrow(msmsPeaks$childHeaders), " spectra) doesn't match the provided spectra list (", length(spectraList), " spectra)."
-    ))
+	# find whole spectrum of parent peak, so we have reasonable data to feed into
+	# MolgenMsMs
+	parentSpectrum <- msmsPeaks$parentPeak
+
+
+	# Check whether the spectra can be fitted to the spectra list correctly!
+	if(nrow(msmsPeaks$childHeaders) != length(spectraList))
+	{
+		warning(paste0("The spectra count of the substance ", msmsPeaks$id, " (", nrow(msmsPeaks$childHeaders), " spectra) doesn't match the provided spectra list (", 
+						length(spectraList), " spectra).")
+	)
     return(list(specOK=FALSE))
     
   }
