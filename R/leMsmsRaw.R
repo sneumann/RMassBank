@@ -580,7 +580,7 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 	if(is.null(peaksCache))
 		pks <- mzR::peaks(msRaw, headerMS1$seqNum)
 	else
-		pks <- peaksCache[headerData$rowNum]
+		pks <- peaksCache[headerMS1$rowNum]
 		
 	# Sum intensities in the given mass window for each scan
 	if(is.null(floatingRecalibration))

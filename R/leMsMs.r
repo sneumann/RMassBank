@@ -460,7 +460,6 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   # MolgenMsMs
   parentSpectrum <- msmsPeaks@parent
 
-
   
   # On each spectrum the following function analyzeTandemShot will be applied.
   # It takes the raw peaks matrix as argument (mz, int) and processes the spectrum by
@@ -508,7 +507,6 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	# this was done for the MOLGEN MSMS type analysis, is not necessary anymore now (23.1.15 MST)
     # shot[,mzColname] <- round(shot[,mzColname], 5)
     
-	
 	# here follows the Rcdk analysis
 	#------------------------------------
 	parentPeaks <- data.frame(mzFound=msmsPeaks@mz, 
@@ -574,8 +572,8 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 				# finally back-correct calculated masses for the charge
 				mass <- shot.row[["mz"]]
 				mass.calc <- mass + mode.charge * .emass
-				peakformula <- tryCatch(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
-								limits, charge=0), error=function(e) NA)
+				peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
+								limits, charge=0)), error=function(e) NA)
 				#peakformula <- tryCatch(
 				# generate.formula(mass,
 				# ppm(mass, ppmlimit, p=TRUE),
@@ -650,9 +648,9 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 		child@ok <- FALSE
 		return(child)
 	}
-		
+#browser()	
 	# find the best ppm value
-    bestPpm <- aggregate(childPeaks[!is.na(childPeaks$dppm),"dppm"],
+    bestPpm <- aggregate(as.data.frame(childPeaks[!is.na(childPeaks$dppm),"dppm"]),
 					list(childPeaks[!is.na(childPeaks$dppm),"row"]),
                          function(dppm) dppm[[which.min(abs(dppm))]])			 
     colnames(bestPpm) <- c("row", "dppmBest")
@@ -1107,7 +1105,7 @@ problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
   if(nrow(peaks_matched) == 0){
 	assIntMax <- data.frame(list(integer(0),integer(0),integer(0)))
   } else{
-	assIntMax <- as.data.frame(aggregate(peaks_matched$intensity, 
+	assIntMax <- as.data.frame(aggregate(as.data.frame(peaks_matched$intensity), 
         by=list(peaks_matched$cpdID, peaks_matched$scan), max))
   }
   colnames(assIntMax) <- c("cpdID", "scan", "aMax")
@@ -1336,6 +1334,8 @@ makeRecalibration <- function(w, mode,
 plotRecalibration <- function(w, recalibrateBy = getOption("RMassBank")$recalibrateBy)
 {
 	spec <- w@aggregated
+	if(!is.null(w@parent))
+		spec <- w@parent@aggregated
 
 	rcdata <- data.frame(mzFound = w@rc$x, recalfield = w@rc$y)
 	ms1data <- data.frame(mzFound = w@rc.ms1$x, recalfield = w@rc.ms1$y)
@@ -1718,8 +1718,8 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	#print(parent_formula)
 	limits <- to.limits.rcdk(parent_formula)        
 	
-	peakformula <- tryCatch(generate.formula(mass, ppm(mass, ppmlimit, p=TRUE), 
-					limits, charge=mode.charge), error=function(e) NA)
+	peakformula <- tryCatch(suppressWarnings(generate.formula(mass, ppm(mass, ppmlimit, p=TRUE), 
+					limits, charge=mode.charge)), error=function(e) NA)
 	# was a formula found? If not, return empty result
 	if(!is.list(peakformula))
 		return(as.data.frame(
@@ -1837,7 +1837,8 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	else
 	{
 		# calculate duplicity info
-		multInfo <- aggregate(peaks$scan, list(peaks$cpdID, peaks[,formulacol]), FUN=length)
+		multInfo <- aggregate(as.data.frame(peaks$scan),
+			list(peaks$cpdID, peaks[,formulacol]), FUN=length)
 		# just for comparison:
 		# nform <- unique(paste(pks$cpdID,pks$formula))
 		
@@ -1880,7 +1881,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
   
   # prioritize duplicate peaks
   # get unique peaks with their maximum-multiplicity formula attached
-  best_mult <- aggregate(peaks$formulaMultiplicity, 
+  best_mult <- aggregate(as.data.frame(peaks$formulaMultiplicity), 
                          list(peaks$cpdID, peaks$scan, peaks$mzFound), 
                          max)
   colnames(best_mult) <- c("cpdID", "scan", "mzFound", "bestMultiplicity")
@@ -1890,7 +1891,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
   # now we also have to recalculate dppmBest since the "old best" may have been
   # dropped.
   peaks$dppmBest <- NULL
-  bestPpm <- aggregate(peaks$dppm, 
+  bestPpm <- aggregate(as.data.frame(peaks$dppm), 
                        list(peaks$cpdID, peaks$scan, peaks$mzFound),
                         function(dppm) dppm[[which.min(abs(dppm))]])
   colnames(bestPpm) <- c("cpdID", "scan", "mzFound", "dppmBest")
@@ -1902,7 +1903,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
     
   pks_best$formulaMultiplicity <- NULL
   pks_best$bestMultiplicity <- NULL
-  multInfo_best <- aggregate(pks_best$scan, 
+  multInfo_best <- aggregate(as.data.frame(pks_best$scan), 
                              list(pks_best$cpdID, pks_best[,formulacol]),
                              FUN=length)
   colnames(multInfo_best) <- c("cpdID", formulacol, "formulaMultiplicity")
