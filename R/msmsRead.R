@@ -310,7 +310,7 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 			} else{
 				psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )
 			}
-			## Now find the pspec for compound       
+			## Now find the pspec for compound
 
 			## 2nd best: Spectrum closest to MS1
 			##psp <- which.min( abs(getRT(anmsms) - actualRT))
@@ -345,7 +345,7 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 			spectraNum <- length(w@spectra[[which(IDindex)]]@children)
 			w@spectra[[which(IDindex)]]@children[[spectraNum+1]] <- sp@children[[1]]
 		} else {
-			w@spectra[[length(www@spectra)+1]] <- sp
+			w@spectra[[length(w@spectra)+1]] <- sp
 		}
 	} else{
 		w@spectra[[1]] <- sp
