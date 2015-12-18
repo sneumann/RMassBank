@@ -1232,6 +1232,12 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
   # Add the MS$FOCUSED_ION info.
   mbdata[["MS$FOCUSED_ION"]] <- ms_fi
 
+  ## The SPLASH is a hash value calculated across all peaks
+  ## http://splash.fiehnlab.ucdavis.edu/
+  ## Has to be temporarily added as "PK$SPLASH" in the "lower" part
+  ## of the record, but will later be moved "up" when merging parts in compileRecord()  
+  mbdata[["MS$RELATED_MS"]] <- list(SPLASH = getSplash(peaks[,c("m/z", "int.")]))
+  
   # the data processing tag :)
   # Change by Tobias:
   # I suggest to add here the current version number of the clone due to better distinction between different makes of MB records
@@ -1249,12 +1255,6 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
   # Annotation:
   if(getOption("RMassBank")$add_annotation==TRUE)
     mbdata[["PK$ANNOTATION"]] <- annotation
-
-  ## The SPLASH is a hash value calculated across all peaks
-  ## http://splash.fiehnlab.ucdavis.edu/
-  ## Has to be temporarily added as "PK$SPLASH" in the "lower" part
-  ## of the record, but will later be moved "up" when merging parts in compileRecord()  
-  mbdata[["PK$SPLASH"]] = getSplash(peaks[,c("m/z", "int.")])
 
   # Peak table
   mbdata[["PK$NUM_PEAK"]] <- peaknum
@@ -1344,10 +1344,6 @@ compileRecord <- function(spec, mbdata, aggregated, additionalPeaks = NULL)
       # be filled in with scan-specific info.
       mbrecord <- c(mbdata, l)
 
-      ## Move the SPLASH from the lower part to the upper part
-      mbrecord[["COMMENT"]][["SPLASH"]] <- mbrecord[["PK$SPLASH"]]
-      mbrecord[["PK$SPLASH"]] <- NULL
-        
       # Here is the right place to fix the name of the INTERNAL ID field.
       names(mbrecord[["COMMENT"]])[[which(names(mbrecord[["COMMENT"]]) == "ID")]] <-
         getOption("RMassBank")$annotations$internal_id_fieldname
