@@ -1092,7 +1092,7 @@ cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 #' compound ID), which are very likely co-isolated substances, are ignored.
 #' 
 #' 
-#' @usage problematicPeaks(peaks_unmatched, peaks_matched, mode = "pH")
+#' @usage problematicPeaks(peaks_unmatched, peaks_matched, mode = "pH", retrieval="standard")
 #' @param peaks_unmatched Table of unmatched peaks, with at least \code{cpdID,
 #' scan, mzFound, int}.
 #' @param peaks_matched Table of matched peaks (used for base peak reference),
@@ -1146,7 +1146,10 @@ problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH", retrieva
 #' 
 #' @param w \code{msmsWorkspace} to analyze. 
 #' @param mode Processing mode (pH etc)
-#' @param archivename Base name of the archive to write to (for "abc" the exported failpeaks list will be "abc_Failpeaks.csv"). 
+#' @param archivename Base name of the archive to write to (for "abc" the exported failpeaks list will be "abc_Failpeaks.csv").
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return  Returns the aggregate data.frame with added column "\code{problematic}" (logical) which marks peaks which match the problematic criteria 
 #' 
 #' @author stravsmi
@@ -1579,9 +1582,9 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' 
 #' @aliases reanalyzeFailpeaks reanalyzeFailpeak
 #' @usage reanalyzeFailpeaks(aggregated, custom_additions, mode, filterSettings =
-#' 				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook")
+#' 				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook", retrieval="standard")
 #' reanalyzeFailpeak(custom_additions, mass, cpdID, counter, pb = NULL, mode,
-#' 				filterSettings = getOption("RMassBank")$filterSettings)
+#' 				filterSettings = getOption("RMassBank")$filterSettings, retrieval="standard")
 #' @param aggregated A peake aggregate table (\code{w@@aggregate}) (after processing electronic noise removal!)
 #' @param custom_additions The allowed additions, e.g. "N2O".
 #' @param mode Processing mode (\code{"pH", "pNa", "mH"} etc.)
@@ -1958,7 +1961,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 #' for further processing with \code{\link{mbWorkflow}}.
 #' 
 #' @usage filterMultiplicity(w, archivename=NA, mode="pH", recalcBest = TRUE,
-#' 		multiplicityFilter = getOption("RMassBank")$multiplicityFilter)
+#' 		multiplicityFilter = getOption("RMassBank")$multiplicityFilter, retrieval="standard")
 #' @param w Workspace containing the data to be processed (aggregate table and \code{RmbSpectraSet} objects)
 #' @param archivename The archive name, used for generation of
 #' archivename_Failpeaks.csv
