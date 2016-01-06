@@ -12,7 +12,7 @@ findMsMsHR(fileName = NULL, msRaw = NULL, cpdID, mode = "pH",
   fillPrecursorScan = getOption("RMassBank")$findMsMsRawSettings$fillPrecursorScan,
   rtMargin = getOption("RMassBank")$rtMargin,
   deprofile = getOption("RMassBank")$deprofile, headerCache = NULL,
-  peaksCache = NULL)
+  peaksCache = NULL, retrieval = "standard")
 
 findMsMsHR.mass(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
   maxCount = NA, headerCache = NULL, fillPrecursorScan = FALSE,
@@ -59,6 +59,10 @@ freshly from \code{msRaw} for every compound.}
 
 \item{peaksCache}{If present, the complete output of \code{mzR::peaks(msRaw)}. This speeds up the lookup
 if multiple compounds should be searched in the same file.}
+
+\item{retrieval}{A value that determines whether the files should be handled either as "standard",
+if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+if the only know thing is the m/z}
 
 \item{mz}{The mass to use for spectrum search.}
 

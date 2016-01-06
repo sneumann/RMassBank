@@ -37,13 +37,13 @@ loadList <- function(path, listEnv = NULL, check = TRUE)
 		listEnv <- .listEnvEnv
 	if(!file.exists(path))
 		stop("The supplied file does not exist, please supply a correct path")
-	compoundList <- read.csv(path, stringsAsFactors=FALSE)
+	compoundList <- read.csv(path, stringsAsFactors=FALSE, check.names=FALSE)
 	# check whether the necessary columns are present
 	n <- colnames(compoundList)
 	cols <- c('ID', 'Name', 'SMILES', 'RT', 'CAS')
 	d <- setdiff(cols, n)
 	if(length(d)>0){
-		compoundList <- read.csv2(path, stringsAsFactors=FALSE)
+		compoundList <- read.csv2(path, stringsAsFactors=FALSE, check.names=FALSE)
 		n <- colnames(compoundList)
 		d2 <- setdiff(cols, n)
 		if(length(d2) > 0){
@@ -166,13 +166,13 @@ findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 #' it from the SMILES code in the list.
 #' 
 #' @aliases findMz findSmiles findFormula findRt findCAS findName
-#' @usage  findMz(cpdID, mode = "pH", ppm = 10, deltaMz = 0)
+#' @usage  findMz(cpdID, mode = "pH", ppm = 10, deltaMz = 0, retrieval="standard")
 #' 
 #' findRt(cpdID) 
 #' 
 #' findSmiles(cpdID) 
 #' 
-#' findFormula(cpdID) 
+#' findFormula(cpdID, retrieval="standard") 
 #' 
 #' findCAS(cpdID)
 #' 
@@ -189,6 +189,9 @@ findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 #' @param deltaMz Specifies additional m/z window to add to the range (deltaMz
 #' = 0.02 will return the range of the molecular mass +- 0.02 (and additionally
 #' +- the set ppm value).
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return \code{findMz} will return a \code{list(mzCenter=, mzMin=, mzMax=)}
 #' with the molecular weight of the given ion, as calculated from the SMILES
 #' code and Rcdk.
@@ -207,16 +210,31 @@ findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 #' }
 #' 
 #' @export
-findMz <- function(cpdID, mode="pH", ppm=10, deltaMz=0)
+findMz <- function(cpdID, mode="pH", ppm=10, deltaMz=0, retrieval="standard")
 {
-  s <- findSmiles(cpdID)
-  #if(s=="-") s <- NA
-  if(is.na(s)){
-	stop("There was no matching SMILES-entry to the supplied cpdID(s) \n Please check the cpdIDs and the compoundlist.")
-	return(list(mzMin=NA,mzMax=NA,mzCenter=NA))
-  }
-  formula <- .get.mol2formula(getMolecule(s))
-  return(findMz.formula(formula@string, mode, ppm, deltaMz))
+    # In case of unknown: m/z is in table
+    if(retrieval == "unknown"){
+        mz <- .listEnvEnv$listEnv$compoundList[which(.listEnvEnv$listEnv$compoundList$ID == cpdID),"m/z"]
+        delta <- ppm(mz, ppm, l=TRUE)
+        return(list(mzMin=delta[[2]] - deltaMz, mzMax=delta[[1]] + deltaMz, mzCenter=mz))
+    } 
+    
+    # In case of tentative: calculate mass from formula
+    if(retrieval == "tentative"){
+        return(findMz.formula(findFormula(cpdID, "tentative"),mode=mode))
+    }
+    
+    # All other cases: Use smiles to calculate mass
+    if(retrieval == "standard"){
+        s <- findSmiles(cpdID)
+        #if(s=="-") s <- NA
+        if(is.na(s)){
+            stop("There was no matching SMILES-entry to the supplied cpdID(s) \n  Please check the cpdIDs and the compoundlist.")
+            return(list(mzMin=NA,mzMax=NA,mzCenter=NA))
+        }
+        formula <- .get.mol2formula(getMolecule(s))
+        return(findMz.formula(formula@string, mode, ppm, deltaMz))
+    }
 }
 
 #findMz <- function(...)	findMz.rcdk(...)
@@ -247,11 +265,20 @@ findSmiles <- function(cpdID) {
 }
 
 #' @export
-findFormula <- function(cpdID) {
-  smiles <- findSmiles(cpdID)
-  mol <- getMolecule(smiles)
-  f <- .get.mol2formula(mol)
-  return(f@string)
+findFormula <- function(cpdID, retrieval = "standard") {
+    
+    # In case of tentative: read formula from table
+    if(retrieval=="tentative"){
+        return(.listEnvEnv$listEnv$compoundList[which(.listEnvEnv$listEnv$compoundList$ID == cpdID),"Formula"])
+    }
+    
+    # Otherwise: Convert smiles to formula
+    if(retrieval=="standard"){
+        smiles <- findSmiles(cpdID)
+        mol <- getMolecule(smiles)
+        f <- .get.mol2formula(mol)
+        return(f@string)
+    }
 }
 
 #' @export
@@ -284,9 +311,14 @@ findName <- function(cpdID) {
 #' SMILES code retrieved from the database. (Alternatively, takes also the
 #' compound ID as parameter and looks it up.) Calculation relies on Rcdk.
 #' 
-#' @usage findMass(cpdID_or_smiles)
 #' @param cpdID_or_smiles SMILES code or compound ID of the molecule. (Numerics
 #' are treated as compound ID).
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
+#' @param mode \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
+#' Only needed for retrieval="unknown"
 #' @return  Returns the exact mass of the uncharged molecule.
 #' @author Michael Stravs
 #' @seealso \code{\link{findMz}}
@@ -296,12 +328,49 @@ findName <- function(cpdID) {
 #' findMass("OC[C@@H]1OC(O)[C@@H](O)[C@@@@H](O)[C@@@@H]1O")
 #' 
 #' @export
-findMass <- function(cpdID_or_smiles)
+findMass <- function(cpdID_or_smiles, retrieval="standard", mode = "pH")
 {
-	if(!is.numeric(cpdID_or_smiles))
-		s <- cpdID_or_smiles
-	else
-		s <- findSmiles(cpdID_or_smiles)
-	mol <- getMolecule(s)
-	return(get.exact.mass(mol))
+    # Must calculate mass manually if no formula is given
+    if(retrieval == "unknown"){
+        if(mode == "pH") {
+            mass <- 1.00784
+            mode.charge <- 1
+        } else if(mode == "pNa") {
+            mass <- 22.989769
+            mode.charge <- 1
+        } else if(mode == "pM") {
+            mass <- 0
+            mode.charge <- 1
+        } else if(mode == "mM") {
+            mass <- 0
+            mode.charge <- -1
+        } else if(mode == "mH") {
+            mass <- -1.00784
+            mode.charge <- -1
+        } else if(mode == "mFA") {
+            mass <- 59.0440
+            mode.charge <- -1
+        } else if(mode == "pNH4") {
+            mass <- 18.03846
+            mode.charge <- 1
+        } else{
+          stop("mode = \"", mode, "\" not defined")
+        }
+        return(findMz(cpdID_or_smiles, mode=mode, retrieval=retrieval)$mzCenter - mass + mode.charge * .emass)
+    }
+    
+    # Calculate mass from formula
+    if(retrieval == "tentative"){
+        return(get.formula(findFormula(cpdID_or_smiles, "tentative"))@mass)
+    }
+    
+    # Calculate mass from SMILES
+    if(retrieval == "standard"){
+        if(!is.numeric(cpdID_or_smiles))
+            s <- cpdID_or_smiles
+        else
+            s <- findSmiles(cpdID_or_smiles)
+        mol <- getMolecule(s)
+        return(get.exact.mass(mol))
+    }
 }

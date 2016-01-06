@@ -162,7 +162,10 @@ resetInfolists <- function(mb)
 #' @param mb The \code{mbWorkspace} to work in.
 #' @param gatherData A variable denoting whether to retrieve information using several online databases \code{gatherData= "online"}
 #' or to use the local babel installation \code{gatherData= "babel"}. Note that babel is used either way, if a directory is given 
-#' in the settings
+#' in the settings. This setting will be ignored if retrieval is set to "standard"
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return The processed \code{mbWorkspace}.
 #' @seealso \code{\link{mbWorkspace-class}}
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -173,31 +176,38 @@ resetInfolists <- function(mb)
 #' 		
 #' }
 #' @export
-mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.csv", gatherData = "online")
+mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.csv", gatherData = "online", retrieval="standard")
 {
-  # Step 1: Find which compounds don't have annotation information yet. For these
-  # compounds, pull information from CTS (using gatherData).
-  if(1 %in% steps)
-  {
-      mbdata_ids <- lapply(selectSpectra(mb@spectra, "found", "object"), function(spec) spec@id)
-	  if(gatherData == "online"){
-		message("mbWorkflow: Step 1. Gather info from several databases")
-	  } 
-	  if(gatherData == "babel"){
-		message("mbWorkflow: Step 1. Gather info using babel")
-	  }
+    # Step 1: Find which compounds don't have annotation information yet. For these
+    # compounds, pull information from CTS (using gatherData).
+    if(1 %in% steps)
+    {
+        mbdata_ids <- lapply(selectSpectra(mb@spectra, "found", "object"), function(spec) spec@id)
+        if(retrieval == "standard"){
+            if(gatherData == "online"){
+                message("mbWorkflow: Step 1. Gather info from several databases")
+            } 
+            if(gatherData == "babel"){
+                message("mbWorkflow: Step 1. Gather info using babel")
+            }
+        } else{
+            message("mbWorkflow: Step 1. Gather no info - Unknown structure")
+        }
+ 
       # Which IDs are not in mbdata_archive yet?
       new_ids <- setdiff(as.numeric(unlist(mbdata_ids)), mb@mbdata_archive$id)
       mb@mbdata <- lapply(new_ids, function(id) 
       {
-        #print(id)
-		if(gatherData == "online"){
-			d <- gatherData(id)
-		} 
-		if(gatherData == "babel"){
-			d <- gatherDataBabel(id)
-		}
-        #print(d$dataused)
+		if(retrieval == "standard"){
+            if(gatherData == "online"){
+                d <- gatherData(id)
+            } 
+            if(gatherData == "babel"){
+                d <- gatherDataBabel(id)
+            }
+        } else{
+            d <- gatherDataUnknown(id, mb@spectra[[1]]@mode, retrieval=retrieval)
+        }
 		message(paste(id, ": ", d$dataused, sep=''))
         return(d)
       })
@@ -238,7 +248,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 				  if(nrow(mb@additionalPeaks) > 0)
 					  res <-compileRecord(r, mbdata, mb@aggregated, mb@additionalPeaks)
 				  else
-					  res <-compileRecord(r, mbdata, mb@aggregated, NULL)
+					  res <-compileRecord(r, mbdata, mb@aggregated, NULL, retrieval=retrieval)
 				  return(res)
 			  })
 	  # check which compounds have useful spectra
@@ -259,7 +269,11 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   if(6 %in% steps)
   {
 	message("mbWorkflow: Step 6. Generate molfiles")
-    mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(c[[1]][["CH$SMILES"]]))
+    if(retrieval == "standard"){
+        mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(c[[1]][["CH$SMILES"]]))
+    } else {
+        mb@molfile <- lapply(mb@compiled_ok, function(c) return(c(" ","$$$$")))
+    }
   }
   # Step 7: If necessary, generate the appropriate subdirectories, and actually write
   # the files to disk.
@@ -783,6 +797,102 @@ gatherDataBabel <- function(id){
 		return(mbdata)
 }
 
+# Retrieve annotation data for a compound, using only babel
+#' Retrieve annotation data
+#' 
+#' Retrieves annotation data for an unknown compound by using basic information present
+#'
+#' Composes the "upper part" of a MassBank record filled with chemical data
+#' about the compound: name, exact mass, structure, CAS no..  
+#' The instrument type is also written into this block (even
+#' if not strictly part of the chemical information). Additionally, index
+#' fields are added at the start of the record, which will be removed later:
+#' \code{id, dbcas, dbname} from the compound list.
+#' 
+#' Additionally, the fields \code{ACCESSION} and \code{RECORD_TITLE} are
+#' inserted empty and will be filled later on.
+#' 
+#' This function is used to generate the data in case a substance is unknown,
+#' i.e. not enough information is present to derive anything about formulas or links
+#'
+#' @usage gatherDataUnknown(id, mode, retrieval)
+#' @param id The compound ID.
+#' @param mode \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+#' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
+#' @return Returns a list of type \code{list(id= \var{compoundID}, ...,
+#' 'ACCESSION' = '', 'RECORD_TITLE' = '', )} etc. %% ...
+#' @author Michael Stravs, Erik Mueller
+#' @seealso \code{\link{mbWorkflow}}
+#' @references MassBank record format:
+#' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
+#' @examples
+#' 
+#' # Gather data for compound ID 131
+#' \dontrun{gatherDataUnknown(131,"pH")}
+#' 
+#' @export
+gatherDataUnknown <- function(id, mode, retrieval){
+    .checkMbSettings()
+    
+    ##Read from Compoundlist
+    smiles <- ""
+    if(retrieval == "unknown"){
+        mass <- findMass(id, "unknown", mode)
+        formula <- ""
+    }    
+    if(retrieval == "tentative"){
+        mass <- findMass(id, "tentative", mode)
+        formula <- findFormula(id, "tentative")
+    }
+    dbcas <- NA
+    dbname <- findName(id)
+    if(is.na(dbname)) dbname <- paste("Unknown ID:",id)
+    if(is.na(dbcas)) dbcas <- ""
+    
+
+    
+    ##Create 
+    mbdata <- list()
+    mbdata[['id']] <- id
+    mbdata[['dbcas']] <- dbcas
+    mbdata[['dbname']] <- dbname
+    mbdata[['dataused']] <- "none"
+    mbdata[['ACCESSION']] <- ""
+    mbdata[['RECORD_TITLE']] <- ""
+    mbdata[['DATE']] <- format(Sys.Date(), "%Y.%m.%d")
+    mbdata[['AUTHORS']] <- getOption("RMassBank")$annotations$authors
+    mbdata[['LICENSE']] <- getOption("RMassBank")$annotations$license
+    mbdata[['COPYRIGHT']] <- getOption("RMassBank")$annotations$copyright
+    # Confidence annotation and internal ID annotation.
+    # The ID of the compound will be written like:
+    # COMMENT: EAWAG_UCHEM_ID 1234
+    # if annotations$internal_id_fieldname is set to "EAWAG_UCHEM_ID"
+    mbdata[["COMMENT"]] <- list()
+    mbdata[["COMMENT"]][["CONFIDENCE"]] <- getOption("RMassBank")$annotations$confidence_comment
+    mbdata[["COMMENT"]][["ID"]] <- id
+
+    # here compound info starts
+    mbdata[['CH$NAME']] <- as.list(dbname)
+    
+    # Currently we use a fixed value for Compound Class, since there is no useful
+    # convention of what should go there and what shouldn't, and the field is not used
+    # in search queries.
+    mbdata[['CH$COMPOUND_CLASS']] <- getOption("RMassBank")$annotations$compound_class
+    mbdata[['CH$FORMULA']] <- formula
+    mbdata[['CH$EXACT_MASS']] <- mass
+    mbdata[['CH$SMILES']] <- ""
+    mbdata[['CH$IUPAC']] <- ""
+    
+    link <- list()
+    mbdata[['CH$LINK']] <- link
+    mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
+    mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
+
+    return(mbdata)
+}
 
 # Flatten the internal tree-like representation of MassBank data to a flat table.
 # Note that this limits us, in that the fields should be constant over all records!
@@ -977,10 +1087,10 @@ readMbdata <- function(row)
 #' list('FRAGMENTATION_MODE' = 'CID', ...), ...)} etc.
 #' 
 #' @aliases gatherCompound gatherSpectrum
-#' @usage gatherCompound(spec, aggregated, additionalPeaks = NULL)
+#' @usage gatherCompound(spec, aggregated, additionalPeaks = NULL, retrieval="standard")
 #' 
 #' 		gatherSpectrum(spec, msmsdata, ac_ms, ac_lc, aggregated, 
-#'	 		additionalPeaks = NULL)
+#'	 		additionalPeaks = NULL, retrieval="standard")
 #' @param spec A \code{RmbSpectraSet} object, representing a compound with multiple spectra.
 #' @param aggregated An aggregate peak table where the peaks are extracted from.
 #' @param msmsdata A \code{RmbSpectrum2} object from the \code{spec} spectra set, representing a single spectrum to give a record.
@@ -989,6 +1099,9 @@ readMbdata <- function(row)
 #' \code{gatherCompound} and then fed into \code{gatherSpectrum}.
 #' @param additionalPeaks If present, a table with additional peaks to add into the spectra.
 #' 		As loaded with \code{\link{addPeaks}}.
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return \code{gatherCompound} returns a list of tree-like MassBank data
 #' blocks. \code{gatherSpectrum} returns one single MassBank data block or
 #' \code{NA} if no useful peak is in the spectrum. 
@@ -1011,7 +1124,7 @@ readMbdata <- function(row)
 #' 
 #' 
 #' @export
-gatherCompound <- function(spec, aggregated, additionalPeaks = NULL)
+gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="standard")
 {
   # compound ID
   id <- spec@id
@@ -1049,7 +1162,7 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL)
   # Pass them the AC_LC and AC_MS data, which are added at the right place
   # directly in there.
   allSpectra <- lapply(spec@children, function(m)
-    gatherSpectrum(spec, m, ac_ms, ac_lc, aggregated, additionalPeaks))
+    gatherSpectrum(spec, m, ac_ms, ac_lc, aggregated, additionalPeaks, retrieval=retrieval))
   allSpectra <- allSpectra[which(!is.na(allSpectra))]
   return(allSpectra)
 }
@@ -1071,7 +1184,7 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL)
 #       peaksProblematic. Currently we use peaksOK and peaksReanOK to create the files.
 #       (Also, the global additionalPeaks table is used.)
 #' @export
-gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalPeaks = NULL)
+gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalPeaks = NULL, retrieval = "standard")
 {
   # If the spectrum is not filled, return right now. All "NA" spectra will
   # not be treated further.
@@ -1096,7 +1209,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
   
   # Calculate exact precursor mass with Rcdk, and find the base peak from the parent
   # spectrum. (Yes, that's what belongs here, I think.)
-  precursorMz <- findMz(spec@id, spec@mode)
+  precursorMz <- findMz(spec@id, spec@mode, retrieval=retrieval)
   ms_fi <- list()
   ms_fi[['BASE_PEAK']] <- round(mz(spec@parent)[which.max(intensity(spec@parent))],4)
   ms_fi[['PRECURSOR_M/Z']] <- round(precursorMz$mzCenter,4)
@@ -1300,7 +1413,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
 #' spectrum data, and finally fills in the record title and accession number,
 #' renames the "internal ID" comment field and removes dummy fields.
 #' 
-#' @usage compileRecord(spec, mbdata, aggregated, additionalPeaks = NULL)
+#' @usage compileRecord(spec, mbdata, aggregated, additionalPeaks = NULL, retrieval="standard")
 #' @param spec A \code{RmbSpectraSet} for a compound, after analysis (\code{\link{analyzeMsMs}}).
 #' Note that \bold{peaks are not read from this
 #' object anymore}: Peaks come from the \code{aggregated} dataframe (and from
@@ -1311,6 +1424,9 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
 #' @param aggregated An aggregated peak data table containing information about refiltered spectra etc.
 #' @param additionalPeaks If present, a table with additional peaks to add into the spectra.
 #' 		As loaded with \code{\link{addPeaks}}.
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return Returns a MassBank record in list format: e.g.
 #' \code{list("ACCESSION" = "XX123456", "RECORD_TITLE" = "Cubane", ...,
 #' "CH\$LINK" = list( "CAS" = "12-345-6", "CHEMSPIDER" = 1111, ...))}
@@ -1328,44 +1444,44 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
 #' \dontrun{compiled <- compileRecord(myspec, mbdata, w@@aggregated)}
 #' 
 #' @export
-compileRecord <- function(spec, mbdata, aggregated, additionalPeaks = NULL)
+compileRecord <- function(spec, mbdata, aggregated, additionalPeaks = NULL, retrieval="standard")
 {
-  # gather the individual spectra data
-  mblist <- gatherCompound(spec, aggregated, additionalPeaks)
-  # this returns a n-member list of "lower parts" of spectra (one for each subscan).
-  # (n being the number of child scans per parent scan.)
-  # Now we put the two parts together.
-  # (lapply on all n subscans, returns a list.)
-  mblist_c <- lapply(mblist, function(l)
+    # gather the individual spectra data
+    mblist <- gatherCompound(spec, aggregated, additionalPeaks, retrieval=retrieval)
+    # this returns a n-member list of "lower parts" of spectra (one for each subscan).
+    # (n being the number of child scans per parent scan.)
+    # Now we put the two parts together.
+    # (lapply on all n subscans, returns a list.)
+    mblist_c <- lapply(mblist, function(l)
     {
-      # This is the step which sticks together the upper and the lower part of the
-      # record (the upper being compound-specific and the lower being scan-specific.)
-      # Note that the accession number and record title (in the upper part) must of course
-      # be filled in with scan-specific info.
-      mbrecord <- c(mbdata, l)
+        # This is the step which sticks together the upper and the lower part of the
+        # record (the upper being compound-specific and the lower being scan-specific.)
+        # Note that the accession number and record title (in the upper part) must of course
+        # be filled in with scan-specific info.
+        mbrecord <- c(mbdata, l)
 
-      # Here is the right place to fix the name of the INTERNAL ID field.
-      names(mbrecord[["COMMENT"]])[[which(names(mbrecord[["COMMENT"]]) == "ID")]] <-
+        # Here is the right place to fix the name of the INTERNAL ID field.
+        names(mbrecord[["COMMENT"]])[[which(names(mbrecord[["COMMENT"]]) == "ID")]] <-
         getOption("RMassBank")$annotations$internal_id_fieldname
-	  # get mode parameter (for accession number generation) depending on version 
-	  # of record definition
-	  # Change by Tobias:
-	  # I suggest to include fragmentation mode here for information
-      if(getOption("RMassBank")$use_version == 2)
+        # get mode parameter (for accession number generation) depending on version 
+        # of record definition
+        # Change by Tobias:
+        # I suggest to include fragmentation mode here for information
+        if(getOption("RMassBank")$use_version == 2)
         mode <- mbrecord[["AC$MASS_SPECTROMETRY"]][["ION_MODE"]]
-      else
+        else
         mode <- mbrecord[["AC$ANALYTICAL_CONDITION"]][["MODE"]]
-	  # Generate the title and then delete the temprary RECORD_TITLE_CE field used before
-	  mbrecord[["RECORD_TITLE"]] <- .parseTitleString(mbrecord)
-      mbrecord[["RECORD_TITLE_CE"]] <- NULL
-      # Calculate the accession number from the options.
-      shift <- getOption("RMassBank")$accessionNumberShifts[[spec@mode]]
-      mbrecord[["ACCESSION"]] <- sprintf("%s%04d%02d", getOption("RMassBank")$annotations$entry_prefix, as.numeric(spec@id), as.numeric(mbrecord[["SUBSCAN"]])+shift)
-      # Clear the "SUBSCAN" field.
-      mbrecord[["SUBSCAN"]] <- NULL
-      # return the record.
-      return(mbrecord)
-  })
+        # Generate the title and then delete the temprary RECORD_TITLE_CE field used before
+        mbrecord[["RECORD_TITLE"]] <- .parseTitleString(mbrecord)
+        mbrecord[["RECORD_TITLE_CE"]] <- NULL
+        # Calculate the accession number from the options.
+        shift <- getOption("RMassBank")$accessionNumberShifts[[spec@mode]]
+        mbrecord[["ACCESSION"]] <- sprintf("%s%04d%02d", getOption("RMassBank")$annotations$entry_prefix, as.numeric(spec@id), as.numeric(mbrecord[["SUBSCAN"]])+shift)
+        # Clear the "SUBSCAN" field.
+        mbrecord[["SUBSCAN"]] <- NULL
+        # return the record.
+        return(mbrecord)
+    })
 }
 
 
@@ -1472,7 +1588,7 @@ annotator.default <- function(annotation, type)
 				# I.e. from a string like "R={BLA: BLUB}" return "BLA: BLUB"
 				args <- regexec("\\{(.*)\\}", var)
 				arg <- regmatches(var, args)[[1]][[2]]
-				
+				.GlobalEnv$AAA <- mbrecord
 				# Split the parameter by colon if necessary
 				splitVar <- strsplit(arg, ": ")[[1]]
 				# Read the parameter value from the record
@@ -1490,6 +1606,12 @@ annotator.default <- function(annotation, type)
 				# Fix problems: Names will have >= 1 match. Take the first
 				if(length(replaceVar) > 1)
 					replaceVar <- replaceVar[[1]]
+                
+                # Fix problems: Unknowns might have no name
+                if(!length(replaceVar)){
+                    replaceVar <- ""
+                }
+                
 				# Substitute the parameter value into the string
 				parsedVar <- sub("\\{(.*)\\}", replaceVar, var)	
 				return(parsedVar)

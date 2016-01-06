@@ -5,10 +5,10 @@
 \alias{gatherSpectrum}
 \title{Compose data block of MassBank record}
 \usage{
-gatherCompound(spec, aggregated, additionalPeaks = NULL)
+gatherCompound(spec, aggregated, additionalPeaks = NULL, retrieval="standard")
 
 		gatherSpectrum(spec, msmsdata, ac_ms, ac_lc, aggregated, 
- 		additionalPeaks = NULL)
+ 		additionalPeaks = NULL, retrieval="standard")
 }
 \arguments{
 \item{spec}{A \code{RmbSpectraSet} object, representing a compound with multiple spectra.}
@@ -17,6 +17,10 @@ gatherCompound(spec, aggregated, additionalPeaks = NULL)
 
 \item{additionalPeaks}{If present, a table with additional peaks to add into the spectra.
 As loaded with \code{\link{addPeaks}}.}
+
+\item{retrieval}{A value that determines whether the files should be handled either as "standard",
+if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+if the only know thing is the m/z}
 
 \item{msmsdata}{A \code{RmbSpectrum2} object from the \code{spec} spectra set, representing a single spectrum to give a record.}
 

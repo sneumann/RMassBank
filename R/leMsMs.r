@@ -68,6 +68,9 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @param progressbar The progress bar callback to use. Only needed for specialized applications.
 #' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
 #' @param MSe A boolean value that determines whether the spectra were recorded using MSe or not
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return The processed \code{msmsWorkspace}.
 #' @seealso \code{\link{msmsWorkspace-class}}
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -76,167 +79,169 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NULL, plots = FALSE,
 		precursorscan.cf = FALSE,
 		settings = getOption("RMassBank"), analyzeMethod = "formula",
-		progressbar = "progressBarHook", MSe = FALSE)
+		progressbar = "progressBarHook", MSe = FALSE, retrieval = "standard")
 {
     .checkMbSettings()
-  if(!any(mode %in% c("pH","pNa","pNH4","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
-  
-  if(!is.na(archivename))
-	  w@archivename <- archivename
-  
-  # Make a progress bar:
-  nProg <- 0
-  nLen <- length(w@files)
-  
-  if(readMethod == "minimal"){
-	##Edit options
-	opt <- getOption("RMassBank")
-	opt$recalibrator$MS1 <- "recalibrate.identity"
-	opt$recalibrator$MS2 <- "recalibrate.identity"
-	options(RMassBank=opt)
-	##Edit analyzemethod
-	analyzeMethod <- "intensity"
-  }
+    if(!any(mode %in% c("pH","pNa","pNH4","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+    if(!any(retrieval %in% c("standard","tentative","unknown"))) stop(paste0('The retrieval procedure "', retrieval, '" spectra is unknown.'))
 
-  # clean rerun functionality:
-  # if any step after 3 has been run, rerunning steps 4 or below needs moving back to the parent workspace.
-  # However, the recalibration must be preserved, because:
-  # if someone runs       
-  # w <- msmsWorkflow(w, steps=c(1:4)),
-  # then substitutes the recalibration
-  # w@rc <- myrecal
-  # then runs step 4 again
-  # w <- msmsWorkflow(w, steps=c(4), newRecalibration=FALSE)
-  # the rc and rc.ms1 must be preserved and not taken from the parent workspace
-  if(!all(steps > 4) & !is.null(w@parent))
-  {
-    rc <- w@rc
-    rc.ms1 <- w@rc.ms1
-    w <- w@parent
-    w@rc <- rc
-    w@rc.ms1 <- rc.ms1
-  }
+    if(!is.na(archivename))
+        w@archivename <- archivename
   
-  # Step 1: acquire all MSMS spectra from files
-  if(1 %in% steps)
-  {
-    message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
-	w <- msmsRead(w = w, files = w@files, readMethod=readMethod, mode=mode, confirmMode = confirmMode, useRtLimit = useRtLimit, 
-					Args = findPeaksArgs, settings = settings, progressbar = progressbar, MSe = MSe)
-  }
-  # Step 2: first run analysis before recalibration
-  if(2 %in% steps)
-  {
-	  nProg <- 0
-	  message("msmsWorkflow: Step 2. First analysis pre recalibration")
-	  pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
-	  w@spectra <- as(lapply(w@spectra, function(spec) {
-				  #print(spec$id)
-				  s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="preliminary",
-						  filterSettings = settings$filterSettings,
-						  spectraList = settings$spectraList, method = analyzeMethod)
-				  # Progress:
-				  nProg <<- nProg + 1
-				  pb <- do.call(progressbar, list(object=pb, value= nProg))
-				  
-				  return(s)
-			  }), "SimpleList")
-	## for(f in w@files)
-	## w@spectra[[basename(as.character(f))]]@name <- basename(as.character(f))
-	  suppressWarnings(do.call(progressbar, list(object=pb, close=TRUE)))
-  }
-  # Step 3: aggregate all spectra
-  if(3 %in% steps)
-  {
-	message("msmsWorkflow: Step 3. Aggregate all spectra")
-    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
-  }
-  # Step 4: recalibrate all m/z values in raw spectra
-  if(4 %in% steps)
-  {
-	message("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
-	if(newRecalibration)
-	{
-		# note: makeRecalibration takes w as argument now, because it needs to get the MS1 spectra from @spectra
-		recal <- makeRecalibration(w, mode,
-				recalibrateBy = settings$recalibrateBy,
-				recalibrateMS1 = settings$recalibrateMS1,
-				recalibrator = settings$recalibrator,
-				recalibrateMS1Window = settings$recalibrateMS1Window)
-		w@rc <- recal$rc
-		w@rc.ms1 <- recal$rc.ms1
-	}
-	w@parent <- w
-	w@aggregated <- data.frame()
-    spectra <- recalibrateSpectra(mode, w@spectra, w = w,
-			recalibrateBy = settings$recalibrateBy,
-			recalibrateMS1 = settings$recalibrateMS1)
-	w@spectra <- spectra
-  }
-  # Step 5: re-analysis on recalibrated spectra
-  if(5 %in% steps)
-  {
-	nProg <- 0
-	message("msmsWorkflow: Step 5. Reanalyze recalibrated spectra")
-	pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
-	
-	w@spectra <- as(lapply(w@spectra, function(spec) {
-						#print(spec$id)
-						s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="recalibrated",
-								filterSettings = settings$filterSettings,
-								spectraList = settings$spectraList, method = analyzeMethod)
-						# Progress:
-						nProg <<- nProg + 1
-						pb <- do.call(progressbar, list(object=pb, value= nProg))
-						
-						return(s)
-					}), "SimpleList")
-	## for(f in w@files)
-	## w@spectra[[basename(as.character(f))]]@name <- basename(as.character(f))
-	suppressWarnings(do.call(progressbar, list(object=pb, close=TRUE)))
-	
-  do.call(progressbar, list(object=pb, close=TRUE))
-  }
-  # Step 6: aggregate recalibrated results
-  if(6 %in% steps)
-  {
-    message("msmsWorkflow: Step 6. Aggregate recalibrated results")
-    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
-    if(!is.na(archivename))
-      archiveResults(w, paste(archivename, ".RData", sep=''), settings)
-    w@aggregated <- cleanElnoise(w@aggregated,
-			settings$electronicNoise, settings$electronicNoiseWidth)
-  }
-  # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
-  if(7 %in% steps)
-  {
-	message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
-    w@aggregated <- reanalyzeFailpeaks(
-			w@aggregated, custom_additions="N2O", mode=mode,
-				filterSettings=settings$filterSettings,
-				progressbar=progressbar)
-    if(!is.na(archivename))
-      archiveResults(w, paste(archivename, "_RA.RData", sep=''), settings)
-  }
-  # Step 8: heuristic filtering based on peak multiplicity;
-  #         creation of failpeak list
-  if(8 %in% steps)
-  {
-	message("msmsWorkflow: Step 8. Peak multiplicity filtering")
-    if (is.null(settings$multiplicityFilter)) {
-      message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
-    } else {
-      # apply heuristic filter      
-      w@aggregated <- filterMultiplicity(
-			w, archivename, mode, settings$multiplicityFilter )
-	  w@aggregated <- processProblematicPeaks(w, mode, archivename)
+    # Make a progress bar:
+    nProg <- 0
+    nLen <- length(w@files)
 
-      if(!is.na(archivename))
-        archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
+    if(readMethod == "minimal" || retrieval == "unknown"){
+        ##Edit options
+        opt <- getOption("RMassBank")
+        opt$recalibrator$MS1 <- "recalibrate.identity"
+        opt$recalibrator$MS2 <- "recalibrate.identity"
+        opt$add_annotation==FALSE
+        options(RMassBank=opt)
+        ##Edit analyzemethod
+        analyzeMethod <- "intensity"
     }
-  }
-  message("msmsWorkflow: Done.")
-  return(w)
+
+    # clean rerun functionality:
+    # if any step after 3 has been run, rerunning steps 4 or below needs moving back to the parent workspace.
+    # However, the recalibration must be preserved, because:
+    # if someone runs       
+    # w <- msmsWorkflow(w, steps=c(1:4)),
+    # then substitutes the recalibration
+    # w@rc <- myrecal
+    # then runs step 4 again
+    # w <- msmsWorkflow(w, steps=c(4), newRecalibration=FALSE)
+    # the rc and rc.ms1 must be preserved and not taken from the parent workspace
+    if(!all(steps > 4) & !is.null(w@parent))
+    {
+        rc <- w@rc
+        rc.ms1 <- w@rc.ms1
+        w <- w@parent
+        w@rc <- rc
+        w@rc.ms1 <- rc.ms1
+    }
+  
+    # Step 1: acquire all MSMS spectra from files
+    if(1 %in% steps)
+    {
+        message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
+        w <- msmsRead(w = w, files = w@files, readMethod=readMethod, mode=mode, confirmMode = confirmMode, useRtLimit = useRtLimit, 
+                        Args = findPeaksArgs, settings = settings, progressbar = progressbar, MSe = MSe, retrieval=retrieval)
+    }
+    # Step 2: first run analysis before recalibration
+    if(2 %in% steps)
+    {
+        nProg <- 0
+        message("msmsWorkflow: Step 2. First analysis pre recalibration")
+        pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
+        w@spectra <- as(lapply(w@spectra, function(spec) {
+                        #print(spec$id)
+                        s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="preliminary",
+                              filterSettings = settings$filterSettings,
+                              spectraList = settings$spectraList, method = analyzeMethod)
+                        # Progress:
+                        nProg <<- nProg + 1
+                        pb <- do.call(progressbar, list(object=pb, value= nProg))
+
+                        return(s)
+        }), "SimpleList")
+        ## for(f in w@files)
+        ## w@spectra[[basename(as.character(f))]]@name <- basename(as.character(f))
+        suppressWarnings(do.call(progressbar, list(object=pb, close=TRUE)))
+    }
+    # Step 3: aggregate all spectra
+    if(3 %in% steps)
+    {
+        message("msmsWorkflow: Step 3. Aggregate all spectra")
+        w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
+    }
+    # Step 4: recalibrate all m/z values in raw spectra
+    if(4 %in% steps)
+    {
+        message("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
+        if(newRecalibration)
+        {
+            # note: makeRecalibration takes w as argument now, because it needs to get the MS1 spectra from @spectra
+            recal <- makeRecalibration(w, mode,
+                    recalibrateBy = settings$recalibrateBy,
+                    recalibrateMS1 = settings$recalibrateMS1,
+                    recalibrator = settings$recalibrator,
+                    recalibrateMS1Window = settings$recalibrateMS1Window)
+            w@rc <- recal$rc
+            w@rc.ms1 <- recal$rc.ms1
+        }
+        w@parent <- w
+        w@aggregated <- data.frame()
+        spectra <- recalibrateSpectra(mode, w@spectra, w = w,
+                recalibrateBy = settings$recalibrateBy,
+                recalibrateMS1 = settings$recalibrateMS1)
+        w@spectra <- spectra
+    }
+    # Step 5: re-analysis on recalibrated spectra
+    if(5 %in% steps)
+    {
+        nProg <- 0
+        message("msmsWorkflow: Step 5. Reanalyze recalibrated spectra")
+        pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
+        
+        w@spectra <- as(lapply(w@spectra, function(spec) {
+                            #print(spec$id)
+                            s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="recalibrated",
+                                    filterSettings = settings$filterSettings,
+                                    spectraList = settings$spectraList, method = analyzeMethod)
+                            # Progress:
+                            nProg <<- nProg + 1
+                            pb <- do.call(progressbar, list(object=pb, value= nProg))
+                            
+                            return(s)
+                        }), "SimpleList")
+        ## for(f in w@files)
+        ## w@spectra[[basename(as.character(f))]]@name <- basename(as.character(f))
+        suppressWarnings(do.call(progressbar, list(object=pb, close=TRUE)))
+	
+        do.call(progressbar, list(object=pb, close=TRUE))
+    }
+    # Step 6: aggregate recalibrated results
+    if(6 %in% steps)
+    {
+        message("msmsWorkflow: Step 6. Aggregate recalibrated results")
+        w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
+        if(!is.na(archivename))
+          archiveResults(w, paste(archivename, ".RData", sep=''), settings)
+        w@aggregated <- cleanElnoise(w@aggregated,
+                settings$electronicNoise, settings$electronicNoiseWidth)
+    }
+    # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
+    if(7 %in% steps)
+    {
+        message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
+        w@aggregated <- reanalyzeFailpeaks(
+                    w@aggregated, custom_additions="N2O", mode=mode,
+                    filterSettings=settings$filterSettings,
+                    progressbar=progressbar)
+        if(!is.na(archivename))
+        archiveResults(w, paste(archivename, "_RA.RData", sep=''), settings)
+    }
+    # Step 8: heuristic filtering based on peak multiplicity;
+    #         creation of failpeak list
+    if(8 %in% steps)
+    {
+        message("msmsWorkflow: Step 8. Peak multiplicity filtering")
+        if (is.null(settings$multiplicityFilter)) {
+          message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
+        } else {
+            # apply heuristic filter      
+            w@aggregated <- filterMultiplicity(
+                w, archivename, mode, settings$multiplicityFilter )
+            w@aggregated <- processProblematicPeaks(w, mode, archivename)
+
+            if(!is.na(archivename))
+            archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
+        }
+    }
+    message("msmsWorkflow: Done.")
+    return(w)
 }
 
 #' Analyze MSMS spectra
@@ -795,8 +800,9 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		
 		# Filter out low intensity peaks:
 		child@low <- (shot$intensity < cut) | (shot$intensity < max(shot$intensity)*cut_ratio)
-		shot <- shot[!child@low,,drop=FALSE]
 		shot_full <- shot
+        shot <- shot[!child@low,,drop=FALSE]
+		
 		
 		# Is there still anything left?
 		if(length(which(!child@low))==0)
@@ -831,9 +837,11 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 				formula=msmsPeaks@formula,
 				dppm=0,
 				x1=0,x2=0,x3=0)
-		
-		
-		childPeaks <- addProperty(shot, "good", "logical", FALSE)
+        
+		childPeaks <- addProperty(shot_full, "rawOK", "logical", FALSE)
+        childPeaks[!(child@low | child@satellite),"rawOK"] <- TRUE
+     
+        childPeaks <- addProperty(childPeaks, "good", "logical", FALSE)
 		childPeaks[childPeaks$rawOK,"good"] <- TRUE
 
 		childPeaks <- addProperty(childPeaks, "mzCalc", "numeric")
@@ -853,8 +861,8 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		
 		childPeaks <- addProperty(childPeaks, "dppmBest", "numeric")
 		childPeaks[childPeaks$rawOK,"dppmBest"] <- 0
-		
-		child <- setData(child, childPeaks)
+        
+        child <- setData(child, childPeaks)
 		child@ok <- TRUE
 		return(child)
 	}

@@ -5,7 +5,7 @@
 ### https://github.com/eddelbuettel/rcppgsl/blob/master/tests/doRUnit.R
 
 if(require("RUnit", quietly = TRUE)) {
-	if(require("RMassBankData", quietly = TRUE)) {
+	if(require("RMassBankData", quietly = TRUE) && !(compareVersion(installed.packages()["RMassBankData","Version"],"1.99.0") == -1)) {
 		pkg <- "RMassBank"
 		print("Starting tests")
 		require(pkg, character.only=TRUE)
@@ -16,8 +16,9 @@ if(require("RUnit", quietly = TRUE)) {
 
 		source(file.path(path, "runTests.R"), echo = TRUE)
 	} else {
-		print("Package RMassBankData not available, cannot run unit tests")
+		## Taking this message out until the new RMassBankData is on bioc, just to avoid confusion.
+        # message("Package RMassBankData with version > 1.99 not available, cannot run unit tests")
 	}
 } else {
-	print("Package RUnit not available, cannot run unit tests")
-}            
+	message("Package RUnit not available, cannot run unit tests")
+}
