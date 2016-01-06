@@ -97,8 +97,10 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         opt <- getOption("RMassBank")
         opt$recalibrator$MS1 <- "recalibrate.identity"
         opt$recalibrator$MS2 <- "recalibrate.identity"
-        opt$add_annotation==FALSE
+        opt$add_annotation <- FALSE
+        opt$multiplicityFilter <- 1
         options(RMassBank=opt)
+        settings <- getOption("RMassBank")
         ##Edit analyzemethod
         analyzeMethod <- "intensity"
     }
@@ -219,7 +221,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         w@aggregated <- reanalyzeFailpeaks(
                     w@aggregated, custom_additions="N2O", mode=mode,
                     filterSettings=settings$filterSettings,
-                    progressbar=progressbar)
+                    progressbar=progressbar, retrieval=retrieval)
         if(!is.na(archivename))
         archiveResults(w, paste(archivename, "_RA.RData", sep=''), settings)
     }
@@ -233,8 +235,8 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         } else {
             # apply heuristic filter      
             w@aggregated <- filterMultiplicity(
-                w, archivename, mode, settings$multiplicityFilter )
-            w@aggregated <- processProblematicPeaks(w, mode, archivename)
+                w, archivename, mode, settings$multiplicityFilter , retrieval=retrieval)
+            w@aggregated <- processProblematicPeaks(w, mode, archivename, retrieval=retrieval)
 
             if(!is.na(archivename))
             archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
@@ -1096,6 +1098,9 @@ cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 #' @param peaks_matched Table of matched peaks (used for base peak reference),
 #' with at least \code{cpdID, scan, int}.
 #' @param mode Processing mode (\code{"pH", "pNa"} etc.)
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return A filtered table with the potentially problematic peaks, including
 #' the precursor mass and MSMS base peak intensity (\code{aMax}) for reference.
 #' @author Michael Stravs
@@ -1107,7 +1112,7 @@ cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 #' 				,,drop=FALSE], peaksMatched(w), mode)
 #' }
 #' @export
-problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
+problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH", retrieval="standard")
 {
   # find spectrum maximum for each peak, and merge into table
   if(nrow(peaks_matched) == 0){
@@ -1127,7 +1132,7 @@ problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
   # find parent m/z to exclude co-isolated peaks
   #p_control$mzCenter <- numeric(nrow(p_control))
   p_control$mzCenter <- as.numeric(
-    unlist(lapply(p_control$cpdID, function(id) findMz(id, mode)$mzCenter)) )
+    unlist(lapply(p_control$cpdID, function(id) findMz(id, mode, retrieval=retrieval)$mzCenter)) )
   p_control_noMH <- p_control[
 		  (p_control$mzFound < p_control$mzCenter - 1) |
 		  (p_control$mzFound > p_control$mzCenter + 1),]
@@ -1146,13 +1151,13 @@ problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
 #' 
 #' @author stravsmi
 #' @export
-processProblematicPeaks <- function(w, mode, archivename = NA)
+processProblematicPeaks <- function(w, mode, archivename = NA, retrieval="standard")
 {
 	
 	specs <- w@aggregated
 	fp <- problematicPeaks(specs[!specs$filterOK & !specs$noise & 
 							((specs$dppm == specs$dppmBest) | (is.na(specs$dppmBest)))
-					,,drop=FALSE], peaksMatched(w), mode)
+					,,drop=FALSE], peaksMatched(w), mode, retrieval=retrieval)
 	fp$OK <- rep('', nrow(fp))
 	fp$name <- rownames(fp)
 	
@@ -1590,6 +1595,9 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' @param progressbar The progress bar callback to use. Only needed for specialized
 #'  applications.	Cf. the documentation of \code{\link{progressBarHook}} for usage.
 #' @param filterSettings Settings for filtering data. Refer to\code{\link{analyzeMsMs}} for settings.
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return The aggregate data frame extended by the columns:
 #' #' \item{reanalyzed.???}{If reanalysis (step 7) has already been processed: matching values from the reanalyzed peaks}
 #' \item{matchedReanalysis}{Whether reanalysis has matched (\code{TRUE}), not matched(\code{FALSE}) or has not been conducted for the peak(\code{NA}).}
@@ -1609,7 +1617,7 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' 
 #' @export
 reanalyzeFailpeaks <- function(aggregated, custom_additions, mode, filterSettings =
-				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook")
+				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook", retrieval = "standard")
 {
 	
   fp <- peaksUnmatched(aggregated, cleaned=TRUE)
@@ -1638,7 +1646,7 @@ reanalyzeFailpeaks <- function(aggregated, custom_additions, mode, filterSetting
 	  # this is the reanalysis step: run reanalyze.failpeak (with the relevant parameters)
 	  # on each failpeak.
 	  temp <- mapply(reanalyzeFailpeak, custom_additions_l, fp$mzFound, fp$cpdID, counter, 
-			  MoreArgs=list(mode=mode, pb=list(hook=progressbar, bar=pb), filterSettings=filterSettings))
+			  MoreArgs=list(mode=mode, pb=list(hook=progressbar, bar=pb), filterSettings=filterSettings, retrieval=retrieval))
 	  # reformat the result and attach it to specs
 	  temp <- as.data.frame(t(temp))
 	  temp <- temp[,c("reanalyzed.formula", "reanalyzed.mzCalc", "reanalyzed.dppm", 
@@ -1677,7 +1685,7 @@ reanalyzeFailpeaks <- function(aggregated, custom_additions, mode, filterSetting
 
 #' @export
 reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL, mode,
-		filterSettings = getOption("RMassBank")$filterSettings)
+		filterSettings = getOption("RMassBank")$filterSettings, retrieval="standard")
 {
 	# the counter to show the progress
 	if(!is.null(pb))
@@ -1716,7 +1724,7 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	# culation of the evaluation starts from theoretical mass.
 	# So we don't miss the points on 'the border'.
 	
-	db_formula <- findFormula(cpdID)
+	db_formula <- findFormula(cpdID, retrieval=retrieval)
 	
 	ppmlimit <- 2.25 * filterSettings$ppmFine
 	parent_formula <- add.formula(db_formula, allowed_additions)
@@ -1963,6 +1971,9 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 #' @param multiplicityFilter Threshold for the multiplicity filter. If set to 1,
 #' 		no filtering will apply (minimum 1 occurrence of peak). 2 equals minimum
 #' 		2 occurrences etc. 
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return A list object with values: 
 #' \item{peaksOK}{ Peaks with >1-fold formula multiplicity from the
 #' 		"normal" peak analysis.  } 
@@ -1986,7 +1997,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 #' }
 #' @export
 filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
-		multiplicityFilter = getOption("RMassBank")$multiplicityFilter)
+		multiplicityFilter = getOption("RMassBank")$multiplicityFilter, retrieval="standard")
 {
     # Read multiplicity filter setting
     # For backwards compatibility: If the option is not set, define as 2
@@ -2031,7 +2042,7 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 		
     # Kick the M+H+ satellites out of peaksReanOK:
     peaksReanOK$mzCenter <- as.numeric(
-      unlist(lapply(peaksReanOK$cpdID, function(id) findMz(id)$mzCenter)) )
+      unlist(lapply(peaksReanOK$cpdID, function(id) findMz(id, retrieval=retrieval)$mzCenter)) )
     peaksReanBad <- peaksReanOK[
 			!((peaksReanOK$mzFound < peaksReanOK$mzCenter - 1) |
 			(peaksReanOK$mzFound > peaksReanOK$mzCenter + 1)),]
