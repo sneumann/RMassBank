@@ -446,7 +446,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
         cut <- 0
 	  else stop(paste("The ionization mode", mode, "is unknown."))
     }
-	cutRatio <- filterSettings$prelimCutRatio
+	cut_ratio <- filterSettings$prelimCutRatio
   }
   else
   {
@@ -770,7 +770,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 				cut <- 0
 			else stop(paste("The ionization mode", mode, "is unknown."))
 		}
-		cutRatio <- filterSettings$prelimCutRatio
+		cut_ratio <- filterSettings$prelimCutRatio
 	}
 	else
 	{
@@ -795,8 +795,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		
 		# Filter out low intensity peaks:
 		child@low <- (shot$intensity < cut) | (shot$intensity < max(shot$intensity)*cut_ratio)
-		shot <- shot[!child@low,,drop=FALSE]
-		shot_full <- shot
+		#shot <- shot[!child@low,,drop=FALSE]
 		
 		# Is there still anything left?
 		if(length(which(!child@low))==0)
@@ -827,13 +826,11 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 
 		# here follows the fake analysis
 		#------------------------------------
-		parentPeaks <- data.frame(mzFound=msmsPeaks@mz, 
-				formula=msmsPeaks@formula,
-				dppm=0,
-				x1=0,x2=0,x3=0)
+		childPeaks <- getData(child)
+		childPeaks <- addProperty(childPeaks, "rawOK", "logical", FALSE)
+		childPeaks$rawOK <- !(child@low | child@satellite)
 		
-		
-		childPeaks <- addProperty(shot, "good", "logical", FALSE)
+		childPeaks <- addProperty(childPeaks, "good", "logical", FALSE)
 		childPeaks[childPeaks$rawOK,"good"] <- TRUE
 
 		childPeaks <- addProperty(childPeaks, "mzCalc", "numeric")
@@ -1053,7 +1050,17 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 #' 		cleanElnoise(w@@aggregated)	
 #' }
 #' @export
-cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
+setGeneric("cleanElnoise",	
+		signature=c("peaks", "noise", "width"),
+		function(peaks, 
+				noise = getOption("RMassBank")$electronicNoise,
+				width = getOption("RMassBank")$electronicNoiseWidth
+				)
+				standardGeneric("cleanElnoise"))
+
+
+
+.cleanElnoise.df <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 		width = getOption("RMassBank")$electronicNoiseWidth)
 {
 	
@@ -1073,6 +1080,35 @@ cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
       }
       return(p_eln)
 }
+
+#' @export
+setMethod("cleanElnoise", signature(peaks="data.frame", noise="numeric", width="numeric"),
+		function(peaks, noise, width) .cleanElnoise.df(peaks, noise, width))
+
+
+#' @export
+setMethod("cleanElnoise", signature(peaks="RmbSpectrum2", noise="numeric", width="numeric"),
+		function(peaks, noise, width) 
+		{
+		 se <- new("RmbSpectrum2Ext", peaks)
+		 data <- getData(se)
+		 data$mzFound <- data$mz # this is a bit of a temporary workaround
+		 se <- addProperty(se, "noise", "logical", FALSE)
+		 data <- cleanElnoise(data, noise, width)
+		 se <- setData(se, data)
+		 se
+		})
+
+#' @export
+#' @describeIn selectPeaks A method to filter spectra to the specified peaks
+setMethod("cleanElnoise", c("RmbSpectrum2List",noise="numeric", width="numeric"), function(peaks, noise, width)
+		{
+			s <- lapply(peaks, function(s) cleanElnoise(s, noise, width))
+			for(n in seq_len(length(peaks)))
+				peaks[[n]] <- s[[n]]
+			return(peaks)
+		})
+
 
 #' Identify intense peaks (in a list of unmatched peaks)
 #' 
@@ -1529,32 +1565,8 @@ recalibrateSingleSpec <- function(spectrum, rc,
 #' @export
 filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$filterSettings)
 {
- cutoff_int_limit <- filterSettings$satelliteIntLimit
- cutoff_mz_limit <- filterSettings$satelliteMzLimit
-  # Order by intensity (descending)
-  peaks_o <- peaks[order(peaks$intensity, decreasing=TRUE),,drop=FALSE]
-  n <- 1
-  # As long as there are peaks left AND the last peak is small enough (relative
-  # to selected), move to the next peak
-  while(n < nrow(peaks_o))
-  {
-    if(peaks_o[nrow(peaks_o),"intensity"] >= cutoff_int_limit *peaks_o[n,"intensity"])
-      break
-    # remove all peaks within cutoff_mz_limit (std. m/z = 0.5) which have intensity
-    # of less than 5% relative to their "parent" peak
-    #
-	peaks_l <- peaks_o[ (peaks_o$mz > peaks_o[n,"mz"] - cutoff_mz_limit)
-							& (peaks_o$mz < peaks_o[n,"mz"] + cutoff_mz_limit)
-							& (peaks_o$intensity < cutoff_int_limit * peaks_o[n,"intensity"]),,drop=FALSE]		 
-	peaks_o <- peaks_o[ !((peaks_o$mz > peaks_o[n,"mz"] - cutoff_mz_limit)
-								& (peaks_o$mz < peaks_o[n,"mz"] + cutoff_mz_limit)
-								& (peaks_o$intensity < cutoff_int_limit * peaks_o[n,"intensity"])
-								),,drop=FALSE]		 
-    n <- n+1
-  }
-  return(peaks_o[order(peaks_o$mz),,drop=FALSE])
+	mergePeaks(peaks, 0, filterSettings$satelliteMzLimit, filterSettings$satelliteIntLimit)
 }
-
 
 #' Reanalyze unmatched peaks
 #' 

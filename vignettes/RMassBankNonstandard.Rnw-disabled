@@ -1,0 +1,206 @@
+% \VignetteIndexEntry{RMassBank non-standard usage}
+% \VignettePackage{rcdk}
+% \VignetteKeywords{}
+%% To generate the Latex code
+%library(RMassBank)
+%Rnwfile<- file.path("RMassBankNonstandard.Rnw")
+%Sweave(Rnwfile,pdf=TRUE,eps=TRUE,stylepath=TRUE,driver=RweaveLatex())
+
+
+\documentclass[letterpaper, 11pt]{article}
+
+\usepackage{times}
+\usepackage{url}
+\usepackage[pdftex,bookmarks=true]{hyperref}
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\funcarg}[1]{{\texttt{#1}}}
+
+\newcommand{\Rvar}[1]{{\texttt{#1}}}
+
+\newcommand{\rclass}[1]{{\textit{#1}}}
+
+<<echo=FALSE>>=
+options(width=74)
+#library(xtable)
+@
+\parindent 0in
+\parskip 1em
+
+\begin{document}
+
+\title{RMassBank: Non-standard usage}
+\author{Michael Stravs}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+<<echo=FALSE>>=
+library("RMassBank")
+library("RMassBankData")
+library("gplots")
+@
+
+
+This vignette assumes you are familiar with the standard usage of
+\Rpackage{RMassBank}, which is documented in
+<<eval=FALSE>>=
+vignette("RMassBank")
+@
+
+\section{Skipping recalibration}
+
+For instances where recalibration is not wanted, e.g. there is
+not enough data, or the user wants to use non-recalibrated
+data, recalibration can be deactivated. To do this, the \Rfunction{recalibrator}
+entry in the settings must be set to \Rfunction{recalibrate.identity}. This can be
+done in the settings file directly (preferred):
+
+\begin{verbatim}
+# [...]
+recalibrator:
+    MS1: recalibrate.identity
+    MS2: recalibrate.identity
+# [...]
+\end{verbatim}
+
+Or, alternatively, the settings can be adapted directly via R code.
+<<>>=
+RmbDefaultSettings()
+rmbo <- getOption("RMassBank")
+rmbo$recalibrator <- list(
+		"MS1" = "recalibrate.identity",
+		"MS2" = "recalibrate.identity"
+	)
+options("RMassBank" = rmbo)
+@
+
+To show the results of using a non-recalibrated workflow, we load a workspace
+with pre-processed data:
+
+<<>>=
+w <- loadMsmsWorkspace(system.file("results/pH_narcotics_RF.RData", 
+				package="RMassBankData"))
+@
+
+The stored recalibration curve:
+<<fig=TRUE>>=
+plotRecalibration(w)
+@
+
+Some example peaks to show the effect of recalibration:
+<<>>=
+w@recalibratedSpecs[[1]]$parentPeak[30:32,]
+w@recalibratedSpecs[[1]]$peaks[[1]][15:17,]
+@
+
+Now reprocess the recalibration step with the
+above set \Rfunction{recalibration.identity}:
+
+<<fig=TRUE>>=
+w <- msmsWorkflow(w, steps=4)
+@
+
+The recalibration graph shows that the recalibration "curve" will do no
+recalibration. To verify, we can show the same peaks as before:
+
+<<>>=
+w@recalibratedSpecs[[1]]$parentPeak[30:32,]
+w@recalibratedSpecs[[1]]$peaks[[1]][15:17,]
+@
+
+\section{Combining multiplicities}
+
+Standard multiplicity filtering, which is configurable in the settings,
+eliminates peaks which are observed only once for a compound. This eliminates
+spurious formula matches for random noise efficiently. It works
+well if either many spectra are recorded per compound, or if the same collision energy
+is present twice (e.g. with different resolutions). It sometimes fails
+for spectra on the "outer end" of the recorded collision energies when that
+spectrum is only present once -- peaks which appear only in the highest or only
+in the lowest recorded energy can be erroneously deleted. To prevent this, one
+can re-run the workflow, read a second set of spectra for every compound (the
+second most intense) and combine the peak multiplicities of the two analyzed
+runs. (Mutiplicity filtering can also be switched off completely.)
+
+Example:
+<<>>=
+RmbDefaultSettings()
+getOption("RMassBank")$multiplicityFilter
+
+# to make processing faster, we only use 3 spectra per compound
+rmbo <- getOption("RMassBank")
+rmbo$spectraList <- list(
+    list(mode="CID", ces = "35%", ce = "35 % (nominal)", res = 7500),
+    list(mode="HCD", ces = "15%", ce = "15 % (nominal)", res = 7500),
+    list(mode="HCD", ces = "30%", ce = "30 % (nominal)", res = 7500)
+)
+options(RMassBank = rmbo)
+
+loadList(system.file("list/NarcoticsDataset.csv", 
+        package="RMassBankData"))
+
+
+w <- newMsmsWorkspace()
+files <- list.files(system.file("spectra", package="RMassBankData"),
+        ".mzML", full.names = TRUE)
+w@files <- files[1:2]
+@
+First, the spectra are read and processed until reanalysis (step 7) normally:
+<<>>=
+w1 <- msmsWorkflow(w, mode="pH", steps=c(1))
+# Here we artificially cut spectra out to make the workflow run faster for the vignette:
+w1@specs <- lapply(w1@specs, function(s)
+    {
+      s$childScans <- s$childScans[1:3]
+      s$childHeaders <- s$childHeaders[1:3,]
+      s$peaks <- s$peaks[1:3]
+      s
+    })
+w1 <- msmsWorkflow(w1, mode="pH", steps=c(2:7))
+@
+
+Subsequently, we re-read and process the "confirmation spectra", i.e. the
+second-best spectra from the files. Therefore, we will have two sets of spectra
+for each compound and every real peak should in theory occur twice. 
+<<>>=
+w2 <- msmsWorkflow(w, mode="pH", steps=c(1), confirmMode = 1)
+# Here we artificially cut spectra out to make the workflow run faster for the vignette:
+w2@specs <- lapply(w2@specs, function(s)
+    {
+      s$childScans <- s$childScans[1:3]
+      s$childHeaders <- s$childHeaders[1:3,]
+      s$peaks <- s$peaks[1:3]
+      s
+    })
+w2 <- msmsWorkflow(w2, mode="pH", steps=c(2:7))
+@
+
+Finally, we combine the two workspaces for multiplicity filtering, and apply the
+last step in the workflow (multiplicity filtering).
+
+<<>>=
+wTotal <- combineMultiplicities(c(w1, w2))
+wTotal <- msmsWorkflow(wTotal, steps=8, mode="pH", archivename = "output")
+@
+
+Subsequently, we can proceed as usual with \Rfunction{mbWorkflow}:
+
+<<>>=
+mb <- newMbWorkspace(wTotal)
+# [...] load lists, execute workflow etc.
+@
+
+
+
+\section{Session information}
+
+<<>>=
+sessionInfo()
+@
+
+\end{document}
+

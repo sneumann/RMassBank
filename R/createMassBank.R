@@ -1106,7 +1106,10 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
   # Originally the peaks came from msmsdata$childFilt, and the subset
   # was used where dppm == dppmBest (because childFilt still contains multiple formulas)
   # per peak.
-	peaks <- aggregated[aggregated$filterOK,,drop=FALSE]
+	if("filterOK" %in% colnames(aggregated))
+		peaks <- aggregated[aggregated$filterOK,,drop=FALSE]
+	else
+		peaks <- aggregated
 	peaks <- peaks[(peaks$cpdID == id) & (peaks$scan == msmsdata@acquisitionNum),,drop=FALSE]
   
   # No peaks? Aha, bye

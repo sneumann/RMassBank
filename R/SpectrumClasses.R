@@ -2,8 +2,7 @@
 #' @import Biobase
 #' @import S4Vectors
 
-
-# @exportClass RmbSpectrum2
+#' @exportClass RmbSpectrum2
 .RmbSpectrum2 <- setClass("RmbSpectrum2",
 		representation = representation(
 				satellite="logical",
@@ -37,7 +36,7 @@
 		),
 )
 
-# @exportClass RmbSpectrum2List
+#' @exportClass RmbSpectrum2List
 .RmbSpectrum2List <- setClass("RmbSpectrum2List", contains="SimpleList",
 		prototype=prototype(elementType="RmbSpectrum2"))
 #
@@ -45,7 +44,7 @@
 #			coerceToSimpleList(from)
 #		})
 
-# @exportClass RmbSpectraSet
+#' @exportClass RmbSpectraSet
 .RmbSpectraSet <- setClass("RmbSpectraSet",
 		representation = representation(
 				parent = "Spectrum1",
@@ -76,7 +75,7 @@
 		)
 );
 
-# @exportClass RmbSpectraSetList
+#' @exportClass RmbSpectraSetList
 .RmbSpectraSetList <- setClass("RmbSpectraSetList", contains="SimpleList",
 		prototype=prototype(elementType="RmbSpectraSet"))
 
