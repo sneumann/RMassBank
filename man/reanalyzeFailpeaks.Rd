@@ -6,9 +6,9 @@
 \title{Reanalyze unmatched peaks}
 \usage{
 reanalyzeFailpeaks(aggregated, custom_additions, mode, filterSettings =
-				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook")
+				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook", retrieval="standard")
 reanalyzeFailpeak(custom_additions, mass, cpdID, counter, pb = NULL, mode,
-				filterSettings = getOption("RMassBank")$filterSettings)
+				filterSettings = getOption("RMassBank")$filterSettings, retrieval="standard")
 }
 \arguments{
 \item{aggregated}{A peake aggregate table (\code{w@aggregate}) (after processing electronic noise removal!)}
@@ -21,6 +21,10 @@ reanalyzeFailpeak(custom_additions, mass, cpdID, counter, pb = NULL, mode,
 
 \item{progressbar}{The progress bar callback to use. Only needed for specialized
 applications.    Cf. the documentation of \code{\link{progressBarHook}} for usage.}
+
+\item{retrieval}{A value that determines whether the files should be handled either as "standard",
+if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+if the only know thing is the m/z}
 
 \item{mass}{(Usually recalibrated) m/z value of the peak.}
 

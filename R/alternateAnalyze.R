@@ -32,11 +32,7 @@ newStep2WorkFlow <- function(w, mode="pH",
                              confirmMode=FALSE, progressbar = "progressBarHook", 
                              settings = getOption("RMassBank"), analyzeMethod="formula", fragdataFile = NA){
   ##Load the fragment data (locally or from RMassBank package)
-  if(is.na(fragdataFile)){
-    fragData <- nfragData
-  } else{
-    fragData <- read.csv(fragdataFile,colClasses = c("character","numeric"))
-  }
+  fragData <- read.csv(fragdataFile,colClasses = c("character","numeric"))
   
   ##Progress bar
   nLen <- length(w@files)
@@ -95,41 +91,41 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
                                 filterSettings = getOption("RMassBank")$filterSettings,
                                 spectraList = getOption("RMassBank")$spectraList, fragData, fragDataIndex)
 {
-  cut <- 0
-  cut_ratio <- 0
-  if(run=="preliminary")
-  {
-    mzColname <- "mz"
-    filterMode <- "coarse"
-    cut <- filterSettings$prelimCut
-    if(is.na(cut))
-    {
-      if(mode %in% c("pH", "pM", "pNa", "pNH4"))
-        cut <- 1e4
-      else if(mode %in% c("mH", "mFA","mM"))
-        cut <- 0
-      else stop(paste("The ionization mode", mode, "is unknown."))
-    }
-    cutRatio <- filterSettings$prelimCutRatio
-  } else{
-    mzColname <- "mzRecal"
-    filterMode <- "fine"
-    cut <- filterSettings$fineCut
-    cut_ratio <- filterSettings$fineCutRatio
-    if(is.na(cut)) cut <- 0
-  }
+	cut <- 0
+	cut_ratio <- 0
+	if(run=="preliminary")
+	{
+		mzColname <- "mz"
+		filterMode <- "coarse"
+		cut <- filterSettings$prelimCut
+		if(is.na(cut))
+		{
+			if(mode %in% c("pH", "pM", "pNa", "pNH4"))
+			cut <- 1e4
+			else if(mode %in% c("mH", "mFA","mM"))
+			cut <- 0
+			else stop(paste("The ionization mode", mode, "is unknown."))
+		}
+		cutRatio <- filterSettings$prelimCutRatio
+	} else{
+		mzColname <- "mzRecal"
+		filterMode <- "fine"
+		cut <- filterSettings$fineCut
+		cut_ratio <- filterSettings$fineCutRatio
+		if(is.na(cut)) cut <- 0
+	}
   
-  # find whole spectrum of parent peak, so we have reasonable data to feed into
-  # MolgenMsMs
-  parentSpectrum <- msmsPeaks$parentPeak
-  
-  
-  # Check whether the spectra can be fitted to the spectra list correctly!
-  if(nrow(msmsPeaks$childHeaders) != length(spectraList))
-  {
-    warning(paste0(
-      "The spectra count of the substance ", msmsPeaks$id, " (", nrow(msmsPeaks$childHeaders), " spectra) doesn't match the provided spectra list (", length(spectraList), " spectra)."
-    ))
+	# find whole spectrum of parent peak, so we have reasonable data to feed into
+	# MolgenMsMs
+	parentSpectrum <- msmsPeaks$parentPeak
+
+
+	# Check whether the spectra can be fitted to the spectra list correctly!
+	if(nrow(msmsPeaks$childHeaders) != length(spectraList))
+	{
+		warning(paste0("The spectra count of the substance ", msmsPeaks$id, " (", nrow(msmsPeaks$childHeaders), " spectra) doesn't match the provided spectra list (", 
+						length(spectraList), " spectra).")
+	)
     return(list(specOK=FALSE))
     
   }
@@ -240,52 +236,52 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
     
     if(usePrecalcData){
       
-      # if yes, split the peaks into 2 sets: Those which can be identified using the
-      # fragment data, and those which can (by maximum fragment Data m/z - 0.5)
-      
-      precalcIndex <- which(shot[,mzColname] < (max(newfragData$mass)-0.5))
-      smallShots <- shot[precalcIndex,]
-      bigShots <- shot[-precalcIndex,]
-      
-      # for smaller peaks use the precalculated fragment data
-      if(nrow(smallShots)){
-        system.time(peakmatrixSmall <- lapply(smallShots[,mzColname],function(mass){
-          mass.calc <- mass + mode.charge * .emass
-          maxminMass <- ppm(mass.calc, ppmlimit, l=TRUE)
-          # retrieve only possibly relevant rows of the fragment Data (use the index)
-          indices <- newfragDataIndex[floor(maxminMass[2]*100)]:newfragDataIndex[ceiling(maxminMass[1]*100)]
-          
-          fragmentedFragmentData <- newfragData[indices,]
-          
-          # narrow it down further using the ppm
-          fragmentedFragmentData <- fragmentedFragmentData[which(fragmentedFragmentData$mass > maxminMass[2] & fragmentedFragmentData $mass < maxminMass[1]),]
-          
-          # return nothing if the narrowed down data is empty at this point
-          if(!nrow(fragmentedFragmentData)){
-            return(t(c(mzFound=as.numeric(as.character(mass)),
-                       formula=NA, mzCalc=NA)))
-          }
-          
-          
-          # find out if the narrowed down fragments have a sub-formula of the parentformula
-          # return the indexes of relevant formulas
-          fragmentedFragmentData <- fragmentedFragmentData[which(sapply(fragmentedFragmentData$formula, function(currentFormula) is.sub.formula(currentFormula,parentAtomList))),]
-          
-          # return nothing if the narrowed down data is empty at this point
-          if(!nrow(fragmentedFragmentData)){
-            return(t(c(mzFound=as.numeric(as.character(mass)),
-                       formula=NA, mzCalc=NA)))
-          }
-          
-          return(t(sapply(1:nrow(fragmentedFragmentData), function(f)
-          {
-            mzCalc <- fragmentedFragmentData$mass[f] - mode.charge * .emass 
-            c(mzFound=as.numeric(as.character(mass)),
-              formula=fragmentedFragmentData$formula[f], 
-              mzCalc=mzCalc)
-          })))
-          
-        }))
+		# if yes, split the peaks into 2 sets: Those which can be identified using the
+		# fragment data, and those which can't (by maximum fragment Data m/z - 0.5)
+
+		precalcIndex <- which(shot[,mzColname] < (max(newfragData$mass)-0.5))
+		smallShots <- shot[precalcIndex,]
+		bigShots <- shot[-precalcIndex,]
+
+		# for smaller peaks use the precalculated fragment data
+		if(nrow(smallShots)){
+		peakmatrixSmall <- lapply(smallShots[,mzColname],function(mass){
+			mass.calc <- mass + mode.charge * .emass
+			maxminMass <- ppm(mass.calc, ppmlimit, l=TRUE)
+			# retrieve only possibly relevant rows of the fragment Data (use the index)
+			indices <- newfragDataIndex[floor(maxminMass[2]*100)]:newfragDataIndex[ceiling(maxminMass[1]*100)]
+			
+			fragmentedFragmentData <- newfragData[indices,]
+			
+			# narrow it down further using the ppm
+			fragmentedFragmentData <- fragmentedFragmentData[which(fragmentedFragmentData$mass > maxminMass[2] & fragmentedFragmentData $mass < maxminMass[1]),]
+			
+			# return nothing if the narrowed down data is empty at this point
+			if(!nrow(fragmentedFragmentData)){
+				return(t(c(mzFound=as.numeric(as.character(mass)),
+						formula=NA, mzCalc=NA)))
+			}
+			
+			
+			# find out if the narrowed down fragments have a sub-formula of the parentformula
+			# return the indexes of relevant formulas
+			fragmentedFragmentData <- fragmentedFragmentData[which(sapply(fragmentedFragmentData$formula, function(currentFormula) is.sub.formula(currentFormula,parentAtomList))),]
+			
+			# return nothing if the narrowed down data is empty at this point
+			if(!nrow(fragmentedFragmentData)){
+			return(t(c(mzFound=as.numeric(as.character(mass)),
+						formula=NA, mzCalc=NA)))
+			}
+			
+			return(t(sapply(1:nrow(fragmentedFragmentData), function(f)
+			{
+			mzCalc <- fragmentedFragmentData$mass[f] - mode.charge * .emass 
+			c(mzFound=as.numeric(as.character(mass)),
+				formula=fragmentedFragmentData$formula[f], 
+				mzCalc=mzCalc)
+			})))
+			
+        })
       } else{
         peakmatrixSmall <- list()
       }
@@ -323,31 +319,30 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
       peakmatrix <- c(peakmatrixSmall,peakmatrixBig)
       
     } else{
-        system.time(peakmatrix <- lapply(shot[,mzColname], function(mass){
-          # Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
-          # finally back-correct calculated masses for the charge
-          mass.calc <- mass + mode.charge * .emass
-          peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
-                                                   limits, charge=0)), error=function(e) NA)
-          #peakformula <- tryCatch( 
-          #  generate.formula(mass, 
-          #                   ppm(mass, ppmlimit, p=TRUE),
-          #                   limits, charge=1),
-          #error= function(e) list())
-          if(!is.list(peakformula)){
-            return(t(c(mzFound=as.numeric(as.character(mass)),
-                       formula=NA, mzCalc=NA)))
-          }else
-          {
-            return(t(sapply(peakformula, function(f)
-            {
-              mzCalc <- f@mass - mode.charge * .emass 
-              c(mzFound=mass,
-                formula=f@string, 
-                mzCalc=mzCalc)
-            })))
-          }
-        }))
+			peakmatrix <- lapply(shot[,mzColname], function(mass){
+			# Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
+			# finally back-correct calculated masses for the charge
+			mass.calc <- mass + mode.charge * .emass
+			peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
+												   limits, charge=0)), error=function(e) NA)
+			#peakformula <- tryCatch( 
+			#  generate.formula(mass, 
+			#                   ppm(mass, ppmlimit, p=TRUE),
+			#                   limits, charge=1),
+			#error= function(e) list())
+			if(!is.list(peakformula)){
+				return(t(c(mzFound=as.numeric(as.character(mass)),
+						formula=NA, mzCalc=NA)))
+			}else{
+				return(t(sapply(peakformula, function(f)
+				{
+					mzCalc <- f@mass - mode.charge * .emass 
+					c(mzFound=mass,
+					formula=f@string, 
+					mzCalc=mzCalc)
+				})))
+			}
+        })
     }
     
     childPeaks <- as.data.frame(do.call(rbind, peakmatrix))

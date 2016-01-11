@@ -2,7 +2,6 @@ test.mzRRead <- function(){
 	allOK <- TRUE
 	records <- list.files("XX/recdata",full.names=TRUE)
 	rightrecords <- list.files(system.file("records/XX/recdata", package="RMassBankData"), full.names=TRUE)
-	
 	for(i in 1:length(records)){
 		gen <- file(description = records[i], open = "r", blocking = TRUE,
 		encoding = getOption("encoding"), raw = FALSE)

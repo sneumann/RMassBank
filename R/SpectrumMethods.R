@@ -156,3 +156,34 @@ setMethod("normalize", c("RmbSpectrum2List"), function(object, ...)
 			return(object)
 		})
 
+
+
+setMethod("+", c("Spectrum", "numeric"), function(e1, e2) 
+		{
+			e1@mz <- e1@mz + e2
+			return(e1)
+		}) 
+
+
+
+setMethod("-", c("Spectrum", "numeric"), function(e1, e2) 
+		{
+			e1@mz <- e1@mz - e2
+			return(e1)
+		}) 
+
+setMethod("+", c("RmbSpectraSet", "ANY"), function(e1, e2)
+		{
+			e1@parent <- e1@parent + e2
+			for(n in seq_len(length(e1@children)))
+				e1@children[[n]] <- e1@children[[n]] + e2
+			e1
+		})
+
+setMethod("-", c("RmbSpectraSet", "ANY"), function(e1, e2)
+		{
+			e1@parent <- e1@parent - e2
+			for(n in seq_len(length(e1@children)))
+				e1@children[[n]] <- e1@children[[n]] - e2
+			e1
+		})

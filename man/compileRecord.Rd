@@ -4,7 +4,7 @@
 \alias{compileRecord}
 \title{Compile MassBank records}
 \usage{
-compileRecord(spec, mbdata, aggregated, additionalPeaks = NULL)
+compileRecord(spec, mbdata, aggregated, additionalPeaks = NULL, retrieval="standard")
 }
 \arguments{
 \item{spec}{A \code{RmbSpectraSet} for a compound, after analysis (\code{\link{analyzeMsMs}}).
@@ -20,6 +20,10 @@ usage information.)}
 
 \item{additionalPeaks}{If present, a table with additional peaks to add into the spectra.
 As loaded with \code{\link{addPeaks}}.}
+
+\item{retrieval}{A value that determines whether the files should be handled either as "standard",
+if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+if the only know thing is the m/z}
 }
 \value{
 Returns a MassBank record in list format: e.g.

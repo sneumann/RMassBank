@@ -116,15 +116,15 @@ findProgress <- function(workspace)
 #' 
 updateSettings <- function(settings, warn=TRUE)
 {
-  settings.new <- .settingsList
-  settings.old <- settings
-  renew <- setdiff(names(settings.new), names(settings.old))
-  if(length(renew) > 0 && warn==TRUE){
+    settings.new <- .settingsList
+    settings.old <- settings
+    renew <- setdiff(names(settings.new), names(settings.old))
+    if(length(renew) > 0 && warn==TRUE){
     warning(paste0("Your settings are outdated! The following fields were taken from default values: ", 
             paste(renew,collapse=", ")))
     if("filterSettings" %in% renew)
       warning("The default values of filterSettings could change the processing behaviour if you have negative-mode spectra. Check ?updateSettings for details.")
-  }
-  settings.old[renew] <- settings.new[renew]
-  return(settings.old)
+    }
+    settings.old[renew] <- settings.new[renew]
+    return(settings.old)
 }

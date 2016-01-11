@@ -5,7 +5,8 @@
 \title{MassBank record creation workflow}
 \usage{
 mbWorkflow(mb, steps = c(1, 2, 3, 4, 5, 6, 7, 8),
-  infolist_path = "./infolist.csv", gatherData = "online")
+  infolist_path = "./infolist.csv", gatherData = "online",
+  retrieval = "standard")
 }
 \arguments{
 \item{mb}{The \code{mbWorkspace} to work in.}
@@ -17,7 +18,11 @@ which should then be manually inspected.}
 
 \item{gatherData}{A variable denoting whether to retrieve information using several online databases \code{gatherData= "online"}
 or to use the local babel installation \code{gatherData= "babel"}. Note that babel is used either way, if a directory is given 
-in the settings}
+in the settings. This setting will be ignored if retrieval is set to "standard"}
+
+\item{retrieval}{A value that determines whether the files should be handled either as "standard",
+if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+if the only know thing is the m/z}
 }
 \value{
 The processed \code{mbWorkspace}.

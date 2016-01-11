@@ -4,7 +4,7 @@
 \alias{problematicPeaks}
 \title{Identify intense peaks (in a list of unmatched peaks)}
 \usage{
-problematicPeaks(peaks_unmatched, peaks_matched, mode = "pH")
+problematicPeaks(peaks_unmatched, peaks_matched, mode = "pH", retrieval="standard")
 }
 \arguments{
 \item{peaks_unmatched}{Table of unmatched peaks, with at least \code{cpdID,
@@ -14,6 +14,10 @@ scan, mzFound, int}.}
 with at least \code{cpdID, scan, int}.}
 
 \item{mode}{Processing mode (\code{"pH", "pNa"} etc.)}
+
+\item{retrieval}{A value that determines whether the files should be handled either as "standard",
+if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+if the only know thing is the m/z}
 }
 \value{
 A filtered table with the potentially problematic peaks, including

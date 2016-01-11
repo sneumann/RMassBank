@@ -52,12 +52,12 @@ NULL
 #' @export
 to.limits.rcdk <- function(formula)
 {
-  if(!is.list(formula))
-    formula <- formulastring.to.list(formula)
-  elelist <- lapply(names(formula), function(element) {
-    return(c(element, 0, formula[[element]]))
-  })
-  return(elelist)
+    if(!is.list(formula))
+        formula <- formulastring.to.list(formula)
+    elelist <- lapply(names(formula), function(element) {
+                    return(c(element, 0, formula[[element]]))
+                })
+    return(elelist)
 }
 
 
