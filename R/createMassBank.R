@@ -1349,7 +1349,6 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
   ## http://splash.fiehnlab.ucdavis.edu/
   ## Has to be temporarily added as "PK$SPLASH" in the "lower" part
   ## of the record, but will later be moved "up" when merging parts in compileRecord()  
-  mbdata[["MS$RELATED_MS"]] <- list(SPLASH = getSplash(peaks[,c("m/z", "int.")]))
   
   # the data processing tag :)
   # Change by Tobias:
@@ -1364,6 +1363,8 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
     processingComment,
     list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
     )
+  
+  mbdata[["PK$SPLASH"]] <- list(SPLASH = getSplash(peaks[,c("m/z", "int.")]))
   
   # Annotation:
   if(getOption("RMassBank")$add_annotation==TRUE)
