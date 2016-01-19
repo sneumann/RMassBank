@@ -167,18 +167,18 @@ parseMassBank <- function(Files){
 			}
 		##Extract the peaks and write the data into a data.frame
 		PKStart <- grep('PK$PEAK:',record, fixed = TRUE) + 1
-		endslash <- grep('//',record, fixed = TRUE)
-			if(PKStart < endslash){
-				splitted <- strsplit(record[PKStart:(endslash-1)]," ")
-				PKPeak <- matrix(nrow = endslash - PKStart, ncol = 3)
-				for(k in 1:length(splitted)){
-					splitted[[k]] <- splitted[[k]][which(splitted[[k]] != "")]
-					PKPeak[k,] <- splitted[[k]]
-				}
-				PKPeak <- as.data.frame(PKPeak, stringsAsFactors = FALSE)
-				PKPeak[] <- lapply(PKPeak, type.convert)
-				colnames(PKPeak) <- c("m/z", "int", "rel.int.")
-			}
+		endslash <- tail(grep('//',record, fixed = TRUE),1)
+        if(PKStart < endslash){
+            splitted <- strsplit(record[PKStart:(endslash-1)]," ")
+            PKPeak <- matrix(nrow = endslash - PKStart, ncol = 3)
+            for(k in 1:length(splitted)){
+                splitted[[k]] <- splitted[[k]][which(splitted[[k]] != "")]
+                PKPeak[k,] <- splitted[[k]]
+            }
+            PKPeak <- as.data.frame(PKPeak, stringsAsFactors = FALSE)
+            PKPeak[] <- lapply(PKPeak, type.convert)
+            colnames(PKPeak) <- c("m/z", "int", "rel.int.")
+        }
 	
 		mb@compiled_ok[[i]][['PK$PEAK']] <- PKPeak	
 	
