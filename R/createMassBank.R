@@ -1913,12 +1913,14 @@ exportMassbank <- function(compiled, files, molfile)
         )
     }
     # Use internal ID for naming the molfiles
-    molname <- sprintf("%04d", as.numeric(
-    compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]))
-    molname <- paste(molname, ".mol", sep="")
-    write(molfile,
-        file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata",molname)
-    )
+    if(findLevel(compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]],TRUE)=="standard"){
+        molname <- sprintf("%04d", as.numeric(
+        compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]))
+        molname <- paste(molname, ".mol", sep="")
+        write(molfile,
+            file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata",molname)
+        )
+    }
 }
 
 # Makes a list.tsv with molfile -> massbank ch$name attribution.
@@ -1943,24 +1945,29 @@ exportMassbank <- function(compiled, files, molfile)
 #' @export
 makeMollist <- function(compiled)
 {
-  # For every "compiled" entry (here, compiled is not one "compiled" entry but the total
-  # list of all compiled spectra), extract the uppermost CH$NAME and the ID (from the
-  # first spectrum.) Make the ID into 0000 format.
-  tsvlist <- t(sapply(compiled, function(entry)
+    # For every "compiled" entry (here, compiled is not one "compiled" entry but the total
+    # list of all compiled spectra), extract the uppermost CH$NAME and the ID (from the
+    # first spectrum.) Make the ID into 0000 format.
+    
+    tsvlist <- t(sapply(compiled, function(entry)
     {
-    name <- entry[[1]][["CH$NAME"]][[1]]
-    id <- sprintf("%04d", as.numeric(entry[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]))
-    molfilename <- paste(id,".mol",sep='')
-    return(c(name,molfilename))
-  }))
-  # Write the file with the 
-  write.table(tsvlist, 
-              paste(getOption("RMassBank")$annotations$entry_prefix,"/moldata/list.tsv", sep=''),
-              quote = FALSE,
-              sep="\t",
-              row.names=FALSE,
-              col.names=FALSE
-              )
+        name <- entry[[1]][["CH$NAME"]][[1]]
+        id <- sprintf("%04d", as.numeric(entry[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]))
+        molfilename <- paste(id,".mol",sep='')
+        return(c(name,molfilename))
+    }))
+    
+    IDs <- sapply(compiled, function(entry) return( sprintf("%04d", as.numeric(entry[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]))))
+    level <- sapply(IDs, findLevel, compact=TRUE)
+    validentries <- which(level == "standard")
+    # Write the file with the 
+    write.table(tsvlist[validentries,], 
+                paste(getOption("RMassBank")$annotations$entry_prefix,"/moldata/list.tsv", sep=''),
+                quote = FALSE,
+                sep="\t",
+                row.names=FALSE,
+                col.names=FALSE
+    )
 }
 
 
