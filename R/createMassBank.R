@@ -258,7 +258,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
     if(6 %in% steps)
     {
         message("mbWorkflow: Step 6. Generate molfiles")
-        mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(c[[1]][['COMMENT']][[getOption("RMassBank")$annotations$internal_id_fieldname]]))
+        mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(as.numeric(c[[1]][['COMMENT']][[getOption("RMassBank")$annotations$internal_id_fieldname]])))
     }
     # Step 7: If necessary, generate the appropriate subdirectories, and actually write
     # the files to disk.
