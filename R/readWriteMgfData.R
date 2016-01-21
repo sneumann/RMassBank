@@ -77,7 +77,7 @@ writeMgfRmbSpectrum2List <- function(object,
 				" exported by MSnbase/RMassBank on ", date())
 	}
 	cat(COM, file = con, sep = "")
-	for(chi in object)
+	for(chi in as.list(object))
 	{
 		MSnbase:::writeMgfContent(chi, TITLE=NULL, con=con)
 	}	

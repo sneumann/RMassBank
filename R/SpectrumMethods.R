@@ -120,6 +120,19 @@ setMethod("selectPeaks", c("RmbSpectrum2"), function(o, filter, ...)
 		})
 
 
+setMethod("selectPeaks", c("Spectrum"), function(o, filter, ...)
+		{
+			if(missing(filter))
+				return(o)
+			df <- as.data.frame(o)
+			f <- substitute(filter)
+			df <- df[eval(f, df),,drop=FALSE]
+			o@mz <- df[,1]
+			o@intensity <- df[,2]
+			o
+		})
+
+
 #' @export
 #' @describeIn selectPeaks A method to filter spectra to the specified peaks
 setMethod("selectPeaks", c("RmbSpectrum2List"), function(o, ...)
@@ -185,5 +198,21 @@ setMethod("-", c("RmbSpectraSet", "ANY"), function(e1, e2)
 			e1@parent <- e1@parent - e2
 			for(n in seq_len(length(e1@children)))
 				e1@children[[n]] <- e1@children[[n]] - e2
+			e1
+		})
+
+
+setMethod("+", c("RmbSpectrum2List", "ANY"), function(e1, e2)
+		{
+			for(n in seq_len(length(e1)))
+				e1[[n]] <- e1[[n]] + e2
+			e1
+		})
+
+
+setMethod("-", c("RmbSpectrum2List", "ANY"), function(e1, e2)
+		{
+			for(n in seq_len(length(e1)))
+				e1[[n]] <- e1[[n]] - e2
 			e1
 		})
