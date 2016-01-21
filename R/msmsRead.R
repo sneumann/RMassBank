@@ -34,9 +34,6 @@
 #' @param progressbar The progress bar callback to use. Only needed for specialized applications.
 #' 			Cf. the documentation of \code{\link{progressBarHook}} for usage.
 #' @param MSe A boolean value that determines whether the spectra were recorded using MSe or not
-#' @param retrieval A value that determines whether the files should be handled either as "standard",
-#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
-#' if the only know thing is the m/z
 #' @param plots A boolean value that determines whether the pseudospectra in XCMS should be plotted
 #' @return The \code{msmsWorkspace} with msms-spectra read.
 #' @seealso \code{\link{msmsWorkspace-class}}, \code{\link{msmsWorkflow}}
@@ -45,13 +42,12 @@
 #' @export
 msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL, 
 					readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
-					Args = NULL, settings = getOption("RMassBank"), progressbar = "progressBarHook", MSe = FALSE, 
-                    retrieval="standard", plots = FALSE){
+					Args = NULL, settings = getOption("RMassBank"),
+                    progressbar = "progressBarHook", MSe = FALSE, plots = FALSE){
 	.checkMbSettings()
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
 	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
-	if(!any(retrieval %in% c("standard","tentative","unknown"))) stop(paste0('The retrieval procedure "', retrieval, '" spectra is unknown.'))
     
 	if(is.null(filetable)){
 		##If no filetable is supplied, filenames must be named explicitly
@@ -88,17 +84,15 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(!all(file.exists(w@files))){
 		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist")
 	}
-	
-    if(retrieval == "standard"){
-        na.ids <- which(is.na(sapply(cpdids, findSmiles)))
-        
-        if(length(na.ids)){
-            stop("The supplied compound ids ", paste(cpdids[na.ids], collapse=" "), " don't have a corresponding smiles entry. Maybe they are missing from the compound list")
-        }
-    }
+
+    # na.ids <- which(is.na(sapply(cpdids, findSmiles)))
+    
+    # if(length(na.ids)){
+        # stop("The supplied compound ids ", paste(cpdids[na.ids], collapse=" "), " don't have a corresponding smiles entry. Maybe they are missing from the compound list")
+    # }
 	
 	##This should work
-    if(readMethod == "minimal" || retrieval == "unknown"){
+    if(readMethod == "minimal"){
         ##Edit options
         opt <- getOption("RMassBank")
         opt$recalibrator$MS1 <- "recalibrate.identity"
@@ -121,7 +115,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 							
 							# Find compound ID
 							cpdID <- cpdids[count]
-							
+							retrieval <- findLevel(cpdID,TRUE)
 							# Set counter up
 							envir$count <- envir$count + 1
 							

@@ -8,7 +8,7 @@ loaded options and given parameters.}
 msmsRead(w, filetable = NULL, files = NULL, cpdids = NULL, readMethod,
   mode, confirmMode = FALSE, useRtLimit = TRUE, Args = NULL,
   settings = getOption("RMassBank"), progressbar = "progressBarHook",
-  MSe = FALSE, retrieval = "standard", plots = FALSE)
+  MSe = FALSE, plots = FALSE)
 }
 \arguments{
 \item{w}{A \code{msmsWorkspace} to work with.}
@@ -49,10 +49,6 @@ the 2nd-most intense precursor for a chosen ion (and its data-dependent scans)
 Cf. the documentation of \code{\link{progressBarHook}} for usage.}
 
 \item{MSe}{A boolean value that determines whether the spectra were recorded using MSe or not}
-
-\item{retrieval}{A value that determines whether the files should be handled either as "standard",
-if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
-if the only know thing is the m/z}
 
 \item{plots}{A boolean value that determines whether the pseudospectra in XCMS should be plotted}
 }

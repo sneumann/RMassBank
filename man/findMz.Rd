@@ -3,6 +3,7 @@
 \name{findMz}
 \alias{findCAS}
 \alias{findFormula}
+\alias{findLevel}
 \alias{findMz}
 \alias{findName}
 \alias{findRt}
@@ -20,6 +21,8 @@ findFormula(cpdID, retrieval="standard")
 findCAS(cpdID)
 
 findName(cpdID)
+
+findLevel(cpdID, compact=FALSE)
 }
 \arguments{
 \item{cpdID}{The compound ID in the compound list.}
@@ -41,6 +44,9 @@ molecular mass + and - 10 ppm).}
 \item{retrieval}{A value that determines whether the files should be handled either as "standard",
 if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
 if the only know thing is the m/z}
+
+\item{compact}{Only for \code{findLevel}, returns the "retrieval" parameter used for many functions 
+within RMassBank if TRUE}
 }
 \value{
 \code{findMz} will return a \code{list(mzCenter=, mzMin=, mzMax=)}

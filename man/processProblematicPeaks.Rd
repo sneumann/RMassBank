@@ -4,16 +4,14 @@
 \alias{processProblematicPeaks}
 \title{Generate list of problematic peaks}
 \usage{
-processProblematicPeaks(w, mode, archivename = NA, retrieval = "standard")
+processProblematicPeaks(w, mode, archivename = NA)
 }
 \arguments{
 \item{w}{\code{msmsWorkspace} to analyze.}
 
 \item{mode}{Processing mode (pH etc)}
 
-\item{archivename}{Base name of the archive to write to (for "abc" the exported failpeaks list will be "abc_Failpeaks.csv").}
-
-\item{retrieval}{A value that determines whether the files should be handled either as "standard",
+\item{archivename}{Base name of the archive to write to (for "abc" the exported failpeaks list will be "abc_Failpeaks.csv").
 if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
 if the only know thing is the m/z}
 }

@@ -5,7 +5,7 @@
 \title{filterMultiplicity}
 \usage{
 filterMultiplicity(w, archivename=NA, mode="pH", recalcBest = TRUE,
-		multiplicityFilter = getOption("RMassBank")$multiplicityFilter, retrieval="standard")
+		multiplicityFilter = getOption("RMassBank")$multiplicityFilter)
 }
 \arguments{
 \item{w}{Workspace containing the data to be processed (aggregate table and \code{RmbSpectraSet} objects)}
@@ -24,10 +24,6 @@ lose peaks because of that.}
 \item{multiplicityFilter}{Threshold for the multiplicity filter. If set to 1,
 no filtering will apply (minimum 1 occurrence of peak). 2 equals minimum
 2 occurrences etc.}
-
-\item{retrieval}{A value that determines whether the files should be handled either as "standard",
-if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
-if the only know thing is the m/z}
 }
 \value{
 A list object with values: 
