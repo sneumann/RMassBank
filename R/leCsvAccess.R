@@ -336,25 +336,50 @@ getMolecule <- function(smiles)
 #' @examples findMz.formula("C6H6")
 #' @seealso \code{\link{findMz}}
 #' @export
-findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
+findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0) 
 {
-	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
-	mzopt <- list(addition="", charge=0)
-	if(mode=="pH") mzopt <- list(addition="H", charge=1)
-	if(mode=="pNa") mzopt <- list(addition="Na", charge=1)
-	if(mode=="pM") mzopt <- list(addition="", charge=1)
-	if(mode=="pNH4") mzopt <- list(addition="NH4", charge=-1)
-	if(mode=="mH") mzopt <- list(addition="H-1", charge=-1)
-	if(mode=="mFA") mzopt <- list(addition="C1O2", charge=-1)
-	if(mode=="mM") mzopt <- list(addition="", charge=-1)
-	if(mode=="") mzopt <- list(addition="", charge=0)
-	
-	
+	if (!any(mode %in% c("pH", "pNa", "pM", "pNH4", "mH", "mFA", 
+					"mM", ""))) 
+		stop(paste("The ionization mode", mode, "is unknown."))
+	mzopt <- list(addition = "", charge = 0)
+	if (mode == "pH") 
+		mzopt <- list(addition = "H", charge = 1)
+	if (mode == "pNa") 
+		mzopt <- list(addition = "Na", charge = 1)
+	if (mode == "pM") 
+		mzopt <- list(addition = "", charge = 1)
+	if (mode == "pNH4") 
+		mzopt <- list(addition = "NH4", charge = -1)
+	if (mode == "mH") 
+		mzopt <- list(addition = "H-1", charge = -1)
+	if (mode == "mFA") 
+		mzopt <- list(addition = "C1O2", charge = -1)
+	if (mode == "mM") 
+		mzopt <- list(addition = "", charge = -1)
+	if (mode == "") 
+		mzopt <- list(addition = "", charge = 0)
 	formula <- add.formula(formula, mzopt$addition)
-	formula <- get.formula(formula, charge=mzopt$charge)
-	m <- formula@mass
-	delta <- ppm(m, ppm, l=TRUE)
-	return(list(mzMin=delta[[2]] - deltaMz, mzMax=delta[[1]] + deltaMz, mzCenter=m))
+	# Since in special cases we want to use this with negative and zero number of atoms, we account for this case
+	# by splitting up the formula into positive and negative atom counts (this eliminates the zeroes.)
+	formula.split <- split.formula.posneg(formula)
+	m <- 0
+	if(formula.split$pos != "")
+	{
+		formula.pos <- get.formula(formula.split$pos, charge = mzopt$charge)
+		m = m + formula.pos@mass
+	}
+	if(formula.split$neg != "")
+	{
+		formula.neg <- get.formula(formula.split$neg, charge = -mzopt$charge)
+		m = m - formula.neg@mass
+	}
+	if((nchar(formula.split$pos)==0) & (nchar(formula.split$neg)==0))
+	{
+		m <- get.formula("H", charge = mzopt$charge)@mass - get.formula("H", charge = 0)@mass
+	}
+	delta <- ppm(m, ppm, l = TRUE)
+	return(list(mzMin = delta[[2]] - deltaMz, mzMax = delta[[1]] + 
+							deltaMz, mzCenter = m))
 }
 
 #' Find compound information
