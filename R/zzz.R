@@ -1,3 +1,7 @@
+
+#' @import digest
+# Auxiliary for getSplash.R so we can use the original file and don't have to change anything there
+
 .onLoad <- function(libname, pkgname) {
   RMassBank.env <<- new.env()
   RMassBank.env$ReadAnnotation <- FALSE
