@@ -26,8 +26,12 @@ setMethod("getData", c("RmbSpectrum2"), function(s)
 			data <- lapply(cols.filled, function(col) slot(s, col))
 			data$stringsAsFactors <- FALSE
 			df <- do.call(data.frame,data)
-			colnames(df) <- cols.filled
-			df
+			colnames(df) <- cols.filled		
+			if(nrow(s@properties) == peaks)
+				df <- cbind(df, s@properties)
+			else if(nrow(s@properties) > 0)
+				stop("Incorrect number of rows in properties frame.")
+			return(df)
 		})
 
 
@@ -50,29 +54,62 @@ setMethod("getData", c("RmbSpectrum2"), function(s)
 #' @export
 setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TRUE)
 		{
-			cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dbe", "formulaCount", "dppm", "dppmBest")
-			types <- c("mz" = "numeric", "intensity" = "numeric", "satellite" = "logical", "low" = "logical",
-					"rawOK" = "logical", "good" = "logical", "mzCalc" = "numeric", "formula" = "character", 
-					"dbe" = "numeric", "formulaCount" = "integer", "dppm" = "numeric", "dppmBest" = "numeric"
-					)
-			s@peaksCount <- as.integer(nrow(df))
-			cols.inDf <- which(cols %in% colnames(df))
-			cols.df <- cols[cols.inDf]
-			for(col in cols.df)
-			{
-				slot(s, col) <- as(df[,col], types[[col]])
-			}
-			cols.notinDf <- !(cols.inDf)
-			cols.no <- cols[cols.notinDf]
-			if(clean)
-			{
-				for(col in cols.no)
-				{
-					slot(s, col) <- c()
-				}
-			}
+			s <- .setData.main(s, df, clean)
+			s <- .setData.properties(s, df, clean)
 			s
 		})
+
+.setData.main <- function(s, df, clean = TRUE)
+{
+	cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dbe", "formulaCount", "dppm", "dppmBest")
+	types <- c("mz" = "numeric", "intensity" = "numeric", "satellite" = "logical", "low" = "logical",
+			"rawOK" = "logical", "good" = "logical", "mzCalc" = "numeric", "formula" = "character", 
+			"dbe" = "numeric", "formulaCount" = "integer", "dppm" = "numeric", "dppmBest" = "numeric"
+	)
+	s@peaksCount <- as.integer(nrow(df))
+	cols.inDf <- which(cols %in% colnames(df))
+	cols.df <- cols[cols.inDf]
+	for(col in cols.df)
+	{
+		slot(s, col) <- as(df[,col], types[[col]])
+	}
+	cols.notinDf <- !(cols.inDf)
+	cols.no <- cols[cols.notinDf]
+	if(clean)
+	{
+		for(col in cols.no)
+		{
+			slot(s, col) <- c()
+		}
+	}
+	s
+}
+
+.setData.properties <- function(s, df, clean = TRUE)
+{
+	# first set everything that RmbSpectrum2 setData does already
+	# then find which columns can be set for properties and always clean (do no remove properties!)
+	
+	cols <- colnames(s@properties)
+	cols.inDf <- which(cols %in% colnames(df))
+	
+	#newDf <- s@properties[rep(NA, s@peaksCount),,drop=FALSE]
+	cols.df <- cols[cols.inDf]
+	newDf <- df[,cols.df,drop=FALSE]
+	
+	
+	cols.notinDf <- !(cols.inDf)
+	cols.no <- cols[cols.notinDf]
+	
+	for(col in cols.no)
+		newDf[,col] <- rep(as(NA, class(newDf[,col])), nrow(newDf))
+	
+	# reorder columns
+	newDf <- newDf[,cols,drop=FALSE]
+	
+	s@properties <- newDf
+	s
+}
 
 setMethod("initialize", "RmbSpectrum2", function(.Object, ...,
 				satellite = .Object@satellite,
@@ -86,7 +123,8 @@ setMethod("initialize", "RmbSpectrum2", function(.Object, ...,
 				dppm = .Object@dppm,
 				dppmBest = .Object@dppmBest,
 				ok = .Object@ok,
-				info = .Object@info
+				info = .Object@info,
+				properties = .Object@properties
 				) {
 			## do work of initialization
 			callNextMethod(.Object, ..., 
@@ -101,7 +139,8 @@ setMethod("initialize", "RmbSpectrum2", function(.Object, ...,
 					dppm = dppm,
 					dppmBest = dppmBest,
 					ok = ok,
-					info = info)
+					info = info,
+					properties = properties)
 		})
 
 
@@ -144,13 +183,19 @@ setMethod("selectPeaks", c("RmbSpectrum2List"), function(o, ...)
 		})
 
 #' @export 
-setMethod("normalize", c(object="Spectrum"), function(object, ..., scale=999, precision=0)
+setMethod("normalize", c(object="RmbSpectrum2"), function(object, ..., scale=999, precision=0, slot="intensity")
 		{
 			intensity <- .normalize.int(object, ...) * scale
 			if(precision >= 0) intensity <- round(intensity, precision)
-			object@intensity <- intensity
+			if(slot != "intensity")
+			{
+				property(object, slot, TRUE, "numeric") <- intensity
+			}
+			else
+				object@intensity <- intensity
 			object
 		})
+
 
 .normalize.int <- function(object, ...)
 {
@@ -215,4 +260,43 @@ setMethod("-", c("RmbSpectrum2List", "ANY"), function(e1, e2)
 			for(n in seq_len(length(e1)))
 				e1[[n]] <- e1[[n]] - e2
 			e1
+		})
+
+#' @describeIn addProperty Add a new column to the RmbSpectrum2 properties
+#'
+#' @export 
+setMethod("addProperty", c("RmbSpectrum2", "character", "character", "ANY"), function(o, name, type, value=NA)
+		{
+			if(ncol(o@properties) == 0)
+				o@properties <- data.frame(row.names = seq_len(o@peaksCount)) 
+			o@properties[,name] <- as(rep(value, o@peaksCount), type)
+			o
+		})
+
+#setGeneric("setData",	function(s, df, ...) standardGeneric("setData"))
+
+
+#' @export
+setMethod("property", c("RmbSpectrum2", "character"), function(o, property)
+		{
+			if(property %in% colnames(o@properties))
+				return(o@properties[,property])
+			else
+				# We can't use FALSE or NA, since it could be confused with a 1-length logical FALSE or 1-length ANY NA  
+				return(NULL)
+		})
+
+#' @export
+setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "logical", "character"), function(o, property, value, addNew = FALSE, class="")
+		{
+			if(class == "") class <- class(value)
+			if(!(property %in% colnames(o@properties)) & !addNew)
+			{
+				warning("Trying to set inexistent property.")
+				return(o)
+			}
+			else if(!(property %in% colnames(o@properties)))
+				o <- addProperty(o, property, class)
+			o@properties[,property] <- value
+			return(o)
 		})

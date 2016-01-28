@@ -16,7 +16,8 @@
 				dppm = "numeric",
 				dppmBest = "numeric",
 				ok = "logical",
-				info = "list"
+				info = "list",
+				properties = "data.frame"
 		),
 		contains=c("Spectrum2"),
 		prototype = prototype(
@@ -32,7 +33,8 @@
 				dppmBest = numeric(),
 				ok = logical(),
 				info = list(),
-				new("Versioned", versions=c(classVersion("Spectrum2"), RmbSpectrum2 = "0.1.0"))
+				properties = data.frame(),
+				new("Versioned", versions=c(classVersion("Spectrum2"), RmbSpectrum2 = "0.1.1"))
 		),
 )
 

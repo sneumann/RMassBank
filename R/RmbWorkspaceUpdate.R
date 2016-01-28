@@ -7,65 +7,84 @@
 .updateObject.RmbWorkspace <- setMethod("updateObject", signature(object="msmsWorkspace"), function(object, ..., verbose = FALSE) 
 		{
 			w <- object
-			if(isVersioned(w))
-				if(all(isCurrent(w)))
-					return(w)
-			# get msmsWorkspace version
-			if(!isVersioned(w))
-				v <- "1.0.0"
-			else
-				v <- classVersion(w)["msmsWorkspace"]
-			w.new <- w
-			# gradually step up versions
-			# 2.0.1: 
-			# * spectra go from specs, analyzedSpecs or their rc analogs to Spectra
-			# * data pre recalibration get shifted to "parent workspace"
-			if(v < "2.0.1")
-			{
-				w.old <- w.new
-				w.new <- new("msmsWorkspace")
-				w.new@files <- w.old@files
-				# Do we have recalibration done? If so: all data in the WS will be the recalibrated data, the unrecalibrated data will be
-				# moved into a new parent workspace which is referenced
-				progress <- .findProgress.v1(w.old)
-				if(4 %in% progress)
-				{
-					w.parent <- w.old
-					slot(w.parent, "recalibratedSpecs", check=FALSE) <- NULL
-					slot(w.parent, "analyzedRcSpecs", check=FALSE) <- NULL
-					slot(w.parent, "aggregatedRcSpecs", check=FALSE) <- NULL
-					slot(w.parent, "reanalyzedRcSpecs", check=FALSE) <- NULL
-					slot(w.parent, "refilteredRcSpecs", check=FALSE) <- NULL
-					slot(w.old, "specs", check=FALSE) <- w.old@recalibratedSpecs
-					slot(w.old, "analyzedSpecs", check=FALSE) <- w.old@analyzedRcSpecs
-					w.parent.new <- updateObject(w.parent)
-					w.new@parent <- w.parent.new
-				}
-				w.new@spectra <- .updateObject.spectra(w.old@specs, w.old@analyzedSpecs)
-				if(7 %in% progress)
-				{
-					w.new@aggregated <- .updateObject.aggregated(w.old@reanalyzedRcSpecs)
-				}
-				else if(6 %in% progress)
-				{
-					w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedRcSpecs)
-				}
-        else if(3 %in% progress)
-        {
-          w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedSpecs)
-        }
-        
-        if(8 %in% progress)
-        {
-          w.new@aggregated <- .updateObject.refiltered(w.new, w.new@aggregated, w.old@refilteredRcSpecs)
-        }
-        
-			}
-			
-			return(w.new)
+			w <- .updateObject.RmbWorkspace.1to2(w, ..., verbose)
+			w <- .updateObject.RmbWorkspace.RmbSpectrum2(w, ..., verbose)
+			classVersion(w)["msmsWorkspace"] <- "2.0.2"
+			w
 		})
 
+.updateObject.RmbWorkspace.RmbSpectrum2 <- function(object, ..., verbose = FALSE) 
+{
+	w <- object
+	v <- classVersion(w)["msmsWorkspace"]
+	if(v < "2.0.2")
+	{
+		for(i in seq_len(length(w@spectra)))
+			w@spectra[[i]] <- updateObject(w@spectra[[i]])
+	}
+	w
+}
 
+.updateObject.RmbWorkspace.1to2 <- function(object, ..., verbose = FALSE) 
+{
+	w <- object
+	if(isVersioned(w))
+		if(all(isCurrent(w)))
+			return(w)
+	# get msmsWorkspace version
+	if(!isVersioned(w))
+		v <- "1.0.0"
+	else
+		v <- classVersion(w)["msmsWorkspace"]
+	w.new <- w
+	# gradually step up versions
+	# 2.0.1: 
+	# * spectra go from specs, analyzedSpecs or their rc analogs to Spectra
+	# * data pre recalibration get shifted to "parent workspace"
+	if(v < "2.0.1")
+	{
+		w.old <- w.new
+		w.new <- new("msmsWorkspace")
+		w.new@files <- w.old@files
+		# Do we have recalibration done? If so: all data in the WS will be the recalibrated data, the unrecalibrated data will be
+		# moved into a new parent workspace which is referenced
+		progress <- .findProgress.v1(w.old)
+		if(4 %in% progress)
+		{
+			w.parent <- w.old
+			slot(w.parent, "recalibratedSpecs", check=FALSE) <- NULL
+			slot(w.parent, "analyzedRcSpecs", check=FALSE) <- NULL
+			slot(w.parent, "aggregatedRcSpecs", check=FALSE) <- NULL
+			slot(w.parent, "reanalyzedRcSpecs", check=FALSE) <- NULL
+			slot(w.parent, "refilteredRcSpecs", check=FALSE) <- NULL
+			slot(w.old, "specs", check=FALSE) <- w.old@recalibratedSpecs
+			slot(w.old, "analyzedSpecs", check=FALSE) <- w.old@analyzedRcSpecs
+			w.parent.new <- updateObject(w.parent)
+			w.new@parent <- w.parent.new
+		}
+		w.new@spectra <- .updateObject.spectra(w.old@specs, w.old@analyzedSpecs)
+		if(7 %in% progress)
+		{
+			w.new@aggregated <- .updateObject.aggregated(w.old@reanalyzedRcSpecs)
+		}
+		else if(6 %in% progress)
+		{
+			w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedRcSpecs)
+		}
+		else if(3 %in% progress)
+		{
+			w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedSpecs)
+		}
+		
+		if(8 %in% progress)
+		{
+			w.new@aggregated <- .updateObject.refiltered(w.new, w.new@aggregated, w.old@refilteredRcSpecs)
+		}
+		
+	}
+	
+	return(w.new)
+}
 
 .updateObject.spectra <- function(specs, analyzedSpecs)
 {

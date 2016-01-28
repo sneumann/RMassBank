@@ -12,7 +12,7 @@
 \usage{
 selectPeaks(o, ...)
 
-\S4method{selectPeaks}{RmbSpectrum2}(o, filter = TRUE)
+\S4method{selectPeaks}{RmbSpectrum2}(o, filter, ...)
 
 \S4method{selectPeaks}{RmbSpectrum2List}(o, ...)
 
