@@ -169,6 +169,21 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
     }
     
+    if(allUnknown){
+        w@aggregated$noise <- FALSE
+        w@aggregated$noise <- FALSE
+        w@aggregated$reanalyzed.formula <- NA
+        w@aggregated$reanalyzed.mzCalc <- NA
+        w@aggregated$reanalyzed.dppm <- NA
+        w@aggregated$reanalyzed.formulaCount <- NA
+        w@aggregated$reanalyzed.dbe <- NA
+        w@aggregated$matchedReanalysis <- NA
+        w@aggregated$filterOK <- TRUE
+        w@aggregated$problematicPeak <- FALSE
+        w@aggregated$formulaMultiplicity <- unlist(sapply(table(w2@aggregated$cpdID),function(x) rep(x,x)))
+        return(w)
+    }
+    
     
     # Step 4: recalibrate all m/z values in raw spectra
     if(4 %in% steps)
