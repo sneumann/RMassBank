@@ -87,7 +87,13 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Make a progress bar:
   nProg <- 0
   nLen <- length(w@files)
-
+    
+    # If all compounds are unknown some specific conditions apply
+    if(all(.listEnvEnv$listEnv$compoundList$Level == "5")){
+        allUnknown <- TRUE
+        message("All compounds are unknown, the workflow will be adjusted accordingly")
+    }
+    
     if(readMethod == "minimal"){
 	##Edit options
 	opt <- getOption("RMassBank")
@@ -132,6 +138,9 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   {
 	  nProg <- 0
 	  message("msmsWorkflow: Step 2. First analysis pre recalibration")
+        if(allUnknown){
+            analyzeMethod <- "intensity"
+        }
 	  pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 	  w@spectra <- as(lapply(w@spectra, function(spec) {
 				  #print(spec$id)
@@ -159,6 +168,23 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	message("msmsWorkflow: Step 3. Aggregate all spectra")
     w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
   }
+    
+    if(allUnknown){
+        w@aggregated$noise <- FALSE
+        w@aggregated$noise <- FALSE
+        w@aggregated$reanalyzed.formula <- NA
+        w@aggregated$reanalyzed.mzCalc <- NA
+        w@aggregated$reanalyzed.dppm <- NA
+        w@aggregated$reanalyzed.formulaCount <- NA
+        w@aggregated$reanalyzed.dbe <- NA
+        w@aggregated$matchedReanalysis <- NA
+        w@aggregated$filterOK <- TRUE
+        w@aggregated$problematicPeak <- FALSE
+        w@aggregated$formulaMultiplicity <- unlist(sapply(table(w2@aggregated$cpdID),function(x) rep(x,x)))
+        return(w)
+    }
+    
+    
   # Step 4: recalibrate all m/z values in raw spectra
   if(4 %in% steps)
   {
