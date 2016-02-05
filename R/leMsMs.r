@@ -180,7 +180,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         w@aggregated$matchedReanalysis <- NA
         w@aggregated$filterOK <- TRUE
         w@aggregated$problematicPeak <- FALSE
-        w@aggregated$formulaMultiplicity <- unlist(sapply(table(w2@aggregated$cpdID),function(x) rep(x,x)))
+        w@aggregated$formulaMultiplicity <- unlist(sapply(table(w@aggregated$cpdID),function(x) rep(x,x)))
         return(w)
     }
     
