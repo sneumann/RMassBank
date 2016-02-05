@@ -18,10 +18,11 @@ setMethod("writeMgfData",
 		function(object,
 				con="spectrum.mgf",
 				COM = NULL,
-				TITLE = NULL) {
+				TITLE = NULL,
+				exactPrecursor=FALSE) {
 			writeMgfSpectraSet(object,
 					con = con, COM = COM, TITLE = TITLE,
-					verbose = FALSE)
+					verbose = FALSE, exactPrecursor=exactPrecursor)
 		})
 
 setMethod("writeMgfData",
@@ -38,7 +39,7 @@ setMethod("writeMgfData",
 
 writeMgfSpectraSet <- function(object,
 					con = con, COM = COM, TITLE = TITLE,
-					verbose = FALSE)
+					verbose = FALSE, exactPrecursor = FALSE)
 {
 	if (class(con) == "character" && file.exists(con)) {
 		message("Overwriting ", con, "!")
@@ -56,6 +57,8 @@ writeMgfSpectraSet <- function(object,
 	MSnbase:::writeMgfContent(object@parent, TITLE = NULL, con = con)
 	for(chi in as.list(object@children))
 	{
+		if(exactPrecursor)
+			chi@precursorMz <- object@mz
 		MSnbase:::writeMgfContent(chi, TITLE=NULL, con=con)
 	}	
 }

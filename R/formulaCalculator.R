@@ -354,3 +354,21 @@ split.formula.posneg <- function(f, as.formula = TRUE, as.list=FALSE)
 	else
 		return(list(pos=pos, neg=neg))
 }
+
+.precursorTypes <- list(
+		"pH" = "[M+H]+",
+		"pNa" = "[M+Na]+",
+		"mH" = "[M-H]-",
+		"mFA" = "[M+HCOO-]-",
+		"pM" = "[M]+",
+		"mM" = "[M]-",
+		"pNH4" = "[M+NH4]+")
+
+.ionModes <- list(
+		"pH" = "POSITIVE",
+		"pNa" = "POSITIVE",
+		"mH" = "NEGATIVE",
+		"mFA" = "NEGATIVE",
+		"pM" = "POSITIVE",
+		"mM" = "NEGATIVE",
+		"pNH4" = "POSITIVE")

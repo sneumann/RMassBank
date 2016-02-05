@@ -1232,14 +1232,7 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="
   imode <- spec@mode
 
   # define positive or negative, based on processing mode.
-  ion_modes <- list(
-    "pH" = "POSITIVE",
-    "pNa" = "POSITIVE",
-    "mH" = "NEGATIVE",
-    "mFA" = "NEGATIVE",
-    "pM" = "POSITIVE",
-    "mM" = "NEGATIVE",
-	"pNH4" = "POSITIVE")
+  ion_modes <- .ionModes
   mode <- ion_modes[[imode]]
 
   # for format 2.01
@@ -1294,14 +1287,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
   scan <- msmsdata@acquisitionNum
   id <- spec@id
   # Further fill the ac_ms datasets, and add the ms$focused_ion with spectrum-specific data:
-  precursor_types <- list(
-    "pH" = "[M+H]+",
-    "pNa" = "[M+Na]+",
-    "mH" = "[M-H]-",
-    "mFA" = "[M+HCOO-]-",
-    "pM" = "[M]+",
-    "mM" = "[M]-",
-	"pNH4" = "[M+NH4]+")
+  precursor_types <- .precursorTypes
   ac_ms[['FRAGMENTATION_MODE']] <- msmsdata@info$mode
   #ac_ms['PRECURSOR_TYPE'] <- precursor_types[spec$mode]
   ac_ms[['COLLISION_ENERGY']] <- msmsdata@info$ce

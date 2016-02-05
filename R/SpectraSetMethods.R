@@ -105,3 +105,19 @@ setMethod("spectraCount", c("RmbSpectraSetList"), function(s)
 setMethod("spectraCount", c("msmsWorkspace"), function(s) 
 			spectraCount(s@spectra))
 
+
+#' @export
+#' @describeIn selectPeaks A method to filter spectra to the specified peaks
+setMethod("selectPeaks", c("RmbSpectraSetList"), function(o, ...)
+		{
+			for(n in seq_len(length(o)))
+				o[[n]] <- selectPeaks(o[[n]], ...)
+			return(o)
+		})
+
+#' @export 
+setMethod("selectPeaks", c("RmbSpectraSet"), function(o, ...)
+		{
+			o@children <- selectPeaks(o@children, ...)
+			return(o)
+		})

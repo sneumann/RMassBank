@@ -151,21 +151,26 @@ setMethod("selectPeaks", c("RmbSpectrum2"), function(o, filter, ...)
 		{
 			if(missing(filter))
 				return(o)
+			if(!exists("enclos"))
+				enclos <- parent.frame()
 			df <- getData(o)
 			f <- substitute(filter)
-			df <- df[eval(f, df),,drop=FALSE]
+			df <- df[eval(f, df, enclos),,drop=FALSE]
 			o <- setData(o, df)
 			o
 		})
 
-
+#' @export
 setMethod("selectPeaks", c("Spectrum"), function(o, filter, ...)
 		{
 			if(missing(filter))
 				return(o)
+			if(!missing(enclos))
+				enclos = parent.frame()
+			
 			df <- as.data.frame(o)
 			f <- substitute(filter)
-			df <- df[eval(f, df),,drop=FALSE]
+			df <- df[eval(f, df, enclos),,drop=FALSE]
 			o@mz <- df[,1]
 			o@intensity <- df[,2]
 			o
@@ -286,17 +291,28 @@ setMethod("property", c("RmbSpectrum2", "character"), function(o, property)
 				return(NULL)
 		})
 
+
+.propertySet <- function(o, property, value, addNew = FALSE, class="")
+{
+	if(class == "") class <- class(value)
+	if(!(property %in% colnames(o@properties)) & !addNew)
+	{
+		warning("Trying to set inexistent property.")
+		return(o)
+	}
+	else if(!(property %in% colnames(o@properties)))
+		o <- addProperty(o, property, class)
+	o@properties[,property] <- value
+	return(o)
+}
+
 #' @export
-setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "logical", "character"), function(o, property, value, addNew = FALSE, class="")
-		{
-			if(class == "") class <- class(value)
-			if(!(property %in% colnames(o@properties)) & !addNew)
-			{
-				warning("Trying to set inexistent property.")
-				return(o)
-			}
-			else if(!(property %in% colnames(o@properties)))
-				o <- addProperty(o, property, class)
-			o@properties[,property] <- value
-			return(o)
-		})
+setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "logical", "character"), .propertySet )
+#' @export
+setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "missing", "character"), .propertySet )
+#' @export
+setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "logical", "missing"), .propertySet)
+#' @export
+setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "missing", "missing"), .propertySet )
+
+

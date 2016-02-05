@@ -89,7 +89,21 @@
 .updateObject.spectra <- function(specs, analyzedSpecs)
 {
 	if((length(specs) != length(analyzedSpecs)) && (0 != length(analyzedSpecs) ))
+	{
+		# Try to fix this, in early processed versions it could happen that a scan got reused
+		scans.analyzed <- unlist(lapply(analyzedSpecs, function(sp) sp$scan))
+		scans.recorded <- unlist(lapply(specs, function(sp) sp@acquisitionNum))
+		scans.reordered <- match(scans.recorded, scans.analyzed)
+		analyzedSpecs <- analyzedSpecs[scans.reordered]
+		id <- analyzedSpecs[[1]]$id
+		warning(paste0(id, ": Spectra were reordered to match acquisition data."))
+	}
+	if((length(specs) != length(analyzedSpecs)) && (0 != length(analyzedSpecs) ))
+	{
 		stop("updateObject: Could not update object because data is inconsistent. length(analyzedSpecs) != length(specs) or 0")
+		# Maybe it hasn't worked :)
+	}
+	
 	# process info ex specs
 	spectra <- lapply(specs, function(spec){
 				set <- new("RmbSpectraSet")
@@ -169,6 +183,19 @@
 	{
 		spectra <- mapply(function(set, analyzedSpec)
 				{
+					
+					if(length(analyzedSpec$msmsdata) != length(set@children))
+					{
+						# Try to fix this, in early processed versions it could happen that a scan got reused
+						scans.analyzed <- unlist(lapply(analyzedSpec$msmsdata, function(sp) sp$scan))
+						scans.recorded <- unlist(lapply(set@children, function(sp) sp@acquisitionNum))
+						scans.reordered <- match(scans.recorded, scans.analyzed)
+						analyzedSpec$msmsdata <- analyzedSpec$msmsdata[scans.reordered]
+						id <- analyzedSpec$msmsdata[[1]]$id
+						warning(paste0(id, ": Spectra were reordered to match acquisition data."))
+					}
+					
+					
 					if(length(analyzedSpec$msmsdata) != length(set@children))
 						stop("updateObject: Could not update object because data is inconsistent. length(analyzedSpec$msmsdata) != length(set@children)")
 					
