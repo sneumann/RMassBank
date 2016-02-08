@@ -1254,7 +1254,7 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="
     ac_lc[['COLUMN_NAME']] <- getOption("RMassBank")$annotations$lc_column
     ac_lc[['FLOW_GRADIENT']] <- getOption("RMassBank")$annotations$lc_gradient
     ac_lc[['FLOW_RATE']] <- getOption("RMassBank")$annotations$lc_flow
-    ac_lc[['RETENTION_TIME']] <- sprintf("%.1f min", rt)  
+    ac_lc[['RETENTION_TIME']] <- sprintf("%.3f min", rt)  
     ac_lc[['SOLVENT A']] <- getOption("RMassBank")$annotations$lc_solvent_a
     ac_lc[['SOLVENT B']] <- getOption("RMassBank")$annotations$lc_solvent_b
 
