@@ -67,7 +67,7 @@ setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TR
 			"dbe" = "numeric", "formulaCount" = "integer", "dppm" = "numeric", "dppmBest" = "numeric"
 	)
 	s@peaksCount <- as.integer(nrow(df))
-	cols.inDf <- which(cols %in% colnames(df))
+	cols.inDf <- (cols %in% colnames(df))
 	cols.df <- cols[cols.inDf]
 	for(col in cols.df)
 	{
@@ -79,7 +79,7 @@ setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TR
 	{
 		for(col in cols.no)
 		{
-			slot(s, col) <- c()
+			slot(s, col) <- new(class(slot(s, col)))
 		}
 	}
 	s
@@ -90,23 +90,33 @@ setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TR
 	# first set everything that RmbSpectrum2 setData does already
 	# then find which columns can be set for properties and always clean (do no remove properties!)
 	
+  # Find all properties which have a column in the new data (df)
 	cols <- colnames(s@properties)
-	cols.inDf <- which(cols %in% colnames(df))
+	cols.inDf <- (cols %in% colnames(df))
 	
 	#newDf <- s@properties[rep(NA, s@peaksCount),,drop=FALSE]
+  # cols.df contains all columns in the new df that are a property
 	cols.df <- cols[cols.inDf]
 	newDf <- df[,cols.df,drop=FALSE]
 	
-	
-	cols.notinDf <- !(cols.inDf)
-	cols.no <- cols[cols.notinDf]
-	
-	for(col in cols.no)
-		newDf[,col] <- rep(as(NA, class(newDf[,col])), nrow(newDf))
-	
-	# reorder columns
-	newDf <- newDf[,cols,drop=FALSE]
-	
+  if(!clean)
+  {
+    # Properties which do not have a column in the data frame:
+    # (Note: we do not care about columns in the dataframe that don't correspond to a property. These just go lost)
+    # (Maybe we should warn about this?)
+    cols.notinDf <- !(cols.inDf)
+    cols.no <- cols[cols.notinDf]
+    
+    for(col in cols.no)
+      newDf[,col] <- rep(as(NA, class(newDf[,col])), nrow(newDf))
+    # reorder columns
+    newDf <- newDf[,cols,drop=FALSE]
+  }
+  else
+  {
+    newDf <- newDf[,cols[cols.inDf],drop=FALSE]
+  }
+  
 	s@properties <- newDf
 	s
 }
@@ -147,12 +157,10 @@ setMethod("initialize", "RmbSpectrum2", function(.Object, ...,
 
 #' @export
 #' @describeIn selectPeaks A method to filter spectra to the specified peaks
-setMethod("selectPeaks", c("RmbSpectrum2"), function(o, filter, ...)
+setMethod("selectPeaks", c("RmbSpectrum2"), function(o, filter, enclos=parent.frame(2))
 		{
 			if(missing(filter))
 				return(o)
-			if(!exists("enclos"))
-				enclos <- parent.frame()
 			df <- getData(o)
 			f <- substitute(filter)
 			df <- df[eval(f, df, enclos),,drop=FALSE]
@@ -161,12 +169,10 @@ setMethod("selectPeaks", c("RmbSpectrum2"), function(o, filter, ...)
 		})
 
 #' @export
-setMethod("selectPeaks", c("Spectrum"), function(o, filter, ...)
+setMethod("selectPeaks", c("Spectrum"), function(o, filter, enclos=parent.frame(2))
 		{
 			if(missing(filter))
 				return(o)
-			if(!missing(enclos))
-				enclos = parent.frame()
 			
 			df <- as.data.frame(o)
 			f <- substitute(filter)
@@ -179,11 +185,10 @@ setMethod("selectPeaks", c("Spectrum"), function(o, filter, ...)
 
 #' @export
 #' @describeIn selectPeaks A method to filter spectra to the specified peaks
-setMethod("selectPeaks", c("RmbSpectrum2List"), function(o, ...)
+setMethod("selectPeaks", c("RmbSpectrum2List"), function(o, ..., enclos=parent.frame(2))
 		{
-			s <- lapply(o, function(s) selectPeaks(s, ...))
 			for(n in seq_len(length(o)))
-				o[[n]] <- s[[n]]
+				o[[n]] <- selectPeaks(o, ..., enclos=enclos)
 			return(o)
 		})
 

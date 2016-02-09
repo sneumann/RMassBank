@@ -89,6 +89,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   nLen <- length(w@files)
     
     # If all compounds are unknown some specific conditions apply
+  allUnknown <- FALSE
     if(all(.listEnvEnv$listEnv$compoundList$Level == "5")){
         allUnknown <- TRUE
         message("All compounds are unknown, the workflow will be adjusted accordingly")

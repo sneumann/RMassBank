@@ -51,24 +51,37 @@ setMethod("peaksUnmatched", c("msmsWorkspace"), function(o, cleaned=FALSE) peaks
 
 
 
+##' @export
+##' @describeIn selectPeaks A method to retrieve the specified peaks from the "aggregated" slot (a data.frame object) in an msmsWorkSpace
+#setMethod("selectPeaks", c("data.frame"), function(o, good=FALSE, bad=FALSE, cleaned=FALSE, best=FALSE)
+#		{
+#			if(!("noise" %in% colnames(o)))
+#				o$noise <- FALSE
+#			
+#			o[
+#					((good & o$good) |
+#					 (bad & !o$good)) &
+#				 (!cleaned | !o$noise) &
+#				 (!best | (o$dppm == o$dppmBest))
+#					,,drop=FALSE]			
+#		})
+
+
+
 #' @export
-#' @describeIn selectPeaks A method to retrieve the specified peaks from the "aggregated" slot (a data.frame object) in an msmsWorkSpace
-setMethod("selectPeaks", c("data.frame"), function(o, good=FALSE, bad=FALSE, cleaned=FALSE, best=FALSE)
-		{
-			if(!("noise" %in% colnames(o)))
-				o$noise <- FALSE
-			
-			o[
-					((good & o$good) |
-					 (bad & !o$good)) &
-				 (!cleaned | !o$noise) &
-				 (!best | (o$dppm == o$dppmBest))
-					,,drop=FALSE]			
-		})
+setMethod("selectPeaks", c("data.frame"), function(o, filter, enclos=parent.frame(2))
+    {
+      if(missing(filter))
+        return(o)
+      
+      f <- substitute(filter)
+      o <- o[eval(f, o, enclos),,drop=FALSE]
+    })
 
 #' @export
 #' @describeIn selectPeaks A method to retrieve the specified peaks from an msmsWorkSpace
-setMethod("selectPeaks", c("msmsWorkspace"), function(o, ...) selectPeaks(o@aggregated, ...))
+setMethod("selectPeaks", c("msmsWorkspace"), 
+    function(o, ..., enclos=parent.frame(2)) selectPeaks(o@aggregated, ..., enclos))
 
 
 #' @export

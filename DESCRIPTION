@@ -64,5 +64,6 @@ Collate:
     'msmsRead.R'
     'mergeSpectra.R'
     'Isotopic_Annotation.R'
+    'fillback.R'
     'zzz.R'
 RoxygenNote: 5.0.1
