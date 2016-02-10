@@ -69,13 +69,13 @@ setMethod("peaksUnmatched", c("msmsWorkspace"), function(o, cleaned=FALSE) peaks
 
 
 #' @export
-setMethod("selectPeaks", c("data.frame"), function(o, filter, enclos=parent.frame(2))
+setMethod("selectPeaks", c("data.frame"), function(o, filter, ..., enclos=parent.frame(2))
     {
       if(missing(filter))
         return(o)
       
       f <- substitute(filter)
-      o <- o[eval(f, o, enclos),,drop=FALSE]
+      o <- o[eval(f, o, enclos) & !is.na(eval(f,o,enclos)),,drop=FALSE]
     })
 
 #' @export

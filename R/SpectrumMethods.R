@@ -157,19 +157,19 @@ setMethod("initialize", "RmbSpectrum2", function(.Object, ...,
 
 #' @export
 #' @describeIn selectPeaks A method to filter spectra to the specified peaks
-setMethod("selectPeaks", c("RmbSpectrum2"), function(o, filter, enclos=parent.frame(2))
+setMethod("selectPeaks", c("RmbSpectrum2"), function(o, filter, ..., enclos=parent.frame(2))
 		{
 			if(missing(filter))
 				return(o)
 			df <- getData(o)
 			f <- substitute(filter)
-			df <- df[eval(f, df, enclos),,drop=FALSE]
+			df <- df[eval(f, df, enclos) & !is.na(eval(f, df, enclos)),,drop=FALSE]
 			o <- setData(o, df)
 			o
 		})
 
 #' @export
-setMethod("selectPeaks", c("Spectrum"), function(o, filter, enclos=parent.frame(2))
+setMethod("selectPeaks", c("Spectrum"), function(o, filter, ..., enclos=parent.frame(2))
 		{
 			if(missing(filter))
 				return(o)
