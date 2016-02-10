@@ -372,3 +372,12 @@ split.formula.posneg <- function(f, as.formula = TRUE, as.list=FALSE)
 		"pM" = "POSITIVE",
 		"mM" = "NEGATIVE",
 		"pNH4" = "POSITIVE")
+
+.formulaTag <- list(
+    "pH" = "+",
+    "pNa" = "+",
+    "mH" = "-",
+    "mFA" = "-",
+    "pM" = "+",
+    "mM" = "-",
+    "pNH4" = "+")

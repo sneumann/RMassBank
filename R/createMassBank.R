@@ -234,11 +234,8 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 			  function(r) {
 				  message(paste("Compiling: ", r@name, sep=""))
 				  mbdata <- mb@mbdata_relisted[[which(mb@mbdata_archive$id == as.numeric(r@id))]]
-				  if(nrow(mb@additionalPeaks) > 0)
-					  res <-compileRecord(r, mbdata, mb@aggregated, mb@additionalPeaks)
-				  else
-                        res <-compileRecord(r, mbdata, mb@aggregated, NULL, retrieval=findLevel(r@id,TRUE))
-				  return(res)
+          res <- buildRecord(r, mbdata, mb@additionalPeaks)
+          return(res)
 			  })
 	  # check which compounds have useful spectra
 	  mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
@@ -249,8 +246,8 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # flat-text string arrays (basically, into text-file style, but still in memory)
   if(5 %in% steps)
   {
-	message("mbWorkflow: Step 5. Flattening records")
-    mb@mbfiles <- lapply(mb@compiled_ok, function(c) lapply(c, toMassbank))
+	message("mbWorkflow: [Legacy Step 5. Flattening records] ignored")
+    #mb@mbfiles <- lapply(mb@compiled_ok, function(cpd) toMassbank(cpd, mb@additionalPeaks))
   }
   # Step 6: For all OK records, generate a corresponding molfile with the structure
   # of the compound, based on the SMILES entry from the MassBank record. (This molfile
@@ -258,7 +255,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   if(6 %in% steps)
   {
 	message("mbWorkflow: Step 6. Generate molfiles")
-        mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(as.numeric(c[[1]][['COMMENT']][[getOption("RMassBank")$annotations$internal_id_fieldname]])))
+        mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(as.numeric(c@id)))
     }
   # Step 7: If necessary, generate the appropriate subdirectories, and actually write
   # the files to disk.
@@ -267,8 +264,8 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 	message("mbWorkflow: Step 7. Generate subdirs and export")
     dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "moldata", sep='/'),recursive=TRUE)
     dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "recdata", sep='/'),recursive=TRUE)
-    for(cnt in 1:length(mb@compiled_ok))
-      exportMassbank(mb@compiled_ok[[cnt]], mb@mbfiles[[cnt]], mb@molfile[[cnt]])    
+    mb@mbfiles <- lapply(seq_len(length(mb@compiled_ok)), function(cnt)
+      exportMassbank(mb@compiled_ok[[cnt]], mb@molfile[[cnt]]))    
   }
   # Step 8: Create the list.tsv in the molfiles folder, which is required by MassBank
   # to attribute substances to their corresponding structure molfiles.
@@ -1173,408 +1170,6 @@ readMbdata <- function(row)
   
 }
 
-# For each compound, this function creates the "lower part" of the MassBank record, i.e.
-# everything that comes after AC$INSTRUMENT_TYPE.
-#' Compose data block of MassBank record
-#' 
-#' \code{gatherCompound} composes the data blocks (the "lower half") of all
-#' MassBank records for a compound, using the annotation data in the RMassBank
-#' options, spectrum info data from the \code{analyzedSpec}-type record and the
-#' peaks from the reanalyzed, multiplicity-filtered peak table. It calls
-#' \code{gatherSpectrum} for each child spectrum.
-#' 
-#' The returned data blocks are in format \code{list( "AC\$MASS_SPECTROMETRY" =
-#' list('FRAGMENTATION_MODE' = 'CID', ...), ...)} etc.
-#' 
-#' @aliases gatherCompound gatherSpectrum
-#' @usage gatherCompound(spec, aggregated, additionalPeaks = NULL, retrieval="standard")
-#' 
-#' 		gatherSpectrum(spec, msmsdata, ac_ms, ac_lc, aggregated, 
-#'	 		additionalPeaks = NULL, retrieval="standard")
-#' @param spec A \code{RmbSpectraSet} object, representing a compound with multiple spectra.
-#' @param aggregated An aggregate peak table where the peaks are extracted from.
-#' @param msmsdata A \code{RmbSpectrum2} object from the \code{spec} spectra set, representing a single spectrum to give a record.
-#' @param ac_ms,ac_lc Information for the AC\$MASS_SPECTROMETRY and
-#' AC\$CHROMATOGRAPHY fields in the MassBank record, created by
-#' \code{gatherCompound} and then fed into \code{gatherSpectrum}.
-#' @param additionalPeaks If present, a table with additional peaks to add into the spectra.
-#' 		As loaded with \code{\link{addPeaks}}.
-#' @param retrieval A value that determines whether the files should be handled either as "standard",
-#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
-#' if the only know thing is the m/z
-#' @return \code{gatherCompound} returns a list of tree-like MassBank data
-#' blocks. \code{gatherSpectrum} returns one single MassBank data block or
-#' \code{NA} if no useful peak is in the spectrum. 
-#' @note Note that the global table \code{additionalPeaks} is also used as an
-#' additional source of peaks.
-#' @author Michael Stravs
-#' @seealso \code{\link{mbWorkflow}}, \code{\link{compileRecord}}
-#' @references MassBank record format:
-#' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
-#' @examples \dontrun{
-#'      myspectrum <- w@@spectra[[1]]
-#' 		massbankdata <- gatherCompound(myspectrum, w@@aggregated)
-#' 		# Note: ac_lc and ac_ms are data blocks usually generated in gatherCompound and
-#' 		# passed on from there. The call below gives a relatively useless result :)
-#' 		ac_lc_dummy <- list()
-#' 		ac_ms_dummy <- list() 
-#' 		justOneSpectrum <- gatherSpectrum(myspectrum, myspectrum@@child[[2]],
-#' 			ac_ms_dummy, ac_lc_dummy, w@@aggregated)
-#' }
-#' 
-#' 
-#' @export
-gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="standard")
-{
-  # compound ID
-  id <- spec@id
-  # processing mode
-  imode <- spec@mode
-
-  # define positive or negative, based on processing mode.
-  ion_modes <- .ionModes
-  mode <- ion_modes[[imode]]
-
-  # for format 2.01
-  ac_ms <- list();
-  ac_ms[['MS_TYPE']] <- getOption("RMassBank")$annotations$ms_type
-  ac_ms[['IONIZATION']] <- getOption("RMassBank")$annotations$ionization
-  ac_ms[['ION_MODE']] <- mode
-  
-  # This list could be made customizable.
-  ac_lc <- list();
-  rt  <- spec@parent@rt / 60
-  ac_lc[['COLUMN_NAME']] <- getOption("RMassBank")$annotations$lc_column
-  ac_lc[['FLOW_GRADIENT']] <- getOption("RMassBank")$annotations$lc_gradient
-  ac_lc[['FLOW_RATE']] <- getOption("RMassBank")$annotations$lc_flow
-  ac_lc[['RETENTION_TIME']] <- sprintf("%.1f min", rt)  
-  ac_lc[['SOLVENT A']] <- getOption("RMassBank")$annotations$lc_solvent_a
-  ac_lc[['SOLVENT B']] <- getOption("RMassBank")$annotations$lc_solvent_b
-
-  # Go through all child spectra, and fill our skeleton with scan data!
-  # Pass them the AC_LC and AC_MS data, which are added at the right place
-  # directly in there.
-  allSpectra <- lapply(spec@children, function(m)
-    gatherSpectrum(spec, m, ac_ms, ac_lc, aggregated, additionalPeaks, retrieval=retrieval))
-  allSpectra <- allSpectra[which(!is.na(allSpectra))]
-  return(allSpectra)
-}
-
-
-
-# Process one single MSMS child scan.
-# spec: an object of "analyzedSpectrum" type (i.e. contains 
-#       14x (or other number) msmsdata, info, mzrange,
-#       compound ID, parent MS1, cpd id...)
-# msmsdata: the msmsdata sub-object from the spec which is the child scan we want to process.
-#       Contains childFilt, childBad, scan #, etc. Note that the peaks are actually not
-#       taken from here! They were taken from msmsdata initially, but after introduction
-#       of the refiltration and multiplicity filtering, this was changed. Now only the
-#       scan information is actually taken from msmsdata.
-# ac_ms, ac_lc: pre-filled info for the MassBank dataset (see above)
-# refiltered: the refilteredRcSpecs dataset which contains our good peaks :)
-#       Contains peaksOK, peaksReanOK, peaksFiltered, peaksFilteredReanalysis, 
-#       peaksProblematic. Currently we use peaksOK and peaksReanOK to create the files.
-#       (Also, the global additionalPeaks table is used.)
-#' @export
-gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalPeaks = NULL, retrieval = "standard")
-{
-  # If the spectrum is not filled, return right now. All "NA" spectra will
-  # not be treated further.
-  if(msmsdata@ok == FALSE)
-      return(NA)
-  # get data
-  scan <- msmsdata@acquisitionNum
-  id <- spec@id
-  # Further fill the ac_ms datasets, and add the ms$focused_ion with spectrum-specific data:
-  precursor_types <- .precursorTypes
-  ac_ms[['FRAGMENTATION_MODE']] <- msmsdata@info$mode
-  #ac_ms['PRECURSOR_TYPE'] <- precursor_types[spec$mode]
-  ac_ms[['COLLISION_ENERGY']] <- msmsdata@info$ce
-  ac_ms[['RESOLUTION']] <- msmsdata@info$res
-
-  # Calculate exact precursor mass with Rcdk, and find the base peak from the parent
-  # spectrum. (Yes, that's what belongs here, I think.)
-  precursorMz <- findMz(spec@id, spec@mode, retrieval=retrieval)
-  ms_fi <- list()
-  ms_fi[['BASE_PEAK']] <- round(mz(spec@parent)[which.max(intensity(spec@parent))],4)
-  ms_fi[['PRECURSOR_M/Z']] <- round(precursorMz$mzCenter,4)
-  ms_fi[['PRECURSOR_TYPE']] <- precursor_types[spec@mode]
-
-  # Select all peaks which belong to this spectrum (correct cpdID and scan no.)
-  # from peaksOK
-  # Note: Here and below it would be easy to customize the source of the peaks.
-  # Originally the peaks came from msmsdata$childFilt, and the subset
-  # was used where dppm == dppmBest (because childFilt still contains multiple formulas)
-  # per peak.
-	if("filterOK" %in% colnames(aggregated))
-		peaks <- aggregated[aggregated$filterOK,,drop=FALSE]
-	else
-		peaks <- aggregated
-	peaks <- peaks[(peaks$cpdID == id) & (peaks$scan == msmsdata@acquisitionNum),,drop=FALSE]
-  
-  # No peaks? Aha, bye
-    if(nrow(peaks) == 0)
-      return(NA)
-  
-  # If we don't include the reanalyzed peaks:
-  if(!getOption("RMassBank")$use_rean_peaks)
-	peaks <- peaks[is.na(peaks$matchedReanalysis),,drop=FALSE]
-  # but if we include them:
-  else
-  {
-	  # for info, the following data will be used in the default annotator:
-	  # annotation <- annotation[,c("mzSpec","formula", "formulaCount", "mzCalc", "dppm")]
-	  # and in the peaklist itself:
-	  # c("mzSpec", "int", "intrel")
-	  peaks[!is.na(peaks$matchedReanalysis),"formula"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.formula"]
-	  peaks[!is.na(peaks$matchedReanalysis),"mzCalc"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.mzCalc"]
-	  peaks[!is.na(peaks$matchedReanalysis),"dppm"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.dppm"]
-	  peaks[!is.na(peaks$matchedReanalysis),"dbe"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.dbe"]
-	  peaks[!is.na(peaks$matchedReanalysis),"formulaCount"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.formulaCount"]
-  }
-
-  # Calculate relative intensity and make a formatted m/z to use in the output
-  # (mzSpec, for "spectrum")
-  peaks$intrel <- floor(peaks$intensity / max(peaks$intensity) * 999)
-  peaks$mzSpec <- round(peaks$mzFound, 4)
-  # reorder peaks after addition of the reanalyzed ones
-  peaks <- peaks[order(peaks$mzSpec),]
-
-  # Also format the other values, which are used in the annotation
-  peaks$dppm <- round(peaks$dppm, 2)
-  peaks$mzCalc <- round(peaks$mzCalc, 4)
-  peaks$intensity <- round(peaks$intensity, 1)
-  # copy the peak table to the annotation table. (The peak table will then be extended
-  # with peaks from the global "additional_peaks" table, which can be used to add peaks
-  # to the spectra by hand.
-  annotation <- peaks
-  # Keep only peaks with relative intensity >= 1 o/oo, since the MassBank record
-  # makes no sense otherwise. Also, keep only the columns needed in the output.
-  peaks <- peaks[ peaks$intrel >= 1, c("mzSpec", "intensity", "intrel")]
-
-  # Here add the additional peaks if there are any for this compound!
-  # They are added without any annotation.
-  if(!is.null(additionalPeaks))
-  {
-    # select the peaks from the corresponding spectrum which were marked with "OK=1" in the table.
-    spec_add_peaks <- additionalPeaks[ 
-			(additionalPeaks$OK == 1) & 
-			(additionalPeaks$cpdID == spec@id) &
-			(additionalPeaks$scan == msmsdata@acquisitionNum),
-            c("mzFound", "intensity")]
-    # If there are peaks to add:
-    if(nrow(spec_add_peaks)>0)
-    {
-      # add the column for rel. int.
-      spec_add_peaks$intrel <- 0
-      # format m/z value
-      spec_add_peaks$mzSpec <- round(spec_add_peaks$mzFound, 4)
-      # bind tables together
-      peaks <- rbind(peaks, spec_add_peaks[,c("mzSpec", "intensity", "intrel")])
-      # recalculate rel.int.  and reorder list
-      peaks$intrel <- floor(peaks$intensity / max(peaks$intensity) * 999)
-      # Again, select the correct columns, and drop values with rel.int. <1 o/oo
-      # NOTE: If the highest additional peak is > than the previous highest peak,
-      # this can lead to the situation that a peak is in "annotation" but not in "peaks"!
-      # See below.
-      peaks <- peaks[ peaks$intrel >= 1, c("mzSpec", "intensity", "intrel")]
-      # Reorder again.
-      peaks <- peaks[order(peaks$mzSpec),]
-    }
-  }
-  
-
-  
-  # add + or - to fragment formulas
-  formula_tag <- list(
-    "pH" = "+",
-    "pNa" = "+",
-    "mH" = "-",
-    "mFA" = "-",
-    "pM" = "+",
-    "mM" = "-",
-	"pNH4" = "+")
-  type <- formula_tag[[spec@mode]]
-  
-  annotator <- getOption("RMassBank")$annotator
-  if(is.null(annotator))
-    annotator <- "annotator.default"
-  
-  
-  
-  # Here, the relative intensity is recalculated using the newly added additional
-  # peaks from the peak list. Therefore, we throw superfluous peaks out again.
-  # NOTE: It is a valid question whether or not we should kick peaks out at this stage.
-  # The alternative would be to leave the survivors at 1 o/oo, but keep them in the spectrum.
-  annotation$intrel <- floor(annotation$intensity / max(peaks$intensity) * 999)
-  annotation <- annotation[annotation$intrel >= 1,]
-
-  annotation <- do.call(annotator, list(annotation= annotation, type=type))
-
-
-  # Name the columns correctly.
-  colnames(peaks) <- c("m/z", "int.", "rel.int.")
-  peaknum <- nrow(peaks)
-
-  # Create the "lower part" of the record.  
-  mbdata <- list()
-  # Add the AC$MS, AC$LC info.
-  if(getOption("RMassBank")$use_version == 2)
-  {
-    mbdata[["AC$MASS_SPECTROMETRY"]] <- ac_ms
-    mbdata[["AC$CHROMATOGRAPHY"]] <- ac_lc
-  }
-  else
-  {
-      # Fix for MassBank data format 1, where ION_MODE must be renamed to MODE
-      mbdata[["AC$ANALYTICAL_CONDITION"]] <- c(ac_ms, ac_lc)
-      names(mbdata[["AC$ANALYTICAL_CONDITION"]])[[3]] <- "MODE"
-  }
-  # Add the MS$FOCUSED_ION info.
-  mbdata[["MS$FOCUSED_ION"]] <- ms_fi
-
-  ## The SPLASH is a hash value calculated across all peaks
-  ## http://splash.fiehnlab.ucdavis.edu/
-  ## Has to be temporarily added as "PK$SPLASH" in the "lower" part
-  ## of the record, but will later be moved "up" when merging parts in compileRecord()  
-
-  # the data processing tag :)
-  # Change by Tobias:
-  # I suggest to add here the current version number of the clone due to better distinction between different makes of MB records
-  # Could be automatised from DESCRIPTION file?
-  if(getOption("RMassBank")$use_rean_peaks)
-      processingComment <- list("REANALYZE" = "Peaks with additional N2/O included")
-  else
-      processingComment <- list()
-  mbdata[["MS$DATA_PROCESSING"]] <- c(
-    getOption("RMassBank")$annotations$ms_dataprocessing,
-    processingComment,
-    list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
-    )
-  
-    mbdata[["PK$SPLASH"]] <- list(SPLASH = getSplash(peaks[,c("m/z", "int.")]))
-
-  # Annotation:
-    if(getOption("RMassBank")$add_annotation && (findLevel(id,TRUE)!="unknown"))
-    mbdata[["PK$ANNOTATION"]] <- annotation
-    
-  # Peak table
-  mbdata[["PK$NUM_PEAK"]] <- peaknum
-  mbdata[["PK$PEAK"]] <- peaks
-  # These two entries will be thrown out later, but they are necessary to build the
-  # record title and the accession number.
-  mbdata[["RECORD_TITLE_CE"]] <- msmsdata@info$ces #formatted collision energy
-  # Mode of relative scan calculation: by default it is calculated relative to the
-  # parent scan. If a corresponding option is set, it will be calculated from the first
-  # present child scan in the list.
-  relativeScan <- "fromParent"
-  if(!is.null(getOption("RMassBank")$recomputeRelativeScan))
-	  if(getOption("RMassBank")$recomputeRelativeScan == "fromFirstChild")
-		  relativeScan <- "fromFirstChild"
-  if(relativeScan == "fromParent")
-	  mbdata[["SUBSCAN"]] <- msmsdata@acquisitionNum - spec@parent@acquisitionNum #relative scan
-    else if(relativeScan == "fromFirstChild"){
-	  firstChild <- min(unlist(lapply(spec@children,function(d) d@acquisitionNum)))
-	  mbdata[["SUBSCAN"]] <- msmsdata@acquisitionNum - firstChild + 1
-  }
-  return(mbdata)
-}
-
-
-# This compiles a MassBank record from the analyzedRcSpecs format (using the peaks from
-# refilteredRcSpecs) together with the compound annotation data.
-# Correspondingly:
-# spec:       contains the analyzedRcSpec-format spectrum collection to be compiled
-#             (i.e. a block of length(spectraList) child spectra)
-# mbdata:     contains the corresponding MassBank "header" (the upper part of the record)
-#             until INSTRUMENT TYPE.
-# refiltered: the refilteredRcSpecs which contain our nice peaks.
-#' Compile MassBank records
-#' 
-#' Takes a spectra block for a compound, as returned from
-#' \code{\link{analyzeMsMs}}, and an aggregated cleaned peak table, together
-#' with a MassBank information block, as stored in the infolists and loaded via
-#' \code{\link{loadInfolist}}/\code{\link{readMbdata}} and processes them to a
-#' MassBank record
-#' 
-#' \code{compileRecord} calls \code{\link{gatherCompound}} to create blocks of
-#' spectrum data, and finally fills in the record title and accession number,
-#' renames the "internal ID" comment field and removes dummy fields.
-#' 
-#' @usage compileRecord(spec, mbdata, aggregated, additionalPeaks = NULL, retrieval="standard")
-#' @param spec A \code{RmbSpectraSet} for a compound, after analysis (\code{\link{analyzeMsMs}}).
-#' Note that \bold{peaks are not read from this
-#' object anymore}: Peaks come from the \code{aggregated} dataframe (and from
-#' the global \code{additionalPeaks} dataframe; cf. \code{\link{addPeaks}} for
-#' usage information.)
-#' @param mbdata The information data block for the record header, as stored in
-#' \code{mbdata_relisted} after loading an infolist.
-#' @param aggregated An aggregated peak data table containing information about refiltered spectra etc.
-#' @param additionalPeaks If present, a table with additional peaks to add into the spectra.
-#' 		As loaded with \code{\link{addPeaks}}.
-#' @param retrieval A value that determines whether the files should be handled either as "standard",
-#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
-#' if the only know thing is the m/z
-#' @return Returns a MassBank record in list format: e.g.
-#' \code{list("ACCESSION" = "XX123456", "RECORD_TITLE" = "Cubane", ...,
-#' "CH\$LINK" = list( "CAS" = "12-345-6", "CHEMSPIDER" = 1111, ...))}
-#' @author Michael Stravs
-#' @seealso \code{\link{mbWorkflow}}, \code{\link{addPeaks}},
-#' \code{\link{gatherCompound}}, \code{\link{toMassbank}}
-#' @references MassBank record format:
-#' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
-#' @examples
-#' 
-#' #
-#' \dontrun{myspec <- w@@spectra[[2]]}
-#' # after having loaded an infolist:
-#' \dontrun{mbdata <- mbdata_relisted[[which(mbdata_archive\$id == as.numeric(myspec\$id))]]}
-#' \dontrun{compiled <- compileRecord(myspec, mbdata, w@@aggregated)}
-#' 
-#' @export
-compileRecord <- function(spec, mbdata, aggregated, additionalPeaks = NULL, retrieval="standard")
-{
-    # gather the individual spectra data
-    mblist <- gatherCompound(spec, aggregated, additionalPeaks, retrieval=retrieval)
-    # this returns a n-member list of "lower parts" of spectra (one for each subscan).
-    # (n being the number of child scans per parent scan.)
-    # Now we put the two parts together.
-    # (lapply on all n subscans, returns a list.)
-    mblist_c <- lapply(mblist, function(l)
-    {
-        # This is the step which sticks together the upper and the lower part of the
-        # record (the upper being compound-specific and the lower being scan-specific.)
-        # Note that the accession number and record title (in the upper part) must of course
-        # be filled in with scan-specific info.
-        mbrecord <- c(mbdata, l)
-
-        # Here is the right place to fix the name of the INTERNAL ID field.
-        names(mbrecord[["COMMENT"]])[[which(names(mbrecord[["COMMENT"]]) == "ID")]] <-
-        getOption("RMassBank")$annotations$internal_id_fieldname
-        # get mode parameter (for accession number generation) depending on version 
-        # of record definition
-        # Change by Tobias:
-        # I suggest to include fragmentation mode here for information
-        if(getOption("RMassBank")$use_version == 2)
-        mode <- mbrecord[["AC$MASS_SPECTROMETRY"]][["ION_MODE"]]
-        else
-        mode <- mbrecord[["AC$ANALYTICAL_CONDITION"]][["MODE"]]
-        # Generate the title and then delete the temprary RECORD_TITLE_CE field used before
-        mbrecord[["RECORD_TITLE"]] <- .parseTitleString(mbrecord)
-        mbrecord[["RECORD_TITLE_CE"]] <- NULL
-        # Calculate the accession number from the options.
-        shift <- getOption("RMassBank")$accessionNumberShifts[[spec@mode]]
-        mbrecord[["ACCESSION"]] <- sprintf("%s%04d%02d", getOption("RMassBank")$annotations$entry_prefix, as.numeric(spec@id), as.numeric(mbrecord[["SUBSCAN"]])+shift)
-        # Clear the "SUBSCAN" field.
-        mbrecord[["SUBSCAN"]] <- NULL
-        # return the record.
-        return(mbrecord)
-    })
-}
-
-
-
 #' Generate peak annotation from peaklist
 #' 
 #' Generates the PK$ANNOTATION entry from the peaklist obtained. This function is
@@ -1597,13 +1192,20 @@ compileRecord <- function(spec, mbdata, aggregated, additionalPeaks = NULL, retr
 #' }
 #' @author Michele Stravs, Eawag <stravsmi@@eawag.ch>
 #' @export
-annotator.default <- function(annotation, type)
+annotator.default <- function(annotation, formulaTag)
 {
+  if(!is.null(formulaTag))
+    type <- formulaTag
+  else
+    type <- ""
+  
+  annotation <- annotation[!is.na(annotation$formula),,drop=FALSE]
   
   annotation$formula <- paste(annotation$formula, type, sep='')
   # Select the right columns and name them correctly for output.
-  annotation <- annotation[,c("mzSpec","formula", "formulaCount", "mzCalc", "dppm")]
+  annotation <- annotation[,c("mz","formula", "formulaCount", "mzCalc", "dppm")]
   colnames(annotation) <- c("m/z", "tentative_formula", "formula_count", "mass", "error(ppm)")
+  
   return(annotation)
 }
 
@@ -1775,9 +1377,71 @@ annotator.default <- function(annotation, type)
 #' mbtext <- toMassbank(mbdata)
 #' }
 #' 
+#' 
 #' @export
-toMassbank <- function (mbdata)
+setGeneric("toMassbank", function(o, ...) standardGeneric("toMassbank"))
+
+#' @export
+setMethod("toMassbank", "RmbSpectraSet", function(o, addAnnotation = getOption("RMassBank")$add_annotation)
+    {
+      lapply(o@children, function(s) toMassbank(s, addAnnotation))
+    })
+
+#' @export
+setMethod("toMassbank", "RmbSpectrum2", function(o, addAnnotation = getOption("RMassBank")$add_annotation)
+    {
+      .toMassbank(o, addAnnotation)
+    })
+
+.toMassbank <- function (s, addAnnotation = getOption("RMassBank")$add_annotation)
 {
+  
+  peaks <- getData(s)
+  # check that peaks were normalized
+  if(!("intrel" %in% colnames(peaks)))
+  {
+    s <- normalize(s, slot="intrel")
+    peaks <- getData(s)
+  }  
+  
+  # Keep only peaks with relative intensity >= 1 o/oo, since the MassBank record
+  # makes no sense otherwise. Also, keep only the columns needed in the output.
+  peaks <- peaks[ peaks$intrel >= 1,,drop=FALSE]	
+  
+  peaks$mz <- round(peaks$mz, 4)
+  # Also format the other values, which are used in the annotation
+  peaks$dppm <- round(peaks$dppm, 2)
+  peaks$mzCalc <- round(peaks$mzCalc, 4)
+  peaks$intensity <- round(peaks$intensity, 1)
+  
+  # This is a helper because RmbSpectrum2 (and Spectrum2) don't have polarity stored.
+  # we hope to remove it at one point. It's the only upstream dependency we still ahave
+  formulaTag <- s@info[["_FORMULATAG"]]
+  s@info[["_FORMULATAG"]] <- NULL
+  
+  annotator <- getOption("RMassBank")$annotator
+  if(is.null(annotator))
+    annotator <- "annotator.default"
+  
+  annotation <- do.call(annotator, list(annotation= peaks, formulaTag = formulaTag))
+  
+  peaks <- peaks[,c("mz", "intensity", "intrel")]
+  # Name the columns correctly.
+  colnames(peaks) <- c("m/z", "int.", "rel.int.")
+  peaknum <- nrow(peaks)
+  
+  mbdata <- s@info
+  
+  mbdata[["PK$SPLASH"]] <- list(SPLASH = getSplash(peaks[,c("m/z", "int.")]))
+  
+  # Annotation:
+  if(addAnnotation && (nrow(annotation) > 0))
+    mbdata[["PK$ANNOTATION"]] <- annotation
+  
+  # Peak table
+  mbdata[["PK$NUM_PEAK"]] <- peaknum
+  mbdata[["PK$PEAK"]] <- peaks
+  
   # mbf is an array of lines and count is the line counter.
   # Very old-school, but it works. :)
   mbf <- character(0)
@@ -1888,28 +1552,39 @@ toMassbank <- function (mbdata)
 #' }
 #' 
 #' @export
-exportMassbank <- function(compiled, files, molfile)
+exportMassbank <- function(compiled, molfile = NULL)
 {
+  #mb@mbfiles <- lapply(mb@compiled_ok, function(cpd) toMassbank(cpd, mb@additionalPeaks))
+  
+  files <- toMassbank(compiled)
+  names(files) <- lapply(compiled@children, function(c) c@info[["ACCESSION"]] )
+  
   molnames <- c()
-  for(file in 1:length(compiled))
+  for(file in seq_len(length(files)))
   {
+    
     # Read the accession no. from the corresponding "compiled" entry
-    filename <- compiled[[file]]["ACCESSION"]
+    filename <- names(files)[[file]]
     # use this accession no. as filename
     filename <- paste(filename, ".txt", sep="")
+    
     write(files[[file]], 
           file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata",filename)
     )
   }
-  # Use internal ID for naming the molfiles
-    if(findLevel(compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]],TRUE)=="standard"){
-  molname <- sprintf("%04d", as.numeric(
-    compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]))
-  molname <- paste(molname, ".mol", sep="")
-  write(molfile,
-        file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata",molname)
-  )
+  if(!is.null(molfile))
+  {
+    # Use internal ID for naming the molfiles
+    if(findLevel(compiled@id,TRUE)=="standard"){
+      molname <- sprintf("%04d", as.numeric(
+              compiled@id))
+      molname <- paste(molname, ".mol", sep="")
+      write(molfile,
+          file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata",molname)
+      )
     }
+  }
+  return(files)
 }
 
 # Makes a list.tsv with molfile -> massbank ch$name attribution.
@@ -1940,13 +1615,14 @@ makeMollist <- function(compiled)
     
   tsvlist <- t(sapply(compiled, function(entry)
     {
-    name <- entry[[1]][["CH$NAME"]][[1]]
-    id <- sprintf("%04d", as.numeric(entry[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]))
+    name <- entry@children[[1]]@info[["CH$NAME"]][[1]]
+    id <- sprintf("%04d", as.numeric(entry@id))
     molfilename <- paste(id,".mol",sep='')
     return(c(name,molfilename))
   }))
     
-    IDs <- sapply(compiled, function(entry) return( sprintf("%04d", as.numeric(entry[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]))))
+    IDs <- sapply(compiled, function(entry) return( sprintf("%04d", as.numeric(
+                      entry@id))))
     level <- sapply(IDs, findLevel, compact=TRUE)
     validentries <- which(level == "standard")
   # Write the file with the 

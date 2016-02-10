@@ -252,6 +252,7 @@ loadMsmsWorkspace <- function(fileName, loadSettings = FALSE)
 #' @export
 newMbWorkspace <- function(w)
 {
+  w <- fillback(w)
 	mb <- new("mbWorkspace",
 			spectra = w@spectra,
 			aggregated = w@aggregated

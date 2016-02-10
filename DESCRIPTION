@@ -39,7 +39,6 @@ Suggests:
     enviPat
 Collate:
     'alternateAnalyze.R'
-    'createMassBank.R'
     'formulaCalculator.R'
     'getSplash.R'
     'leCsvAccess.R'
@@ -58,6 +57,8 @@ Collate:
     'AggregateMethods.R'
     'leMsMs.r'
     'leMsmsRaw.R'
+    'buildRecord.R'
+    'createMassBank.R'
     'msmsRawExtensions.r'
     'validateMassBank.R'
     'tools.R'
