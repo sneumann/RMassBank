@@ -53,7 +53,8 @@ setMethod("fillback", c("RmbSpectrum2"), function(o, id, aggregated)
   colsNew <- setdiff(colnames(peaks), colnames(curPeaks))
   for(col in colsNew)
   {
-    o <- addProperty(o, col, class(peaks[,col]))
+    if(col != "dppmBest")
+      o <- addProperty(o, col, class(peaks[,col]))
   }
   peaksNew <- merge(curPeaks, peaks, all=TRUE)
   # Check that no stray "new peaks" were added by incorrect merging. If this happens, we have to write cleaner code

@@ -60,7 +60,7 @@ setGeneric("buildRecord", function(o, ...) standardGeneric("buildRecord"))
 	# Pass them the AC_LC and AC_MS data, which are added at the right place
 	# directly in there.
 	allSpectra <- lapply(cpd@children, function(s)
-				buildRecord(s, cpd, mbdata, analyticalInfo$ac_ms, analyticalInfo$ac_lc))
+				buildRecord(s, cpd, mbdata, analyticalInfo$ac_ms, analyticalInfo$ac_lc, additionalPeaks))
 	allSpectra <- allSpectra[which(!is.na(allSpectra))]
 	cpd@children <- as(allSpectra, "SimpleList")
   cpd
@@ -344,18 +344,20 @@ renderPeaks <- function(spectrum, cpd, additionalPeaks = NULL,
 	if(ncol(additionalPeaks) > 0)
 	{
 		# select the peaks from the corresponding spectrum which were marked with "OK=1" in the table.
-		spec_add_peaks <- additionalPeaks[ 
+		spec_add_peaks <- additionalPeaks[
+        (!is.na(additionalPeaks$OK)) &
 				(additionalPeaks$OK == 1) & 
-						(additionalPeaks$cpdID == cpd@id) &
+						(as.character(additionalPeaks$cpdID) == cpd@id) &
 						(additionalPeaks$scan == spectrum@acquisitionNum),
 				c("mzFound", "intensity")]
 		# If there are peaks to add:
 		if(nrow(spec_add_peaks)>0)
 		{
+      colnames(spec_add_peaks) <- c("mz", "intensity")
       # bind tables together. First add in NA fillers for all columns not in spec_add_peaks
       for(column in setdiff(colnames(peaks), colnames(spec_add_peaks)))
         spec_add_peaks[,column] <- new(class(peaks[,column]), NA)
-      
+      #print(spec_add_peaks)
 			peaks <- rbind(peaks, spec_add_peaks[,colnames(peaks),drop=FALSE])
 			# recalculate rel.int.  and reorder list
 		}
