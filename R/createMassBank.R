@@ -1426,6 +1426,7 @@ setMethod("toMassbank", "RmbSpectrum2", function(o, addAnnotation = getOption("R
   annotation <- do.call(annotator, list(annotation= peaks, formulaTag = formulaTag))
   
   peaks <- peaks[,c("mz", "intensity", "intrel")]
+  peaks <- unique(peaks)
   # Name the columns correctly.
   colnames(peaks) <- c("m/z", "int.", "rel.int.")
   peaknum <- nrow(peaks)

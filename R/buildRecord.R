@@ -50,10 +50,10 @@ setGeneric("buildRecord", function(o, ...) standardGeneric("buildRecord"))
 #' \dontrun{compiled <- compileRecord(myspec, mbdata, w@@aggregated)}
 #' 
 
-.buildRecord.RmbSpectraSet <- function(cpd, mbdata, additionalPeaks = NULL)
+.buildRecord.RmbSpectraSet <- function(cpd, mbdata = list(), additionalPeaks = NULL)
 {
 	# gather the individual spectra data
-	analyticalInfo <- gatherCompound(cpd)
+	analyticalInfo <- getAnalyticalInfo(cpd)
   mbdata[["_FORMULATAG"]] <- .formulaTag[[cpd@mode]]
 
 	# Go through all child spectra, and add metadata to all the info slots
@@ -67,8 +67,8 @@ setGeneric("buildRecord", function(o, ...) standardGeneric("buildRecord"))
 }
 
 #' @export
-setMethod("buildRecord", "RmbSpectraSet", function(o, mbdata, additionalPeaks = NULL)
-      .buildRecord.RmbSpectraSet(o, mbdata, additionalPeaks)
+setMethod("buildRecord", "RmbSpectraSet", function(o, mbdata = list(), additionalPeaks = NULL)
+      .buildRecord.RmbSpectraSet(o, mbdata = list(), additionalPeaks)
     )
 
 
@@ -124,10 +124,11 @@ setMethod("buildRecord", "RmbSpectraSet", function(o, mbdata, additionalPeaks = 
 #' 
 #' 
 #' @export
-gatherCompound <- function(cpd)
+getAnalyticalInfo <- function(cpd = NULL)
 {
 	# define positive or negative, based on processing mode.
-	mode <- .ionModes[[cpd@mode]]
+  if(!is.null(cpd))
+	  mode <- .ionModes[[cpd@mode]]
 	
 	# for format 2.01
 	ac_ms <- list();
@@ -137,7 +138,8 @@ gatherCompound <- function(cpd)
 	
 	# This list could be made customizable.
 	ac_lc <- list();
-	rt  <- cpd@parent@rt / 60
+  if(!is.null(cpd))
+	  rt  <- cpd@parent@rt / 60
 	ac_lc[['COLUMN_NAME']] <- getOption("RMassBank")$annotations$lc_column
 	ac_lc[['FLOW_GRADIENT']] <- getOption("RMassBank")$annotations$lc_gradient
 	ac_lc[['FLOW_RATE']] <- getOption("RMassBank")$annotations$lc_flow
@@ -164,11 +166,11 @@ gatherCompound <- function(cpd)
 #       peaksProblematic. Currently we use peaksOK and peaksReanOK to create the files.
 #       (Also, the global additionalPeaks table is used.)
 #' @export
-setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata, ac_ms, ac_lc, additionalPeaks = NULL)
+setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata = list(), ac_ms = list(), ac_lc = list(), additionalPeaks = NULL)
       .buildRecord.RmbSpectrum2(o, cpd, mbdata, ac_ms, ac_lc, additionalPeaks)
 )
 
-.buildRecord.RmbSpectrum2 <- function(spectrum, cpd, mbdata, ac_ms, ac_lc, additionalPeaks = NULL)
+.buildRecord.RmbSpectrum2 <- function(spectrum, cpd = NULL, mbdata = list(), ac_ms = list(), ac_lc = list(), additionalPeaks = NULL)
 {
 	# If the spectrum is not filled, return right now. All "NA" spectra will
 	# not be treated further.
@@ -176,8 +178,7 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata, ac_ms, ac_lc, 
 		return(NA)
 	# get data
 	scan <- spectrum@acquisitionNum
-	id <- cpd@id
-  retrieval <- findLevel(cpd@id,TRUE)
+
   
 	# Further fill the ac_ms datasets, and add the ms$focused_ion with spectrum-specific data:
 	ac_ms[['FRAGMENTATION_MODE']] <- spectrum@info$mode
@@ -187,12 +188,14 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata, ac_ms, ac_lc, 
 	
 	# Calculate exact precursor mass with Rcdk, and find the base peak from the parent
 	# spectrum. (Yes, that's what belongs here, I think.)
-	precursorMz <- findMz(cpd@id, cpd@mode, retrieval=retrieval)
+
 	ms_fi <- list()
-	ms_fi[['BASE_PEAK']] <- round(mz(cpd@parent)[which.max(intensity(cpd@parent))],4)
-	ms_fi[['PRECURSOR_M/Z']] <- round(precursorMz$mzCenter,4)
-	ms_fi[['PRECURSOR_TYPE']] <- .precursorTypes[cpd@mode]
-	
+  if(!is.null(cpd))
+  {
+  	ms_fi[['BASE_PEAK']] <- round(mz(cpd@parent)[which.max(intensity(cpd@parent))],4)
+  	ms_fi[['PRECURSOR_M/Z']] <- round(cpd@mz,4)
+  	ms_fi[['PRECURSOR_TYPE']] <- .precursorTypes[cpd@mode]
+  }
 
 	
 	# Create the "lower part" of the record.  
@@ -200,17 +203,26 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata, ac_ms, ac_lc, 
 	# Add the AC$MS, AC$LC info.
 	if(getOption("RMassBank")$use_version == 2)
 	{
-		mbdata[["AC$MASS_SPECTROMETRY"]] <- ac_ms
-		mbdata[["AC$CHROMATOGRAPHY"]] <- ac_lc
+    if(length(ac_ms) >0)
+		  mbdata[["AC$MASS_SPECTROMETRY"]] <- ac_ms
+    if(length(ac_lc) >0)
+		  mbdata[["AC$CHROMATOGRAPHY"]] <- ac_lc
 	}
 	else
 	{
 		# Fix for MassBank data format 1, where ION_MODE must be renamed to MODE
-		mbdata[["AC$ANALYTICAL_CONDITION"]] <- c(ac_ms, ac_lc)
-		names(mbdata[["AC$ANALYTICAL_CONDITION"]])[[3]] <- "MODE"
+    ac <- c(ac_ms, ac_lc)
+    if(length(ac) > 0)
+    {
+		  mbdata[["AC$ANALYTICAL_CONDITION"]] <- ac
+		  names(mbdata[["AC$ANALYTICAL_CONDITION"]])[[
+          which(names(mbdata[["AC$ANALYTICAL_CONDITION"]]) == "ION_MODE")
+          ]] <- "MODE"
+    }
 	}
 	# Add the MS$FOCUSED_ION info.
-	mbdata[["MS$FOCUSED_ION"]] <- ms_fi
+  if(length(ms_fi) > 0)
+	  mbdata[["MS$FOCUSED_ION"]] <- ms_fi
 	
 	## The SPLASH is a hash value calculated across all peaks
 	## http://splash.fiehnlab.ucdavis.edu/
@@ -236,16 +248,20 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata, ac_ms, ac_lc, 
 	# Mode of relative scan calculation: by default it is calculated relative to the
 	# parent scan. If a corresponding option is set, it will be calculated from the first
 	# present child scan in the list.
-	relativeScan <- "fromParent"
-	if(!is.null(getOption("RMassBank")$recomputeRelativeScan))
-		if(getOption("RMassBank")$recomputeRelativeScan == "fromFirstChild")
-			relativeScan <- "fromFirstChild"
-	if(relativeScan == "fromParent")
-		subscan <- spectrum@acquisitionNum - cpd@parent@acquisitionNum #relative scan
-	else if(relativeScan == "fromFirstChild"){
-		firstChild <- min(unlist(lapply(cpd@children,function(d) d@acquisitionNum)))
-		subscan <- spectrum@acquisitionNum - firstChild + 1
-	}
+  
+  if(!is.null(cpd))
+  {
+    relativeScan <- "fromParent"
+    if(!is.null(getOption("RMassBank")$recomputeRelativeScan))
+      if(getOption("RMassBank")$recomputeRelativeScan == "fromFirstChild")
+        relativeScan <- "fromFirstChild"
+    if(relativeScan == "fromParent")
+      subscan <- spectrum@acquisitionNum - cpd@parent@acquisitionNum #relative scan
+    else if(relativeScan == "fromFirstChild"){
+      firstChild <- min(unlist(lapply(cpd@children,function(d) d@acquisitionNum)))
+      subscan <- spectrum@acquisitionNum - firstChild + 1
+    }
+  }
 	
 	
 	# Here is the right place to fix the name of the INTERNAL ID field.
@@ -284,7 +300,7 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata, ac_ms, ac_lc, 
 }
 	
 
-renderPeaks <- function(spectrum, cpd, additionalPeaks = NULL, 
+renderPeaks <- function(spectrum, cpd = NULL, additionalPeaks = NULL, 
     filter = c(filterOK, best | matchedReanalysis, best, rawOK))
 {
 	# Select all peaks which belong to this spectrum (correct cpdID and scan no.)
@@ -341,27 +357,30 @@ renderPeaks <- function(spectrum, cpd, additionalPeaks = NULL,
   if(is.null(additionalPeaks))
     additionalPeaks <- data.frame()
   
-	if(ncol(additionalPeaks) > 0)
-	{
-		# select the peaks from the corresponding spectrum which were marked with "OK=1" in the table.
-		spec_add_peaks <- additionalPeaks[
-        (!is.na(additionalPeaks$OK)) &
-				(additionalPeaks$OK == 1) & 
-						(as.character(additionalPeaks$cpdID) == cpd@id) &
-						(additionalPeaks$scan == spectrum@acquisitionNum),
-				c("mzFound", "intensity")]
-		# If there are peaks to add:
-		if(nrow(spec_add_peaks)>0)
-		{
-      colnames(spec_add_peaks) <- c("mz", "intensity")
-      # bind tables together. First add in NA fillers for all columns not in spec_add_peaks
-      for(column in setdiff(colnames(peaks), colnames(spec_add_peaks)))
-        spec_add_peaks[,column] <- new(class(peaks[,column]), NA)
-      #print(spec_add_peaks)
-			peaks <- rbind(peaks, spec_add_peaks[,colnames(peaks),drop=FALSE])
-			# recalculate rel.int.  and reorder list
-		}
-	}
+  if(!is.null(cpd))
+  {
+    if(ncol(additionalPeaks) > 0)
+    {
+      # select the peaks from the corresponding spectrum which were marked with "OK=1" in the table.
+      spec_add_peaks <- additionalPeaks[
+          (!is.na(additionalPeaks$OK)) &
+              (additionalPeaks$OK == 1) & 
+              (as.character(additionalPeaks$cpdID) == cpd@id) &
+              (additionalPeaks$scan == spectrum@acquisitionNum),
+          c("mzFound", "intensity")]
+      # If there are peaks to add:
+      if(nrow(spec_add_peaks)>0)
+      {
+        colnames(spec_add_peaks) <- c("mz", "intensity")
+        # bind tables together. First add in NA fillers for all columns not in spec_add_peaks
+        for(column in setdiff(colnames(peaks), colnames(spec_add_peaks)))
+          spec_add_peaks[,column] <- new(class(peaks[,column]), NA)
+        #print(spec_add_peaks)
+        peaks <- rbind(peaks, spec_add_peaks[,colnames(peaks),drop=FALSE])
+        # recalculate rel.int.  and reorder list
+      }
+    }
+  }
   
   # recalculate relative intensity with the newly added peaks. Note that possibly this leads to spectra
   # with intrel < what was specified in the original filter!
