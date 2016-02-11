@@ -84,9 +84,6 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' @param rtMargin	The retention time tolerance to use.
 #' @param deprofile	Whether deprofiling should take place, and what method should be
 #' 			used (cf. \code{\link{deprofile}}) 
-#' @param retrieval A value that determines whether the files should be handled either as "standard",
-#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
-#' if the only know thing is the m/z
 #' @return	An \code{RmbSpectraSet} (for \code{findMsMsHR}). Contains parent MS1 spectrum (\code{@@parent}), a block of dependent MS2 spectra ((\code{@@children})
 #' 			and some metadata (\code{id},\code{mz},\code{name},\code{mode} in which the spectrum was acquired.
 #' 
@@ -115,10 +112,10 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 		rtMargin = getOption("RMassBank")$rtMargin,
 		deprofile = getOption("RMassBank")$deprofile,
 		headerCache = NULL,
-		peaksCache = NULL,
-        retrieval="standard")
+		peaksCache = NULL)
 {
-	
+  retrieval <- findLevel(cpdID,TRUE)
+  
 	# access data directly for finding the MS/MS data. This is done using
 	# mzR.
 	if(!is.null(fileName) & !is.null(msRaw))

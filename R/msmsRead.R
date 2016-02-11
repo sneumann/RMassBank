@@ -115,7 +115,6 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 							
 							# Find compound ID
 							cpdID <- cpdids[count]
-							retrieval <- findLevel(cpdID,TRUE)
 							# Set counter up
 							envir$count <- envir$count + 1
 							
@@ -126,7 +125,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 									mzCoarse = settings$findMsMsRawSettings$mzCoarse,
 									fillPrecursorScan = settings$findMsMsRawSettings$fillPrecursorScan,
 									rtMargin = settings$rtMargin,
-									deprofile = settings$deprofile, retrieval=retrieval)
+									deprofile = settings$deprofile)
 							gc()
 														
 							# Progress:
