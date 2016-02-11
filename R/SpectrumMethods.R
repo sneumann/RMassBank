@@ -188,7 +188,7 @@ setMethod("selectPeaks", c("Spectrum"), function(o, filter, ..., enclos=parent.f
 setMethod("selectPeaks", c("RmbSpectrum2List"), function(o, ..., enclos=parent.frame(2))
 		{
 			for(n in seq_len(length(o)))
-				o[[n]] <- selectPeaks(o, ..., enclos=enclos)
+				o[[n]] <- selectPeaks(o[[n]], ..., enclos=enclos)
 			return(o)
 		})
 
