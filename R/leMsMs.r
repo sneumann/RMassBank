@@ -88,6 +88,8 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   nProg <- 0
   nLen <- length(w@files)
     
+    allUnknown <- FALSE
+    
     # If all compounds are unknown some specific conditions apply
   allUnknown <- FALSE
     if(all(.listEnvEnv$listEnv$compoundList$Level == "5")){
@@ -181,7 +183,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         w@aggregated$matchedReanalysis <- NA
         w@aggregated$filterOK <- TRUE
         w@aggregated$problematicPeak <- FALSE
-        w@aggregated$formulaMultiplicity <- unlist(sapply(table(w2@aggregated$cpdID),function(x) rep(x,x)))
+        w@aggregated$formulaMultiplicity <- unlist(sapply(table(w@aggregated$cpdID),function(x) rep(x,x)))
         return(w)
     }
     
@@ -604,7 +606,6 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 
 	limits <- to.limits.rcdk(parent_formula)
 	
-	
 	peakmatrix <- lapply(
 			split(shot,shot$row)
 			, function(shot.row)  {
@@ -681,14 +682,13 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	#iff_rcdk_pM_eln$maxvalence <- unlist(lapply(diff_rcdk_pM_eln$formula.rcdk, maxvalence))
 	temp.child.ok <- (childPeaks$dbe >= filterSettings$dbeMinLimit) 
 		# & dbe < dbe_parent + 3)
-	
 	# check if a peak was recognized
 	if(length(which(temp.child.ok)) == 0)
 	{
 		child@ok <- FALSE
 		return(child)
 	}
-#browser()	
+    #browser()	
 	# find the best ppm value
     bestPpm <- aggregate(as.data.frame(childPeaks[!is.na(childPeaks$dppm),"dppm"]),
 					list(childPeaks[!is.na(childPeaks$dppm),"row"]),
@@ -708,14 +708,14 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
     childPeaksFilt <- filterLowaccResults(childPeaks, filterMode, filterSettings)
     childPeaksGood <- childPeaksFilt[["TRUE"]]
     childPeaksBad <- childPeaksFilt[["FALSE"]]
-	if(is.null(childPeaksGood))
+	if(is.null(childPeaksGood)){
 		childPeaksGood <- childPeaks[c(),,drop=FALSE]
+        childPeaksGood$good <- logical(0)
+    }
 	if(is.null(childPeaksBad))
 		childPeaksBad <- childPeaks[c(),,drop=FALSE]
 	childPeaksUnassigned <- childPeaks[is.na(childPeaks$dppm),,drop=FALSE]
 	childPeaksUnassigned$good <- rep(FALSE, nrow(childPeaksUnassigned))
-	
-	
     # count formulas within new limits
     # (the results of the "old" count stay in childPeaksInt and are returned
     # in $childPeaks)
@@ -726,9 +726,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	childPeaksUnassigned$formulaCount <- rep(NA, nrow(childPeaksUnassigned))
 	childPeaksBad$formulaCount <- rep(NA, nrow(childPeaksBad))
 	childPeaksBad$good <- rep(FALSE, nrow(childPeaksBad))
-	
-	
-	
+    
 	# Now: childPeaksGood (containing the new, recounted peaks with good = TRUE), and childPeaksBad (containing the 
 	# peaks with good=FALSE, i.e. outside filter criteria, with the old formula count even though it is worthless)
 	# are bound together.
@@ -738,6 +736,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	
 	# Now let's cross fingers. Add a good=NA column to the unmatched peaks and reorder the columns
 	# to match order in childPeaks. After that, setData to the child slot.
+
 	childPeaksOmitted <- getData(child)
 	childPeaksOmitted <- childPeaksOmitted[child@low | child@satellite,,drop=FALSE]
 	childPeaksOmitted$rawOK <- rep(FALSE, nrow(childPeaksOmitted))
@@ -748,11 +747,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	childPeaksOmitted$dbe <- rep(NA, nrow(childPeaksOmitted))
     childPeaksOmitted$dppmBest <- rep(NA, nrow(childPeaksOmitted))
     childPeaksOmitted$formulaCount <- rep(0, nrow(childPeaksOmitted))
-    
 	childPeaks$satellite <- rep(FALSE, nrow(childPeaks))
 	childPeaks$low <- rep(FALSE, nrow(childPeaks))
 	childPeaks$rawOK <- rep(TRUE, nrow(childPeaks))
-	
+    
 	childPeaks <- childPeaks[,colnames(childPeaksOmitted), drop=FALSE]
 	
 	childPeaksTotal <- rbind(childPeaks, childPeaksOmitted)

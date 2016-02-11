@@ -189,7 +189,7 @@ loadList <- function(path, listEnv = NULL, check = TRUE)
         }
     }
     
-    # If "level" is not in the compound list it MUST be a standard list, so process just as before:
+    # If "Level" is not in the compound list it MUST be a standard list, so process just as before:
     if(!newList){
         cols <- c('ID', 'Name', 'SMILES', 'RT', 'CAS')
         d <- setdiff(cols, n)
@@ -472,7 +472,7 @@ findRt <- function(cpdID) {
 		stop("Compound list must be loaded first.")
 	if(is.character(cpdID))
 		cpdID <- as.numeric(cpdID)
-	rt <- .listEnvEnv$listEnv$compoundList[which(.listEnvEnv$listEnv$compoundList$ID == cpdID),"RT"]
+	rt <- as.numeric(.listEnvEnv$listEnv$compoundList[which(.listEnvEnv$listEnv$compoundList$ID == cpdID),"RT"])
 	if(!is.null(getOption("RMassBank")$rtShift))
 		rt <- rt + getOption("RMassBank")$rtShift
 	if(is.na(rt)) return(list(RT=NA))
