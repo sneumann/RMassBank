@@ -8,16 +8,17 @@
 		{
 			w <- object
 			w <- .updateObject.RmbWorkspace.1to2(w, ..., verbose)
-			w <- .updateObject.RmbWorkspace.RmbSpectrum2(w, ..., verbose)
-			classVersion(w)["msmsWorkspace"] <- "2.0.2"
+			w <- .updateObject.RmbWorkspace.RmbSpectraSet(w, ..., verbose)
+			classVersion(w)["msmsWorkspace"] <- "2.0.3"
 			w
 		})
 
-.updateObject.RmbWorkspace.RmbSpectrum2 <- function(object, ..., verbose = FALSE) 
+
+.updateObject.RmbWorkspace.RmbSpectraSet <- function(object, ..., verbose = FALSE) 
 {
 	w <- object
 	v <- classVersion(w)["msmsWorkspace"]
-	if(v < "2.0.2")
+	if(v < "2.0.3")
 	{
 		for(i in seq_len(length(w@spectra)))
 			w@spectra[[i]] <- updateObject(w@spectra[[i]])
@@ -112,6 +113,7 @@
 				set@id <- as.character(as.integer(spec$id))
 				set@formula <- spec$formula
 				set@found <- as.logical(spec$foundOK)
+        set@smiles <- ""
 				# now parent and child MS
 				# check for parent recalibration column
 				if(set@found)

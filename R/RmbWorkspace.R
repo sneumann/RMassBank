@@ -65,7 +65,8 @@ setClassUnion("msmsWorkspaceOrNULL", "NULL")
 		contains=c("Versioned"),
 		prototype = prototype(
 				# Version 2.0.2: the RmbSpectrum2 objects were raised to version 0.1.1.
-				new("Versioned", versions=c(msmsWorkspace = "2.0.2")),
+        # Version 2.0.3: the RmbSpectraSet objects are now versioned and at 0.1.1.
+				new("Versioned", versions=c(msmsWorkspace = "2.0.3")),
 				parent = NULL
 		)
 )

@@ -60,9 +60,11 @@
 				id = "character",
 				mz = "numeric",
 				name = "character",
-				mode = "character"
+				mode = "character",
+        smiles = "character"
 				#annotations = "list"
 				),
+    contains=c("Versioned"),
 		prototype = prototype(
 				parent = new("Spectrum1"),
 				children = new("RmbSpectrum2List"),
@@ -73,7 +75,9 @@
 				id = character(),
 				mz = numeric(),
 				name = character(),
-				mode = character()
+				mode = character(),
+        smiles = character(),
+        new("Versioned", versions=c(RmbSpectraSet = "0.1.1"))
 		)
 );
 
