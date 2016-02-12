@@ -2129,8 +2129,8 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 			mzL <- findMz.formula(cpd@formula,mode,recalibrateMS1Window,0)
 			mzCalc <- mzL$mzCenter
 			ms1 <- mz(cpd@parent)
-			mzFound <- ms1[(ms1 >= mzL$mzMin) & (ms1 <= mzL$mzMax)]
-			
+           
+			mzFound <- ms1[which.min(abs(ms1 - mzL$mzCenter))]
 			if(!length(mzFound)){
 				return(c(
 					mzFound = NA,
@@ -2142,7 +2142,8 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 				return(c(
 					mzFound = mzFound,
 					mzCalc = mzCalc,
-					dppm = dppmRc
+					dppm = dppmRc,
+                    id=cpd@id
 				))
 			}
 		})
