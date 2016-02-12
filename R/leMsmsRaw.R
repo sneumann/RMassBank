@@ -144,6 +144,8 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 	#sp@mz <- mzLimits
 	sp@id <- as.character(as.integer(cpdID))
 	sp@name <- findName(cpdID)
+  if(retrieval == "standard")
+    sp@smiles <- findSmiles(cpdID)
     ENV <- environment()
 	if(retrieval == "unknown"){
         sp@formula <- ""

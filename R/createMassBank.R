@@ -234,7 +234,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 			  function(r) {
 				  message(paste("Compiling: ", r@name, sep=""))
 				  mbdata <- mb@mbdata_relisted[[which(mb@mbdata_archive$id == as.numeric(r@id))]]
-          res <- buildRecord(r, mbdata, mb@additionalPeaks)
+          res <- buildRecord(r, mbdata=mbdata, additionalPeaks=mb@additionalPeaks, filter = filterOK)
           return(res)
 			  })
 	  # check which compounds have useful spectra
@@ -710,10 +710,7 @@ gatherData <- function(id)
 	link[["INCHIKEY"]] <- inchikey_split
 	if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid)))
 	mbdata[['CH$LINK']] <- link
-	
-	mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
-	mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
-	
+		
 	return(mbdata)  
 }
 
@@ -851,8 +848,6 @@ gatherDataBabel <- function(id){
 			link[["CAS"]] <- dbcas
 			link[["INCHIKEY"]] <- inchikey
 			mbdata[['CH$LINK']] <- link
-			mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
-			mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
 		}
 		return(mbdata)
 }
@@ -985,8 +980,6 @@ gatherDataUnknown <- function(id, mode, retrieval){
     
     link <- list()
     mbdata[['CH$LINK']] <- link
-    mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
-    mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
 
     return(mbdata)
 }
@@ -1162,9 +1155,7 @@ readMbdata <- function(row)
   link[["CHEMSPIDER"]] = row[["CH.LINK.CHEMSPIDER"]]
   link[which(is.na(link))] <- NULL
   mbdata[["CH$LINK"]] <- link
-  # again, these constants are read from the options:
-  mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
-  mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
+
   
   return(mbdata)
   
@@ -1201,7 +1192,7 @@ annotator.default <- function(annotation, formulaTag)
   
   annotation <- annotation[!is.na(annotation$formula),,drop=FALSE]
   
-  annotation$formula <- paste(annotation$formula, type, sep='')
+  annotation$formula <- paste(annotation$formula, rep(type, length(annotation$formula)), sep='')
   # Select the right columns and name them correctly for output.
   annotation <- annotation[,c("mz","formula", "formulaCount", "mzCalc", "dppm")]
   colnames(annotation) <- c("m/z", "tentative_formula", "formula_count", "mass", "error(ppm)")
@@ -1705,3 +1696,73 @@ addPeaks <- function(mb, filename_or_dataframe)
 		mb@additionalPeaks <- rbind(mb@additionalPeaks, culled_df)
 	return(mb)
 }
+
+
+
+gatherDataMinimal.cpd <- function(cpd){
+  
+  ##Read from Compoundlist
+  if(length(cpd@smiles) == 1) smiles <- cpd@smiles
+  else
+    smiles <- ""
+  
+  ##Create 
+  mbdata <- list()
+  mbdata[['ACCESSION']] <- ""
+  mbdata[['RECORD_TITLE']] <- ""
+  mbdata[['DATE']] <- format(Sys.Date(), "%Y.%m.%d")
+  # Confidence annotation and internal ID annotation.
+  # The ID of the compound will be written like:
+  # COMMENT: EAWAG_UCHEM_ID 1234
+  # if annotations$internal_id_fieldname is set to "EAWAG_UCHEM_ID"
+  if(length(cpd@id) > 0)
+    mbdata[["COMMENT"]][["ID"]] <- cpd@id
+  
+  # here compound info starts
+  mbdata[['CH$NAME']] <- cpd@name
+  
+  # Currently we use a fixed value for Compound Class, since there is no useful
+  # convention of what should go there and what shouldn't, and the field is not used
+  # in search queries.
+  mbdata[['CH$FORMULA']] <- cpd@formula
+  mbdata[['CH$EXACT_MASS']] <- round(findMz.formula(cpd@formula, "")$mzCenter, 4)
+  
+  if(cpd@smiles != "")
+    mbdata[['CH$SMILES']] <- cpd@smiles
+  
+  link <- list()
+  mbdata[['CH$LINK']] <- link
+
+  return(mbdata)
+}
+
+
+
+gatherDataMinimal.spectrum <- function(spectrum){
+  
+  ##Read from Compoundlist
+  if(length(cpd@smiles) == 1) smiles <- cpd@smiles
+  else
+    smiles <- ""
+  
+  ##Create 
+  mbdata <- list()
+  mbdata[['ACCESSION']] <- ""
+  mbdata[['RECORD_TITLE']] <- ""
+  mbdata[['DATE']] <- format(Sys.Date(), "%Y.%m.%d")
+  # Confidence annotation and internal ID annotation.
+  # The ID of the compound will be written like:
+  # COMMENT: EAWAG_UCHEM_ID 1234
+  # if annotations$internal_id_fieldname is set to "EAWAG_UCHEM_ID"
+  
+  # here compound info starts
+  mbdata[['CH$NAME']] <- paste("parent", spectrum@precursorMz, "at RT", spectrum@rt, "- CE", spectrum@collisionEnergy) 
+  
+  # Currently we use a fixed value for Compound Class, since there is no useful
+  # convention of what should go there and what shouldn't, and the field is not used
+  # in search queries.
+  
+  return(mbdata)
+}
+
+

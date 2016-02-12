@@ -50,25 +50,25 @@ setGeneric("buildRecord", function(o, ...) standardGeneric("buildRecord"))
 #' \dontrun{compiled <- compileRecord(myspec, mbdata, w@@aggregated)}
 #' 
 
-.buildRecord.RmbSpectraSet <- function(cpd, mbdata = list(), additionalPeaks = NULL)
+.buildRecord.RmbSpectraSet <- function(cpd, ..., mbdata = list(), additionalPeaks = NULL)
 {
 	# gather the individual spectra data
 	analyticalInfo <- getAnalyticalInfo(cpd)
-  mbdata[["_FORMULATAG"]] <- .formulaTag[[cpd@mode]]
 
 	# Go through all child spectra, and add metadata to all the info slots
 	# Pass them the AC_LC and AC_MS data, which are added at the right place
 	# directly in there.
 	allSpectra <- lapply(cpd@children, function(s)
-				buildRecord(s, cpd, mbdata, analyticalInfo$ac_ms, analyticalInfo$ac_lc, additionalPeaks))
+				buildRecord(s, ..., cpd=cpd, mbdata=mbdata, analyticalInfo=analyticalInfo, 
+            additionalPeaks=additionalPeaks))
 	allSpectra <- allSpectra[which(!is.na(allSpectra))]
 	cpd@children <- as(allSpectra, "SimpleList")
   cpd
 }
 
 #' @export
-setMethod("buildRecord", "RmbSpectraSet", function(o, mbdata = list(), additionalPeaks = NULL)
-      .buildRecord.RmbSpectraSet(o, mbdata = list(), additionalPeaks)
+setMethod("buildRecord", "RmbSpectraSet", function(o, ..., mbdata = list(), additionalPeaks = NULL)
+      .buildRecord.RmbSpectraSet(cpd=o, ..., mbdata = mbdata, additionalPeaks = additionalPeaks)
     )
 
 
@@ -126,10 +126,16 @@ setMethod("buildRecord", "RmbSpectraSet", function(o, mbdata = list(), additiona
 #' @export
 getAnalyticalInfo <- function(cpd = NULL)
 {
+  ai <- list()
 	# define positive or negative, based on processing mode.
   if(!is.null(cpd))
 	  mode <- .ionModes[[cpd@mode]]
 	
+  # again, these constants are read from the options:
+  ai[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
+  ai[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
+  ai[["_FORMULATAG"]] = .formulaTag[[cpd@mode]]
+  
 	# for format 2.01
 	ac_ms <- list();
 	ac_ms[['MS_TYPE']] <- getOption("RMassBank")$annotations$ms_type
@@ -147,7 +153,7 @@ getAnalyticalInfo <- function(cpd = NULL)
 	ac_lc[['SOLVENT A']] <- getOption("RMassBank")$annotations$lc_solvent_a
 	ac_lc[['SOLVENT B']] <- getOption("RMassBank")$annotations$lc_solvent_b
 	
-	return(list(ac_lc=ac_lc, ac_ms=ac_ms))
+	return(list( ai=ai, ac_lc=ac_lc, ac_ms=ac_ms))
 }
 
 
@@ -166,16 +172,43 @@ getAnalyticalInfo <- function(cpd = NULL)
 #       peaksProblematic. Currently we use peaksOK and peaksReanOK to create the files.
 #       (Also, the global additionalPeaks table is used.)
 #' @export
-setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata = list(), ac_ms = list(), ac_lc = list(), additionalPeaks = NULL)
-      .buildRecord.RmbSpectrum2(o, cpd, mbdata, ac_ms, ac_lc, additionalPeaks)
+setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = list(), analyticalInfo = list(), additionalPeaks = NULL)
+      .buildRecord.RmbSpectrum2(spectrum = o, cpd=cpd, mbdata=mbdata, analyticalInfo=analyticalInfo, additionalPeaks=additionalPeaks, ...)
 )
 
-.buildRecord.RmbSpectrum2 <- function(spectrum, cpd = NULL, mbdata = list(), ac_ms = list(), ac_lc = list(), additionalPeaks = NULL)
+.buildRecord.RmbSpectrum2 <- function(spectrum, ..., cpd = NULL, mbdata = list(), analyticalInfo = list(), additionalPeaks = NULL)
 {
+  
+  if(length(analyticalInfo$ac_ms) > 0)
+    ac_ms=analyticalInfo$ac_ms
+  else
+    ac_ms=list()
+  
+  if(length(analyticalInfo$ac_lc) > 0)
+    ac_lc=analyticalInfo$ac_lc
+  else
+    ac_lc=list()
+  
+  
+  if(length(mbdata) == 0)
+  {
+    if(is.null(cpd))
+      mbdata <- gatherDataMinimal.spectrum(spectrum)
+    else
+      mbdata <- gatherDataMinimal.cpd(cpd)
+  }
+  
+  if(length(analyticalInfo$ai) > 0)
+    mbdata <- c(mbdata, analyticalInfo$ai)
+  
 	# If the spectrum is not filled, return right now. All "NA" spectra will
 	# not be treated further.
-	if(spectrum@ok == FALSE)
-		return(NA)
+  # If step 2 was not performed, instead, spectrum@ok is empty and we want to export it, so proceed.
+  if(length(spectrum@ok) > 0)
+  {
+    if(spectrum@ok == FALSE)
+      return(NA)
+  }
 	# get data
 	scan <- spectrum@acquisitionNum
 
@@ -183,7 +216,10 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata = list(), ac_ms
 	# Further fill the ac_ms datasets, and add the ms$focused_ion with spectrum-specific data:
 	ac_ms[['FRAGMENTATION_MODE']] <- spectrum@info$mode
 	#ac_ms['PRECURSOR_TYPE'] <- precursor_types[spec$mode]
-	ac_ms[['COLLISION_ENERGY']] <- spectrum@info$ce
+  if(length(spectrum@info$ce) > 0)
+	  ac_ms[['COLLISION_ENERGY']] <- spectrum@info$ce
+  else
+    ac_ms[['COLLISION_ENERGY']] <- spectrum@collisionEnergy
 	ac_ms[['RESOLUTION']] <- spectrum@info$res
 	
 	# Calculate exact precursor mass with Rcdk, and find the base peak from the parent
@@ -242,9 +278,12 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata = list(), ac_ms
 			processingComment,
 			list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
 	)
-	
-
-	mbdata[["RECORD_TITLE_CE"]] <- spectrum@info$ces #formatted collision energy
+  
+  if(length(spectrum@info$ces) > 0)
+    mbdata[['RECORD_TITLE_CE']] <- spectrum@info$ces
+  else
+    mbdata[['RECORD_TITLE_CE']] <- spectrum@collisionEnergy
+  
 	# Mode of relative scan calculation: by default it is calculated relative to the
 	# parent scan. If a corresponding option is set, it will be calculated from the first
 	# present child scan in the list.
@@ -266,16 +305,16 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata = list(), ac_ms
 	
 	# Here is the right place to fix the name of the INTERNAL ID field.
 	if(!is.null(getOption("RMassBank")$annotations$internal_id_fieldname))
-		names(mbdata[["COMMENT"]])[[which(names(mbdata[["COMMENT"]]) == "ID")]] <-
-				getOption("RMassBank")$annotations$internal_id_fieldname
+  {
+    id.col <- which(names(mbdata[["COMMENT"]]) == "ID")
+    if(length(id.col) > 0)
+    {
+      names(mbdata[["COMMENT"]])[[id.col]] <-
+          getOption("RMassBank")$annotations$internal_id_fieldname
+    }
+  }
 	# get mode parameter (for accession number generation) depending on version 
 	# of record definition
-	# Change by Tobias:
-	# I suggest to include fragmentation mode here for information
-	if(getOption("RMassBank")$use_version == 2)
-		mode <- mbdata[["AC$MASS_SPECTROMETRY"]][["ION_MODE"]]
-	else
-		mode <- mbdata[["AC$ANALYTICAL_CONDITION"]][["MODE"]]
 	# Generate the title and then delete the temprary RECORD_TITLE_CE field used before
 	mbdata[["RECORD_TITLE"]] <- .parseTitleString(mbdata)
 	mbdata[["RECORD_TITLE_CE"]] <- NULL
@@ -285,7 +324,7 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata = list(), ac_ms
 	
   spectrum@info <- mbdata
   
-  spectrum <- renderPeaks(spectrum, cpd, additionalPeaks)
+  spectrum <- renderPeaks(spectrum, cpd=cpd, additionalPeaks=additionalPeaks, ...)
   
   
 	return(spectrum)
@@ -300,8 +339,7 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, cpd, mbdata = list(), ac_ms
 }
 	
 
-renderPeaks <- function(spectrum, cpd = NULL, additionalPeaks = NULL, 
-    filter = c(filterOK, best | matchedReanalysis, best, rawOK))
+renderPeaks <- function(spectrum, ..., cpd = NULL, additionalPeaks = NULL)
 {
 	# Select all peaks which belong to this spectrum (correct cpdID and scan no.)
 	# from peaksOK
@@ -309,10 +347,11 @@ renderPeaks <- function(spectrum, cpd = NULL, additionalPeaks = NULL,
 	# Originally the peaks came from msmsdata$childFilt, and the subset
 	# was used where dppm == dppmBest (because childFilt still contains multiple formulas)
 	# per peak.
+  spectrum <- .fillSlots(spectrum, c("good", "dppm", "dppmBest", "mzCalc", "formula", "formulaCount"))
   peaks <- getData(spectrum)
   property(spectrum, "best", addNew=TRUE, "logical") <- peaks$good & !is.na(peaks$good) & (peaks$dppm == peaks$dppmBest)
-  spectrum <- normalize(spectrum, 999, slot="intrel", filter=filterOK)
-  peaks <- getData(selectPeaks(spectrum, filterOK))
+  spectrum <- normalize(spectrum, 999, slot="intrel", ...)
+  peaks <- getData(selectPeaks(spectrum, ...))
   # filterOK is the final criterion for selection, it includes both reanalyzed and original matches.
   # If there was no peak filtering performed, use best | matchedReanalysis (which gets both regular and reanalyzed matches)
   # To get peaks without the reanalyzed matches, use best
@@ -323,22 +362,25 @@ renderPeaks <- function(spectrum, cpd = NULL, additionalPeaks = NULL,
 	if(nrow(peaks) == 0)
 		return(NA)
 	
-	# If we don't include the reanalyzed peaks:
-	if(!getOption("RMassBank")$use_rean_peaks)
-		peaks <- peaks[is.na(peaks$matchedReanalysis),,drop=FALSE]
-	# but if we include them:
-	else
-	{
-		# for info, the following data will be used in the default annotator:
-		# annotation <- annotation[,c("mzSpec","formula", "formulaCount", "mzCalc", "dppm")]
-		# and in the peaklist itself:
-		# c("mzSpec", "int", "intrel")
-		peaks[!is.na(peaks$matchedReanalysis),"formula"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.formula"]
-		peaks[!is.na(peaks$matchedReanalysis),"mzCalc"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.mzCalc"]
-		peaks[!is.na(peaks$matchedReanalysis),"dppm"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.dppm"]
-		peaks[!is.na(peaks$matchedReanalysis),"dbe"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.dbe"]
-		peaks[!is.na(peaks$matchedReanalysis),"formulaCount"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.formulaCount"]
-	}
+  # If we don't include the reanalyzed peaks:
+  if("matchedReanalysis" %in% colnames(peaks))
+  {
+    if(!getOption("RMassBank")$use_rean_peaks)
+      peaks <- peaks[is.na(peaks$matchedReanalysis),,drop=FALSE]
+    # but if we include them:
+    else
+    {
+      # for info, the following data will be used in the default annotator:
+      # annotation <- annotation[,c("mzSpec","formula", "formulaCount", "mzCalc", "dppm")]
+      # and in the peaklist itself:
+      # c("mzSpec", "int", "intrel")
+      peaks[!is.na(peaks$matchedReanalysis),"formula"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.formula"]
+      peaks[!is.na(peaks$matchedReanalysis),"mzCalc"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.mzCalc"]
+      peaks[!is.na(peaks$matchedReanalysis),"dppm"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.dppm"]
+      peaks[!is.na(peaks$matchedReanalysis),"dbe"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.dbe"]
+      peaks[!is.na(peaks$matchedReanalysis),"formulaCount"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.formulaCount"]
+    }
+  }
 	
 	# Calculate relative intensity and make a formatted m/z to use in the output
 	# (mzSpec, for "spectrum")

@@ -321,3 +321,12 @@ setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "logical", "missin
 setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "missing", "missing"), .propertySet )
 
 
+.fillSlots <- function(o, slotNames)
+{
+  for(entry in slotNames)
+  {
+    if(length(slot(o, entry)) != length(o@mz))
+      slot(o, entry) <- rep(new(class(slot(o, entry)),NA), length(o@mz))
+  }
+  return(o)
+}
