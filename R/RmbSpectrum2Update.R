@@ -6,6 +6,7 @@
 
 .updateObject.RmbSpectrum2 <- setMethod("updateObject", signature(object="RmbSpectrum2"), function(object, ..., verbose = FALSE) 
 		{
+      .callNextMethod()
 			w <- object
 			if(isVersioned(w))
 				if(all(isCurrent(w)))
@@ -42,9 +43,23 @@
       if(v < "0.1.1")
       {
         slot(w, "smiles", check=FALSE) <- character()
-        classVersion(w)["RmbSpectraSet"] <- "0.1.1"
+      }
+      if(v < "0.1.2")
+      {
+        w <- .updateObject.RmbSpectraSet.updatePolarity(w)
+        classVersion(w)["RmbSpectraSet"] <- "0.1.2"
       }
       
       return(w)
     })
 
+
+.updateObject.RmbSpectraSet.updatePolarity <- function(w)
+{
+  w@parent@polarity <- .polarity[[w@mode]]
+  for(n in seq_len(length(w@children)))
+  {
+    w@children[[n]]@polarity <- .polarity[[w@mode]]
+  }
+  w
+}

@@ -153,6 +153,15 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
         sp@formula <- findFormula(cpdID, retrieval=retrieval)
     }
 	sp@mode <- mode
+  
+  
+  # Overwrite the polarity with a value we generate, so it's consistent.
+  # Some mzML files give only -1 as a result for polarity, which is useless for us
+  sp@parent@polarity <- .polarity[[sp@mode]]
+  for(n in seq_len(length(sp@children)))
+  {
+    sp@children[[n]]@polarity <- .polarity[[sp@mode]]
+  }
 	
 	# If we had to open the file, we have to close it again
 	if(!is.null(fileName))
@@ -277,7 +286,8 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 									peaksCount = line["peaksCount"],
 									rt = line["retentionTime"],
 									acquisitionNum = as.integer(line["seqNum"]),
-									centroided = TRUE
+									centroided = TRUE,
+                  polarity = as.integer(line["polarity"]),
 									)
 						})
 				msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")

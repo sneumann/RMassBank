@@ -77,7 +77,9 @@
 				name = character(),
 				mode = character(),
         smiles = character(),
-        new("Versioned", versions=c(RmbSpectraSet = "0.1.1"))
+        new("Versioned", versions=c(RmbSpectraSet = "0.1.2"))
+    # version 0.1.1: introduced versioning and SMILES slot
+    # version 0.1.2: feed polarity to parent and children
 		)
 );
 

@@ -66,7 +66,8 @@ setClassUnion("msmsWorkspaceOrNULL", "NULL")
 		prototype = prototype(
 				# Version 2.0.2: the RmbSpectrum2 objects were raised to version 0.1.1.
         # Version 2.0.3: the RmbSpectraSet objects are now versioned and at 0.1.1.
-				new("Versioned", versions=c(msmsWorkspace = "2.0.3")),
+        # Version 2.0.4: polarity into Spectrum1 and RmbSpectrum2 objects
+				new("Versioned", versions=c(msmsWorkspace = "2.0.4")),
 				parent = NULL
 		)
 )

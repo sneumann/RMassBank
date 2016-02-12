@@ -9,7 +9,7 @@
 			w <- object
 			w <- .updateObject.RmbWorkspace.1to2(w, ..., verbose)
 			w <- .updateObject.RmbWorkspace.RmbSpectraSet(w, ..., verbose)
-			classVersion(w)["msmsWorkspace"] <- "2.0.3"
+			classVersion(w)["msmsWorkspace"] <- "2.0.4"
 			w
 		})
 
@@ -18,7 +18,7 @@
 {
 	w <- object
 	v <- classVersion(w)["msmsWorkspace"]
-	if(v < "2.0.3")
+	if(v < "2.0.4")
 	{
 		for(i in seq_len(length(w@spectra)))
 			w@spectra[[i]] <- updateObject(w@spectra[[i]])
@@ -83,6 +83,11 @@
 		}
 		
 	}
+  
+  
+  # 2.0.4 directly from v1: update spectra polarity, because RmbSpectraSet is generated directly as a
+  # 0.1.2 versioned class and does not go through the update
+  w.new@spectra <- as(lapply(w.new@spectra, .updateObject.RmbSpectraSet.updatePolarity), "SimpleList")
 	
 	return(w.new)
 }
