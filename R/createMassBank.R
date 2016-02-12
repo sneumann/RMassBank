@@ -1405,10 +1405,12 @@ setMethod("toMassbank", "RmbSpectrum2", function(o, addAnnotation = getOption("R
   peaks$mzCalc <- round(peaks$mzCalc, 4)
   peaks$intensity <- round(peaks$intensity, 1)
   
-  # This is a helper because RmbSpectrum2 (and Spectrum2) don't have polarity stored.
-  # we hope to remove it at one point. It's the only upstream dependency we still ahave
-  formulaTag <- s@info[["_FORMULATAG"]]
-  s@info[["_FORMULATAG"]] <- NULL
+  # Get polarity from Spectrum2 now!
+  formulaTag <- ""
+  if(s@polarity == 1) formulaTag <- "+"
+  if(s@polarity == 0) formulaTag <- "-"
+  # if polarity is -1, leave it unspecified. the "specs" seem to be 1 for +, 0 for - and -1 for ???
+  # (when reading mzML I often get -1, when reading mzXML I get 1 and 0 respectively)
   
   annotator <- getOption("RMassBank")$annotator
   if(is.null(annotator))

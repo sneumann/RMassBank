@@ -134,8 +134,7 @@ getAnalyticalInfo <- function(cpd = NULL)
   # again, these constants are read from the options:
   ai[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
   ai[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
-  ai[["_FORMULATAG"]] = .formulaTag[[cpd@mode]]
-  
+
 	# for format 2.01
 	ac_ms <- list();
 	ac_ms[['MS_TYPE']] <- getOption("RMassBank")$annotations$ms_type
