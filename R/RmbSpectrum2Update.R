@@ -6,7 +6,7 @@
 
 .updateObject.RmbSpectrum2 <- setMethod("updateObject", signature(object="RmbSpectrum2"), function(object, ..., verbose = FALSE) 
 		{
-      .callNextMethod()
+      callNextMethod()
 			w <- object
 			if(isVersioned(w))
 				if(all(isCurrent(w)))

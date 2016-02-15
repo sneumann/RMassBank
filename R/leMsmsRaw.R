@@ -287,7 +287,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 									rt = line["retentionTime"],
 									acquisitionNum = as.integer(line["seqNum"]),
 									centroided = TRUE,
-                  polarity = as.integer(line["polarity"]),
+                  polarity = as.integer(line["polarity"])
 									)
 						})
 				msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
