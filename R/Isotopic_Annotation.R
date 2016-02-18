@@ -26,7 +26,7 @@
 #' @author Erik Mueller, UFZ
 #' @export
 checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_precision = "low", conflict = "dppm", 
-							isolationWindow = 4, evalMode = "complete", plotSpectrum = TRUE, settings = getOption("RMassBank")){
+							isolationWindow = 2, evalMode = "complete", plotSpectrum = TRUE, settings = getOption("RMassBank")){
 
 	# Load library and data
 	requireNamespace("enviPat",quietly=TRUE)
@@ -304,63 +304,18 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_pre
 # So modularize this function
 .findPattern <- function(aggregateRow, defIsotopes, intensity_cutoff, precisionVal, ppmlimit, isolationWindow){
 	
-	# Find pattern
-	capture.output(pattern <- as.data.frame(enviPat::isopattern(aggregateRow["formula"], isotopes = isotopes)[[1]]))
-	mass <- findMz.formula(as.character(aggregateRow["formula"]),"")$mzCenter
+	# Find pattern and mass
+	outp <- capture.output(pattern <- as.data.frame(enviPat::isopattern(aggregateRow["formula"], isotopes = isotopes)[[1]]))
+    rm("outp")
+	mass <- aggregateRow["mzCalc"]
 	
 	# Find index of monoisotopic molecule and
 	# normalize abundance that monoisotopic molecule has always "1"
 	mainIndex <- which.min(abs(pattern[,"m/z"]-mass))
 	pattern[,"abundance"] <- round(pattern[,"abundance"] * (100/pattern[mainIndex,"abundance"]),3)
 	
-	# Find all isotope atom names (only in colnames of patterns, sadly)
-	isoCols <- colnames(pattern)[3:ncol(pattern)]
-	
-	# Order the formulas to be in Hill system:
-	# First the Cs, then the Hs, then lexicographical
-	# First: Split isotope names so that there only are atoms
-	# Find position of C and H
-	splitNames <- gsub('^([0-9]+)(.+)$', '\\2', isoCols)
-	CHPos <- c(which(splitNames == "C"),which(splitNames == "H"))
-	
-	# Account for special case: No Cs or Hs
-	if(length(CHPos)){
-		# If there are Cs and Hs, overwrite the positions so they always get sorted to the front
-		splitNames[CHPos] <- ""
-	}
-	
-	# Default isotopes are always first in the colnames, so no need to order internally between isotopes
-	atomOrder <- order(splitNames)
-	
-	# If there are Cs and Hs, the order must be preserved
-	if(length(CHPos)){
-		atomOrder[1:length(CHPos)] <- CHPos
-	}
-	# else it is already ordered
-	
-	# Mark new names for formula creation.
-	newnames <- unname(sapply(isoCols, function(currentCol){
-		if(currentCol %in% defIsotopes){
-			# "Default" isotope (no isotope mass in formula, e.g. "C")
-			return(gsub('^(.{0})([0-9]+)(.+)$', '\\3', currentCol))
-		}else{
-			# Other isotopes (isotope mass in formula, e.g. "[13]C")
-			return(gsub('^(.{0})([0-9]+)(.+)$', '\\1[\\2]\\3', currentCol))
-		}
-	}))
-	
-	# Generate the formula for every pattern
-	pattern$formula <- apply(pattern,1,function(p){
-		paste0(sapply(atomOrder+2,function(isoIndex){
-			if(p[isoIndex] == 0){ 
-				return("")
-			}
-			if(p[isoIndex] == 1){
-				return(newnames[isoIndex-2])
-			}
-			return(paste0(newnames[isoIndex-2],p[isoIndex]))
-		}),collapse="")
-	})
+    # Add the formula of every isotope to every row in the pattern
+	pattern <- .annotateFormulaToEnviPatTable(pattern, defIsotopes)
 	
 	# Sort pattern by abundance
 	pattern <- pattern[order(pattern[,"abundance"],decreasing = T),][-mainIndex,]
@@ -492,4 +447,60 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_pre
 			))
 		}
 	})))
+}
+
+
+# Further modularization of formula addition
+# Is essentially one task, so this makes it more understandable
+.annotateFormulaToEnviPatTable <- function(pattern, defIsotopes){
+    # Find all isotope atom names (only in colnames of patterns, sadly)
+	isoCols <- colnames(pattern)[3:ncol(pattern)]
+	
+	# Order the formulas to be in Hill system:
+	# First the Cs, then the Hs, then lexicographical
+	# First: Split isotope names so that there only are atoms
+	# Find position of C and H
+	splitNames <- gsub('^([0-9]+)(.+)$', '\\2', isoCols)
+	CHPos <- c(which(splitNames == "C"),which(splitNames == "H"))
+	
+	# Account for special case: No Cs or Hs
+	if(length(CHPos)){
+		# If there are Cs and Hs, overwrite the positions so they always get sorted to the front
+		splitNames[CHPos] <- ""
+	}
+	
+	# Default isotopes are always first in the colnames, so no need to order internally between isotopes
+	atomOrder <- order(splitNames)
+	
+	# If there are Cs and Hs, the order must be preserved
+	if(length(CHPos)){
+		atomOrder[1:length(CHPos)] <- CHPos
+	}
+	# else it is already ordered
+	
+	# Mark new names for formula creation.
+	newnames <- unname(sapply(isoCols, function(currentCol){
+		if(currentCol %in% defIsotopes){
+			# "Default" isotope (no isotope mass in formula, e.g. "C")
+			return(gsub('^(.{0})([0-9]+)(.+)$', '\\3', currentCol))
+		}else{
+			# Other isotopes (isotope mass in formula, e.g. "[13]C")
+			return(gsub('^(.{0})([0-9]+)(.+)$', '\\1[\\2]\\3', currentCol))
+		}
+	}))
+	
+	# Generate the formula for every pattern
+	pattern$formula <- apply(pattern,1,function(p){
+		paste0(sapply(atomOrder+2,function(isoIndex){
+			if(p[isoIndex] == 0){ 
+				return("")
+			}
+			if(p[isoIndex] == 1){
+				return(newnames[isoIndex-2])
+			}
+			return(paste0(newnames[isoIndex-2],p[isoIndex]))
+		}),collapse="")
+	})
+    
+    return(pattern)
 }

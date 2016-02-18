@@ -12,7 +12,7 @@
 #' file, whereas \code{loadInfolists} loads a whole directory.
 #' 
 #' @aliases loadInfolists loadInfolist resetInfolists
-#' @usage loadInfolists(mb, path)
+#' @usage loadInfolists(mb, fpath)
 #' 
 #'  loadInfolist(mb, fileName)
 #' 
@@ -1688,7 +1688,6 @@ annotator.default <- function(annotation, type)
 				# I.e. from a string like "R={BLA: BLUB}" return "BLA: BLUB"
 				args <- regexec("\\{(.*)\\}", var)
 				arg <- regmatches(var, args)[[1]][[2]]
-				.GlobalEnv$AAA <- mbrecord
 				# Split the parameter by colon if necessary
 				splitVar <- strsplit(arg, ": ")[[1]]
 				# Read the parameter value from the record
