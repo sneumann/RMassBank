@@ -4,6 +4,7 @@
 #' @param mode \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
 #' @param intensity_cutoff The cutoff (as an absolute intensity value) under which isotopic peaks shouldn't be checked for or accepted as valid.
+#'        Please note: The cutoff is not hard in the sense that it interacts with the intensity_precision parameter.
 #' @param intensity_precision The difference that is accepted between the calculated and observed intensity of a possible isotopic peak. Further details down below.
 #' @param conflict Either "isotopic"(Peak formulas are always chosen if they fit the requirements for an isotopic peak)
 #' 		  or "strict"(Peaks are only marked as isotopic when there hasn't been a formula assigned before.)
@@ -82,7 +83,7 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_pre
 	    stop('evalMode must currently be specified as "complete"')
 	}
 	
-	evalMode <- c("add","check")
+	evalMode <- c("add")
 	
 	
 	# "default" isotopes (i.e. those with the highest abundance)
@@ -174,24 +175,24 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_pre
 			} else{
 				# If there are no peaks, fake an empty dataset
 				UPList <- list(list(data.frame(dummy=character())),list(data.frame(dummy=character())))
-				
 			}
 			
 			# Generate matrix of peaks that should be added
 			additionMatrix <- .peakReasoner(UPList, currentMPeaks)
 			
-			# If conflict is "strict", end here
+            # If there is something in the matrix
+            if(nrow(additionMatrix)){
+                # Add all the peaks that could be annotated as isotopic
+                wEnv$w@aggregated[additionMatrix$index,] <- additionMatrix
+            }
+            
+            
+			# If conflict is "strict", end here (And plot, maybe)
 			if(conflict == "strict"){
-				if(nrow(additionMatrix)){
-					wEnv$w@aggregated[additionMatrix$index,] <- additionMatrix
-				}
-				
 				if(plotSpectrum){
 					plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), col="black", xlab="m/z", ylab="intensity", lwd=3)
 					if(nrow(additionMatrix)){
 						points(additionMatrix$mzFound, additionMatrix$intensity,type="h", col="green", lwd=3)
-						# Add all the peaks that could be annotated as isotopic
-						wEnv$w@aggregated[additionMatrix$index,] <- additionMatrix
 					}
 				}
 				return(0)
@@ -203,10 +204,13 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_pre
 			
 			# Generate matrix of peaks that should be corrected
 			correctionMatrix <- .peakReasoner(MPList, currentMPeaks)
-		
+            
+            # Where have isotopes been found/not found in matched peaks
 			IsoPeaksMindex   <- which(sapply(MPList, function(x) any(sapply(x,nrow))))
 			noIsoPeaksMindex <- which(!sapply(MPList, function(x) any(sapply(x,nrow))))
-			IsoPeaksUindex   <- which(sapply(UPList, function(x) any(sapply(x,nrow))))
+			
+            # Where have isotopes been found/not found in unmatched peaks
+            IsoPeaksUindex   <- which(sapply(UPList, function(x) any(sapply(x,nrow))))
 			noIsoPeaksUindex <- which(!sapply(UPList, function(x) any(sapply(x,nrow))))
 			
 			if(conflict=="isotopic"){
@@ -264,7 +268,7 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_pre
 				
 				# Matched Peaks which should have isotopes and are no isotopes themselves
 				isNoIsoIndex <- currentMPeaks$index[peaksToCheck[
-					which(!(currentMPeaks$mzFound[peaksToCheck] %in% additionMatrix$mzFound) | !(currentMPeaks$mzFound[peaksToCheck] %in% correctionMatrix$mzFound))
+					which(!(currentMPeaks$mzFound[peaksToCheck] %in% correctionMatrix$mzFound))
 				]]
 				
 				noIsoPeaksMatrix <- wEnv$w@aggregated[intersect(hasNoIsoIndex,isNoIsoIndex),]
@@ -307,7 +311,7 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_pre
 	# Find pattern and mass
 	outp <- capture.output(pattern <- as.data.frame(enviPat::isopattern(aggregateRow["formula"], isotopes = isotopes)[[1]]))
     rm("outp")
-	mass <- aggregateRow["mzCalc"]
+	mass <- as.numeric(aggregateRow["mzCalc"])
 	
 	# Find index of monoisotopic molecule and
 	# normalize abundance that monoisotopic molecule has always "1"
@@ -337,11 +341,12 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_pre
 	})
 	
 	roundedInt <- round(intensities,digits=-2)
-	keepIntIndex <- which(roundedInt >= intensity_cutoff)
+	keepIntIndex <- which((roundedInt + roundedInt * precisionVal) >= intensity_cutoff)
 	pattern <- pattern[keepIntIndex,,drop=FALSE]
 	if(nrow(pattern)){
 		pattern$minintensity <- roundedInt[keepIntIndex] - roundedInt[keepIntIndex] * precisionVal
 		pattern$maxintensity <- roundedInt[keepIntIndex] + roundedInt[keepIntIndex] * precisionVal
+        pattern$expectedintensity <- roundedInt[keepIntIndex]
 		
 		# Calculate the expected mz range of the isotope peak
 		mzCols <- t(sapply(pattern[,"m/z"], ppm, dppm=ppmlimit/2.25,l=T))
@@ -362,7 +367,6 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 1000, intensity_pre
 	# Iterate over all supplied patterns
 	lapply(isoPatterns, function(pattern){
 		x <- list()
-		for(r in 1:nrow(pattern)){}
 		
 		apply(pattern, 1, function(patternRow){
 			# Find peaks that fit the specified intensities and m/z
