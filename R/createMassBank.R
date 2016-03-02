@@ -1825,8 +1825,11 @@ toMassbank <- function (mbdata)
         
         lapply(names(mbdata[[entry]]), function(subentry)
         {
-          # todo
-          mbf[[count]] <<- paste(entry,": ",subentry, " ", mbdata[[entry]][[subentry]], sep='')
+          if(subentry != "SPLASH"){
+            mbf[[count]] <<- paste(entry,": ",subentry, " ", mbdata[[entry]][[subentry]], sep='')
+          } else {
+            mbf[[count]] <<- paste(entry,": ", mbdata[[entry]][[subentry]], sep='')
+          }
           #print(mbf)
           count <<- count + 1
         })
