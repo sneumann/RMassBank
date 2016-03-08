@@ -12,7 +12,7 @@
 #' file, whereas \code{loadInfolists} loads a whole directory.
 #' 
 #' @aliases loadInfolists loadInfolist resetInfolists
-#' @usage loadInfolists(mb, fpath)
+#' @usage loadInfolists(mb, path)
 #' 
 #'  loadInfolist(mb, fileName)
 #' 
