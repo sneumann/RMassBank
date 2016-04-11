@@ -3,23 +3,26 @@
 \name{findMz}
 \alias{findCAS}
 \alias{findFormula}
+\alias{findLevel}
 \alias{findMz}
 \alias{findName}
 \alias{findRt}
 \alias{findSmiles}
 \title{Find compound information}
 \usage{
-findMz(cpdID, mode = "pH", ppm = 10, deltaMz = 0)
+findMz(cpdID, mode = "pH", ppm = 10, deltaMz = 0, retrieval="standard")
 
 findRt(cpdID) 
 
 findSmiles(cpdID) 
 
-findFormula(cpdID) 
+findFormula(cpdID, retrieval="standard") 
 
 findCAS(cpdID)
 
 findName(cpdID)
+
+findLevel(cpdID, compact=FALSE)
 }
 \arguments{
 \item{cpdID}{The compound ID in the compound list.}
@@ -37,6 +40,13 @@ molecular mass + and - 10 ppm).}
 \item{deltaMz}{Specifies additional m/z window to add to the range (deltaMz
 = 0.02 will return the range of the molecular mass +- 0.02 (and additionally
 +- the set ppm value).}
+
+\item{retrieval}{A value that determines whether the files should be handled either as "standard",
+if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+if the only know thing is the m/z}
+
+\item{compact}{Only for \code{findLevel}, returns the "retrieval" parameter used for many functions 
+within RMassBank if TRUE}
 }
 \value{
 \code{findMz} will return a \code{list(mzCenter=, mzMin=, mzMax=)}

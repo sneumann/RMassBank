@@ -42,12 +42,13 @@
 #' @export
 msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL, 
 					readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
-					Args = NULL, settings = getOption("RMassBank"), progressbar = "progressBarHook", MSe = FALSE, plots = FALSE){
+					Args = NULL, settings = getOption("RMassBank"),
+                    progressbar = "progressBarHook", MSe = FALSE, plots = FALSE){
 	.checkMbSettings()
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
 	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
-	
+    
 	if(is.null(filetable)){
 		##If no filetable is supplied, filenames must be named explicitly
 		if(is.null(files))
@@ -83,23 +84,24 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	if(!all(file.exists(w@files))){
 		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist")
 	}
-	
-	na.ids <- which(is.na(sapply(cpdids, findSmiles)))
-	
-	if(length(na.ids)){
-		stop("The supplied compound ids ", paste(cpdids[na.ids], collapse=" "), " don't have a corresponding smiles entry. Maybe they are missing from the compound list")
-	}
+
+    # na.ids <- which(is.na(sapply(cpdids, findSmiles)))
+    
+    # if(length(na.ids)){
+        # stop("The supplied compound ids ", paste(cpdids[na.ids], collapse=" "), " don't have a corresponding smiles entry. Maybe they are missing from the compound list")
+    # }
 	
 	##This should work
-	if(readMethod == "minimal"){
-		##Edit options
-		opt <- getOption("RMassBank")
-		opt$recalibrator$MS1 <- "recalibrate.identity"
-		opt$recalibrator$MS2 <- "recalibrate.identity"
-		options(RMassBank=opt)
-		##Edit analyzemethod
-		analyzeMethod <- "intensity"
-	}
+    if(readMethod == "minimal"){
+        ##Edit options
+        opt <- getOption("RMassBank")
+        opt$recalibrator$MS1 <- "recalibrate.identity"
+        opt$recalibrator$MS2 <- "recalibrate.identity"
+        opt$add_annotation==FALSE
+        options(RMassBank=opt)
+        ##Edit analyzemethod
+        analyzeMethod <- "intensity"
+    }
 	
 	if(readMethod == "mzR"){
 		##Progressbar
@@ -113,7 +115,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 							
 							# Find compound ID
 							cpdID <- cpdids[count]
-							
+							retrieval <- findLevel(cpdID,TRUE)
 							# Set counter up
 							envir$count <- envir$count + 1
 							
@@ -124,7 +126,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 									mzCoarse = settings$findMsMsRawSettings$mzCoarse,
 									fillPrecursorScan = settings$findMsMsRawSettings$fillPrecursorScan,
 									rtMargin = settings$rtMargin,
-									deprofile = settings$deprofile)
+									deprofile = settings$deprofile, retrieval=retrieval)
 							gc()
 														
 							# Progress:
@@ -310,7 +312,7 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 			} else{
 				psp[[i]] <- which.min( abs(getRT(anmsms[[i]]) - RT) )
 			}
-			## Now find the pspec for compound       
+			## Now find the pspec for compound
 
 			## 2nd best: Spectrum closest to MS1
 			##psp <- which.min( abs(getRT(anmsms) - actualRT))
@@ -345,7 +347,7 @@ msmsRead.RAW <- function(w, xRAW = NULL, cpdids = NULL, mode, findPeaksArgs = NU
 			spectraNum <- length(w@spectra[[which(IDindex)]]@children)
 			w@spectra[[which(IDindex)]]@children[[spectraNum+1]] <- sp@children[[1]]
 		} else {
-			w@spectra[[length(www@spectra)+1]] <- sp
+			w@spectra[[length(w@spectra)+1]] <- sp
 		}
 	} else{
 		w@spectra[[1]] <- sp

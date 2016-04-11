@@ -4,11 +4,19 @@
 \alias{findMass}
 \title{Calculate exact mass}
 \usage{
-findMass(cpdID_or_smiles)
+findMass(cpdID_or_smiles, retrieval = "standard", mode = "pH")
 }
 \arguments{
 \item{cpdID_or_smiles}{SMILES code or compound ID of the molecule. (Numerics
 are treated as compound ID).}
+
+\item{retrieval}{A value that determines whether the files should be handled either as "standard",
+if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+if the only know thing is the m/z}
+
+\item{mode}{\code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
+            ([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
+Only needed for retrieval="unknown"}
 }
 \value{
 Returns the exact mass of the uncharged molecule.

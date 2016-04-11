@@ -10,6 +10,7 @@
 #' @import rcdk 
 #' @import rjson 
 #' @import yaml 
+#' @import digest
 NULL # This is required so that roxygen knows where the first manpage starts
 
 
@@ -84,6 +85,9 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' @param rtMargin	The retention time tolerance to use.
 #' @param deprofile	Whether deprofiling should take place, and what method should be
 #' 			used (cf. \code{\link{deprofile}}) 
+#' @param retrieval A value that determines whether the files should be handled either as "standard",
+#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
+#' if the only know thing is the m/z
 #' @return	An \code{RmbSpectraSet} (for \code{findMsMsHR}). Contains parent MS1 spectrum (\code{@@parent}), a block of dependent MS2 spectra ((\code{@@children})
 #' 			and some metadata (\code{id},\code{mz},\code{name},\code{mode} in which the spectrum was acquired.
 #' 
@@ -112,7 +116,8 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 		rtMargin = getOption("RMassBank")$rtMargin,
 		deprofile = getOption("RMassBank")$deprofile,
 		headerCache = NULL,
-		peaksCache = NULL)
+		peaksCache = NULL,
+        retrieval="standard")
 {
 	
 	# access data directly for finding the MS/MS data. This is done using
@@ -122,7 +127,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 	if(!is.null(fileName))
 		msRaw <- openMSfile(fileName)
 	
-	mzLimits <- findMz(cpdID, mode)
+	mzLimits <- findMz(cpdID, mode, retrieval=retrieval)
 	mz <- mzLimits$mzCenter
 	limit.fine <- ppm(mz, ppmFine, p=TRUE)
 	if(!useRtLimit)
@@ -143,7 +148,12 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 	#sp@mz <- mzLimits
 	sp@id <- as.character(as.integer(cpdID))
 	sp@name <- findName(cpdID)
-	sp@formula <- findFormula(cpdID)
+    ENV <- environment()
+	if(retrieval == "unknown"){
+        sp@formula <- ""
+    } else{
+        sp@formula <- findFormula(cpdID, retrieval=retrieval)
+    }
 	sp@mode <- mode
 	
 	# If we had to open the file, we have to close it again
@@ -268,7 +278,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 									tic = line["totIonCurrent"],
 									peaksCount = line["peaksCount"],
 									rt = line["retentionTime"],
-									acquisitionNum = as.integer(line["acquisitionNum"]),
+									acquisitionNum = as.integer(line["seqNum"]),
 									centroided = TRUE
 									)
 						})
@@ -283,7 +293,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 						polarity = as.integer(masterHeader$polarity),
 						peaksCount = as.integer(masterHeader$peaksCount),
 						rt = masterHeader$retentionTime,
-						acquisitionNum = as.integer(masterHeader$acquisitionNum),
+						acquisitionNum = as.integer(masterHeader$seqNum),
 						tic = masterHeader$totIonCurrent,
 						centroided = TRUE
 						)

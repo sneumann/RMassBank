@@ -17,7 +17,7 @@ which should then be manually inspected.}
 
 \item{gatherData}{A variable denoting whether to retrieve information using several online databases \code{gatherData= "online"}
 or to use the local babel installation \code{gatherData= "babel"}. Note that babel is used either way, if a directory is given 
-in the settings}
+in the settings. This setting will be ignored if retrieval is set to "standard"}
 }
 \value{
 The processed \code{mbWorkspace}.
