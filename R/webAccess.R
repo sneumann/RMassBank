@@ -41,7 +41,7 @@ getCactus <- function(identifier, representation)
 
   ret <- tryCatch(
     getURLContent(paste(
-      "http://cactus.nci.nih.gov/chemical/structure/",
+      "https://cactus.nci.nih.gov/chemical/structure/",
       URLencode(identifier), "/", representation, sep='')),
     error = function(e) NA)
   if(is.na(ret))

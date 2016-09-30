@@ -10,6 +10,7 @@
 #' @import rcdk 
 #' @import rjson 
 #' @import yaml 
+#' @import digest
 NULL # This is required so that roxygen knows where the first manpage starts
 
 

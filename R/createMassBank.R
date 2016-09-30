@@ -1270,7 +1270,6 @@ annotator.default <- function(annotation, formulaTag)
 				# I.e. from a string like "R={BLA: BLUB}" return "BLA: BLUB"
 				args <- regexec("\\{(.*)\\}", var)
 				arg <- regmatches(var, args)[[1]][[2]]
-				.GlobalEnv$AAA <- mbrecord
 				# Split the parameter by colon if necessary
 				splitVar <- strsplit(arg, ": ")[[1]]
 				# Read the parameter value from the record
@@ -1473,8 +1472,11 @@ setMethod("toMassbank", "RmbSpectrum2", function(o, addAnnotation = getOption("R
         
         lapply(names(mbdata[[entry]]), function(subentry)
         {
-          # todo
-          mbf[[count]] <<- paste(entry,": ",subentry, " ", mbdata[[entry]][[subentry]], sep='')
+          if(subentry != "SPLASH"){
+            mbf[[count]] <<- paste(entry,": ",subentry, " ", mbdata[[entry]][[subentry]], sep='')
+          } else {
+            mbf[[count]] <<- paste(entry,": ", mbdata[[entry]][[subentry]], sep='')
+          }
           #print(mbf)
           count <<- count + 1
         })

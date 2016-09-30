@@ -4,8 +4,8 @@
 \alias{checkIsotopes}
 \title{Checks for isotopes in a \code{msmsWorkspace}}
 \usage{
-checkIsotopes(w, mode = "pH", intensity_cutoff = 1000,
-  intensity_precision = "low", conflict = "dppm", isolationWindow = 4,
+checkIsotopes(w, mode = "pH", intensity_cutoff = 0,
+  intensity_precision = "none", conflict = "strict", isolationWindow = 2,
   evalMode = "complete", plotSpectrum = TRUE,
   settings = getOption("RMassBank"))
 }
@@ -15,7 +15,8 @@ checkIsotopes(w, mode = "pH", intensity_cutoff = 1000,
 \item{mode}{\code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
 ([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).}
 
-\item{intensity_cutoff}{The cutoff (as an absolute intensity value) under which isotopic peaks shouldn't be checked for or accepted as valid.}
+\item{intensity_cutoff}{The cutoff (as an absolute intensity value) under which isotopic peaks shouldn't be checked for or accepted as valid.
+Please note: The cutoff is not hard in the sense that it interacts with the intensity_precision parameter.}
 
 \item{intensity_precision}{The difference that is accepted between the calculated and observed intensity of a possible isotopic peak. Further details down below.}
 
