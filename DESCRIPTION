@@ -66,5 +66,6 @@ Collate:
     'mergeSpectra.R'
     'Isotopic_Annotation.R'
     'fillback.R'
+    'parseMbRecord.R'
     'zzz.R'
 RoxygenNote: 5.0.1
