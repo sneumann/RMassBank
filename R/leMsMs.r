@@ -2138,6 +2138,8 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 	specFound <- selectSpectra(spec, "found", "object")
 	
 	ms1peaks <- lapply(specFound, function(cpd){
+	    if(cpd@formula == "")
+	      return(NULL)
 			mzL <- findMz.formula(cpd@formula,mode,recalibrateMS1Window,0)
 			mzCalc <- mzL$mzCenter
 			ms1 <- mz(cpd@parent)
@@ -2159,6 +2161,7 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 				))
 			}
 		})
+	ms1peaks <- ms1peaks[which(!unlist(lapply(ms1peaks, is.null)))]
 	ms1peaks <- as.data.frame(do.call(rbind, ms1peaks), stringsAsFactors=FALSE)
 	# convert numbers to numeric
 	tonum <- c("mzFound", "dppm", "mzCalc")

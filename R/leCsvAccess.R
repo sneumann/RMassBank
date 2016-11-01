@@ -436,13 +436,23 @@ findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 #' }
 #' 
 #' @export
-findMz <- function(cpdID, mode="pH", ppm=10, deltaMz=0, retrieval="standard")
+findMz <- function(cpdID, mode="pH", ppm=10, deltaMz=0, retrieval="standard",
+                   unknownMass = getOption("RMassBank")$unknownMass)
 {
+  if(is.null(unknownMass))
+    unknownMass = "charged"
+  if(!(unknownMass %in% c("charged", "neutral")))
+     stop("unknownMass definition must be either 'charged' or 'neutral', default is 'charged'")
+     
     # In case of unknown: m/z is in table
     if(retrieval == "unknown"){
         mz <- .listEnvEnv$listEnv$compoundList[which(.listEnvEnv$listEnv$compoundList$ID == cpdID),.listEnvEnv$listEnv$mzCol]
         delta <- ppm(mz, ppm, l=TRUE)
-        return(list(mzMin=delta[2] - deltaMz, mzMax=delta[1] + deltaMz, mzCenter=mz))
+        if(unknownMass == "neutral")
+          dmass <- findMz.formula("", mode=mode)$mzCenter
+        else
+          dmass <- 0
+        return(list(mzMin=delta[2] - deltaMz + dmass, mzMax=delta[1] + deltaMz + dmass, mzCenter=mz + dmass))
     } 
     
     # In case of tentative: calculate mass from formula
