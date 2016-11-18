@@ -113,10 +113,18 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 		rtMargin = getOption("RMassBank")$rtMargin,
 		deprofile = getOption("RMassBank")$deprofile,
 		headerCache = NULL,
-		peaksCache = NULL)
+		peaksCache = NULL,
+		enforcePolarity = getOption("RMassBank")$enforcePolarity)
 {
   retrieval <- findLevel(cpdID,TRUE)
+  # old behaviour: do not enforce polarity
+  if(is.null(enforcePolarity))
+    enforcePolarity <- FALSE
   
+  if(enforcePolarity)
+    polarity <- .polarity[[mode]]
+  else
+    polarity <- NA
 	# access data directly for finding the MS/MS data. This is done using
 	# mzR.
 	if(!is.null(fileName) & !is.null(msRaw))
@@ -135,7 +143,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 		rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
 	}
 	spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
-			,fillPrecursorScan, deprofile, peaksCache, cpdID)
+			,fillPrecursorScan, deprofile, peaksCache, cpdID, polarity=polarity)
 	# check whether a) spectrum was found and b) enough spectra were found
 	if(length(spectra) < (confirmMode + 1))
 		sp <- new("RmbSpectraSet", found=FALSE)
@@ -175,7 +183,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
 		headerCache = NULL, fillPrecursorScan = FALSE,
-		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA)
+		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA, polarity = NA)
 {
 	eic <- findEIC(msRaw, mz, limit.fine, rtLimits, headerCache=headerCache, 
 			peaksCache=peaksCache)
@@ -187,6 +195,9 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 		headerData <- headerCache
 	else
 		headerData <- as.data.frame(header(msRaw))
+	
+	if(!is.na(polarity))
+	  headerData <- headerData[headerData$polarity == polarity,,drop=FALSE]
 	
 	
 	###If no precursor scan number, fill the number
@@ -204,6 +215,10 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 		headerData[,"precursorScanNum"] <- .locf(headerData[,"precursorScanNum"])
 		# Clear the actual MS1 precursor scan number again
 		headerData[which(headerData$msLevel == 1),"precursorScanNum"] <- 0
+		# Remove precursors which are still NA in precursor scan num.
+		# This removes a bug when filling precursor if the first scan(s) are MS2 before a
+		# MS1 scan appears. The resulting NA values in precursorScanNum are problematic downstream.
+		headerData <- headerData[!is.na(headerData$precursorScanNum),]
 	}
 	
 	# Find MS2 spectra with precursors which are in the allowed 
@@ -213,12 +228,22 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 					(headerData$precursorMZ < mz + limit.coarse),]
 	# Find the precursors for the found spectra
 	validPrecursors <- unique(findValidPrecursors$precursorScanNum)
+	validPrecursors <- validPrecursors[!is.na(validPrecursors)]
 	# check whether the precursors are real: must be within fine limits!
 	# previously even "bad" precursors were taken. e.g. 1-benzylpiperazine
 	which_OK <- lapply(validPrecursors, function(pscan)
 			{
+	     # Debugging for figuring out the right way to fix a bug
+	      # print("AcquisitionNum")
+	      # print(pscan)
+	      # i <- which(headerData$acquisitionNum == pscan)
+	      # print("Which:")
+	      # print(i)
+	      # print("SeqNum:")
+	      # print(headerData$seqNum[[i]])
+	      
 				pplist <- as.data.frame(
-						mzR::peaks(msRaw, which(headerData$acquisitionNum == pscan)))
+						mzR::peaks(msRaw, headerData$seqNum[[which(headerData$acquisitionNum == pscan)]]))
 				colnames(pplist) <- c("mz","int")
 				pplist <- pplist[(pplist$mz >= mz -limit.fine)
 								& (pplist$mz <= mz + limit.fine),]
