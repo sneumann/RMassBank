@@ -1191,6 +1191,7 @@ annotator.default <- function(annotation, formulaTag)
     type <- ""
   
   annotation <- annotation[!is.na(annotation$formula),,drop=FALSE]
+  annotation <- annotation[annotation$formula != "",,drop=FALSE]
   
   annotation$formula <- paste(annotation$formula, rep(type, length(annotation$formula)), sep='')
   # Select the right columns and name them correctly for output.

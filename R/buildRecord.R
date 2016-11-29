@@ -318,8 +318,11 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	mbdata[["RECORD_TITLE"]] <- .parseTitleString(mbdata)
 	mbdata[["RECORD_TITLE_CE"]] <- NULL
 	# Calculate the accession number from the options.
-	
-	mbdata[["ACCESSION"]] <- .getAccession(cpd, subscan)
+	accessionBuilder <- getOption("RMassBank")$accessionBuilder
+	if(!is.null(accessionBuilder))
+	  mbData[["ACCESSSION"]] <- do.call(accessionBuilder, list(cpd, subscan))
+	else
+	  mbdata[["ACCESSION"]] <- .getAccession(cpd, subscan)
 	
   spectrum@info <- mbdata
   
