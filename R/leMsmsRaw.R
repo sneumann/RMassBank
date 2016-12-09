@@ -85,6 +85,8 @@ NULL # This is required so that roxygen knows where the first manpage starts
 #' @param rtMargin	The retention time tolerance to use.
 #' @param deprofile	Whether deprofiling should take place, and what method should be
 #' 			used (cf. \code{\link{deprofile}}) 
+#' @param diaWindows A data frame with columns \code{precursorMz}, \code{mzMin}, \code{mzMax} which specifies the precursor and 
+#'      window size of each window for DIA acquisition.
 #' @return	An \code{RmbSpectraSet} (for \code{findMsMsHR}). Contains parent MS1 spectrum (\code{@@parent}), a block of dependent MS2 spectra ((\code{@@children})
 #' 			and some metadata (\code{id},\code{mz},\code{name},\code{mode} in which the spectrum was acquired.
 #' 
@@ -114,7 +116,8 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 		deprofile = getOption("RMassBank")$deprofile,
 		headerCache = NULL,
 		peaksCache = NULL,
-		enforcePolarity = getOption("RMassBank")$enforcePolarity)
+		enforcePolarity = getOption("RMassBank")$enforcePolarity,
+		diaWindows = getOption("RMassBank")$findMsMsRawSettings$diaWindows)
 {
   retrieval <- findLevel(cpdID,TRUE)
   # old behaviour: do not enforce polarity
@@ -143,7 +146,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 		rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
 	}
 	spectra <- findMsMsHR.mass(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
-			,fillPrecursorScan, deprofile, peaksCache, cpdID, polarity=polarity)
+			,fillPrecursorScan, deprofile, peaksCache, cpdID, polarity=polarity, diaWindows = diaWindows)
 	# check whether a) spectrum was found and b) enough spectra were found
 	if(length(spectra) < (confirmMode + 1))
 		sp <- new("RmbSpectraSet", found=FALSE)
@@ -183,7 +186,9 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
 		headerCache = NULL, fillPrecursorScan = FALSE,
-		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA, polarity = NA)
+		deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA,
+		polarity = NA,
+		diaWindows = getOption("RMassBank")$findMsMsRawSettings$diaWindows)
 {
 	eic <- findEIC(msRaw, mz, limit.fine, rtLimits, headerCache=headerCache, 
 			peaksCache=peaksCache)
@@ -223,10 +228,29 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	
 	# Find MS2 spectra with precursors which are in the allowed 
 	# scan filter (coarse limit) range
+	if(!is.null(diaWindows))
+	{
+	  message("using diaWindows")
+	  window <- which((diaWindows$mzMin < mz) & (diaWindows$mzMax >= mz))
+	  if(length(window) > 1)
+	  {
+	    warning("Compound mass lies in two DIA windows - this is still in test phase!")
+	    diaWin <- diaWindows[window,]
+	    diaWin$internality <- min(abs(mz - diaWin$mzMin), abs(mz - diaWin$mzMax))
+	    window <- window[which.max(diaWin$internality)]
+	  }
+	    
+	  precursor <- diaWindows$precursorMz[window]
+	  # this allows for minimal numeric errors in precursor mass:
+	  findValidPrecursors <- headerData[abs(headerData$precursorMZ - precursor) < 0.1,]
+	}
+	else
+	{
 	findValidPrecursors <- headerData[
 			(headerData$precursorMZ > mz - limit.coarse) &
 					(headerData$precursorMZ < mz + limit.coarse),]
 	# Find the precursors for the found spectra
+	}
 	validPrecursors <- unique(findValidPrecursors$precursorScanNum)
 	validPrecursors <- validPrecursors[!is.na(validPrecursors)]
 	# check whether the precursors are real: must be within fine limits!
@@ -275,11 +299,20 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	spectra <- lapply(eic$scan, function(masterScan)
 			{
 				masterHeader <- headerData[headerData$acquisitionNum == masterScan,]
-				childHeaders <- headerData[(headerData$precursorScanNum == masterScan) 
-								& (headerData$precursorMZ > mz - limit.coarse) 
-								& (headerData$precursorMZ < mz + limit.coarse) ,]
+				if(is.null(diaWindows))
+				{
+				  childHeaders <- headerData[(headerData$precursorScanNum == masterScan) 
+				                             & (headerData$precursorMZ > mz - limit.coarse) 
+				                             & (headerData$precursorMZ < mz + limit.coarse) ,]
+				  
+				}
+				else
+				{
+				  childHeaders <- headerData[(headerData$precursorScanNum == masterScan),]
+				  childHeaders <- childHeaders[window,]
+				  
+				}
 				childScans <- childHeaders$seqNum
-				
 				msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
 				# if deprofile option is set: run deprofiling
 				deprofile.setting <- deprofile
@@ -596,7 +629,7 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 #' @seealso findMsMsHR
 #' @export
 findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, floatingRecalibration = NULL,
-		peaksCache = NULL)
+		peaksCache = NULL, polarity = NA, msLevel = 1, precursor = NULL)
 {
 	# calculate mz upper and lower limits for "integration"
 	if(all(c("mzMin", "mzMax") %in% names(mz)))
@@ -618,11 +651,24 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 	# since this makes everything much faster.
 	if(all(!is.na(rtLimit)))
 		headerMS1 <- headerData[
-				(headerData$msLevel == 1) & (headerData$retentionTime >= rtLimit[[1]])
+				(headerData$msLevel == msLevel) & (headerData$retentionTime >= rtLimit[[1]])
 						& (headerData$retentionTime <= rtLimit[[2]])
 				,]
 	else
-		headerMS1 <- headerData[headerData$msLevel == 1,]
+		headerMS1 <- headerData[headerData$msLevel == msLevel,]
+	# DIA handling:
+	if(!is.null(precursor))
+	{
+	  headerMS1 <- headerMS1[abs(headerMS1$precursorMZ - precursor) < 0.1, ]
+	}
+	if(!is.na(polarity))
+	{
+	  if(is.character(polarity))
+	    polarity <- .polarity[[polarity]]
+	  headerMS1 <- headerMS1[headerMS1$polarity == polarity,]
+	}
+	
+	
 	if(is.null(peaksCache))
 		pks <- mzR::peaks(msRaw, headerMS1$seqNum)
 	else
