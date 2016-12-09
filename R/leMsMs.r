@@ -253,8 +253,8 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(7 %in% steps)
   {
 	message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
-    w@aggregated <- reanalyzeFailpeaks(
-			w@aggregated, custom_additions="N2O", mode=mode,
+    w <- reanalyzeFailpeaks(
+			w, custom_additions="N2O", mode=mode,
 				filterSettings=settings$filterSettings,
                     progressbar=progressbar)
     if(!is.na(archivename))
@@ -754,6 +754,9 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	childPeaks <- childPeaks[,colnames(childPeaksOmitted), drop=FALSE]
 	
 	childPeaksTotal <- rbind(childPeaks, childPeaksOmitted)
+	# add the formulaSource column
+	childPeaksTotal$formulaSource <- character(nrow(childPeaksTotal))
+	childPeaksTotal$formulaSource[!is.na(childPeaksTotal$formula)] <- "analyze"
 	child <- setData(child, childPeaksTotal)
 	child@ok <- TRUE
 	
@@ -1653,83 +1656,59 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' reanalyzeFailpeak("N2O", 105.0447, 1234, 1, 1, "pH")
 #' }
 #' 
+#' 
+#' 
+#' 
+#' 
+#' 
+#' 
 #' @export
-reanalyzeFailpeaks <- function(aggregated, custom_additions, mode, filterSettings =
+reanalyzeFailpeaks <- function(w, custom_additions, mode, filterSettings =
 				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook")
 {
-	
-  fp <- peaksUnmatched(aggregated, cleaned=TRUE)
-  fp <- fp[is.na(fp$dppm) | (fp$dppm == fp$dppmBest),]
-  #fp <- pu[!pu$noise,,drop=FALSE]
-  
-  custom_additions_l <- as.list(rep(x=custom_additions, times=nrow(fp)))
-  mode_l <- as.list(rep(x=mode, times=nrow(fp)))
-  nLen <- nrow(fp)
-  
-  pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=max(nLen,1)))
-  temp <- data.frame()
-  if(nLen == 0)
-  {
-	  message("reanalyzeFailpeaks: No peaks to reanalyze.")
-	  temp <- data.frame(
-			  "reanalyzed.formula" = character(),
-			  "reanalyzed.mzCalc" = numeric(),
-			  "reanalyzed.dppm" = numeric(),
-			  "reanalyzed.formulaCount" = numeric(),
-			  "reanalyzed.dbe" = numeric())
-  }
-  else
-  {
-	  counter <- as.list(1:nrow(fp))
-	  # this is the reanalysis step: run reanalyze.failpeak (with the relevant parameters)
-	  # on each failpeak.
-	  temp <- mapply(reanalyzeFailpeak, custom_additions_l, fp$mzFound, fp$cpdID, counter, 
-			  MoreArgs=list(mode=mode, pb=list(hook=progressbar, bar=pb), filterSettings=filterSettings))
-	  # reformat the result and attach it to specs
-	  temp <- as.data.frame(t(temp))
-	  temp <- temp[,c("reanalyzed.formula", "reanalyzed.mzCalc", "reanalyzed.dppm", 
-					  "reanalyzed.formulaCount", "reanalyzed.dbe")]	  
-  }
-
-  # Add columns to the aggregated table (they are then filled in with the obtained values for reanalyzed peaks and left
-	# empty otherwise
-  aggregated <- addProperty(aggregated, "reanalyzed.formula", "character")
-  aggregated <- addProperty(aggregated, "reanalyzed.mzCalc", "numeric")
-  aggregated <- addProperty(aggregated, "reanalyzed.dppm", "numeric")
-  aggregated <- addProperty(aggregated, "reanalyzed.formulaCount", "numeric")
-  aggregated <- addProperty(aggregated, "reanalyzed.dbe", "numeric")
-  aggregated <- addProperty(aggregated, "matchedReanalysis", "logical", NA)
-  
-  
-  peaksReanalyzed <- cbind(fp, temp)
-  
-  # Since some columns are in "list" type, they disturb later on.
-  # therefore, fix them and make them normal vectors.
-  listcols <- unlist(lapply(colnames(peaksReanalyzed), function(col) 
-    is.list(peaksReanalyzed[,col])))
-  for(col in colnames(peaksReanalyzed)[which(listcols==TRUE)])
-    peaksReanalyzed[,col] <- 
-      unlist(peaksReanalyzed[,col])
-  
-  peaksReanalyzed$matchedReanalysis <- !is.na(peaksReanalyzed$reanalyzed.dppm)
-  
-  # Substitute in the reanalyzed peaks into the aggregated table
-  aggregated[match(peaksReanalyzed$index, aggregated$index),] <- peaksReanalyzed
-  
-  do.call(progressbar, list(object=pb, close=TRUE))
-  return(aggregated)
+	nProg <- 0
+	nLen <- length(w@spectra)
+	pb <- do.call(progressbar, list(object = NULL, value = 0, 
+					min = 0, max = nLen))
+	spectra <- lapply(w@spectra, function(sp) {
+				if(length(sp@children) == 0)
+					return(sp)
+				
+				children <- lapply(sp@children, function(ch) {
+							peaks <- getData(ch)
+							peaks.sp <- split(peaks, peaks$good | (!peaks$rawOK))
+							if (!is.null(peaks.sp[["FALSE"]])) {
+								fp <- peaks.sp[["FALSE"]]
+								peaks.rean <- lapply(fp$mz, reanalyzeFailpeak, 
+										custom_additions = custom_additions, cpdID = sp@id, 
+										mode = mode, filterSettings = filterSettings)
+								matched <- (unlist(lapply(peaks.rean, nrow))) > 
+										0
+								df.rean <- do.call(rbind, peaks.rean[matched])
+								fp[matched, colnames(df.rean)] <- df.rean
+								fp[matched, "formulaSource"] <- rep("reanalysis", 
+										sum(matched))
+								peaks.sp[["FALSE"]] <- fp
+								peaks <- do.call(rbind, peaks.sp)
+								ch <- setData(ch, peaks)
+							}
+							ch
+						})
+				sp@children <- as(children, "SimpleList")
+				nProg <<- nProg + 1
+				pb <- do.call(progressbar, list(object = pb, value = nProg))
+				return(sp)
+			})
+	w@spectra <- as(spectra, "SimpleList")
+	do.call(progressbar, list(object = pb, close = TRUE))
+	return(w)
 }
 
 
 #' @export
-reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL, mode,
+reanalyzeFailpeak <- function(mass, custom_additions, cpdID, mode,
 		filterSettings = getOption("RMassBank")$filterSettings)
 {
-	# the counter to show the progress
-	if(!is.null(pb))
-	{
-		do.call(pb$hook, list(object=pb$bar, value=counter))
-	}
 	# here follows the Rcdk analysis
 	#------------------------------------
 	
@@ -1776,20 +1755,16 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 					limits, charge=mode.charge)), error=function(e) NA)
 	# was a formula found? If not, return empty result
 	if(!is.list(peakformula))
-		return(as.data.frame(
-						t(c(mzFound=as.numeric(as.character(mass)),
-										reanalyzed.formula=NA, reanalyzed.mzCalc=NA, reanalyzed.dppm=NA,
-										reanalyzed.formulaCount=0,
-										reanalyzed.dbe=NA))))
+		return(data.frame())
 	else # if is.list(peakformula)
 	# formula found? then return the one with lowest dppm
 	{
 		# calculate dppm for all formulas
 		peakformula <- sapply(peakformula, function(f)
 				{
-					l <- list(mzFound=as.numeric(as.character(mass)),
-							reanalyzed.formula=as.character(f@string),
-							reanalyzed.mzCalc=as.numeric(as.character(f@mass))
+					l <- list(mz=as.numeric(as.character(mass)),
+							formula=as.character(f@string),
+							mzCalc=as.numeric(as.character(f@mass))
 					)
 					
 					return(unlist(l))
@@ -1800,28 +1775,26 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 		# for some reason completely oblivious to me, the columns in peakformula
 		# are still factors, even though i de-factored them by hand.
 		# Therefore, convert them again...
-		peakformula$mzFound <- as.numeric(as.character(peakformula$mzFound))
-		peakformula$reanalyzed.formula <- as.character(peakformula$reanalyzed.formula)
-		peakformula$reanalyzed.mzCalc <- as.numeric(as.character(peakformula$reanalyzed.mzCalc))
+		peakformula$mz <- as.numeric(as.character(peakformula$mz))
+		peakformula$formula <- as.character(peakformula$formula)
+		peakformula$mzCalc <- as.numeric(as.character(peakformula$mzCalc))
 		
-		peakformula$reanalyzed.dppm <- (peakformula$mzFound / peakformula$reanalyzed.mzCalc - 1) * 1e6
-		peakformula$reanalyzed.formulaCount=nrow(peakformula)
+		peakformula$dppm <- (peakformula$mz / peakformula$mzCalc - 1) * 1e6
+		peakformula$formulaCount=nrow(peakformula)
+		
 		
 		# filter out bad dbe and high ppm stuff          
-		peakformula$reanalyzed.dbe <- unlist(lapply(peakformula$reanalyzed.formula, dbe))
-		peakformula <- peakformula[(peakformula$reanalyzed.dbe >= filterSettings$dbeMinLimit) 
-						& (abs(peakformula$reanalyzed.dppm) < filterSettings$ppmFine),]
+		peakformula$dbe <- unlist(lapply(peakformula$formula, dbe))
+		peakformula <- peakformula[(peakformula$dbe >= filterSettings$dbeMinLimit) 
+						& (abs(peakformula$dppm) < filterSettings$ppmFine),]
 		# is there still something left?
 		if(nrow(peakformula) == 0)
-			return(as.data.frame(
-							t(c(mzFound=as.numeric(as.character(mass)),
-											reanalyzed.formula=NA, reanalyzed.mzCalc=NA, reanalyzed.dppm=NA,
-											reanalyzed.formulaCount=0, reanalyzed.dbe = NA))))
+			return(data.frame())
 		else
 		{
 			#update formula count to the remaining formulas
-			peakformula$reanalyzed.formulaCount=nrow(peakformula)
-			return(peakformula[which.min(abs(peakformula$reanalyzed.dppm)),])
+			peakformula$formulaCount=nrow(peakformula)
+			return(peakformula[which.min(abs(peakformula$dppm)),])
 		}
 		
 	} # endif is.list(peakformula)

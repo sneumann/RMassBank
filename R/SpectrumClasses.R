@@ -13,6 +13,7 @@
 				formula = "character",
 				dbe = "numeric",
 				formulaCount = "integer",
+				formulaSource = "character",
 				dppm = "numeric",
 				dppmBest = "numeric",
 				ok = "logical",
@@ -29,12 +30,13 @@
 				formula = character(),
 				dbe = numeric(),
 				formulaCount = integer(),
+				formulaSource = character(),
 				dppm = numeric(),
 				dppmBest = numeric(),
 				ok = logical(),
 				info = list(),
 				properties = data.frame(),
-				new("Versioned", versions=c(classVersion("Spectrum2"), RmbSpectrum2 = "0.1.1"))
+				new("Versioned", versions=c(classVersion("Spectrum2"), RmbSpectrum2 = "0.1.2"))
 		),
 )
 

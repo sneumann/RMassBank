@@ -21,10 +21,36 @@
 				slot(w, "properties", check=FALSE) <- data.frame()
 				classVersion(w)["RmbSpectrum2"] <- "0.1.1"
 			}
-			
+			if(v < "0.1.2")
+			{
+				w <- .updateObject.RmbSpectrum2.formulaSource(w)
+				classVersion(w)["RmbSpectrum2"] <- "0.1.2"
+			}
 			return(w)
 		})
 
+
+
+#' Add formulaSource column to spectrum.
+#' 
+#' TODO: consider whether to add functionality to move reanalysis stuff from legacy data back in.
+#' 
+#' @param w 
+#' @returnType 
+#' @return 
+#' 
+#' @author stravsmi
+#' @export
+.updateObject.RmbSpectrum2.formulaSource <- function(w)
+{
+	slot(w, "formulaSource", check=FALSE) <- character()
+	if(length(w@formula) > 0)
+	{
+		w@formulaSource <- rep(NA, length(w@formula))
+		w@formulaSource[!is.na(w@formula)] <- "analyze" 
+	}
+	w
+}
 
 .updateObject.RmbSpectraSet <- setMethod("updateObject", signature(object="RmbSpectraSet"), function(object, ..., verbose = FALSE) 
     {

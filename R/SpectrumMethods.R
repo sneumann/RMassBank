@@ -20,7 +20,7 @@
 setMethod("getData", c("RmbSpectrum2"), function(s)
 		{
 			peaks <- s@peaksCount
-			cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dbe", "formulaCount", "dppm", "dppmBest")
+			cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dbe", "formulaCount", "formulaSource", "dppm", "dppmBest")
 			cols.isFilled <- unlist(lapply(cols, function(col) length(slot(s, col)) == peaks))
 			cols.filled <- cols[cols.isFilled]
 			data <- lapply(cols.filled, function(col) slot(s, col))
@@ -61,10 +61,10 @@ setMethod("setData", c("RmbSpectrum2", "data.frame"), function(s, df, clean = TR
 
 .setData.main <- function(s, df, clean = TRUE)
 {
-	cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dbe", "formulaCount", "dppm", "dppmBest")
+	cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dbe", "formulaCount", "formulaSource", "dppm", "dppmBest")
 	types <- c("mz" = "numeric", "intensity" = "numeric", "satellite" = "logical", "low" = "logical",
 			"rawOK" = "logical", "good" = "logical", "mzCalc" = "numeric", "formula" = "character", 
-			"dbe" = "numeric", "formulaCount" = "integer", "dppm" = "numeric", "dppmBest" = "numeric"
+			"dbe" = "numeric", "formulaCount" = "integer", "formulaSource" = "character", "dppm" = "numeric", "dppmBest" = "numeric"
 	)
 	s@peaksCount <- as.integer(nrow(df))
 	cols.inDf <- (cols %in% colnames(df))
@@ -130,6 +130,7 @@ setMethod("initialize", "RmbSpectrum2", function(.Object, ...,
 				formula = .Object@formula,
 				dbe = .Object@dbe,
 				formulaCount = .Object@formulaCount,
+				formulaSource = .Object@formulaSource,
 				dppm = .Object@dppm,
 				dppmBest = .Object@dppmBest,
 				ok = .Object@ok,
@@ -146,6 +147,7 @@ setMethod("initialize", "RmbSpectrum2", function(.Object, ...,
 					formula = formula,
 					dbe = dbe,
 					formulaCount = formulaCount,
+					formulaSource = formulaSource,
 					dppm = dppm,
 					dppmBest = dppmBest,
 					ok = ok,
