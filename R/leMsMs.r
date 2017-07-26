@@ -269,7 +269,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         } else {
             # apply heuristic filter      
             w@aggregated <- filterMultiplicity(
-                w, archivename, mode, settings$multiplicityFilter)
+                w, archivename, mode, multiplicityFilter = settings$multiplicityFilter)
             w@aggregated <- processProblematicPeaks(w, mode, archivename)
 
             if(!is.na(archivename))
