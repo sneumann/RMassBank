@@ -62,7 +62,10 @@ setGeneric("buildRecord", function(o, ...) standardGeneric("buildRecord"))
 				buildRecord(s, ..., cpd=cpd, mbdata=mbdata, analyticalInfo=analyticalInfo, 
             additionalPeaks=additionalPeaks))
 	allSpectra <- allSpectra[which(!is.na(allSpectra))]
-	cpd@children <- as(allSpectra, "SimpleList")
+	if(length(allSpectra) > 0)
+		cpd@children <- as(allSpectra, "SimpleList")
+	else
+		cpd@children <- new("RmbSpectrum2List")
   cpd
 }
 
