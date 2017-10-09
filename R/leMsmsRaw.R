@@ -299,6 +299,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	spectra <- lapply(eic$scan, function(masterScan)
 			{
 				masterHeader <- headerData[headerData$acquisitionNum == masterScan,]
+				
 				if(is.null(diaWindows))
 				{
 				  childHeaders <- headerData[(headerData$precursorScanNum == masterScan) 
@@ -312,7 +313,15 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				  childHeaders <- childHeaders[window,]
 				  
 				}
+				
+				# Fix 9.10.17: headers now include non-numeric columns, leading to errors in data conversion.
+				# Remove non-numeric columns
+				headerCols <- colnames(masterHeader)
+				headerCols <- headerCols[unlist(lapply(headerCols, function(col) is.numeric(masterHeader[,col])))]
+				masterHeader <- masterHeader[,headerCols,drop=FALSE]
+				childHeaders <- childHeaders[,headerCols,drop=FALSE]
 				childScans <- childHeaders$seqNum
+				
 				msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
 				# if deprofile option is set: run deprofiling
 				deprofile.setting <- deprofile
