@@ -74,7 +74,7 @@ getCactus <- function(identifier, representation)
 #' @export
 getPcId <- function(query, from = "inchikey")
 {
-	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	baseURL <- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
 	url <- paste(baseURL, from, query, "description", "json", sep="/")
 	
 	errorvar <- 0
