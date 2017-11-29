@@ -151,7 +151,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
                         # } else {
                             # analyzeMethod <- "formula"
                         # }
-                        s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="preliminary",
+                        s <- analyzeMsMs(msmsPeaks = spec, mode=mode, detail=TRUE, run="preliminary",
                               filterSettings = settings$filterSettings,
                               spectraList = settings$spectraList, method = analyzeMethod)
                         # Progress:
@@ -168,7 +168,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
     if(3 %in% steps)
     {
         message("msmsWorkflow: Step 3. Aggregate all spectra")
-        w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
+        w@aggregated <- aggregateSpectra(spec = w@spectra, addIncomplete=TRUE)
     }
     
     if(allUnknown){
@@ -223,7 +223,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
                             } else {
                                 analyzeMethod <- "formula"
                             }
-                            s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="recalibrated",
+                            s <- analyzeMsMs(msmsPeaks = spec, mode=mode, detail=TRUE, run="recalibrated",
                                     filterSettings = settings$filterSettings,
                                     spectraList = settings$spectraList, method = analyzeMethod)
                             # Progress:

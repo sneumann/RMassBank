@@ -237,7 +237,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
                     if(nrow(mb@additionalPeaks) > 0)
                         res <-compileRecord(r, mbdata, mb@aggregated, mb@additionalPeaks)
                     else
-                        res <-compileRecord(r, mbdata, mb@aggregated, NULL, retrieval=findLevel(r@id,TRUE))
+                        res <-compileRecord(spec = r, mbdata = mbdata, aggregated = mb@aggregated, additionalPeaks = NULL, retrieval=findLevel(r@id,TRUE))
                     return(res)
                 })
         # check which compounds have useful spectra
@@ -1262,7 +1262,7 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="
     # Pass them the AC_LC and AC_MS data, which are added at the right place
     # directly in there.
     allSpectra <- lapply(spec@children, function(m)
-        gatherSpectrum(spec, m, ac_ms, ac_lc, aggregated, additionalPeaks, retrieval=retrieval))
+        gatherSpectrum(spec = spec, msmsdata = m, ac_ms = ac_ms, ac_lc = ac_lc, aggregated = aggregated, additionalPeaks = additionalPeaks, retrieval=retrieval))
     allSpectra <- allSpectra[which(!is.na(allSpectra))]
     return(allSpectra)
 }

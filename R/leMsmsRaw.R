@@ -533,6 +533,256 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	return(metaspec)
 }
 
+################################################################################
+## new
+findMsMsHRperMsp <- function(fileName, cpdIDs, mode="pH"){
+  # Find mz
+  #mzLimits <- findMz(cpdIDs, mode)
+  #mz <- mzLimits$mzCenter
+  
+  # If there are more files than cpdIDs
+  if(length(fileName) > 1){
+    fspectra <- list()
+    
+    for(i in 1:length(fileName)){
+      fspectra[[i]] <- findMsMsHRperMsp.direct(fileName[i], cpdIDs, mode=mode)
+    }
+    
+    spectra <- toRMB(unlist(unlist(fspectra, FALSE),FALSE), cpdIDs, mode)
+    
+  } else if(length(cpdIDs) > 1){ # If there are more cpdIDs than files
+    
+    spectra <- findMsMsHRperMsp.direct(fileName = fileName, cpdIDs = cpdIDs, mode=mode)
+    
+    P <- lapply(1:length(spectra), function(i){
+      sp <- toRMB(msmsXCMSspecs = spectra[[i]], cpdID = cpdIDs[i], mode = mode)
+      sp@id <- as.character(as.integer(cpdIDs[i]))
+      sp@name <- findName(cpdIDs[i])
+      sp@formula <- findFormula(cpdIDs[i])
+      sp@mode <- mode
+      
+      if(length(sp@children) == 1){
+        sp@children[[1]]@rawOK <- rep(x = TRUE, times = sp@children[[1]]@peaksCount)
+        sp@children[[1]]@good  <- rep(x = TRUE, times = sp@children[[1]]@peaksCount)
+        #sp@children[[1]]@good  <- TRUE
+      }
+      
+      return(sp)
+    })
+    return(P)
+    
+  } else { # There is a file for every cpdID
+    spectra <- toRMB(unlist(findMsMsHRperMsp.direct(fileName, cpdIDs, mode=mode),FALSE))
+  }
+  
+  sp <- spectra
+  
+  #sp@mz <- mzLimits
+  sp@id <- as.character(as.integer(cpdIDs))
+  sp@name <- findName(cpdIDs)
+  sp@formula <- findFormula(cpdIDs)
+  sp@mode <- mode
+  
+  return(sp)
+}
+
+#' @describeIn findMsMsHRperMsp A submethod of findMsMsHrperxcms that retrieves basic spectrum data
+#' @export
+findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
+  
+  #requireNamespace("CAMERA",quietly=TRUE)
+  #requireNamespace("xcms",quietly=TRUE)
+  
+  ##
+  ## MSMS
+  ##
+  
+  # Read file
+  suppressWarnings(xrmsms <- read.msp(file = fileName))
+  
+  ## If file is not MSe, split by collision energy
+  #if(MSe == FALSE){
+  #  # Also, fake MS1 from the MSn data
+  #  suppressWarnings(xrs <- split(xcms::msn2xcmsRaw(xrmsms), f = xrmsms@msnCollisionEnergy))
+  #} else{
+  #  # Else, MSn data will already be in MS1
+  #  xrs <- list()
+  #  xrs[[1]] <- xrmsms
+  #}
+  #xrs <- xrmsms
+  
+  mzabs <- 0.1	
+  
+  # Definitions
+  whichmissing <- vector()
+  metaspec <- list()
+  
+  precursorTable <- data.frame(stringsAsFactors = FALSE,
+    mz = as.numeric(unlist(lapply(X = xrmsms, FUN = function(x){ x$PRECURSORMZ   }))),
+    rt = as.numeric(unlist(lapply(X = xrmsms, FUN = function(x){ x$RETENTIONTIME })))
+  )
+  
+  ##
+  ## Retrieval over all supplied cpdIDs
+  ##
+  
+  for(idIdx in seq_along(cpdIDs)){
+    
+    # Find all relevant information for the current cpdID
+    spectrum <- NULL
+    RT <- findRt(cpdIDs[[idIdx]])$RT * 60
+    parentMass <- findMz(cpdIDs[[idIdx]], mode=mode)$mzCenter
+    
+    # Is the information in the compound list?
+    if(is.na(parentMass)){
+      stop(paste("There was no matching entry to the supplied cpdID", cpdIDs[[idIdx]] ,"\n Please check the cpdIDs and the compoundlist."))
+    }
+    
+    # Go over every collision energy of the MS2
+    #for(i in seq_along(xrs)){
+      
+      
+      
+      if (nrow(precursorTable) == 0) {
+        ## no peaks there
+        #spectrum <- matrix(0,2,7)
+        next
+      } else{	
+        ## at least one peak there
+        
+        # Get the peaklist
+        #pl <- xrs[[i]]$pspectrum
+        #pl <- data.frame("mz" = pl[, "mz"], "rt" = xrs[[i]]$RETENTIONTIME, stringsAsFactors = F)
+        
+        mzMatch <- 
+          precursorTable[,"mz", drop=FALSE] < parentMass + mzabs & 
+          precursorTable[,"mz", drop=FALSE] > parentMass - mzabs
+        rtMatch <- 
+          precursorTable[,"rt", drop=FALSE] < RT * 1.1 & 
+          precursorTable[,"rt", drop=FALSE] > RT * 0.9
+        
+        if(is.na(RT))
+          rtMatch <- TRUE
+        
+        # Find precursor peak within limits
+        candidates <- which( mzMatch & rtMatch )
+        
+        # Annotate and group by FWHM (full width at half maximum)
+        #capture.output(anmsms <- CAMERA::xsAnnotate(xsmsms[[i]]))
+        #capture.output(anmsms <- CAMERA::groupFWHM(anmsms))
+        
+        # If a candidate fulfills the condition, choose the closest and retrieve the index of those pesudospectra
+        if(length(candidates) > 0){
+          if(is.na(RT)){
+            pspIndex <- candidates[[1]]
+          } else {
+            closestCandidate <- which.min(abs(RT - precursorTable[candidates, "rt", drop=FALSE]))
+            pspIndex <- candidates[[closestCandidate]]
+          }
+        } else{
+          # Else choose the candidate with the closest RT
+          pspIndex <- which.min(abs(precursorTable[,"rt"] - RT))
+        }
+        
+        # 2nd best: Spectrum closest to MS1
+        # pspIndex <- which.min( abs(getRT(anmsms) - actualRT))
+        
+        ## If the plot parameter was supplied, plot it
+        #if((plots == TRUE) && (length(pspIndex) > 0)){
+        #  CAMERA::plotPsSpectrum(anmsms, pspIndex, log=TRUE,  mzrange=c(0, findMz(cpdIDs)[[3]]), maxlabel=10)
+        #}
+        
+        # If there is a number of indexes, retrieve the pseudospectra
+        if(length(pspIndex) != 0){
+          spectrum <- xrmsms[[pspIndex]]
+        } else {
+          # Else note the spectrum as missing
+          whichmissing <- c(whichmissing,idIdx)
+          #spectrum <- matrix(0,2,7)
+        }
+      }
+    #}
+    
+    # If XCMSspectra were found but there are some missing for some collision energies, fill these XCMSspectra
+    #if((length(XCMSspectra) != 0) && length(whichmissing)){
+    #  for(i in whichmissing){
+    #    XCMSspectra[[idIdx]] <- matrix(0,2,7)
+    #  }
+    #}
+    
+    if(is.null(spectrum)){
+      metaspec[[idIdx]] <- list(matrix(0,1,7))
+    } else {
+      metaspec[[idIdx]] <- list(data.frame(
+        stringsAsFactors = F,
+        "mz"      = as.numeric(spectrum$pspectrum[, "mz"]),
+        "mzmin"   = as.numeric(spectrum$pspectrum[, "mz"]),
+        "mzmax"   = as.numeric(spectrum$pspectrum[, "mz"]),
+        "rt"      = as.numeric(spectrum$RETENTIONTIME),
+        "rtmin"   = as.numeric(spectrum$RETENTIONTIME),
+        "rtmax"   = as.numeric(spectrum$RETENTIONTIME),
+        "into"    = as.numeric(spectrum$pspectrum[, "intensity"])
+      ))
+    }
+  }
+  
+  return(metaspec)
+}
+
+## adapted from the Bioconductor package 'metaMS' (method 'read.msp')
+read.msp <- function(file){
+  get.text.value <- function(x, field, do.err = TRUE) {
+    woppa <- strsplit(x, field)
+    woppa.lengths <- sapply(woppa, length)
+    if (all(woppa.lengths == 2)) {
+      sapply(woppa, function(y) gsub("^ +", "", y[2]))
+    }
+    else {
+      if (do.err) {
+        stop(paste("Invalid field", field, "in", x[woppa.lengths != 2]))
+      }
+      else {
+        NULL
+      }
+    }
+  }
+  read.compound <- function(strs) {
+    fields.idx <- grep(":", strs)
+    fields <- sapply(strsplit(strs[fields.idx], ":"), "[[", 1)
+    pk.idx <- which(fields == "Num Peaks")
+    if (length(pk.idx) == 0) 
+      stop("No spectrum found")
+    cmpnd <- lapply(fields.idx[-pk.idx], function(x) get.text.value(strs[x], paste(fields[x], ":", sep = "")))
+    names(cmpnd) <- fields[-pk.idx]
+    nlines <- length(strs)
+    npeaks <- as.numeric(get.text.value(strs[pk.idx], "Num Peaks:"))
+    peaks.idx <- (pk.idx + 1):nlines
+    pks <- gsub("^ +", "", unlist(strsplit(strs[peaks.idx], ";")))
+    pks <- pks[pks != ""]
+    if (length(pks) != npeaks) 
+      stop("Not the right number of peaks in compound", cmpnd$Name)
+    pklst <- strsplit(x = pks, split = "\t| ")
+    pklst <- lapply(pklst, function(x) x[x != ""])
+    cmz <- as.numeric(sapply(pklst, "[[", 1))
+    cintens <- as.numeric(sapply(pklst, "[[", 2))
+    finaltab <- matrix(c(cmz, cintens), ncol = 2)
+    if (any(table(cmz) > 1)) {
+      warning("Duplicate mass in compound ", cmpnd$Name, " (CAS ", cmpnd$CAS, ")... summing up intensities")
+      finaltab <- aggregate(finaltab[, 2], by = list(finaltab[, 1]), FUN = sum)
+    }
+    colnames(finaltab) <- c("mz", "intensity")
+    c(cmpnd, list(pspectrum = finaltab))
+  }
+  huhn <- readLines(con = file)
+  starts <- which(regexpr("(Name:)|(NAME:) ", huhn) == 1)
+  ends <- c(starts[-1] - 1, length(huhn))
+  lapply(1:length(starts), function(i){
+    read.compound(huhn[starts[[i]]:ends[[i]]])
+  })
+}
+## new
+################################################################################
+
 # Finds the EIC for a mass trace with a window of x ppm.
 # (For ppm = 10, this is +5 / -5 ppm from the non-recalibrated mz.)
 #' Extract EICs 

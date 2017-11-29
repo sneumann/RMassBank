@@ -77,7 +77,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		stop("There are a different number of cpdids than files")
 	}
 	
-	if(!(readMethod %in% c("mzR","peaklist","xcms","minimal"))){
+	if(!(readMethod %in% c("mzR","peaklist","xcms","minimal","msp"))){
 		stop("The supplied method does not exist")
 	}
 	
@@ -209,7 +209,56 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		message("Peaks read")
 		return(w)
 	}
-	
+  ##MSP-readmethod 
+  if(readMethod == "msp"){
+    ##Find unique files and cpdIDs
+    ufiles <- unique(w@files)
+    uIDs <- unique(cpdids)
+    nLen <- length(ufiles)
+    
+    ##Progressbar
+    nProg <- 0
+    pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
+    i <- 1
+    
+    ##Routine for the case of multiple cpdIDs per file
+    if(length(uIDs) > length(ufiles)){
+      w@spectra <- as(unlist(lapply(ufiles, function(currentFile){
+        fileIDs <- cpdids[which(w@files == currentFile)]
+        spec <- findMsMsHRperMsp(fileName = currentFile, cpdIDs = fileIDs, mode=mode)
+        gc()
+        
+        # Progress:
+        nProg <<- nProg + 1
+        pb <- do.call(progressbar, list(object=pb, value= nProg))
+        
+        return(spec)
+      }),FALSE),"SimpleList")
+      #w@spectra <- lapply(FUN = w@s)
+      return(w)
+    }
+    
+    ##Routine for the other cases
+    w@spectra <- as(lapply(uIDs, function(ID){
+      # Find files corresponding to the compoundID
+      currentFile <- w@files[which(cpdids == ID)]
+      
+      # Retrieve spectrum data
+      spec <- findMsMsHRperMsp(currentFile, ID, mode=mode)
+      gc()
+      
+      # Progress:
+      nProg <<- nProg + 1
+      pb <- do.call(progressbar, list(object=pb, value= nProg))
+      
+      return(spec)
+    }),"SimpleList")
+    ##If there are more files than unique cpdIDs, only remember the first file for every cpdID
+    w@files <- w@files[sapply(uIDs, function(ID){
+      return(which(cpdids == ID)[1])
+    })]
+    return(w)
+  }
 	
 }
 
