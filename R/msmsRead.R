@@ -92,16 +92,16 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
     # }
 	
 	##This should work
-    if(readMethod == "minimal"){
-        ##Edit options
-        opt <- getOption("RMassBank")
-        opt$recalibrator$MS1 <- "recalibrate.identity"
-        opt$recalibrator$MS2 <- "recalibrate.identity"
-        opt$add_annotation==FALSE
-        options(RMassBank=opt)
-        ##Edit analyzemethod
-        analyzeMethod <- "intensity"
-    }
+  if(readMethod == "minimal"){
+      ##Edit options
+      opt <- getOption("RMassBank")
+      opt$recalibrator$MS1 <- "recalibrate.identity"
+      opt$recalibrator$MS2 <- "recalibrate.identity"
+      opt$add_annotation==FALSE
+      options(RMassBank=opt)
+      ##Edit analyzemethod
+      analyzeMethod <- "intensity"
+  }
 	
 	if(readMethod == "mzR"){
 		##Progressbar
@@ -136,6 +136,12 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 							return(spec)
 						} ), "SimpleList")
 		names(w@spectra) <- basename(as.character(w@files))
+		
+		if(RMassBank.env$verbose.output)
+		  for(specIdx in seq_along(w@spectra))
+		    if(!w@spectra[[specIdx]]@found)
+		      cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
+		
 		return(w)
 	}
 	
@@ -169,6 +175,12 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 						
 						return(spec)
 					}),FALSE),"SimpleList")
+			
+			if(RMassBank.env$verbose.output)
+			  for(specIdx in seq_along(w@spectra))
+			    if(!w@spectra[[specIdx]]@found)
+			      cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
+			
 			return(w)
 		}
 		
@@ -191,6 +203,12 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		w@files <- w@files[sapply(uIDs, function(ID){
 			return(which(cpdids == ID)[1])
 		})]
+		
+		if(RMassBank.env$verbose.output)
+		  for(specIdx in seq_along(w@spectra))
+		    if(!w@spectra[[specIdx]]@found)
+		      cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
+		
 		return(w)
 	}
 	
@@ -207,8 +225,15 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		
 		w@files <- sapply(files,function(file){return(file[1])})
 		message("Peaks read")
+		
+		if(RMassBank.env$verbose.output)
+		  for(specIdx in seq_along(w@spectra))
+		    if(!w@spectra[[specIdx]]@found)
+		      cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
+		
 		return(w)
 	}
+  
   ##MSP-readmethod 
   if(readMethod == "msp"){
     ##Find unique files and cpdIDs
@@ -234,7 +259,12 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
         
         return(spec)
       }),FALSE),"SimpleList")
-      #w@spectra <- lapply(FUN = w@s)
+      
+      if(RMassBank.env$verbose.output)
+        for(specIdx in seq_along(w@spectra))
+          if(!w@spectra[[specIdx]]@found)
+            cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
+      
       return(w)
     }
     
@@ -257,6 +287,12 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
     w@files <- w@files[sapply(uIDs, function(ID){
       return(which(cpdids == ID)[1])
     })]
+    
+    if(RMassBank.env$verbose.output)
+      for(specIdx in seq_along(w@spectra))
+        if(!w@spectra[[specIdx]]@found)
+          cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
+    
     return(w)
   }
 	

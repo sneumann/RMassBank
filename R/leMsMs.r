@@ -169,6 +169,12 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
     {
         message("msmsWorkflow: Step 3. Aggregate all spectra")
         w@aggregated <- aggregateSpectra(spec = w@spectra, addIncomplete=TRUE)
+        
+        if(RMassBank.env$verbose.output){
+          numberOfPeaksThere <- sum(unlist(lapply(X = w@spectra, FUN = function(spec){ sum(unlist(lapply(X = spec@children, FUN = function(child){ child@peaksCount }))) })))
+          if(nrow(w@aggregated) < numberOfPeaksThere)
+            cat(paste("### Warning ### The aggregation of spectra lead to the removal of ", (numberOfPeaksThere-nrow(w@aggregated)), " / ", numberOfPeaksThere, " peaks\n", sep = ""))
+        }
     }
     
     if(allUnknown){
@@ -243,21 +249,37 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
     {
         message("msmsWorkflow: Step 6. Aggregate recalibrated results")
         w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
+        
+        if(RMassBank.env$verbose.output){
+          numberOfPeaksThere <- sum(unlist(lapply(X = w@spectra, FUN = function(spec){ sum(unlist(lapply(X = spec@children, FUN = function(child){ child@peaksCount }))) })))
+          if(nrow(w@aggregated) < numberOfPeaksThere)
+            cat(paste("### Warning ### The aggregation of spectra lead to the removal of ", (numberOfPeaksThere-nrow(w@aggregated)), " / ", numberOfPeaksThere, " peaks\n", sep = ""))
+        }
+        
         if(!is.na(archivename))
           archiveResults(w, paste(archivename, ".RData", sep=''), settings)
-        w@aggregated <- cleanElnoise(w@aggregated,
-                settings$electronicNoise, settings$electronicNoiseWidth)
+        w@aggregated <- cleanElnoise(peaks = w@aggregated, noise = settings$electronicNoise, width = settings$electronicNoiseWidth)
+        
+        if(RMassBank.env$verbose.output)
+          if(sum(w@aggregated$noise) > 0)
+            cat(paste("### Warning ### ", sum(w@aggregated$noise), " / ", nrow(w@aggregated), " peaks have been identified as electronic noise\n", sep = ""))
     }
     # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
     if(7 %in% steps)
     {
         message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
         w@aggregated <- reanalyzeFailpeaks(
-                    w@aggregated, custom_additions="N2O", mode=mode,
+                    aggregated = w@aggregated, custom_additions="N2O", mode=mode,
                     filterSettings=settings$filterSettings,
                     progressbar=progressbar)
         if(!is.na(archivename))
         archiveResults(w, paste(archivename, "_RA.RData", sep=''), settings)
+        
+        if(RMassBank.env$verbose.output){
+          noFormulaCount <- sum(is.na(w@aggregated$formula) & is.na(w@aggregated$reanalyzed.formula))
+          if(noFormulaCount > 0)
+            cat(paste("### Warning ### ", noFormulaCount, " / ", nrow(w@aggregated), " peaks have no molecular formula\n", sep = ""))
+        }
     }
     # Step 8: heuristic filtering based on peak multiplicity;
     #         creation of failpeak list
@@ -268,10 +290,22 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
           message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
         } else {
             # apply heuristic filter      
-            w@aggregated <- filterMultiplicity(
-                w, archivename, mode, settings$multiplicityFilter)
+            w@aggregated <- filterMultiplicity(w, archivename, mode, settings$multiplicityFilter)
+            
+            if(RMassBank.env$verbose.output){
+              multiplicityNotOkCount <- sum(!w@aggregated$filterOK)
+              if(multiplicityNotOkCount > 0)
+                cat(paste("### Warning ### ", multiplicityNotOkCount, " / ", nrow(w@aggregated), " peaks do not fulfill the multiplicity criterion\n", sep = ""))
+            }
+            
             w@aggregated <- processProblematicPeaks(w, mode, archivename)
-
+            
+            if(RMassBank.env$verbose.output){
+              problematicPeakCount <- sum(w@aggregated$problematicPeak)
+              if(problematicPeakCount > 0)
+                cat(paste("### Warning ### ", problematicPeakCount, " / ", nrow(w@aggregated), " peaks are problematic\n", sep = ""))
+            }
+            
             if(!is.na(archivename))
             archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
         }
@@ -509,6 +543,9 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   # with insufficient match accuracy or no match.
   analyzeTandemShot <- function(child)
   {
+  childIdx <- which(sapply(X = seq_along(w@spectra[[3]]@children), FUN = function(i){ 
+    all(child@mz == w@spectra[[3]]@children[[i]]@mz) & all(child@rt == w@spectra[[3]]@children[[i]]@rt) & all(child@intensity == w@spectra[[3]]@children[[i]]@intensity) }
+  ))
 	shot <- getData(child)
 	shot$row <- which(!is.na(shot$mz))
 	
@@ -522,6 +559,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
     if(length(which(!child@low))==0)
 	{
 		child@ok <- FALSE
+		
+		if(RMassBank.env$verbose.output)
+      cat(paste("### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' contains only low-intensity peaks\n", sep = ""))
+		
 		return(child)
 	}
     
@@ -535,12 +576,20 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
     if(nrow(shot)==0)
 	{
 		child@ok <- FALSE
+		
+		if(RMassBank.env$verbose.output)
+		  cat(paste("### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' contains no peaks after satellite filtering\n", sep = ""))
+		
 		return(child)
 	}
     
     if(max(shot$intensity) < as.numeric(filterSettings$specOkLimit))
 	{
 		child@ok <- FALSE
+		
+		if(RMassBank.env$verbose.output)
+		  cat(paste("### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' is discarded due to parameter 'specOkLimit'\n", sep = ""))
+		
 		return(child)
 	}
 	
@@ -578,9 +627,8 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 		allowed_additions <- "NH4"
 		mode.charge <- 1
 	} else{
-          stop("mode = \"", mode, "\" not defined")
-        }
-    
+    stop("mode = \"", mode, "\" not defined")
+  }
 	
 	# the ppm range is two-sided here.
 	# The range is slightly expanded because dppm calculation of
@@ -600,6 +648,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	if(!is.valid.formula(parent_formula))
 	{
 		child@ok <- FALSE
+		
+		if(RMassBank.env$verbose.output)
+		  cat(paste("### Warning ### The precursor ion formula of spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' is invalid\n", sep = ""))
+		
 		return(child)
 	}
 
@@ -612,8 +664,8 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 				# finally back-correct calculated masses for the charge
 				mass <- shot.row[["mz"]]
 				mass.calc <- mass + mode.charge * .emass
-				peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
-								limits, charge=0)), error=function(e) NA)
+				peakformula <- tryCatch(suppressWarnings(generate.formula(mass = mass.calc, window = ppm(mass.calc, ppmlimit, p=TRUE),
+								elements = limits, charge=0)), error=function(e) NA)
 				#peakformula <- tryCatch(
 				# generate.formula(mass,
 				# ppm(mass, ppmlimit, p=TRUE),
@@ -633,8 +685,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 													mzCalc=mzCalc)
 										})))
 			}
-			
-			})
+	})
 	
 	childPeaks <- as.data.frame(do.call(rbind, peakmatrix))
 	
@@ -672,6 +723,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	if(nrow(childPeaks)==0)
 	{
 		child@ok <- FALSE
+		
+		if(RMassBank.env$verbose.output)
+		  cat(paste("### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' is empty\n", sep = ""))
+		
 		return(child)
 	}
 
@@ -1096,22 +1151,21 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 		width = getOption("RMassBank")$electronicNoiseWidth)
 {
-	
 	peaks <- addProperty(peaks, "noise", "logical", FALSE)
-	  
-	  # I don't think this makes sense if using one big table...
-	  ## # use only best peaks
-	  ## p_best <- peaks[is.na(peaks$dppmBest) | (peaks$dppm == peaks$dppmBest),]
-      
-      # remove known electronic noise
-      p_eln <- peaks
-      for(noisePeak in noise)
-      {
+	
+	# I don't think this makes sense if using one big table...
+	## # use only best peaks
+	## p_best <- peaks[is.na(peaks$dppmBest) | (peaks$dppm == peaks$dppmBest),]
+  
+  # remove known electronic noise
+  p_eln <- peaks
+  for(noisePeak in noise)
+  {
 		noiseMatches <- which(!((p_eln$mzFound > noisePeak + width)	| (p_eln$mzFound < noisePeak - width)))
 		if(length(noiseMatches) > 0)
 			p_eln[noiseMatches, "noise"] <- TRUE
-      }
-      return(p_eln)
+  }
+  return(p_eln)
 }
 
 #' Identify intense peaks (in a list of unmatched peaks)
@@ -1879,8 +1933,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	else
 	{
 		# calculate duplicity info
-		multInfo <- aggregate(as.data.frame(peaks$scan),
-			list(peaks$cpdID, peaks[,formulacol]), FUN=length)
+		multInfo <- aggregate(as.data.frame(peaks$scan), list(peaks$cpdID, peaks[,formulacol]), FUN=length)
 		# just for comparison:
 		# nform <- unique(paste(pks$cpdID,pks$formula))
 		
@@ -2022,22 +2075,16 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 		multiplicityFilter = getOption("RMassBank")$multiplicityFilter)
 {
-    # Read multiplicity filter setting
-    # For backwards compatibility: If the option is not set, define as 2
-    # (which was the behaviour before we introduced the option)
-    if(is.null(multiplicityFilter))
-      multiplicityFilter <- 2
+  # Read multiplicity filter setting
+  # For backwards compatibility: If the option is not set, define as 2
+  # (which was the behaviour before we introduced the option)
+  if(is.null(multiplicityFilter))
+    multiplicityFilter <- 2
   
-    specs <- w@aggregated
-    
-    peaksFiltered <- filterPeaksMultiplicity(peaksMatched(specs),
-                                                        "formula", recalcBest)
-												
-												
-    peaksFilteredReanalysis <- 
-      filterPeaksMultiplicity(specs[!is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE], "reanalyzed.formula", FALSE)
-    
-			
+  specs <- w@aggregated
+  
+  peaksFiltered <- filterPeaksMultiplicity(peaksMatched(specs), "formula", recalcBest)
+  peaksFilteredReanalysis <- filterPeaksMultiplicity(specs[!is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE], "reanalyzed.formula", FALSE)
 	
 	specs <- addProperty(specs, "formulaMultiplicity", "numeric", 0)
 	

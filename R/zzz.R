@@ -2,6 +2,7 @@
   RMassBank.env <<- new.env()
   RMassBank.env$ReadAnnotation <- FALSE
   RMassBank.env$testnumber <- 1
+  RMassBank.env$verbose.output <- TRUE
   
   mb <- list()
   attach(RMassBank.env)
