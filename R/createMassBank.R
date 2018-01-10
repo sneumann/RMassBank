@@ -352,7 +352,7 @@ createMolfile <- function(id_or_smiles, fileName = FALSE)
 		if(is.character(fileName))
 			res <- readLines(fileName)
 	} 
-    return(c(" ","$$$$"))
+  #return(c(" ","$$$$"))
 	return(res)
 }
 
