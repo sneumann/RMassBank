@@ -294,7 +294,7 @@ CTS.externalIdTypes <- function(data)
 }
 
 .pubChemOnline <- function(){
-	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	baseURL <- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
 	url <- paste(baseURL, "inchikey", "QEIXBXXKTUNWDK-UHFFFAOYSA-N", "description", "json", sep="/")
 	
 	errorvar <- 0
@@ -318,7 +318,7 @@ CTS.externalIdTypes <- function(data)
 getPcCHEBI <- function(query, from = "inchikey")
 {
 	# Get the JSON-Data from Pubchem
-	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	baseURL <- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
 	url <- paste(baseURL, from, query, "synonyms", "json", sep="/")
 	errorvar <- 0
 	currEnvir <- environment()
@@ -403,7 +403,7 @@ getCSID <- function(query)
 getPcSynonym <- function (query, from = "inchikey")
 {
 	# Get the JSON-Data from Pubchem
-	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	baseURL <- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
 	url <- paste(baseURL, from, query, "description", "json", sep="/")
 	
 	errorvar <- 0
@@ -445,7 +445,7 @@ getPcSynonym <- function (query, from = "inchikey")
 getPcIUPAC <- function (query, from = "inchikey")
 {
 	# Get the JSON-Data from Pubchem
-	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	baseURL <- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
 	url <- paste(baseURL, from, query, "record", "json", sep="/")
 	
 	errorvar <- 0
@@ -491,7 +491,7 @@ getPcIUPAC <- function (query, from = "inchikey")
 
 getPcInchiKey <- function(query, from = "smiles"){
 	# Get the JSON-Data from Pubchem
-	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	baseURL <- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
 	url <- paste(baseURL, from, query, "record", "json", sep="/")
 	errorvar <- 0
 	currEnvir <- environment()
@@ -524,7 +524,7 @@ getPcInchiKey <- function(query, from = "smiles"){
 }
 
 getPcSDF <- function(query, from = "smiles"){
-	baseURL <- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
+	baseURL <- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound"
 	url <- paste(baseURL, from, query, "sdf", sep="/")
 	
 	errorvar <- 0

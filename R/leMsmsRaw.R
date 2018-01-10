@@ -399,7 +399,9 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 		return(P)
 		
 	} else { # There is a file for every cpdID
-		spectra <- toRMB(unlist(findMsMsHRperxcms.direct(fileName, cpdID, mode=mode, findPeaksArgs = NULL, plots = FALSE, MSe = FALSE),FALSE))
+		spectra <- toRMB(
+		  unlist(findMsMsHRperxcms.direct(fileName, cpdID, mode=mode, findPeaksArgs = NULL, plots = FALSE, MSe = FALSE),FALSE)
+		  , cpdID, mode)
 	}
 	
 	sp <- spectra
