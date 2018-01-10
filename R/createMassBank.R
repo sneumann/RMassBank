@@ -267,7 +267,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
         message("mbWorkflow: Step 7. Generate subdirs and export")
         dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "moldata", sep='/'),recursive=TRUE)
         dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "recdata", sep='/'),recursive=TRUE)
-        for(cnt in 1:length(mb@compiled_ok))
+        for(cnt in seq_along(mb@compiled_ok))
             exportMassbank(mb@compiled_ok[[cnt]], mb@mbfiles[[cnt]], mb@molfile[[cnt]])    
     }
     # Step 8: Create the list.tsv in the molfiles folder, which is required by MassBank

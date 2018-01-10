@@ -140,7 +140,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		if(RMassBank.env$verbose.output)
 		  for(specIdx in seq_along(w@spectra))
 		    if(!w@spectra[[specIdx]]@found)
-		      cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
+		      cat(paste("### Warning ### No precursor ion detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
 		
 		return(w)
 	}

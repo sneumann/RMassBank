@@ -273,12 +273,15 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
                     filterSettings=settings$filterSettings,
                     progressbar=progressbar)
         if(!is.na(archivename))
-        archiveResults(w, paste(archivename, "_RA.RData", sep=''), settings)
+          archiveResults(w, paste(archivename, "_RA.RData", sep=''), settings)
         
         if(RMassBank.env$verbose.output){
-          noFormulaCount <- sum(is.na(w@aggregated$formula) & is.na(w@aggregated$reanalyzed.formula))
-          if(noFormulaCount > 0)
-            cat(paste("### Warning ### ", noFormulaCount, " / ", nrow(w@aggregated), " peaks have no molecular formula\n", sep = ""))
+          isNoFormula <- is.na(w@aggregated$formula) & is.na(w@aggregated$reanalyzed.formula)
+          noFormulaCount <- sum(isNoFormula)
+          if(noFormulaCount > 0){
+            cat(paste("### Warning ### ", noFormulaCount, " / ", nrow(unique(x = w@aggregated[, c("mzFound", "intensity", "formulaCount", "dppmBest")])), " peaks have no molecular formula:\n", sep = ""))
+            print(w@aggregated[isNoFormula, c("mzFound","intensity","cpdID")])
+          }
         }
     }
     # Step 8: heuristic filtering based on peak multiplicity;
@@ -290,12 +293,12 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
           message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
         } else {
             # apply heuristic filter      
-            w@aggregated <- filterMultiplicity(w, archivename, mode, settings$multiplicityFilter)
+            w@aggregated <- filterMultiplicity(w = w, archivename = archivename, mode = mode, multiplicityFilter = settings$multiplicityFilter)
             
             if(RMassBank.env$verbose.output){
               multiplicityNotOkCount <- sum(!w@aggregated$filterOK)
               if(multiplicityNotOkCount > 0)
-                cat(paste("### Warning ### ", multiplicityNotOkCount, " / ", nrow(w@aggregated), " peaks do not fulfill the multiplicity criterion\n", sep = ""))
+                cat(paste("### Warning ### ", multiplicityNotOkCount, " / ", nrow(w@aggregated[, c("mzFound", "intensity", "formulaCount", "dppmBest")]), " peaks do not fulfill the multiplicity criterion\n", sep = ""))
             }
             
             w@aggregated <- processProblematicPeaks(w, mode, archivename)
@@ -543,8 +546,8 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   # with insufficient match accuracy or no match.
   analyzeTandemShot <- function(child)
   {
-  childIdx <- which(sapply(X = seq_along(w@spectra[[3]]@children), FUN = function(i){ 
-    all(child@mz == w@spectra[[3]]@children[[i]]@mz) & all(child@rt == w@spectra[[3]]@children[[i]]@rt) & all(child@intensity == w@spectra[[3]]@children[[i]]@intensity) }
+  childIdx <- which(sapply(X = seq_along(msmsPeaks@children), FUN = function(i){ 
+    all(child@mz == msmsPeaks@children[[i]]@mz) & all(child@rt == msmsPeaks@children[[i]]@rt) & all(child@intensity == msmsPeaks@children[[i]]@intensity) }
   ))
 	shot <- getData(child)
 	shot$row <- which(!is.na(shot$mz))
