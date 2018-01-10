@@ -284,6 +284,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
           }
         }
     }
+    
     # Step 8: heuristic filtering based on peak multiplicity;
     #         creation of failpeak list
     if(8 %in% steps)

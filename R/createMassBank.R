@@ -615,7 +615,8 @@ gatherData <- function(id)
         if(level == c("5")){
              mbdata[["COMMENT"]][["CONFIDENCE"]] <- "Tentative identification: structure and formula unknown (Level 5)"
         }
-    }
+	}
+	
     mbdata[["COMMENT"]][["ID"]] = id
 	# here compound info starts
 	mbdata[['CH$NAME']] <- names

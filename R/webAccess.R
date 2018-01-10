@@ -544,3 +544,4 @@ getPcSDF <- function(query, from = "smiles"){
 	data <- c(strsplit(substring(data,1,molEnd),"\n")[[1]],"$$$$")
 	return(data)
 }
+

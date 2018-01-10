@@ -1096,3 +1096,4 @@ addMB <- function(w, cpdID, fileName, mode){
 	w <- addPeaksManually(w, cpdID, peaklist[[1]], mode)
 	return(w)
 }
+
