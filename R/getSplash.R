@@ -62,8 +62,8 @@ filter_spectrum <- function(peaks, top_ions = NULL, base_peak_percentage = NULL)
         peaks <- peaks[peaks[,2] >= base_peak_percentage * base_peak_intensity, , drop=FALSE]
     }
 
-    return(splash)
-}
+    ## Filter by top ions if specified
+    if (!missing(top_ions)) {
         o <- order(-1*peaks[,2], peaks[,1], decreasing=FALSE)[seq(1:min(top_ions, nrow(peaks)))]
         peaks <- peaks[o, , drop=FALSE]
     }
