@@ -15,5 +15,5 @@ Stravs MA, Schymanski EL, Singer H and Hollender J (2013). “Automatic Recalibr
 
 The RMassBank project master branch is subjected to CI using travis: 
 
-[![Build Status](https://travis-ci.org/sneumann/RMassBank.svg?branch=master)](https://travis-ci.org/sneumann/RMassBank)
+[![Build Status](https://travis-ci.org/MassBank/RMassBank.svg?branch=master)](https://travis-ci.org/MassBank/RMassBank)
 
