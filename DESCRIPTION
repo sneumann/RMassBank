@@ -34,7 +34,6 @@ Suggests:
     gplots,RMassBankData,
     xcms (>= 1.37.1),
     CAMERA,
-    ontoCAT,
     RUnit,
     enviPat
 Collate:
