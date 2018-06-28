@@ -1740,6 +1740,9 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	} else if(mode == "mFA") {
 		allowed_additions <- "C2H3O2"
 		mode.charge <- -1
+	} else if(mode == "pNH4") {
+		allowed_additions <- "NH4"
+		mode.charge <- 1
 	} else {
           stop("mode = \"", mode, "\" not defined")
         }
