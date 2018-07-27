@@ -509,7 +509,11 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 					pspIndex <- which(sapply(anmsms@pspectra, function(x) {candidates[[i]][closestCandidate] %in% x}))
 				} else{
 				# Else choose the candidate with the closest RT
-					pspIndex <- which.min(abs(getRT(anmsms) - RT))
+				  if(RMassBank.env$strictMsMsSpectraSelection){
+				    pspIndex <- NULL
+				  } else {
+					  pspIndex <- which.min(abs(getRT(anmsms) - RT))
+				  }
 				}
 				
 				# 2nd best: Spectrum closest to MS1
@@ -664,12 +668,17 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
         #pl <- xrs[[i]]$pspectrum
         #pl <- data.frame("mz" = pl[, "mz"], "rt" = xrs[[i]]$RETENTIONTIME, stringsAsFactors = F)
         
+        maximumParentMass <- parentMass + mzabs
+        minimumParentMass <- parentMass - mzabs
+        maximumRT <- RT * 1.1
+        minimumRT <- RT * 0.9
+        
         mzMatch <- 
-          precursorTable[,"mz", drop=FALSE] < parentMass + mzabs & 
-          precursorTable[,"mz", drop=FALSE] > parentMass - mzabs
+          precursorTable[,"mz", drop=FALSE] < maximumParentMass & 
+          precursorTable[,"mz", drop=FALSE] > minimumParentMass
         rtMatch <- 
-          precursorTable[,"rt", drop=FALSE] < RT * 1.1 & 
-          precursorTable[,"rt", drop=FALSE] > RT * 0.9
+          precursorTable[,"rt", drop=FALSE] < maximumRT & 
+          precursorTable[,"rt", drop=FALSE] > minimumRT
         
         if(is.na(RT))
           rtMatch <- TRUE
@@ -685,13 +694,24 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
         if(length(candidates) > 0){
           if(is.na(RT)){
             pspIndex <- candidates[[1]]
+            
+            if(RMassBank.env$verbose.output)
+              cat(paste("\n### Info ### Compound ", cpdIDs[[idIdx]], ": RT is not given. ", length(candidates), " candidates in range. Taking the first hit: mz[", minimumParentMass, ", ", maximumParentMass , "] vs mz ", precursorTable[pspIndex,"mz"], ".\n", sep = ""))
           } else {
-            closestCandidate <- which.min(abs(RT - precursorTable[candidates, "rt", drop=FALSE]))
+            closestCandidate <- which.min(abs(RT - precursorTable[candidates, "rt"]))
             pspIndex <- candidates[[closestCandidate]]
+            if(RMassBank.env$verbose.output)
+              cat(paste("\n### Info ### Compound ", cpdIDs[[idIdx]], ": ", length(candidates), " candidates in range. Taking the closest hit regarding RT (", RT, "): mz[", minimumParentMass, ", ", maximumParentMass , "] x rt[", minimumRT, ", ", maximumRT, "] vs (mz ", precursorTable[pspIndex,"mz"], ", rt ", precursorTable[pspIndex,"rt"], ")\n", sep = ""))
           }
         } else{
           # Else choose the candidate with the closest RT
-          pspIndex <- which.min(abs(precursorTable[,"rt"] - RT))
+          if(RMassBank.env$strictMsMsSpectraSelection){
+            pspIndex <- NULL
+            cat(paste("\n### Warning ### Compound ", cpdIDs[[idIdx]], ": No candidates in range.\n", sep = ""))
+          } else {
+            pspIndex <- which.min(abs(RT - precursorTable[, "rt"]))
+            cat(paste("\n### Warning ### Compound ", cpdIDs[[idIdx]], ": No candidates in range. Taking the closest hit regarding RT (", RT, "): mz[", minimumParentMass, ", ", maximumParentMass , "] x rt[", minimumRT, ", ", maximumRT, "] vs (mz ", precursorTable[pspIndex,"mz"], ", rt ", precursorTable[pspIndex,"rt"], ")\n", sep = ""))
+          }
         }
         
         # 2nd best: Spectrum closest to MS1
@@ -764,6 +784,10 @@ read.msp <- function(file){
       stop("No spectrum found")
     cmpnd <- lapply(fields.idx[-pk.idx], function(x) get.text.value(strs[x], paste(fields[x], ":", sep = "")))
     names(cmpnd) <- fields[-pk.idx]
+    
+    ## minutes to seconds
+    cmpnd$RETENTIONTIME <- as.numeric(cmpnd$RETENTIONTIME) * 60
+    
     nlines <- length(strs)
     npeaks <- as.numeric(get.text.value(strs[pk.idx], "Num Peaks:"))
     peaks.idx <- (pk.idx + 1):nlines

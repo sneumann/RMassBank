@@ -6,6 +6,7 @@
   RMassBank.env$verbose.output <- FALSE
   RMassBank.env$export.invalid <- FALSE
   RMassBank.env$export.molfiles <- TRUE
+  RMassBank.env$strictMsMsSpectraSelection <- FALSE
   
   mb <- list()
   attach(RMassBank.env)
