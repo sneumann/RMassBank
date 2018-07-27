@@ -48,7 +48,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
 	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
-    
+  
 	if(is.null(filetable)){
 		##If no filetable is supplied, filenames must be named explicitly
 		if(is.null(files))
@@ -136,13 +136,6 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 							return(spec)
 						} ), "SimpleList")
 		names(w@spectra) <- basename(as.character(w@files))
-		
-		if(RMassBank.env$verbose.output)
-		  for(specIdx in seq_along(w@spectra))
-		    if(!w@spectra[[specIdx]]@found)
-		      cat(paste("### Warning ### No precursor ion detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
-		
-		return(w)
 	}
 	
 	##xcms-readmethod 
@@ -175,41 +168,27 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 						
 						return(spec)
 					}),FALSE),"SimpleList")
-			
-			if(RMassBank.env$verbose.output)
-			  for(specIdx in seq_along(w@spectra))
-			    if(!w@spectra[[specIdx]]@found)
-			      cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
-			
-			return(w)
+		} else {
+		  ##Routine for the other cases
+		  w@spectra <- as(lapply(uIDs, function(ID){
+		    # Find files corresponding to the compoundID
+		    currentFile <- w@files[which(cpdids == ID)]
+		    
+		    # Retrieve spectrum data
+		    spec <- findMsMsHRperxcms(currentFile, ID, mode=mode, findPeaksArgs=Args, plots, MSe = MSe)
+		    gc()
+		    
+		    # Progress:
+		    nProg <<- nProg + 1
+		    pb <- do.call(progressbar, list(object=pb, value= nProg))
+		    
+		    return(spec)
+		  }),"SimpleList")
+		  ##If there are more files than unique cpdIDs, only remember the first file for every cpdID
+		  w@files <- w@files[sapply(uIDs, function(ID){
+		    return(which(cpdids == ID)[1])
+		  })]
 		}
-		
-		##Routine for the other cases
-		w@spectra <- as(lapply(uIDs, function(ID){
-					# Find files corresponding to the compoundID
-					currentFile <- w@files[which(cpdids == ID)]
-					
-					# Retrieve spectrum data
-					spec <- findMsMsHRperxcms(currentFile, ID, mode=mode, findPeaksArgs=Args, plots, MSe = MSe)
-					gc()
-					
-					# Progress:
-					nProg <<- nProg + 1
-					pb <- do.call(progressbar, list(object=pb, value= nProg))
-					
-					return(spec)
-				}),"SimpleList")
-		##If there are more files than unique cpdIDs, only remember the first file for every cpdID
-		w@files <- w@files[sapply(uIDs, function(ID){
-			return(which(cpdids == ID)[1])
-		})]
-		
-		if(RMassBank.env$verbose.output)
-		  for(specIdx in seq_along(w@spectra))
-		    if(!w@spectra[[specIdx]]@found)
-		      cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
-		
-		return(w)
 	}
 	
 	##Peaklist-readmethod 
@@ -225,13 +204,6 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		
 		w@files <- sapply(files,function(file){return(file[1])})
 		message("Peaks read")
-		
-		if(RMassBank.env$verbose.output)
-		  for(specIdx in seq_along(w@spectra))
-		    if(!w@spectra[[specIdx]]@found)
-		      cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
-		
-		return(w)
 	}
   
   ##MSP-readmethod 
@@ -259,43 +231,36 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
         
         return(spec)
       }),FALSE),"SimpleList")
-      
-      if(RMassBank.env$verbose.output)
-        for(specIdx in seq_along(w@spectra))
-          if(!w@spectra[[specIdx]]@found)
-            cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
-      
-      return(w)
+    } else {
+      ##Routine for the other cases
+      w@spectra <- as(lapply(uIDs, function(ID){
+        # Find files corresponding to the compoundID
+        currentFile <- w@files[which(cpdids == ID)]
+        
+        # Retrieve spectrum data
+        spec <- findMsMsHRperMsp(currentFile, ID, mode=mode)
+        gc()
+        
+        # Progress:
+        nProg <<- nProg + 1
+        pb <- do.call(progressbar, list(object=pb, value= nProg))
+        
+        return(spec)
+      }),"SimpleList")
+      ##If there are more files than unique cpdIDs, only remember the first file for every cpdID
+      w@files <- w@files[sapply(uIDs, function(ID){
+        return(which(cpdids == ID)[1])
+      })]
     }
-    
-    ##Routine for the other cases
-    w@spectra <- as(lapply(uIDs, function(ID){
-      # Find files corresponding to the compoundID
-      currentFile <- w@files[which(cpdids == ID)]
-      
-      # Retrieve spectrum data
-      spec <- findMsMsHRperMsp(currentFile, ID, mode=mode)
-      gc()
-      
-      # Progress:
-      nProg <<- nProg + 1
-      pb <- do.call(progressbar, list(object=pb, value= nProg))
-      
-      return(spec)
-    }),"SimpleList")
-    ##If there are more files than unique cpdIDs, only remember the first file for every cpdID
-    w@files <- w@files[sapply(uIDs, function(ID){
-      return(which(cpdids == ID)[1])
-    })]
-    
-    if(RMassBank.env$verbose.output)
-      for(specIdx in seq_along(w@spectra))
-        if(!w@spectra[[specIdx]]@found)
-          cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[specIdx]]@id, "'\n", sep = ""))
-    
-    return(w)
   }
 	
+  ## verbose output
+  if(RMassBank.env$verbose.output)
+    for(parentIdx in seq_along(w@spectra))
+      if(!w@spectra[[parentIdx]]@found)
+        cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[parentIdx]]@id, "'\n", sep = ""))
+  
+  return(w)
 }
 
 #' 

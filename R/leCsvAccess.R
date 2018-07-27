@@ -33,14 +33,14 @@ assign("listEnv", NULL, envir=.listEnvEnv)
 #' @export
 loadList <- function(path, listEnv = NULL, check = TRUE)
 {
-	if(is.null(listEnv))
-		listEnv <- .listEnvEnv
-	if(!file.exists(path))
-		stop("The supplied file does not exist, please supply a correct path")
-        
+  	if(is.null(listEnv))
+  		listEnv <- .listEnvEnv
+  	if(!file.exists(path))
+  		stop("The supplied file does not exist, please supply a correct path")
+          
     # Try out if the file is comma- or semicolon-separated
     compoundList <- read.csv(path, stringsAsFactors=FALSE, check.names=FALSE)
-	n <- colnames(compoundList)
+  	n <- colnames(compoundList)
     if(!("ID" %in% n)){ # If no ID column, it must be semicolon separated
         compoundList <- read.csv2(path, stringsAsFactors=FALSE, check.names=FALSE)
         n <- colnames(compoundList)
@@ -81,7 +81,6 @@ loadList <- function(path, listEnv = NULL, check = TRUE)
     # If "level" is in the compound list we have to check several things:
     
     if(newList){
-    
         # a) Are the levels part of the defined levels?
         # b) Are the values ok for every level? (i.e. all necessary values supplied for each line in the compound list?)
         
@@ -141,7 +140,7 @@ loadList <- function(path, listEnv = NULL, check = TRUE)
             
             # If level is "3" or "3a", a valid smiles or formula must be supplied
             if(level %in% c("3","3a")){
-
+  
                 if(!is.na(findSmiles(compoundList[i,"ID"]))){
                     tryCatch(
                         findMz(compoundList[i,"ID"]),
@@ -196,7 +195,7 @@ loadList <- function(path, listEnv = NULL, check = TRUE)
         if(length(d)>0){
             stop("Some columns are missing in the compound list. Needs at least ID, Name, SMILES, RT, CAS.")
         }
-	
+  
         ###
         ###Test if all the IDs work
         ###

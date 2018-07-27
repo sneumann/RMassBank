@@ -582,7 +582,7 @@ findMsMsHRperMsp <- function(fileName, cpdIDs, mode="pH"){
     return(P)
     
   } else { # There is a file for every cpdID
-    spectra <- toRMB(unlist(findMsMsHRperMsp.direct(fileName, cpdIDs, mode=mode),FALSE))
+    spectra <- toRMB(msmsXCMSspecs = unlist(findMsMsHRperMsp.direct(fileName, cpdIDs, mode=mode),FALSE), cpdID = cpdIDs)
   }
   
   sp <- spectra
