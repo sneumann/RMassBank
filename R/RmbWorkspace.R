@@ -144,7 +144,9 @@ setClass("mbWorkspace",
 				# output data:
 				compiled = "list",
 				compiled_ok = "list",
+				compiled_notOk = "list",
 				mbfiles = "list",
+				mbfiles_notOk = "list",
 				molfile = "list",
 				ok = "integer",
 				problems = "integer"

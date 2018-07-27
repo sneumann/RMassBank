@@ -75,26 +75,32 @@ loadInfolist <- function(mb, fileName)
       "COMMENT.ID"
   
   # Clear from padding spaces and NAs
-  mbdata_new <- as.data.frame(t(apply(mbdata_new, 1, function(r) 
+  mbdata_new <- as.data.frame(x = t(apply(mbdata_new, 1, function(r) 
     {
     # Substitute empty spaces by real NA values
     r[which(r == "")] <- NA
     # Trim spaces (in all non-NA fields)
     r[which(!is.na(r))] <- sub("^ *([^ ]+) *$", "\\1", r[which(!is.na(r))])
     return(r)
-  })))
+  })), stringsAsFactors = FALSE)
   # use only the columns present in mbdata_archive, no other columns added in excel
   mbdata_new <- mbdata_new[, colnames(mb@mbdata_archive)]
   # substitute the old entires with the ones from our files
   # then find the new (previously inexistent) entries, and rbind them to the table
   new_entries <- setdiff(mbdata_new$id, mb@mbdata_archive$id)
   old_entries <- intersect(mbdata_new$id, mb@mbdata_archive$id)
+  
+  for(colname in colnames(mb@mbdata_archive))
+    mb@mbdata_archive[, colname] <- as.character(mb@mbdata_archive[, colname])
+  
   for(entry in old_entries)
     mb@mbdata_archive[mb@mbdata_archive$id == entry,] <- mbdata_new[mbdata_new$id == entry,]
-  mb@mbdata_archive <- rbind(mb@mbdata_archive, 
-		  mbdata_new[mbdata_new$id==new_entries,])
+  mb@mbdata_archive <- rbind(mb@mbdata_archive, mbdata_new[mbdata_new$id==new_entries,])
+  
+  for(colname in colnames(mb@mbdata_archive))
+    mb@mbdata_archive[, colname] <- as.factor(mb@mbdata_archive[, colname])
+  
   return(mb)
-
 }
 
 
@@ -229,9 +235,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
     if(4 %in% steps)
     {
         message("mbWorkflow: Step 4. Spectra compilation")
-        mb@compiled <- lapply(
-                selectSpectra(mb@spectra, "found", "object"),
-                function(r) {
+        mb@compiled <- lapply(X = selectSpectra(mb@spectra, "found", "object"), FUN = function(r) {
                     message(paste("Compiling: ", r@name, sep=""))
                     mbdata <- mb@mbdata_relisted[[which(mb@mbdata_archive$id == as.numeric(r@id))]]
                     if(nrow(mb@additionalPeaks) > 0)
@@ -241,41 +245,86 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
                     return(res)
                 })
         # check which compounds have useful spectra
-        mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
+        ok <- unlist(lapply(X = selectSpectra(mb@spectra, "found", "object"), FUN = function(spec){unlist(lapply(X = spec@children, FUN = function(child){child@ok}))}))
+        mb@ok <- which(ok)
+        #mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
         mb@problems <- which(is.na(mb@compiled))
-        mb@compiled_ok <- mb@compiled[mb@ok]
+        mb@compiled_ok    <- mb@compiled[mb@ok]
+        mb@compiled_notOk <- mb@compiled[!ok]
     }
     # Step 5: Convert the internal tree-like representation of the MassBank data into
     # flat-text string arrays (basically, into text-file style, but still in memory)
     if(5 %in% steps)
     {
         message("mbWorkflow: Step 5. Flattening records")
-        mb@mbfiles <- lapply(mb@compiled_ok, function(c) lapply(c, toMassbank))
+        mb@mbfiles       <- lapply(mb@compiled_ok,    function(c) lapply(c, toMassbank))
+        mb@mbfiles_notOk <- lapply(mb@compiled_notOk, function(c) lapply(c, toMassbank))
     }
     # Step 6: For all OK records, generate a corresponding molfile with the structure
     # of the compound, based on the SMILES entry from the MassBank record. (This molfile
     # is still in memory only, not yet a physical file)
     if(6 %in% steps)
     {
-        message("mbWorkflow: Step 6. Generate molfiles")
-        mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(as.numeric(c[[1]][['COMMENT']][[getOption("RMassBank")$annotations$internal_id_fieldname]])))
+        if(RMassBank.env$export.molfiles){
+            message("mbWorkflow: Step 6. Generate molfiles")
+            mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(as.numeric(c[[1]][['COMMENT']][[getOption("RMassBank")$annotations$internal_id_fieldname]])))
+        } else
+          warning("RMassBank is configured not to export molfiles (RMassBank.env$export.molfiles). Step 6 is therefore ignored.")
     }
     # Step 7: If necessary, generate the appropriate subdirectories, and actually write
     # the files to disk.
     if(7 %in% steps)
     {
         message("mbWorkflow: Step 7. Generate subdirs and export")
-        dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "moldata", sep='/'),recursive=TRUE)
-        dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "recdata", sep='/'),recursive=TRUE)
-        for(cnt in seq_along(mb@compiled_ok))
-            exportMassbank(mb@compiled_ok[[cnt]], mb@mbfiles[[cnt]], mb@molfile[[cnt]])    
+        
+        ## create folder
+        filePath_recData_valid   <- file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata")
+        filePath_recData_invalid <- file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata_invalid")
+        filePath_molData         <- file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata")
+        
+        dir.create(filePath_recData_valid,recursive=TRUE)
+        if(RMassBank.env$export.molfiles)
+          dir.create(filePath_molData,recursive=TRUE)
+        if(RMassBank.env$export.invalid)
+          dir.create(filePath_recData_invalid,recursive=TRUE)
+        
+        if(length(mb@molfile) == 0)
+            mb@molfile <- as.list(rep(x = NA, times = length(mb@compiled_ok)))
+        
+        ## export valid spectra
+        for(cnt in seq_along(mb@compiled_ok)){
+            exportMassbank_recdata(
+                accessions = unlist(lapply(X = mb@compiled_ok[[cnt]], FUN = "[", "ACCESSION")), 
+                files = mb@mbfiles[[cnt]], 
+                recDataFolder = filePath_recData_valid
+            )
+            
+            if(findLevel(mb@compiled_ok[[cnt]][[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]],TRUE)=="standard" & RMassBank.env$export.molfiles)
+              exportMassbank_moldata(
+                cpdID = as.numeric(mb@compiled_ok[[cnt]][[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]), 
+                molfile = mb@molfile[[cnt]], 
+                molDataFolder = filePath_molData
+              )
+        }
+        
+        ## export invalid spectra
+        if(RMassBank.env$export.invalid)
+            for(cnt in seq_along(mb@compiled_notOk))
+                exportMassbank_recdata(
+                    accessions = unlist(lapply(X = mb@compiled_notOk[[cnt]], FUN = "[", "ACCESSION")), 
+                    files = mb@mbfiles_notOk[[cnt]], 
+                    recDataFolder = filePath_recData_invalid
+                )
     }
     # Step 8: Create the list.tsv in the molfiles folder, which is required by MassBank
     # to attribute substances to their corresponding structure molfiles.
     if(8 %in% steps)
     {
-        message("mbWorkflow: Step 8. Create list.tsv")
-        makeMollist(mb@compiled_ok)
+        if(RMassBank.env$export.molfiles){
+            message("mbWorkflow: Step 8. Create list.tsv")
+            makeMollist(compiled = mb@compiled_ok)
+        } else
+            warning("RMassBank is configured not to export molfiles (RMassBank.env$export.molfiles). Step 8 is therefore ignored.")
     }
     return(mb)
 }
@@ -1289,20 +1338,21 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
 {
     # If the spectrum is not filled, return right now. All "NA" spectra will
     # not be treated further.
-    if(msmsdata@ok == FALSE)
+    if(msmsdata@ok == FALSE & !RMassBank.env$export.invalid)
         return(NA)
     # get data
     scan <- msmsdata@acquisitionNum
     id <- spec@id
     # Further fill the ac_ms datasets, and add the ms$focused_ion with spectrum-specific data:
     precursor_types <- list(
-    "pH" = "[M+H]+",
-    "pNa" = "[M+Na]+",
-    "mH" = "[M-H]-",
-    "mFA" = "[M+HCOO-]-",
-    "pM" = "[M]+",
-    "mM" = "[M]-",
-	"pNH4" = "[M+NH4]+")
+        "pH" = "[M+H]+",
+        "pNa" = "[M+Na]+",
+        "mH" = "[M-H]-",
+        "mFA" = "[M+HCOO-]-",
+        "pM" = "[M]+",
+        "mM" = "[M]-",
+	      "pNH4" = "[M+NH4]+"
+    )
     ac_ms[['FRAGMENTATION_MODE']] <- msmsdata@info$mode
     #ac_ms['PRECURSOR_TYPE'] <- precursor_types[spec$mode]
     ac_ms[['COLLISION_ENERGY']] <- msmsdata@info$ce
@@ -1902,28 +1952,35 @@ toMassbank <- function (mbdata)
 #' }
 #' 
 #' @export
-exportMassbank <- function(compiled, files, molfile)
+exportMassbank <- function(compiled, files, molfile){
+    exportMassbank_recdata(
+        accessions = unlist(lapply(X = compiled, FUN = "[", "ACCESSION")), 
+        files,   
+        recDataFolder = file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata")
+    )
+    exportMassbank_moldata(
+        cpdID = as.numeric(compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]), 
+        molfile, 
+        molDataFolder = file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata")
+    )
+}
+
+exportMassbank_recdata <- function(accessions, files, recDataFolder)
 {
-    molnames <- c()
-    for(file in 1:length(compiled))
+    for(fileIdx in 1:length(accessions))
     {
-        # Read the accession no. from the corresponding "compiled" entry
-        filename <- compiled[[file]]["ACCESSION"]
         # use this accession no. as filename
-        filename <- paste(filename, ".txt", sep="")
-        write(files[[file]], 
-            file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata",filename)
-        )
+        filename <- paste(accessions[[fileIdx]], ".txt", sep="")
+        filePath <- file.path(recDataFolder,filename)
+        write(files[[fileIdx]], filePath)
     }
+}
+exportMassbank_moldata <- function(cpdID, molfile, molDataFolder)
+{
     # Use internal ID for naming the molfiles
-    if(findLevel(compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]],TRUE)=="standard"){
-        molname <- sprintf("%04d", as.numeric(
-        compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]))
-        molname <- paste(molname, ".mol", sep="")
-        write(molfile,
-            file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata",molname)
-        )
-    }
+    molname <- sprintf("%04d", cpdID)
+    molname <- paste(molname, ".mol", sep="")
+    write(molfile,file.path(molDataFolder,molname))
 }
 
 # Makes a list.tsv with molfile -> massbank ch$name attribution.
