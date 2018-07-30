@@ -635,6 +635,7 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
     mz = as.numeric(unlist(lapply(X = xrmsms, FUN = function(x){ x$PRECURSORMZ   }))),
     rt = as.numeric(unlist(lapply(X = xrmsms, FUN = function(x){ x$RETENTIONTIME })))
   )
+  precursorTable[, "rt"] <- precursorTable[, "rt"] * 60
   
   ##
   ## Retrieval over all supplied cpdIDs
@@ -751,7 +752,8 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
         "rt"      = as.numeric(spectrum$RETENTIONTIME),
         "rtmin"   = as.numeric(spectrum$RETENTIONTIME),
         "rtmax"   = as.numeric(spectrum$RETENTIONTIME),
-        "into"    = as.numeric(spectrum$pspectrum[, "intensity"])
+        "into"    = as.numeric(spectrum$pspectrum[, "intensity"]),
+        "into_parent" = as.numeric(spectrum$INTENSITY)
       ))
     }
   }
@@ -786,7 +788,7 @@ read.msp <- function(file){
     names(cmpnd) <- fields[-pk.idx]
     
     ## minutes to seconds
-    cmpnd$RETENTIONTIME <- as.numeric(cmpnd$RETENTIONTIME) * 60
+    #cmpnd$RETENTIONTIME <- as.numeric(cmpnd$RETENTIONTIME) * 60
     
     nlines <- length(strs)
     npeaks <- as.numeric(get.text.value(strs[pk.idx], "Num Peaks:"))
@@ -966,10 +968,10 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 		mockenv$mockAcqnum <- mockenv$mockAcqnum + 1
 		
 		## Find peak table
-		pks <- matrix(nrow = length(spec[,1]), ncol = 2)
+		pks <- matrix(nrow = nrow(spec), ncol = 2)
 		colnames(pks) <- c("mz","int")
-		pks[,1] <- spec[,1]
-		pks[,2] <- spec[,7]
+		pks[,1] <- spec[,"mz"]
+		pks[,2] <- spec[,"into"]
 		
 		## Deprofiling not necessary for XCMS
 		
@@ -979,23 +981,23 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 				intensity = pks[,"int"],
 				precScanNum = as.integer(1),
 				precursorMz = findMz(cpdID)$mzCenter,
-				precursorIntensity = 0,
+				precursorIntensity = ifelse(test = "into_parent" %in% colnames(spec), yes = spec[,"into_parent"], no = 0),
 				precursorCharge = as.integer(1),
 				collisionEnergy = 0,
 				tic = 0,
 				peaksCount = nrow(spec),
-				rt = median(spec[,4]),
+				rt = median(spec[,"rt"]),
 				acquisitionNum = as.integer(mockenv$mockAcqnum),
 				centroided = TRUE
 		))
 	})
 	
 	msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")			
-				
+	
 	##Build the new objects
 	masterSpec <- new("Spectrum1",
 				mz = findMz(cpdID,mode=mode)$mzCenter,
-				intensity = 100,
+				intensity = ifelse(test = msmsSpecs[[1]]@precursorIntensity != 0, yes = msmsSpecs[[1]]@precursorIntensity, no = 100),
 				polarity = as.integer(0),
 				peaksCount = as.integer(1),
 				rt = msmsSpecs[[1]]@rt,
