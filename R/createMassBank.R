@@ -117,12 +117,12 @@ resetInfolists <- function(mb)
 							CH.IUPAC = character(0), CH.LINK.CAS = character(0), CH.LINK.CHEBI = integer(0), 
 							CH.LINK.HMDB = character(0), CH.LINK.KEGG = character(0), CH.LINK.LIPIDMAPS = character(0), 
 							CH.LINK.PUBCHEM = character(0), CH.LINK.INCHIKEY = character(0), 
-							CH.LINK.CHEMSPIDER = integer(0)), .Names = c("X", "id", "dbcas", 
+							CH.LINK.CHEMSPIDER = integer(0), SP.SAMPLE = character(0)), .Names = c("X", "id", "dbcas", 
 							"dbname", "dataused", "COMMENT.CONFIDENCE", "COMMENT.ID", 
 							"CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.COMPOUND_CLASS", "CH.FORMULA", 
 							"CH.EXACT_MASS", "CH.SMILES", "CH.IUPAC", "CH.LINK.CAS", "CH.LINK.CHEBI", 
 							"CH.LINK.HMDB", "CH.LINK.KEGG", "CH.LINK.LIPIDMAPS", "CH.LINK.PUBCHEM", 
-							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER"), row.names = integer(0), class = "data.frame")
+							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER", "SP.SAMPLE"), row.names = integer(0), class = "data.frame")
 	return(mb)
 	
 }
@@ -1218,6 +1218,8 @@ readMbdata <- function(row)
   # again, these constants are read from the options:
   mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
   mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
+  if(all(nchar(row[["SP.SAMPLE"]]) > 0, row[["SP.SAMPLE"]] != "NA", !is.na(row[["SP.SAMPLE"]]), na.rm = TRUE))
+    mbdata[['SP$SAMPLE']] <- row[["SP.SAMPLE"]]
   
   return(mbdata)
   
