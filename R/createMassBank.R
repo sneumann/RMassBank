@@ -80,7 +80,7 @@ loadInfolist <- function(mb, fileName)
     # Substitute empty spaces by real NA values
     r[which(r == "")] <- NA
     # Trim spaces (in all non-NA fields)
-    r[which(!is.na(r))] <- sub("^ *([^ ]+) *$", "\\1", r[which(!is.na(r))])
+    r[which(!is.na(r))] <- sub(pattern = "^ *([^ ]+) *$", replacement = "\\1", x = r[which(!is.na(r))])
     return(r)
   })), stringsAsFactors = FALSE)
   # use only the columns present in mbdata_archive, no other columns added in excel
@@ -239,7 +239,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
                     message(paste("Compiling: ", r@name, sep=""))
                     mbdata <- mb@mbdata_relisted[[which(mb@mbdata_archive$id == as.numeric(r@id))]]
                     if(nrow(mb@additionalPeaks) > 0)
-                        res <-compileRecord(r, mbdata, mb@aggregated, mb@additionalPeaks)
+                        res <-compileRecord(spec = r, mbdata = mbdata, aggregated = mb@aggregated, additionalPeaks = mb@additionalPeaks)
                     else
                         res <-compileRecord(spec = r, mbdata = mbdata, aggregated = mb@aggregated, additionalPeaks = NULL, retrieval=findLevel(r@id,TRUE))
                     return(res)
@@ -282,11 +282,11 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
         filePath_recData_invalid <- file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata_invalid")
         filePath_molData         <- file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata")
         
-        dir.create(filePath_recData_valid,recursive=TRUE)
+        if(!file.exists(filePath_recData_valid)) if(!dir.create(filePath_recData_valid,recursive=TRUE))  stop(paste("Could not create folder", filePath_recData_valid))
         if(RMassBank.env$export.molfiles)
-          dir.create(filePath_molData,recursive=TRUE)
-        if(RMassBank.env$export.invalid)
-          dir.create(filePath_recData_invalid,recursive=TRUE)
+          if(!file.exists(filePath_molData)) if(!dir.create(filePath_molData,recursive=TRUE))  stop(paste("Could not create folder", filePath_molData))
+        if(RMassBank.env$export.invalid & length(mb@mbfiles_notOk) > 0)
+          if(!file.exists(filePath_recData_invalid)) if(!dir.create(filePath_recData_invalid,recursive=TRUE))  stop(paste("Could not create folder", filePath_recData_invalid))
         
         if(length(mb@molfile) == 0)
             mb@molfile <- as.list(rep(x = NA, times = length(mb@compiled_ok)))
@@ -1299,7 +1299,16 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="
     ac_ms[['MS_TYPE']] <- getOption("RMassBank")$annotations$ms_type
     ac_ms[['IONIZATION']] <- getOption("RMassBank")$annotations$ionization
     ac_ms[['ION_MODE']] <- mode
-  
+    
+    ## add generic AC$MASS_SPECTROMETRY information
+    properties      <- names(getOption("RMassBank")$annotations)
+    theseProperties <- grepl(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_")
+    properties2     <- gsub(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_", replacement = "")
+    presentProperties <- names(ac_ms)#c('MS_TYPE', 'IONIZATION', 'ION_MODE')#, 'FRAGMENTATION_MODE', 'COLLISION_ENERGY', 'RESOLUTION')
+    theseProperties <- theseProperties & !(properties2 %in% presentProperties)
+    theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
+    ac_ms[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
+    
     # This list could be made customizable.
     ac_lc <- list();
     rt  <- spec@parent@rt / 60
@@ -1309,7 +1318,16 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="
     ac_lc[['RETENTION_TIME']] <- sprintf("%.3f min", rt)  
     ac_lc[['SOLVENT A']] <- getOption("RMassBank")$annotations$lc_solvent_a
     ac_lc[['SOLVENT B']] <- getOption("RMassBank")$annotations$lc_solvent_b
-
+    
+    ## add generic AC$CHROMATOGRAPHY information
+    #properties      <- names(getOption("RMassBank")$annotations)
+    theseProperties <- grepl(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_")
+    properties2     <- gsub(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_", replacement = "")
+    presentProperties <- names(ac_lc)#c('COLUMN_NAME', 'FLOW_GRADIENT', 'FLOW_RATE', 'RETENTION_TIME', 'SOLVENT A', 'SOLVENT B')
+    theseProperties <- theseProperties & !(properties2 %in% presentProperties)
+    theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
+    ac_lc[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
+    
     # Go through all child spectra, and fill our skeleton with scan data!
     # Pass them the AC_LC and AC_MS data, which are added at the right place
     # directly in there.
@@ -1367,6 +1385,8 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
     ms_fi[['BASE_PEAK']] <- round(mz(spec@parent)[which.max(intensity(spec@parent))],4)
     ms_fi[['PRECURSOR_M/Z']] <- round(precursorMz$mzCenter,4)
     ms_fi[['PRECURSOR_TYPE']] <- precursor_types[spec@mode]
+    if(all(!is.na(spec@parent@intensity), spec@parent@intensity != 0, spec@parent@intensity != 100, na.rm = TRUE))
+        ms_fi[['PRECURSOR_INTENSITY']] <- spec@parent@intensity
 
     # Select all peaks which belong to this spectrum (correct cpdID and scan no.)
     # from peaksOK
