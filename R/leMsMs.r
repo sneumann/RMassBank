@@ -457,6 +457,8 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 	## );
 	.checkMbSettings()
 	
+	if(msmsPeaks@found == FALSE)
+		return(msmsPeaks)
 	
 	# Check whether the spectra can be fitted to the spectra list correctly!
 	if(length(msmsPeaks@children) != length(spectraList))
@@ -468,9 +470,6 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 		return(msmsPeaks)
 		
 	}
-	
-	if(msmsPeaks@found == FALSE)
-		return(msmsPeaks)
 	
 	if(method=="formula")
 	{
