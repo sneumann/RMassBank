@@ -300,7 +300,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
             if(RMassBank.env$verbose.output){
               multiplicityNotOkCount <- sum(!w@aggregated$filterOK)
               if(multiplicityNotOkCount > 0)
-                cat(paste("### Warning ### ", multiplicityNotOkCount, " / ", nrow(w@aggregated[, c("mzFound", "intensity", "formulaCount", "dppmBest")]), " peaks do not fulfill the multiplicity criterion\n", sep = ""))
+                cat(paste("### Warning ### ", multiplicityNotOkCount, " / ", nrow(w@aggregated), " peaks do not fulfill the multiplicity criterion\n", sep = ""))
             }
             
             w@aggregated <- processProblematicPeaks(w, mode, archivename)
