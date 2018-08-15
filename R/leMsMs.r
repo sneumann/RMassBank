@@ -293,6 +293,10 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         message("msmsWorkflow: Step 8. Peak multiplicity filtering")
         if (is.null(settings$multiplicityFilter)) {
           message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
+          w@aggregated <- addProperty(w@aggregated, "formulaMultiplicity", "integer", 1)
+          w@aggregated <- addProperty(w@aggregated, "filterOK",            "logical", FALSE)
+          w@aggregated$filterOK <- !((is.na(w@aggregated$formulaCount) | w@aggregated$formulaCount==0) & (is.na(w@aggregated$reanalyzed.formulaCount) | w@aggregated$reanalyzed.formulaCount==0))
+          w@aggregated <- addProperty(w@aggregated, "problematicPeak",     "logical", FALSE)
         } else {
             # apply heuristic filter      
             w@aggregated <- filterMultiplicity(w = w, archivename = archivename, mode = mode, multiplicityFilter = settings$multiplicityFilter)
