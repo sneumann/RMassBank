@@ -764,6 +764,7 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
 ## adapted from the Bioconductor package 'metaMS' (method 'read.msp')
 read.msp <- function(file){
   get.text.value <- function(x, field, do.err = TRUE) {
+    if(trimws(x) == field) return("")
     woppa <- strsplit(x, field)
     woppa.lengths <- sapply(woppa, length)
     if (all(woppa.lengths == 2)) {
