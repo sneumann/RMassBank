@@ -302,9 +302,11 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
             w@aggregated <- filterMultiplicity(w = w, archivename = archivename, mode = mode, multiplicityFilter = settings$multiplicityFilter)
             
             if(RMassBank.env$verbose.output){
-              multiplicityNotOkCount <- sum(!w@aggregated$filterOK)
+              peakDfs <- split(x = msmsList@aggregated, f = list("mzFound"=unique(msmsList@aggregated$mzFound), "cpdID"=unique(msmsList@aggregated$cpdID)))
+              numberOfPeaks <- length(peakDfs)
+              multiplicityNotOkCount <- numberOfPeaks - sum(unlist(lapply(X = peakDfs, FUN = function(x){any(x$filterOK)})))
               if(multiplicityNotOkCount > 0)
-                cat(paste("### Warning ### ", multiplicityNotOkCount, " / ", nrow(w@aggregated), " peaks do not fulfill the multiplicity criterion\n", sep = ""))
+                cat(paste("### Warning ### ", multiplicityNotOkCount, " / ", numberOfPeaks, " peaks do not fulfill the multiplicity criterion\n", sep = ""))
             }
             
             w@aggregated <- processProblematicPeaks(w, mode, archivename)
