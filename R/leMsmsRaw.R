@@ -681,6 +681,7 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
           precursorTable[,"rt", drop=FALSE] < maximumRT & 
           precursorTable[,"rt", drop=FALSE] > minimumRT
         
+        mzMatch[is.na(mzMatch)] <- TRUE ## RT not given
         if(is.na(RT))
           rtMatch <- TRUE
         
