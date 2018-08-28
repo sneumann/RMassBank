@@ -238,7 +238,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
         currentFile <- w@files[which(cpdids == ID)]
         
         # Retrieve spectrum data
-        spec <- findMsMsHRperMsp(currentFile, ID, mode=mode)
+        spec <- findMsMsHRperMsp(fileName = currentFile, cpdIDs = ID, mode=mode)
         gc()
         
         # Progress:

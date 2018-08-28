@@ -586,7 +586,7 @@ findMsMsHRperMsp <- function(fileName, cpdIDs, mode="pH"){
     return(P)
     
   } else { # There is a file for every cpdID
-    spectra <- toRMB(msmsXCMSspecs = unlist(findMsMsHRperMsp.direct(fileName, cpdIDs, mode=mode),FALSE), cpdID = cpdIDs)
+    spectra <- toRMB(msmsXCMSspecs = unlist(findMsMsHRperMsp.direct(fileName = fileName, cpdIDs = cpdIDs, mode=mode),FALSE), cpdID = cpdIDs)
   }
   
   sp <- spectra
@@ -787,6 +787,7 @@ read.msp <- function(file){
       stop("No spectrum found")
     cmpnd <- lapply(fields.idx[-pk.idx], function(x) get.text.value(strs[x], paste(fields[x], ":", sep = "")))
     names(cmpnd) <- fields[-pk.idx]
+    if(!("INTENSITY" %in% names(cmpnd))) cmpnd$"INTENSITY" <- 100
     
     ## minutes to seconds
     #cmpnd$RETENTIONTIME <- as.numeric(cmpnd$RETENTIONTIME) * 60
@@ -797,7 +798,7 @@ read.msp <- function(file){
     pks <- gsub("^ +", "", unlist(strsplit(strs[peaks.idx], ";")))
     pks <- pks[pks != ""]
     if (length(pks) != npeaks) 
-      stop("Not the right number of peaks in compound", cmpnd$Name)
+      stop(paste("Not the right number of peaks in compound '", cmpnd$Name, "' (", npeaks, " vs ", length(pks), ") in file '", file, "'", sep = ""))
     pklst <- strsplit(x = pks, split = "\t| ")
     pklst <- lapply(pklst, function(x) x[x != ""])
     cmz <- as.numeric(sapply(pklst, "[[", 1))

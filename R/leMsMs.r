@@ -1143,9 +1143,9 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 				table.cpd <- do.call(rbind, tables.c)
 				
 				## complete missing columns if necessary
-				## mz intensity  good                                                            scan cpdID parentScan
-				## mz intensity  good    mzCalc  formula  dbe formulaCount       dppm   dppmBest scan cpdID parentScan
-				columnNames <- c("mzCalc", "formula", "dbe", "formulaCount", "dppm", "dppmBest")
+				## mz intensity  good                                                                   scan cpdID parentScan
+				## mz intensity  good    mzCalc    formula    dbe    formulaCount    dppm    dppmBest   scan cpdID parentScan
+				columnNames <- c(       "mzCalc", "formula", "dbe", "formulaCount", "dppm", "dppmBest")
 				if(all(!(columnNames %in% colnames(table.cpd))))
 				  for(columnName in columnNames)
 				    table.cpd[, columnName] <- as.numeric(rep(x = NA, times = nrow(table.cpd)))
@@ -1156,6 +1156,7 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 			})
 	#return(compoundTables)
 	aggTable <- do.call(rbind, compoundTables)
+	if(is.null(aggTable)) aggTable <- data.frame("mz"=numeric(), "intensity"=numeric(), "good"=logical(), "mzCalc"=numeric(), "formula"=character(), "dbe"=numeric(), "formulaCount"=integer(), "dppm"=numeric(), "dppmBest"=numeric(), "scan"=integer(), "cpdID"=integer(), "parentScan"=integer(), stringsAsFactors=FALSE)
 	colnames(aggTable)[1] <- "mzFound"
 
 	aggTable <- addProperty(aggTable, "dppmRc", "numeric")
@@ -1305,7 +1306,7 @@ processProblematicPeaks <- function(w, mode, archivename = NA)
 	
 	# Add the info to specs
 	specs <- addProperty(specs, "problematicPeak", "logical", FALSE)
-	specs[match(fp$index, specs$index),"problematicPeak"] <- TRUE
+	if(nrow(specs) > 0)	specs[match(fp$index, specs$index),"problematicPeak"] <- TRUE
 	
 	# Select the columns for output into the failpeaks file
 	fp <- fp[,c("OK", "name", "cpdID", "scan", "mzFound", "formula", 
