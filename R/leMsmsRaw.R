@@ -613,6 +613,7 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
   
   # Read file
   suppressWarnings(xrmsms <- read.msp(file = fileName))
+  xrmsms <- xrmsms[unlist(lapply(X = xrmsms, FUN = function(spectrum){nrow(spectrum$pspectrum)})) > 0]
   
   ## If file is not MSe, split by collision energy
   #if(MSe == FALSE){
