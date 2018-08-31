@@ -2162,7 +2162,7 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 		
     # Kick the M+H+ satellites out of peaksReanOK:
     peaksReanOK$mzCenter <- as.numeric(
-      unlist(lapply(peaksReanOK$cpdID, function(id) findMz(id, retrieval=findLevel(id,TRUE))$mzCenter)) )
+      unlist(lapply(peaksReanOK$cpdID, function(id) findMz(id, mode=mode, retrieval=findLevel(id,TRUE))$mzCenter)) )
     peaksReanBad <- peaksReanOK[
 			!((peaksReanOK$mzFound < peaksReanOK$mzCenter - 1) |
 			(peaksReanOK$mzFound > peaksReanOK$mzCenter + 1)),]

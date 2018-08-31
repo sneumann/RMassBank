@@ -586,7 +586,7 @@ findMsMsHRperMsp <- function(fileName, cpdIDs, mode="pH"){
     return(P)
     
   } else { # There is a file for every cpdID
-    spectra <- toRMB(msmsXCMSspecs = unlist(findMsMsHRperMsp.direct(fileName = fileName, cpdIDs = cpdIDs, mode=mode),FALSE), cpdID = cpdIDs)
+    spectra <- toRMB(msmsXCMSspecs = unlist(findMsMsHRperMsp.direct(fileName = fileName, cpdIDs = cpdIDs, mode=mode),FALSE), cpdID = cpdIDs, mode = mode)
   }
   
   sp <- spectra
@@ -984,7 +984,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 				mz = pks[,"mz"],
 				intensity = pks[,"int"],
 				precScanNum = as.integer(1),
-				precursorMz = findMz(cpdID)$mzCenter,
+				precursorMz = findMz(cpdID, mode=mode)$mzCenter,
 				precursorIntensity = ifelse(test = "into_parent" %in% colnames(spec), yes = spec[,"into_parent"], no = 0),
 				precursorCharge = as.integer(1),
 				collisionEnergy = 0,
@@ -1090,7 +1090,7 @@ addPeaksManually <- function(w, cpdID = NA, handSpec, mode = "pH"){
 				mz = handSpec[,"mz"],
 				intensity = handSpec[,"int"],
 				precScanNum = as.integer(1),
-				precursorMz = findMz(cpdID)$mzCenter,
+				precursorMz = findMz(cpdID,mode=mode)$mzCenter,
 				precursorIntensity = 0,
 				precursorCharge = as.integer(1),
 				collisionEnergy = 0,
