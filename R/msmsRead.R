@@ -47,7 +47,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	.checkMbSettings()
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
-	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+	if(!any(mode %in% c("pH", "pNa", "pK", "pM", "pNH4", "pACN_pH", "pACN_pNa", "p2Na_mH", "pM_pH", "pM_pK", "pM_pNa", "pM_pNH4", "pM_pACN_pH", "pACN_p2H", "p2H", "mH", "mFA", "mM", ""))) stop(paste("The ionization mode", mode, "is unknown."))
   
 	if(is.null(filetable)){
 		##If no filetable is supplied, filenames must be named explicitly
