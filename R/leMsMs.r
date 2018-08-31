@@ -79,7 +79,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		progressbar = "progressBarHook", MSe = FALSE)
 {
     .checkMbSettings()
-    if(!any(mode %in% c("pH","pNa","pNH4","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+    if(!any(mode %in% knownAdducts())) stop(paste("The ionization mode", mode, "is unknown."))
 
     if(!is.na(archivename))
         w@archivename <- archivename

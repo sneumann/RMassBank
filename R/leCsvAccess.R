@@ -323,6 +323,10 @@ getMolecule <- function(smiles)
   return(mol)
 }
 
+knownAdducts <- function(){
+  return(c("pH", "pNa", "pK", "pM", "pNH4", "pACN_pH", "pACN_pNa", "p2Na_mH", "pM_pH", "pM_pK", "pM_pNa", "pM_pNH4", "pM_pACN_pH", "pACN_p2H", "p2H", "mH", "mFA", "mM", ""))
+}
+
 #' Find the exact mass +/- a given margin for a given formula or its ions and adducts.
 #' 
 #' @param formula The molecular formula  in text or list format (see \code{\link{formulastring.to.list}}
@@ -337,7 +341,7 @@ getMolecule <- function(smiles)
 #' @export
 findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0) 
 {
-	if (!any(mode %in% c("pH", "pNa", "pK", "pM", "pNH4", "pACN_pH", "pACN_pNa", "p2Na_mH", "pM_pH", "pM_pK", "pM_pNa", "pM_pNH4", "pM_pACN_pH", "pACN_p2H", "p2H", "mH", "mFA", "mM", ""))) 
+	if (!any(mode %in% knownAdducts())) 
 		stop(paste("The ionization mode", mode, "is unknown."))
 	mzopt <- list(addition = "", charge = 0)
 	## M+X
