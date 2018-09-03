@@ -100,11 +100,9 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
 		cut <- filterSettings$prelimCut
 		if(is.na(cut))
 		{
-			if(mode %in% c("pH", "pM", "pNa", "pNH4"))
-			cut <- 1e4
-			else if(mode %in% c("mH", "mFA","mM"))
-			cut <- 0
-			else stop(paste("The ionization mode", mode, "is unknown."))
+		  adductProperties <- getAdductProperties(mode)
+		  if(adductProperties$charge > 0) cut <- 1e4
+		  if(adductProperties$charge < 0) cut <- 0
 		}
 		cutRatio <- filterSettings$prelimCutRatio
 	} else{

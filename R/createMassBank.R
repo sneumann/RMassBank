@@ -1284,15 +1284,10 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="
     imode <- spec@mode
 
     # define positive or negative, based on processing mode.
-    ion_modes <- list(
-        "pH" = "POSITIVE",
-        "pNa" = "POSITIVE",
-        "mH" = "NEGATIVE",
-        "mFA" = "NEGATIVE",
-        "pM" = "POSITIVE",
-        "mM" = "NEGATIVE",
-        "pNH4" = "POSITIVE")
-    mode <- ion_modes[[imode]]
+    adductProperties <- getAdductProperties(imode)
+    mode <- NULL
+    if(adductProperties$charge > 0) mode <- "POSITIVE"
+    if(adductProperties$charge < 0) mode <- "NEGATIVE"
 
     # for format 2.01
     ac_ms <- list();
@@ -1364,17 +1359,12 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
     scan <- msmsdata@acquisitionNum
     id <- spec@id
     # Further fill the ac_ms datasets, and add the ms$focused_ion with spectrum-specific data:
-    precursor_types <- list(
-        "pH" = "[M+H]+",
-        "pNa" = "[M+Na]+",
-        "mH" = "[M-H]-",
-        "mFA" = "[M+HCOO-]-",
-        "pM" = "[M]+",
-        "mM" = "[M]-",
-	      "pNH4" = "[M+NH4]+"
-    )
+    
+    adductProperties <- getAdductProperties(spec@mode)
+    adductString     <- adductProperties$adductString
+    
     ac_ms[['FRAGMENTATION_MODE']] <- msmsdata@info$mode
-    #ac_ms['PRECURSOR_TYPE'] <- precursor_types[spec$mode]
+    #ac_ms['PRECURSOR_TYPE'] <- adductString
     ac_ms[['COLLISION_ENERGY']] <- msmsdata@info$ce
     ac_ms[['RESOLUTION']] <- msmsdata@info$res
 
@@ -1384,7 +1374,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
     ms_fi <- list()
     ms_fi[['BASE_PEAK']] <- round(mz(spec@parent)[which.max(intensity(spec@parent))],4)
     ms_fi[['PRECURSOR_M/Z']] <- round(precursorMz$mzCenter,4)
-    ms_fi[['PRECURSOR_TYPE']] <- precursor_types[spec@mode]
+    ms_fi[['PRECURSOR_TYPE']] <- adductString
     if(all(!is.na(spec@parent@intensity), spec@parent@intensity != 0, spec@parent@intensity != 100, na.rm = TRUE))
         ms_fi[['PRECURSOR_INTENSITY']] <- spec@parent@intensity
 
@@ -1471,15 +1461,10 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
 
   
     # add + or - to fragment formulas
-    formula_tag <- list(
-        "pH" = "+",
-        "pNa" = "+",
-        "mH" = "-",
-        "mFA" = "-",
-        "pM" = "+",
-        "mM" = "-",
-        "pNH4" = "+")
-    type <- formula_tag[[spec@mode]]
+    adductProperties <- getAdductProperties(spec@mode)
+    type <- NULL
+    if(adductProperties$charge > 0) type <- "+"
+    if(adductProperties$charge < 0) type <- "-"
   
     annotator <- getOption("RMassBank")$annotator
     if(is.null(annotator))
