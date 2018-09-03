@@ -522,7 +522,7 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	  cut <- filterSettings$prelimCut
     if(is.na(cut))
     {
-      adductProperties <- getAdductProperties(mode)
+      adductProperties <- getAdductProperties(mode, msmsPeaks@formula)
       if(adductProperties$charge > 0) cut <- 1e4
       if(adductProperties$charge < 0) cut <- 0
     }
@@ -870,7 +870,7 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		cut <- filterSettings$prelimCut
 		if(is.na(cut))
 		{
-		  adductProperties <- getAdductProperties(mode)
+		  adductProperties <- getAdductProperties(mode, msmsPeaks@formula)
 		  if(adductProperties$charge > 0) cut <- 1e4
 		  if(adductProperties$charge < 0) cut <- 0
 		}

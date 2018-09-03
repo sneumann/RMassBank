@@ -1284,7 +1284,7 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="
     imode <- spec@mode
 
     # define positive or negative, based on processing mode.
-    adductProperties <- getAdductProperties(imode)
+    adductProperties <- getAdductProperties(imode, spec@formula)
     mode <- NULL
     if(adductProperties$charge > 0) mode <- "POSITIVE"
     if(adductProperties$charge < 0) mode <- "NEGATIVE"
@@ -1360,7 +1360,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
     id <- spec@id
     # Further fill the ac_ms datasets, and add the ms$focused_ion with spectrum-specific data:
     
-    adductProperties <- getAdductProperties(spec@mode)
+    adductProperties <- getAdductProperties(spec@mode, spec@formula)
     adductString     <- adductProperties$adductString
     
     ac_ms[['FRAGMENTATION_MODE']] <- msmsdata@info$mode
@@ -1461,7 +1461,7 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
 
   
     # add + or - to fragment formulas
-    adductProperties <- getAdductProperties(spec@mode)
+    adductProperties <- getAdductProperties(spec@mode, spec@formula)
     type <- NULL
     if(adductProperties$charge > 0) type <- "+"
     if(adductProperties$charge < 0) type <- "-"
