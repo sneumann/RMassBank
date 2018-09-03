@@ -207,7 +207,10 @@ loadList <- function(path, listEnv = NULL, check = TRUE)
                 tryCatch(
                     findMz(x),
                     error = function(e){
-                        currEnvir$wrongID <- c(currEnvir$wrongID, x)
+                      if(RMassBank.env$verbose.output)
+                        cat(paste("### Warning ### Error finding SMILES for ID '", x, "': ", e, sep = ""))
+                      
+                      currEnvir$wrongID <- c(currEnvir$wrongID, x)
                     }
                 )
             })
@@ -326,6 +329,56 @@ getMolecule <- function(smiles)
 knownAdducts <- function(){
   return(c("pH", "pNa", "pK", "pM", "pNH4", "pACN_pH", "pACN_pNa", "p2Na_mH", "pM_pH", "pM_pK", "pM_pNa", "pM_pNH4", "pM_pACN_pH", "pACN_p2H", "p2H", "mH", "mFA", "mM", ""))
 }
+getAdductProperties <- function(mode, formula = NULL){
+  if(grepl(x = "pN_pH", pattern = "^pM") & is.null(formula))
+    stop("Cannot calculate pM adduct without formula")
+  
+  mzopt <- NULL
+  ## M+X
+  if (mode == "pH") 
+    mzopt <- list(addition = "H", charge = 1)
+  if (mode == "pNa") 
+    mzopt <- list(addition = "Na", charge = 1)
+  if (mode == "pK") 
+    mzopt <- list(addition = "K", charge = 1)
+  if (mode == "pM") 
+    mzopt <- list(addition = "", charge = 1)
+  if (mode == "pNH4") 
+    mzopt <- list(addition = "NH4", charge = 1)
+  if (mode == "p2Na_mH") 
+    mzopt <- list(addition = "Na2H-1", charge = 1)
+  if (mode == "pACN_pH") 
+    mzopt <- list(addition = "C2H4N1", charge = 1)
+  if (mode == "pACN_pNa") 
+    mzopt <- list(addition = "C2H3N1Na1", charge = 1)
+  if (mode == "p2H") 
+    mzopt <- list(addition = "H2", charge = 2)
+  if (mode == "pACN_p2H") 
+    mzopt <- list(addition = "C2H5N1", charge = 2)
+  ## 2M+X
+  if (mode == "pM_pH") 
+    mzopt <- list(addition = add.formula(formula, "H1"), charge = 1)
+  if (mode == "pM_pK") 
+    mzopt <- list(addition = add.formula(formula, "K1"), charge = 1)
+  if (mode == "pM_pNa") 
+    mzopt <- list(addition = add.formula(formula, "Na1"), charge = 1)
+  if (mode == "pM_pNH4") 
+    mzopt <- list(addition = add.formula(formula, "N1H4"), charge = 1)
+  if (mode == "pM_pACN_pH") 
+    mzopt <- list(addition = add.formula(formula, "C2H4N1"), charge = 1)
+  ## M-X
+  if (mode == "mH") 
+    mzopt <- list(addition = "H-1", charge = -1)
+  if (mode == "mFA") 
+    mzopt <- list(addition = "C1O2", charge = -1)
+  if (mode == "mM") 
+    mzopt <- list(addition = "", charge = -1)
+  if (mode == "") 
+    mzopt <- list(addition = "", charge = 0)
+  if(is.null(mzopt)) stop("mode = \"", mode, "\" not defined")
+  
+  return(mzopt)
+}
 
 #' Find the exact mass +/- a given margin for a given formula or its ions and adducts.
 #' 
@@ -343,48 +396,7 @@ findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 {
 	if (!any(mode %in% knownAdducts())) 
 		stop(paste("The ionization mode", mode, "is unknown."))
-	mzopt <- list(addition = "", charge = 0)
-	## M+X
-	if (mode == "pH") 
-		mzopt <- list(addition = "H", charge = 1)
-	if (mode == "pNa") 
-	  mzopt <- list(addition = "Na", charge = 1)
-	if (mode == "pK") 
-	  mzopt <- list(addition = "K", charge = 1)
-	if (mode == "pM") 
-		mzopt <- list(addition = "", charge = 1)
-	if (mode == "pNH4") 
-		mzopt <- list(addition = "NH4", charge = 1)
-	if (mode == "p2Na_mH") 
-	  mzopt <- list(addition = "Na2H-1", charge = 1)
-	if (mode == "pACN_pH") 
-	  mzopt <- list(addition = "C2H4N1", charge = 1)
-	if (mode == "pACN_pNa") 
-	  mzopt <- list(addition = "C2H3N1Na1", charge = 1)
-	if (mode == "p2H") 
-	  mzopt <- list(addition = "H2", charge = 2)
-	if (mode == "pACN_p2H") 
-	  mzopt <- list(addition = "C2H5N1", charge = 2)
-	## 2M+X
-	if (mode == "pM_pH") 
-	  mzopt <- list(addition = add.formula(formula, "H1"), charge = 1)
-	if (mode == "pM_pK") 
-	  mzopt <- list(addition = add.formula(formula, "K1"), charge = 1)
-	if (mode == "pM_pNa") 
-	  mzopt <- list(addition = add.formula(formula, "Na1"), charge = 1)
-	if (mode == "pM_pNH4") 
-	  mzopt <- list(addition = add.formula(formula, "N1H4"), charge = 1)
-	if (mode == "pM_pACN_pH") 
-	  mzopt <- list(addition = add.formula(formula, "C2H4N1"), charge = 1)
-	## M-X
-	if (mode == "mH") 
-		mzopt <- list(addition = "H-1", charge = -1)
-	if (mode == "mFA") 
-		mzopt <- list(addition = "C1O2", charge = -1)
-	if (mode == "mM") 
-		mzopt <- list(addition = "", charge = -1)
-	if (mode == "") 
-		mzopt <- list(addition = "", charge = 0)
+  mzopt <- getAdductProperties(mode, formula)
 	formula <- add.formula(formula, mzopt$addition)
 	# Since in special cases we want to use this with negative and zero number of atoms, we account for this case
 	# by splitting up the formula into positive and negative atom counts (this eliminates the zeroes.)
@@ -514,8 +526,8 @@ findSmiles <- function(cpdID) {
 		stop("Compound list must be loaded first.")
 	if(!exists("compoundList", where=.listEnvEnv$listEnv))
 		stop("Compound list must be loaded first.")
-    if(.listEnvEnv$listEnv$compoundList[match(cpdID, .listEnvEnv$listEnv$compoundList$ID),"SMILES"] == "")
-        return(NA)
+  if(.listEnvEnv$listEnv$compoundList[match(cpdID, .listEnvEnv$listEnv$compoundList$ID),"SMILES"] == "")
+    return(NA)
 	return(.listEnvEnv$listEnv$compoundList[match(cpdID, .listEnvEnv$listEnv$compoundList$ID),"SMILES"])
 }
 
