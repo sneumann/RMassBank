@@ -336,7 +336,7 @@ getAdductProperties <- function(mode, formula = NULL){
   if(grepl(x = "pN_pH", pattern = "^pM_") & is.null(formula))
     stop("Cannot calculate pM adduct without formula")
   
-  if(!exists("isotopes")) data(isotopes)
+  if(!exists("isotopes")) data("isotopes", package = "enviPat")
   
   mzopt <- NULL
   ## M+X

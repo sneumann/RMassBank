@@ -1801,11 +1801,6 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	# here follows the Rcdk analysis
 	#------------------------------------
 	
-  # get the adduct additions
-  adductProperties <- getAdductProperties(mode, msmsPeaks@formula)
-  allowed_additions <- adductProperties$addition
-  mode.charge <- adductProperties$charge
-	
 	# the ppm range is two-sided here.
 	# The range is slightly expanded because dppm calculation of
 	# generate.formula starts from empirical mass, but dppm cal-
@@ -1813,6 +1808,11 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	# So we don't miss the points on 'the border'.
     
 	db_formula <- findFormula(cpdID, retrieval=findLevel(cpdID,TRUE))
+	
+	# get the adduct additions
+	adductProperties <- getAdductProperties(mode, db_formula)
+	allowed_additions <- adductProperties$addition
+	mode.charge <- adductProperties$charge
 	
 	ppmlimit <- 2.25 * filterSettings$ppmFine
 	parent_formula <- add.formula(db_formula, allowed_additions)
