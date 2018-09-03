@@ -329,18 +329,23 @@ getMolecule <- function(smiles)
 knownAdducts <- function(){
   return(c("pH", "pNa", "pK", "pM", "pNH4", "pACN_pH", "pACN_pNa", "p2Na_mH", "pM_pH", "pM_pK", "pM_pNa", "pM_pNH4", "pM_pACN_pH", "pACN_p2H", "p2H", "mH", "mFA", "mM", ""))
 }
+getMonoisotopicMass <- function(formula){
+  enviPat::isopattern(isotopes = isotopes, chemforms = formula, threshold=0.1, charge = FALSE, verbose = FALSE)[[1]][[1,1]]
+}
 getAdductProperties <- function(mode, formula = NULL){
-  if(grepl(x = "pN_pH", pattern = "^pM") & is.null(formula))
+  if(grepl(x = "pN_pH", pattern = "^pM_") & is.null(formula))
     stop("Cannot calculate pM adduct without formula")
+  
+  if(!exists("isotopes")) data(isotopes)
   
   mzopt <- NULL
   ## M+X
   if (mode == "pH") 
-    mzopt <- list(addition = "H", charge = 1)
+    mzopt <- list(addition = "H",  charge = 1)
   if (mode == "pNa") 
     mzopt <- list(addition = "Na", charge = 1)
   if (mode == "pK") 
-    mzopt <- list(addition = "K", charge = 1)
+    mzopt <- list(addition = "K",  charge = 1)
   if (mode == "pM") 
     mzopt <- list(addition = "", charge = 1)
   if (mode == "pNH4") 
@@ -624,30 +629,10 @@ findMass <- function(cpdID_or_smiles, retrieval="standard", mode = "pH")
 {
     # Must calculate mass manually if no formula is given
     if(retrieval == "unknown"){
-        if(mode == "pH") {
-            mass <- 1.00784
-            mode.charge <- 1
-        } else if(mode == "pNa") {
-            mass <- 22.989769
-            mode.charge <- 1
-        } else if(mode == "pM") {
-            mass <- 0
-            mode.charge <- 1
-        } else if(mode == "mM") {
-            mass <- 0
-            mode.charge <- -1
-        } else if(mode == "mH") {
-            mass <- -1.00784
-            mode.charge <- -1
-        } else if(mode == "mFA") {
-            mass <- 59.0440
-            mode.charge <- -1
-        } else if(mode == "pNH4") {
-            mass <- 18.03846
-            mode.charge <- 1
-        } else{
-          stop("mode = \"", mode, "\" not defined")
-        }
+        adductProperties <- getAdductProperties(mode, rcdk::get.formula(findFormula(cpdID_or_smiles)))
+        allowed_additions <- adductProperties$addition
+        mode.charge <- adductProperties$charge
+        mass <- getMonoisotopicMass(allowed_additions)
         return(findMz(cpdID_or_smiles, mode=mode, retrieval=retrieval)$mzCenter - mass + mode.charge * .emass)
     }
     
