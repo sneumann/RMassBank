@@ -250,7 +250,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
         #mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
         mb@problems <- which(is.na(mb@compiled))
         mb@compiled_ok    <- mb@compiled[mb@ok]
-        mb@compiled_notOk <- mb@compiled[!ok]
+        mb@compiled_notOk <- mb@compiled[!ok & unlist(lapply(X = mb@compiled[!ok], FUN = length)) > 0]
     }
     # Step 5: Convert the internal tree-like representation of the MassBank data into
     # flat-text string arrays (basically, into text-file style, but still in memory)
