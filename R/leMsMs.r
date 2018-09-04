@@ -673,6 +673,11 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   	
   	childPeaks <- as.data.frame(do.call(rbind, peakmatrix))
   	
+  	presentElements <- unique(unlist(lapply(X = lapply(X = childPeaks$formula, FUN = formulastring.to.list), FUN = names)))
+  	atomDBEs <- sapply(X = presentElements, FUN = dbe)
+  	unknownElements <- names(atomDBEs)[sapply(X = atomDBEs, FUN = function(atomDBE){length(atomDBE)==0})]
+  	if(length(unknownElements) > 0) stop(paste("Element(s)", paste(unknownElements), "cannot be assigned a DBE"))
+  	
   	# Reformat the deformatted output correctly (why doesn't R have a better way to do this, e.g. avoid deformatting?)
   
   	childPeaks$row <- as.numeric(as.character(childPeaks$row))
@@ -1925,10 +1930,10 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 		peaks <- cbind(peaks, data.frame(formulaMultiplicity=numeric()))
 		if(recalcBest){
 			if(formulacol == "formula"){
-				warning("filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point if this error message also shows for reanalyzed peaks.")
+			  cat(paste("### Warning ### filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point if this error message also shows for reanalyzed peaks."))
 			}
 			if(formulacol == "reanalyzed.formula"){
-				warning("filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point if this error message also shows for reanalyzed peaks.")
+				warning("filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point.")
 			}
 			peaks$fM_factor <- as.factor(peaks$formulaMultiplicity)
 			return(peaks)
