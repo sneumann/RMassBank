@@ -359,6 +359,7 @@ getAdductInformation <- function(formula){
     c(mode = "",    addition = "",     charge = 0,  adductString = "[M]")
   ), stringsAsFactors = F)
   adductDf$charge <- as.integer(adductDf$charge)
+  return(adductDf)
 }
 getAdductProperties <- function(mode, formula){
   if(grepl(x = mode, pattern = "^pM") & is.null(formula))
