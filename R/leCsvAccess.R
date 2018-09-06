@@ -333,54 +333,44 @@ getMonoisotopicMass <- function(formula){
   if(!exists("isotopes")) data("isotopes", package = "enviPat")
   enviPat::isopattern(isotopes = isotopes, chemforms = formula, threshold=0.1, charge = FALSE, verbose = FALSE)[[1]][[1,1]]
 }
-getAdductProperties <- function(mode, formula = NULL){
-  if(grepl(x = "pN_pH", pattern = "^pM_") & is.null(formula))
+getAdductInformation <- function(formula){
+  adductDf <- as.data.frame(rbind(
+    ## M+X
+    c(mode = "pH",       addition = "H",         charge = 1, adductString = "[M+H]+"),
+    c(mode = "pNa",      addition = "Na",        charge = 1, adductString = "[M+Na]+"),
+    c(mode = "pK",       addition = "K",         charge = 1, adductString = "[M+K]+"),
+    c(mode = "pM",       addition = "",          charge = 1, adductString = "[M]+"),
+    c(mode = "pNH4",     addition = "NH4",       charge = 1, adductString = "[M+NH4]+"),
+    c(mode = "p2Na_mH",  addition = "Na2H-1",    charge = 1, adductString = "[M+2Na-H]+"),
+    c(mode = "pACN_pH",  addition = "C2H4N1",    charge = 1, adductString = "[M+ACN+H]+"),
+    c(mode = "pACN_pNa", addition = "C2H3N1Na1", charge = 1, adductString = "[M+ACN+Na]+"),
+    c(mode = "p2H",      addition = "H2",        charge = 2, adductString = "[M+2H]2+"),
+    c(mode = "pACN_p2H", addition = "C2H5N1",    charge = 2, adductString = "[M+ACN+2H]2+"),
+    ## 2M+X
+    c(mode = "pM_pH",      addition = add.formula(formula, "H1"),     charge = 1, adductString = "[2M+H]+"),
+    c(mode = "pM_pK",      addition = add.formula(formula, "K1"),     charge = 1, adductString = "[2M+K]+"),
+    c(mode = "pM_pNa",     addition = add.formula(formula, "Na1"),    charge = 1, adductString = "[2M+Na]+"),
+    c(mode = "pM_pNH4",    addition = add.formula(formula, "N1H4"),   charge = 1, adductString = "[2M+NH4]+"),
+    c(mode = "pM_pACN_pH", addition = add.formula(formula, "C2H4N1"), charge = 1, adductString = "[2M+ACN+H]+"),
+    ## M-X
+    c(mode = "mH",  addition = "H-1",  charge = -1, adductString = "[M-H]-"),
+    c(mode = "mFA", addition = "C1O2", charge = -1, adductString = "[M+HCOO-]-"),
+    c(mode = "mM",  addition = "",     charge = -1, adductString = "[M]-"),
+    c(mode = "",    addition = "",     charge = 0,  adductString = "[M]")
+  ), stringsAsFactors = F)
+  adductDf$charge <- as.integer(adductDf$charge)
+}
+getAdductProperties <- function(mode, formula){
+  if(grepl(x = mode, pattern = "^pM") & is.null(formula))
     stop("Cannot calculate pM adduct without formula")
+  else if(is.null(formula)) formula <- ""
   
-  mzopt <- NULL
-  ## M+X
-  if (mode == "pH") 
-    mzopt <- list(addition = "H",         charge = 1, adductString = "[M+H]+")
-  if (mode == "pNa") 
-    mzopt <- list(addition = "Na",        charge = 1, adductString = "[M+Na]+")
-  if (mode == "pK") 
-    mzopt <- list(addition = "K",         charge = 1, adductString = "[M+K]+")
-  if (mode == "pM") 
-    mzopt <- list(addition = "",          charge = 1, adductString = "[M]+")
-  if (mode == "pNH4") 
-    mzopt <- list(addition = "NH4",       charge = 1, adductString = "[M+NH4]+")
-  if (mode == "p2Na_mH") 
-    mzopt <- list(addition = "Na2H-1",    charge = 1, adductString = "[M+2Na-H]+")
-  if (mode == "pACN_pH") 
-    mzopt <- list(addition = "C2H4N1",    charge = 1, adductString = "[M+ACN+H]+")
-  if (mode == "pACN_pNa") 
-    mzopt <- list(addition = "C2H3N1Na1", charge = 1, adductString = "[M+ACN+Na]+")
-  if (mode == "p2H") 
-    mzopt <- list(addition = "H2",        charge = 2, adductString = "[M+2H]2+")
-  if (mode == "pACN_p2H") 
-    mzopt <- list(addition = "C2H5N1",    charge = 2, adductString = "[M+ACN+2H]2+")
-  ## 2M+X
-  if (mode == "pM_pH") 
-    mzopt <- list(addition = add.formula(formula, "H1"),     charge = 1, adductString = "[2M+H]+")
-  if (mode == "pM_pK") 
-    mzopt <- list(addition = add.formula(formula, "K1"),     charge = 1, adductString = "[2M+K]+")
-  if (mode == "pM_pNa") 
-    mzopt <- list(addition = add.formula(formula, "Na1"),    charge = 1, adductString = "[2M+Na]+")
-  if (mode == "pM_pNH4") 
-    mzopt <- list(addition = add.formula(formula, "N1H4"),   charge = 1, adductString = "[2M+NH4]+")
-  if (mode == "pM_pACN_pH") 
-    mzopt <- list(addition = add.formula(formula, "C2H4N1"), charge = 1, adductString = "[2M+ACN+H]+")
-  ## M-X
-  if (mode == "mH") 
-    mzopt <- list(addition = "H-1", charge = -1, adductString = "[M-H]-")
-  if (mode == "mFA") 
-    mzopt <- list(addition = "C1O2", charge = -1, adductString = "[M+HCOO-]-")
-  if (mode == "mM") 
-    mzopt <- list(addition = "", charge = -1, adductString = "[M]-")
-  if (mode == "") 
-    mzopt <- list(addition = "", charge = 0, adductString = "[M]")
-  if(is.null(mzopt)) stop("mode = \"", mode, "\" not defined")
+  adductDf <- getAdductInformation(formula)
   
+  if(!(mode %in% adductDf$mode))
+    stop("mode = \"", mode, "\" not defined")
+  
+  mzopt <- as.list(adductDf[adductDf$mode==mode,])
   return(mzopt)
 }
 
