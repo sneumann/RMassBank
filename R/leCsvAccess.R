@@ -330,13 +330,12 @@ knownAdducts <- function(){
   return(c("pH", "pNa", "pK", "pM", "pNH4", "pACN_pH", "pACN_pNa", "p2Na_mH", "pM_pH", "pM_pK", "pM_pNa", "pM_pNH4", "pM_pACN_pH", "pACN_p2H", "p2H", "mH", "mFA", "mM", ""))
 }
 getMonoisotopicMass <- function(formula){
+  if(!exists("isotopes")) data("isotopes", package = "enviPat")
   enviPat::isopattern(isotopes = isotopes, chemforms = formula, threshold=0.1, charge = FALSE, verbose = FALSE)[[1]][[1,1]]
 }
 getAdductProperties <- function(mode, formula = NULL){
   if(grepl(x = "pN_pH", pattern = "^pM_") & is.null(formula))
     stop("Cannot calculate pM adduct without formula")
-  
-  if(!exists("isotopes")) data("isotopes", package = "enviPat")
   
   mzopt <- NULL
   ## M+X
