@@ -246,11 +246,13 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
                 })
         # check which compounds have useful spectra
         ok <- unlist(lapply(X = selectSpectra(mb@spectra, "found", "object"), FUN = function(spec){unlist(lapply(X = spec@children, FUN = function(child){child@ok}))}))
+        notEmpty <- unlist(lapply(X = mb@compiled, FUN = length)) > 0
+        ok <- ok & notEmpty
         mb@ok <- which(ok)
         #mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
         mb@problems <- which(is.na(mb@compiled))
         mb@compiled_ok    <- mb@compiled[mb@ok]
-        mb@compiled_notOk <- mb@compiled[!ok & unlist(lapply(X = mb@compiled[!ok], FUN = length)) > 0]
+        mb@compiled_notOk <- mb@compiled[!ok & notEmpty]
     }
     # Step 5: Convert the internal tree-like representation of the MassBank data into
     # flat-text string arrays (basically, into text-file style, but still in memory)
