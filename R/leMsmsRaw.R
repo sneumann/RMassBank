@@ -632,9 +632,11 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
   whichmissing <- vector()
   metaspec <- list()
   
+  mzs <- unlist(lapply(X = xrmsms, FUN = function(x){    x$PRECURSORMZ   }))
+  rts <- unlist(lapply(X = xrmsms, FUN = function(x){ if(x$RETENTIONTIME == "NA") return(NA) else return(x$RETENTIONTIME) }))
   precursorTable <- data.frame(stringsAsFactors = FALSE,
-    mz = as.numeric(unlist(lapply(X = xrmsms, FUN = function(x){ x$PRECURSORMZ   }))),
-    rt = as.numeric(unlist(lapply(X = xrmsms, FUN = function(x){ x$RETENTIONTIME })))
+    mz = as.numeric(mzs),
+    rt = as.numeric(rts)
   )
   precursorTable[, "rt"] <- precursorTable[, "rt"] * 60
   
@@ -746,14 +748,16 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
     if(is.null(spectrum)){
       metaspec[[idIdx]] <- list(matrix(0,1,7))
     } else {
+      mz <- as.numeric(spectrum$pspectrum[, "mz"])
+      rt <- as.numeric(ifelse(test = spectrum$RETENTIONTIME=="NA", yes = NA, no = spectrum$RETENTIONTIME))
       metaspec[[idIdx]] <- list(data.frame(
         stringsAsFactors = F,
-        "mz"      = as.numeric(spectrum$pspectrum[, "mz"]),
-        "mzmin"   = as.numeric(spectrum$pspectrum[, "mz"]),
-        "mzmax"   = as.numeric(spectrum$pspectrum[, "mz"]),
-        "rt"      = as.numeric(spectrum$RETENTIONTIME),
-        "rtmin"   = as.numeric(spectrum$RETENTIONTIME),
-        "rtmax"   = as.numeric(spectrum$RETENTIONTIME),
+        "mz"      = mz,
+        "mzmin"   = mz,
+        "mzmax"   = mz,
+        "rt"      = rt,
+        "rtmin"   = rt,
+        "rtmax"   = rt,
         "into"    = as.numeric(spectrum$pspectrum[, "intensity"]),
         "into_parent" = as.numeric(spectrum$INTENSITY)
       ))
@@ -791,6 +795,10 @@ read.msp <- function(file){
     names(cmpnd) <- fields[-pk.idx]
     if(!("INTENSITY" %in% names(cmpnd))) cmpnd$"INTENSITY" <- 100
     
+    cmpnd$PRECURSORMZ   <- gsub(x = cmpnd$PRECURSORMZ,   pattern = ",", replacement = ".")
+    cmpnd$RETENTIONTIME <- gsub(x = cmpnd$RETENTIONTIME, pattern = ",", replacement = ".")
+    cmpnd$INTENSITY     <- gsub(x = cmpnd$INTENSITY,     pattern = ",", replacement = ".")
+    
     ## minutes to seconds
     #cmpnd$RETENTIONTIME <- as.numeric(cmpnd$RETENTIONTIME) * 60
     
@@ -803,8 +811,8 @@ read.msp <- function(file){
       stop(paste("Not the right number of peaks in compound '", cmpnd$Name, "' (", npeaks, " vs ", length(pks), ") in file '", file, "'", sep = ""))
     pklst <- strsplit(x = pks, split = "\t| ")
     pklst <- lapply(pklst, function(x) x[x != ""])
-    cmz <- as.numeric(sapply(pklst, "[[", 1))
-    cintens <- as.numeric(sapply(pklst, "[[", 2))
+    cmz <- as.numeric(gsub(x = sapply(pklst, "[[", 1), pattern = ",", replacement = "."))
+    cintens <- as.numeric(gsub(x = sapply(pklst, "[[", 2), pattern = ",", replacement = "."))
     finaltab <- matrix(c(cmz, cintens), ncol = 2)
     if (any(table(cmz) > 1)) {
       warning("Duplicate mass in compound ", cmpnd$Name, " (CAS ", cmpnd$CAS, ")... summing up intensities")
