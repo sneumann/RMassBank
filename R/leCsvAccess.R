@@ -331,7 +331,30 @@ knownAdducts <- function(){
 }
 getMonoisotopicMass <- function(formula){
   if(!exists("isotopes")) data("isotopes", package = "enviPat")
-  enviPat::isopattern(isotopes = isotopes, chemforms = formula, threshold=0.1, charge = FALSE, verbose = FALSE)[[1]][[1,1]]
+  
+  if(formula == "") return(0)
+  
+  if(grepl(x = formula, pattern = "-")){
+    starts <- gregexpr(text = formula, pattern = "[A-Z]")[[1]]
+    subFormulas <- sapply(X = seq_along(starts), FUN = function(startIdx){
+      ifelse(
+        test = startIdx < length(starts), 
+        yes = substr(x = formula, start = starts[[startIdx]], stop = starts[[startIdx + 1]] - 1), 
+        no  = substr(x = formula, start = starts[[startIdx]], stop = nchar(formula))
+      )
+    })
+    
+    monoisotopicMass <- sum(sapply(X = subFormulas, FUN = function(subFormula){
+      ifelse(
+        test = grepl(x = subFormula, pattern = "-"), 
+        yes = -enviPat::isopattern(isotopes = isotopes, chemforms = gsub(x = subFormula, pattern = "-", replacement = ""), threshold=0.1, charge = FALSE, verbose = FALSE)[[1]][[1,1]], 
+        no  =  enviPat::isopattern(isotopes = isotopes, chemforms = subFormula,                                            threshold=0.1, charge = FALSE, verbose = FALSE)[[1]][[1,1]]
+      )
+    }))
+  } else {
+    monoisotopicMass <- enviPat::isopattern(isotopes = isotopes, chemforms = formula, threshold=0.1, charge = FALSE, verbose = FALSE)[[1]][[1,1]]
+  }
+  return(monoisotopicMass)
 }
 getAdductInformation <- function(formula){
   adductDf <- as.data.frame(rbind(
