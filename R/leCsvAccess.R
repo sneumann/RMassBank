@@ -358,6 +358,40 @@ getMonoisotopicMass <- function(formula){
 }
 getAdductInformation <- function(formula){
   adductDf <- as.data.frame(rbind(
+    
+    ## strange negative adducts
+    c(mode = "mpM",            addition = formula,    charge = -1, adductString = "[2M]-"),
+    c(mode = "m2H_pHCOOH_pNa", addition = "Na1C1O2",  charge = -1, adductString = "[M+HCOOH+Na-2H]-"),
+    c(mode = "mH_p2H",         addition = "H2",       charge = -1, adductString = "[M+3H-H]-"),
+    c(mode = "mH_pH2O",        addition = "H1O1",     charge = -1, adductString = "[M+H2O-H]-"),
+    c(mode = "m4H_pM_p3Na",    addition = add.formula(formula, "Na3H-4"),    charge = -1, adductString = "[2M+3Na-4H]-"),
+    c(mode = "m2H_mNH3_pNa",   addition = add.formula(formula, "Na1N-1H-5"), charge = -1, adductString = "[2M-NH3+Na-2H]-"),
+    c(mode = "m3H_pM_p2Na",    addition = add.formula(formula, "Na2H-3"),    charge = -1, adductString = "[2M+2Na-3H]-"),
+    c(mode = "m3H_pM",         addition = add.formula(formula, "H-3"),       charge = -1, adductString = "[2M-3H]-"),
+    c(mode = "mH_p2M",         addition = add.formula(formula, add.formula(formula, "H-1")), charge = -1, adductString = "[3M-H]-"),
+    
+    ## strange positive adducts
+    c(mode = "pCOONa",         addition = "C1O2Na1", charge =  1, adductString = "[M+COONa]+"),
+    c(mode = "p3H_c1",         addition = "H3",      charge =  1, adductString = "[M+3H]+"),
+    c(mode = "pH2O_c1",        addition = "H2O1",    charge =  1, adductString = "[M+H2O]+"),
+    c(mode = "pH_m2H2O",       addition = "H-3O-2",  charge =  1, adductString = "[M-2H2O+H]+"),
+    c(mode = "pH_mNH3",        addition = "N-1H-2",  charge =  1, adductString = "[M-NH3+H]+"),
+    c(mode = "p2H_c1",         addition = "H2",      charge =  1, adductString = "[M+2H]+"),
+    c(mode = "p_mNH3_c1",      addition = "N-1H-3",  charge =  1, adductString = "[M-NH2-H]+"),
+    c(mode = "pM_p2Na_m3H_c1", addition = add.formula(formula, "Na2H-3"), charge =  1, adductString = "[2M+2Na-3H]+"),
+    c(mode = "pM_pNa_m2H_c1",  addition = add.formula(formula, "Na1H-2"), charge =  1, adductString = "[2M+Na-2H]+"),
+    c(mode = "pM_pNa_mH_c1",   addition = add.formula(formula, "Na1H-1"), charge =  1, adductString = "[2M+Na-H]+"),
+    c(mode = "pM_p2Na_m2H_c1", addition = add.formula(formula, "Na2H-2"), charge =  1, adductString = "[2M+2Na-2H]+"),
+    c(mode = "pM_pH_m2H2O_c1", addition = add.formula(formula, "H-3O-2"), charge =  1, adductString = "[2M-2H2O+H]+"),
+    c(mode = "pM_pH_mH2O",     addition = add.formula(formula, "H-1O-1"), charge =  1, adductString = "[2M-H2O+H]+"),
+    c(mode = "pM_m2H_c1",      addition = add.formula(formula, "H-2"),    charge =  1, adductString = "[2M-2H]+"),
+    c(mode = "pM_pLi",         addition = add.formula(formula, "Li1"),    charge =  1, adductString = "[2M+Li]+"),
+    c(mode = "pM_pH_m2O",      addition = add.formula(formula, "O-2H1"),  charge =  1, adductString = "[2M-2O+H]+"),
+    c(mode = "pM_pNa_m2O",     addition = add.formula(formula, "O-2Na1"), charge =  1, adductString = "[2M-2O+Na]+"),
+    c(mode = "pM_pH_m3O",      addition = add.formula(formula, "O-3H1"),  charge =  1, adductString = "[2M-3O+H]+"),
+    c(mode = "pM_mH_c1",       addition = add.formula(formula, "H-1"),    charge =  1, adductString = "[2M-H]+"),
+    c(mode = "pH_c2",          addition = "H1",      charge =  2, adductString = "[M+H]2+"),
+    
     ## M+X
     c(mode = "pH",       addition = "H",         charge = 1, adductString = "[M+H]+"),
     c(mode = "pLi",      addition = "Li",        charge = 1, adductString = "[M+Li]+"),
@@ -379,20 +413,23 @@ getAdductInformation <- function(formula){
     c(mode = "pM_pACN_pH", addition = add.formula(formula, "C2H4N1"), charge = 1, adductString = "[2M+ACN+H]+"),
     ## M-X
     c(mode = "mH",      addition = "H-1",    charge = -1, adductString = "[M-H]-"),
-    c(mode = "mFA",     addition = "C1O2",   charge = -1, adductString = "[M+HCOOH-H]-"),
+    c(mode = "mFA",     addition = "C1O2H",  charge = -1, adductString = "[M+HCOOH-H]-"),
     c(mode = "mH_mH2O", addition = "H-3O-1", charge = -1, adductString = "[M-H2O-H]-"),
     c(mode = "m2H_pNa", addition = "H-2Na1", charge = -1, adductString = "[M+Na-2H]-"),
     c(mode = "mM",      addition = "",       charge = -1, adductString = "[M]-"),
     c(mode = "m2H",     addition = "H-2",    charge = -1, adductString = "[M-2H]-"), ## in case of positively charged compounds
     ## 2M-X
     c(mode = "mH_pM",      addition = add.formula(formula, "H-1"),    charge = -1, adductString = "[2M-H]-"),
-    c(mode = "mFA_pM",     addition = add.formula(formula, "C1O2"),   charge = -1, adductString = "[2M+HCOOH-H]-"),
+    c(mode = "mFA_pM",     addition = add.formula(formula, "C1O2H"),  charge = -1, adductString = "[2M+HCOOH-H]-"),
     c(mode = "mH_pM_mH2O", addition = add.formula(formula, "H-3O-1"), charge = -1, adductString = "[2M-H2O-H]-"),
     c(mode = "m2H_pM_pNa", addition = add.formula(formula, "H-2Na1"), charge = -1, adductString = "[2M+Na-2H]-"),
     ## ???
     c(mode = "",        addition = "",       charge = 0,  adductString = "[M]")
   ), stringsAsFactors = F)
   adductDf$charge <- as.integer(adductDf$charge)
+  
+  if(any(any(duplicated(adductDf$mode)), any(duplicated(adductDf$adductString)))) stop("Invalid adduct table")
+  
   return(adductDf)
 }
 getAdductProperties <- function(mode, formula){
