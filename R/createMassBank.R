@@ -1217,11 +1217,12 @@ readMbdata <- function(row)
   link[["CHEMSPIDER"]] = row[["CH.LINK.CHEMSPIDER"]]
   link[which(is.na(link))] <- NULL
   mbdata[["CH$LINK"]] <- link
+  ## SP$SAMPLE
+  if(all(nchar(row[["SP.SAMPLE"]]) > 0, row[["SP.SAMPLE"]] != "NA", !is.na(row[["SP.SAMPLE"]]), na.rm = TRUE))
+    mbdata[['SP$SAMPLE']] <- row[["SP.SAMPLE"]]
   # again, these constants are read from the options:
   mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
   mbdata[['AC$INSTRUMENT_TYPE']] <- getOption("RMassBank")$annotations$instrument_type
-  if(all(nchar(row[["SP.SAMPLE"]]) > 0, row[["SP.SAMPLE"]] != "NA", !is.na(row[["SP.SAMPLE"]]), na.rm = TRUE))
-    mbdata[['SP$SAMPLE']] <- row[["SP.SAMPLE"]]
   
   return(mbdata)
   
