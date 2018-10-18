@@ -205,7 +205,7 @@ getCtsRecord <- function(key)
 #' @export
 getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 {
-	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/convert"
+	baseURL <- "https://cts.fiehnlab.ucdavis.edu/service/convert"
 	url <- paste(baseURL, from, to, query, sep='/')
 	errorvar <- 0
 	currEnvir <- environment()
