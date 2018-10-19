@@ -151,7 +151,7 @@ getPcId <- function(query, from = "inchikey")
 #' @note Currently, the CTS results are still incomplete; the name scores are all 0,
 #' formula and exact mass return zero.
 #' @references Chemical Translation Service:
-#' \url{http://cts.fiehnlab.ucdavis.edu}
+#' \url{https://cts.fiehnlab.ucdavis.edu}
 #' 
 #' @examples
 #' data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
@@ -163,7 +163,7 @@ getPcId <- function(query, from = "inchikey")
 #' @export
 getCtsRecord <- function(key)
 {
-	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/compound/"
+	baseURL <- "https://cts.fiehnlab.ucdavis.edu/service/compound/"
 	
 	errorvar <- 0
 	currEnvir <- environment()
