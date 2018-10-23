@@ -1245,9 +1245,9 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="
     # for format 2.01
     ac_ms <- list();
     ac_ms[['MS_TYPE']] <- getOption("RMassBank")$annotations$ms_type
-    ac_ms[['IONIZATION']] <- getOption("RMassBank")$annotations$ionization
     ac_ms[['ION_MODE']] <- mode
-  
+    ac_ms[['IONIZATION']] <- getOption("RMassBank")$annotations$ionization
+    
     # This list could be made customizable.
     ac_lc <- list();
     rt  <- spec@parent@rt / 60

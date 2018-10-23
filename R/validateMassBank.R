@@ -19,12 +19,10 @@
 #' @export
 validate <- function(path, simple = TRUE) {
 
-    requireNamespace("ontoCAT",quietly=TRUE)
 	requireNamespace("RUnit",quietly=TRUE)
 
 	# Is the argument a directory?
 	# If yes, list the files
-	RMassBank.env$Instrument_List <- .getInstruments()
 	RMassBank.env$testnumber <- 1
 	if(file.info(path[1])$isdir){
 	    Files <- list.files(path = path,
@@ -88,68 +86,6 @@ validate <- function(path, simple = TRUE) {
 		close(fileConnection)
 	}
 	print(paste("Report for the file(s) finished"))
-}
-
-# This function checks if an .obo-file is readable for ontoCAT
-.isOboReadable <- function(filename){
-
-	# getOntology() has a problem with reading relative Windows paths(it wants an URI),
-	# so the path has to be made absolute
-	# I reckon this should work under Linux without doing that
-	ont <- ontoCAT::getOntology(normalizePath(filename))
-	if(is.null(ontoCAT::getOntologyAccession(ont))){
-		return(FALSE)
-	}
-	return(TRUE)
-}
-
-# This function downloads the psi-ms.obo-ontology so we can get the allowed instrument-names
-# This is a _temporary_ fix until I find out why getOntology() doesn't work when there are "import:"-lines in the .obo-file
-# Until then I will simply remove them, because we don't need the imported ontologies
-.downloadPsiObo <- function(){
-		connPsiObo <- url("http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo")
-		oboFile <- readLines(connPsiObo)
-		close(connPsiObo)
-		oboFile <- oboFile[-grep("import:",oboFile)] 
-		connLocal <- file("psi-ms.obo")
-		writeLines(oboFile,connLocal)
-		close(connLocal)
-}
-
-# Checks if the psi-ms.obo is there
-# Will be converted to "checkforinstruments" as soon as I can find the problem
-# with getOntology()
-.checkForPsiMs <- function(){
-	
-	if(file.exists("psi-ms.obo")){
-		if(.isOboReadable("psi-ms.obo")){
-			print("It seems that you have a working psi-ms.obo, do you want to update it? [y/n]")
-			while(TRUE){
-				answer <- readLines(stdin(), n=1, warn=FALSE)
-				if(answer == "y"){
-					.downloadPsiObo()
-					return(TRUE)
-				}
-				if(answer == "n"){
-					return(TRUE)
-				}
-				print("Please type exactly y or n")
-			}
-		}
-	}
-	.downloadPsiObo()
-	return(TRUE)
-}
-
-# This is a list of the possible instrument names 
-.getInstruments <- function(){
-	Onto <- ontoCAT::getOntology(system.file(package = "RMassBank", "psi-ms.obo"))
-	instrumentTerms <- ontoCAT::getAllTermChildrenById(Onto,"MS_1000031")
-	instruments <- vector()	
-	for(i in 1:length(instrumentTerms)){
-		instruments[i] <- ontoCAT::getLabel(instrumentTerms[[i]])
-	}
-	return(instruments)
 }
 
 #' Calculate the mass from a SMILES-String

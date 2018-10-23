@@ -1,7 +1,7 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 2.3.1
+Version: 2.9.1
 Authors@R: c(
     person(given = "RMassBank at Eawag", email = "massbank@eawag.ch",
     role=c("cre")),
@@ -34,7 +34,6 @@ Suggests:
     gplots,RMassBankData,
     xcms (>= 1.37.1),
     CAMERA,
-    ontoCAT,
     RUnit,
     enviPat
 Collate:
