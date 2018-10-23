@@ -197,7 +197,10 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 		# Clear the actual MS1 precursor scan number again
 		headerData[which(headerData$msLevel == 1),"precursorScanNum"] <- 0
 	}
-	
+	# bugfix 201803: PRM scans that were performed before the first full scan (found in some files)
+	headerData <- headerData[
+	  !((headerData$msLevel == 2) & (headerData$precursorScanNum == 0)),,drop=FALSE
+	]
 	# Find MS2 spectra with precursors which are in the allowed 
 	# scan filter (coarse limit) range
 	findValidPrecursors <- headerData[
