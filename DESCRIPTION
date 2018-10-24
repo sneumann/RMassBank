@@ -29,7 +29,7 @@ Depends:
 Encoding: UTF-8
 Imports:
     XML,RCurl,rjson,S4Vectors,digest,
-    rcdk,yaml,mzR,methods,Biobase,MSnbase
+    rcdk,yaml,mzR,methods,Biobase,MSnbase,httr
 Suggests:
     gplots,RMassBankData,
     xcms (>= 1.37.1),
@@ -60,4 +60,4 @@ Collate:
     'msmsRead.R'
     'Isotopic_Annotation.R'
     'zzz.R'
-RoxygenNote: 5.0.1
+RoxygenNote: 6.1.0
