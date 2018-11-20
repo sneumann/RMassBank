@@ -763,7 +763,7 @@ gatherData <- function(id)
 	}
 	
 	link[["INCHIKEY"]] <- inchikey_split
-	if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid)))
+	if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid[!is.na(csid)])))
 	mbdata[['CH$LINK']] <- link
 	
 	mbdata[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
