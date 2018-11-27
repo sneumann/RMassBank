@@ -299,7 +299,7 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
           #                   ppm(mass, ppmlimit, p=TRUE),
           #                   limits, charge=1),
           #error= function(e) list())
-          if(!is.list(peakformula)){
+          if(!is.list(peakformula) || length(peakformula)==0){
             return(t(c(mzFound=as.numeric(as.character(mass)),
                        formula=NA, mzCalc=NA)))
           }else{
@@ -330,7 +330,7 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
 			#                   ppm(mass, ppmlimit, p=TRUE),
 			#                   limits, charge=1),
 			#error= function(e) list())
-			if(!is.list(peakformula)){
+			if(!is.list(peakformula) || length(peakformula)==0){
 				return(t(c(mzFound=as.numeric(as.character(mass)),
 						formula=NA, mzCalc=NA)))
 			}else{

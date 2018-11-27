@@ -5,7 +5,7 @@
 ### https://github.com/eddelbuettel/rcppgsl/blob/master/tests/doRUnit.R
 
 if(require("RUnit", quietly = TRUE)) {
-	if(require("RMassBankData", quietly = TRUE) && !(compareVersion(installed.packages()["RMassBankData","Version"],"1.99.0") == -1)) {
+	if(require("RMassBankData", quietly = TRUE) && !(compareVersion(installed.packages()["RMassBankData","Version"],"1.21.0") == -1)) {
 		pkg <- "RMassBank"
 		print("Starting tests")
 		require(pkg, character.only=TRUE)

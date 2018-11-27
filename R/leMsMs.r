@@ -612,15 +612,15 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 				# finally back-correct calculated masses for the charge
 				mass <- shot.row[["mz"]]
 				mass.calc <- mass + mode.charge * .emass
-				peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
-								limits, charge=0)), error=function(e) NA)
+                               peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
+                                                               limits, charge=0)), error=function(e) NA)
 				#peakformula <- tryCatch(
 				# generate.formula(mass,
 				# ppm(mass, ppmlimit, p=TRUE),
 				# limits, charge=1),
 				#error= function(e) list())
 			
-			if(!is.list(peakformula))
+			if(!is.list(peakformula) || length(peakformula)==0)
 				return(t(c(row=shot.row[["row"]], intensity = shot.row[["intensity"]], mz=mass,
 										formula=NA, mzCalc=NA)))
 			else
@@ -1766,7 +1766,7 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	peakformula <- tryCatch(suppressWarnings(generate.formula(mass, ppm(mass, ppmlimit, p=TRUE), 
 					limits, charge=mode.charge)), error=function(e) NA)
 	# was a formula found? If not, return empty result
-	if(!is.list(peakformula))
+	if(!is.list(peakformula) || length(peakformula)==0)
 		return(as.data.frame(
 						t(c(mzFound=as.numeric(as.character(mass)),
 										reanalyzed.formula=NA, reanalyzed.mzCalc=NA, reanalyzed.dppm=NA,
