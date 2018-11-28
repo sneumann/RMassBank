@@ -1,7 +1,7 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 2.11.1
+Version: 2.11.2
 Authors@R: c(
     person(given = "RMassBank at Eawag", email = "massbank@eawag.ch",
     role=c("cre")),
@@ -29,7 +29,7 @@ Depends:
 Encoding: UTF-8
 Imports:
     XML,RCurl,rjson,S4Vectors,digest,
-    rcdk,yaml,mzR,methods,Biobase,MSnbase,httr
+    rcdk(>= 3.4.7.1),yaml,mzR,methods,Biobase,MSnbase,httr
 Suggests:
     gplots,RMassBankData,
     xcms (>= 1.37.1),
