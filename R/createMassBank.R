@@ -1114,7 +1114,9 @@ readMbdata <- function(row)
   mbdata[['AUTHORS']] <- getOption("RMassBank")$annotations$authors
   mbdata[['LICENSE']] <- getOption("RMassBank")$annotations$license
   mbdata[['COPYRIGHT']] <- getOption("RMassBank")$annotations$copyright
-  mbdata[['PUBLICATION']] <- getOption("RMassBank")$annotations$publication
+  if(getOption("RMassBank")$annotations$publication!="") {
+    mbdata[['PUBLICATION']] <- getOption("RMassBank")$annotations$publication
+  }
   
   # Read all determined fields from the file
   # This is not very flexible, as you can see...
