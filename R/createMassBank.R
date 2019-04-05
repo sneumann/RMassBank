@@ -84,7 +84,11 @@ loadInfolist <- function(mb, fileName)
     return(r)
   })), stringsAsFactors = FALSE)
   # use only the columns present in mbdata_archive, no other columns added in excel
-  mbdata_new <- mbdata_new[, colnames(mb@mbdata_archive)]
+  colNames <- colnames(mb@mbdata_archive)
+  commentColNames <- colnames(mbdata_new)[grepl(x = colnames(mbdata_new), pattern = "^COMMENT\\.(?!CONFIDENCE)(?!ID)", perl = TRUE)]
+  colNames <- c(colNames, commentColNames)
+  
+  mbdata_new <- mbdata_new[, colNames]
   # substitute the old entires with the ones from our files
   # then find the new (previously inexistent) entries, and rbind them to the table
   new_entries <- setdiff(mbdata_new$id, mb@mbdata_archive$id)
@@ -629,7 +633,7 @@ gatherData <- function(id)
 	# COMMENT: EAWAG_UCHEM_ID 1234
 	# if annotations$internal_id_fieldname is set to "EAWAG_UCHEM_ID"
 	mbdata[["COMMENT"]] <- list()
-    if(findLevel(id) == "0"){
+  if(findLevel(id) == "0"){
         mbdata[["COMMENT"]][["CONFIDENCE"]] <- getOption("RMassBank")$annotations$confidence_comment
 	} else{
         level <- findLevel(id)
@@ -668,7 +672,16 @@ gatherData <- function(id)
         }
 	}
 	
-    mbdata[["COMMENT"]][["ID"]] = id
+  mbdata[["COMMENT"]][["ID"]] = id
+  
+  ## add generic COMMENT information
+  rowIdx <- which(.listEnvEnv$listEnv$compoundList$ID == id)
+  properties      <- colnames(.listEnvEnv$listEnv$compoundList)
+  properties2     <- gsub(x = properties, pattern = "^COMMENT ", replacement = "")
+  theseProperties <- grepl(x = properties, pattern = "^COMMENT ")
+  theseProperties <- theseProperties & (!(unlist(.listEnvEnv$listEnv$compoundList[rowIdx, ]) == "NA" | is.na(unlist(.listEnvEnv$listEnv$compoundList[rowIdx, ]))))
+  mbdata[["COMMENT"]][properties2[theseProperties]] <- unlist(.listEnvEnv$listEnv$compoundList[rowIdx, theseProperties])
+  
 	# here compound info starts
 	mbdata[['CH$NAME']] <- names
 	# Currently we use a fixed value for Compound Class, since there is no useful
@@ -1098,16 +1111,20 @@ flatten <- function(mbdata)
 {
   .checkMbSettings()
   
+  colNames     <- names(unlist(mbdata[[1]]))
+  commentNames <- colNames[grepl(x = colNames, pattern = "^COMMENT\\.")]
+  
   colList <- c(
               "id",
               "dbcas",
               "dbname",
               "dataused",
-              "COMMENT.CONFIDENCE",
+              commentNames,
+              #"COMMENT.CONFIDENCE",
               # Note: The field name of the internal id field is replaced with the real name
               # at "compilation" time. Therefore, functions DOWNSTREAM from compileRecord() 
               # must use the full name including the info from options("RMassBank").
-              "COMMENT.ID",
+              #"COMMENT.ID",
               "CH$NAME1",
               "CH$NAME2",
               "CH$NAME3",
@@ -1168,11 +1185,15 @@ readMbdata <- function(row)
   mbdata[['COPYRIGHT']] <- getOption("RMassBank")$annotations$copyright
   mbdata[['PUBLICATION']] <- getOption("RMassBank")$annotations$publication
   
+  commentNames <- names(row)[grepl(x = names(row), pattern = "^COMMENT\\.")]
+  commentNames <- commentNames[!is.na(row[commentNames])]
+  
   # Read all determined fields from the file
   # This is not very flexible, as you can see...
     colList <- c(
-              "COMMENT.CONFIDENCE",
-              "COMMENT.ID",
+              commentNames,
+              #"COMMENT.CONFIDENCE",
+              #"COMMENT.ID",
               "CH$NAME1",
               "CH$NAME2",
               "CH$NAME3",
@@ -1190,11 +1211,11 @@ readMbdata <- function(row)
               "CH$LINK.INCHIKEY",
               "CH$LINK.CHEMSPIDER")
   mbdata[["COMMENT"]] = list()
-  mbdata[["COMMENT"]][["CONFIDENCE"]] <- row[["COMMENT.CONFIDENCE"]]
+  #mbdata[["COMMENT"]][["CONFIDENCE"]] <- row[["COMMENT.CONFIDENCE"]]
   # Again, our ID field. 
+  #mbdata[["COMMENT"]][["ID"]] <- row[["COMMENT.ID"]]
+  mbdata[["COMMENT"]][gsub(x = commentNames, pattern = "^COMMENT\\.", replacement = "")] <- row[commentNames]
   
-  mbdata[["COMMENT"]][["ID"]]<-
-            row[["COMMENT.ID"]]
   names = c(row[["CH.NAME1"]], row[["CH.NAME2"]], row[["CH.NAME3"]])
   names = names[which(!is.na(names))]
   
@@ -1300,9 +1321,10 @@ gatherCompound <- function(spec, aggregated, additionalPeaks = NULL, retrieval="
     
     ## add generic AC$MASS_SPECTROMETRY information
     properties      <- names(getOption("RMassBank")$annotations)
+    presentProperties <- names(ac_ms)#c('MS_TYPE', 'IONIZATION', 'ION_MODE')#, 'FRAGMENTATION_MODE', 'COLLISION_ENERGY', 'RESOLUTION')
+    
     theseProperties <- grepl(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_")
     properties2     <- gsub(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_", replacement = "")
-    presentProperties <- names(ac_ms)#c('MS_TYPE', 'IONIZATION', 'ION_MODE')#, 'FRAGMENTATION_MODE', 'COLLISION_ENERGY', 'RESOLUTION')
     theseProperties <- theseProperties & !(properties2 %in% presentProperties)
     theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
     ac_ms[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
