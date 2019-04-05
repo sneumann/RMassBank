@@ -79,7 +79,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 		progressbar = "progressBarHook", MSe = FALSE)
 {
     .checkMbSettings()
-    if(!any(mode %in% c("pH","pNa","pNH4","pM","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
+    if(!any(mode %in% knownAdducts())) stop(paste("The ionization mode", mode, "is unknown."))
 
     if(!is.na(archivename))
         w@archivename <- archivename
@@ -151,7 +151,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
                         # } else {
                             # analyzeMethod <- "formula"
                         # }
-                        s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="preliminary",
+                        s <- analyzeMsMs(msmsPeaks = spec, mode=mode, detail=TRUE, run="preliminary",
                               filterSettings = settings$filterSettings,
                               spectraList = settings$spectraList, method = analyzeMethod)
                         # Progress:
@@ -168,7 +168,13 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
     if(3 %in% steps)
     {
         message("msmsWorkflow: Step 3. Aggregate all spectra")
-        w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
+        w@aggregated <- aggregateSpectra(spec = w@spectra, addIncomplete=TRUE)
+        
+        if(RMassBank.env$verbose.output){
+          numberOfPeaksThere <- sum(unlist(lapply(X = w@spectra, FUN = function(spec){ sum(unlist(lapply(X = spec@children, FUN = function(child){ child@peaksCount }))) })))
+          if(nrow(w@aggregated) < numberOfPeaksThere)
+            cat(paste("### Warning ### The aggregation of spectra lead to the removal of ", (numberOfPeaksThere-nrow(w@aggregated)), " / ", numberOfPeaksThere, " peaks\n", sep = ""))
+        }
     }
     
     if(allUnknown){
@@ -223,7 +229,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
                             } else {
                                 analyzeMethod <- "formula"
                             }
-                            s <- analyzeMsMs(spec, mode=mode, detail=TRUE, run="recalibrated",
+                            s <- analyzeMsMs(msmsPeaks = spec, mode=mode, detail=TRUE, run="recalibrated",
                                     filterSettings = settings$filterSettings,
                                     spectraList = settings$spectraList, method = analyzeMethod)
                             # Progress:
@@ -242,23 +248,44 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
     if(6 %in% steps)
     {
         message("msmsWorkflow: Step 6. Aggregate recalibrated results")
-        w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
+        w@aggregated <- aggregateSpectra(spec = w@spectra, addIncomplete=TRUE)
+        
+        if(RMassBank.env$verbose.output){
+          numberOfPeaksThere <- sum(unlist(lapply(X = w@spectra, FUN = function(spec){ sum(unlist(lapply(X = spec@children, FUN = function(child){ child@peaksCount }))) })))
+          if(nrow(w@aggregated) < numberOfPeaksThere)
+            cat(paste("### Warning ### The aggregation of spectra lead to the removal of ", (numberOfPeaksThere-nrow(w@aggregated)), " / ", numberOfPeaksThere, " peaks\n", sep = ""))
+        }
+        
         if(!is.na(archivename))
           archiveResults(w, paste(archivename, ".RData", sep=''), settings)
-        w@aggregated <- cleanElnoise(w@aggregated,
-                settings$electronicNoise, settings$electronicNoiseWidth)
+        w@aggregated <- cleanElnoise(peaks = w@aggregated, noise = settings$electronicNoise, width = settings$electronicNoiseWidth)
+        
+        if(RMassBank.env$verbose.output)
+          if(sum(w@aggregated$noise) > 0)
+            cat(paste("### Warning ### ", sum(w@aggregated$noise), " / ", nrow(w@aggregated), " peaks have been identified as electronic noise\n", sep = ""))
     }
     # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
     if(7 %in% steps)
     {
         message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
         w@aggregated <- reanalyzeFailpeaks(
-                    w@aggregated, custom_additions="N2O", mode=mode,
+                    aggregated = w@aggregated, custom_additions="N2O", mode=mode,
                     filterSettings=settings$filterSettings,
                     progressbar=progressbar)
         if(!is.na(archivename))
-        archiveResults(w, paste(archivename, "_RA.RData", sep=''), settings)
+          archiveResults(w, paste(archivename, "_RA.RData", sep=''), settings)
+        
+        if(RMassBank.env$verbose.output){
+          isNoFormula <- is.na(w@aggregated$formula) & is.na(w@aggregated$reanalyzed.formula)
+          noFormulaCount <- sum(isNoFormula)
+          numberOfPeaksThere <- sum(unlist(lapply(X = w@spectra, FUN = function(spec){ sum(unlist(lapply(X = spec@children, FUN = function(child){ child@peaksCount }))) })))
+          if(noFormulaCount > 0){
+            cat(paste("### Warning ### ", noFormulaCount, " / ", numberOfPeaksThere, " peaks have no molecular formula:\n", sep = ""))
+            print(w@aggregated[isNoFormula, c("mzFound","intensity","cpdID")])
+          }
+        }
     }
+    
     # Step 8: heuristic filtering based on peak multiplicity;
     #         creation of failpeak list
     if(8 %in% steps)
@@ -266,12 +293,30 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         message("msmsWorkflow: Step 8. Peak multiplicity filtering")
         if (is.null(settings$multiplicityFilter)) {
           message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
+          w@aggregated <- addProperty(w@aggregated, "formulaMultiplicity", "integer", 1)
+          w@aggregated <- addProperty(w@aggregated, "filterOK",            "logical", FALSE)
+          w@aggregated$filterOK <- !((is.na(w@aggregated$formulaCount) | w@aggregated$formulaCount==0) & (is.na(w@aggregated$reanalyzed.formulaCount) | w@aggregated$reanalyzed.formulaCount==0))
+          w@aggregated <- addProperty(w@aggregated, "problematicPeak",     "logical", FALSE)
         } else {
             # apply heuristic filter      
-            w@aggregated <- filterMultiplicity(
-                w, archivename, mode, multiplicityFilter = settings$multiplicityFilter)
+            w@aggregated <- filterMultiplicity(w = w, archivename = archivename, mode = mode, multiplicityFilter = settings$multiplicityFilter)
+            
+            if(RMassBank.env$verbose.output){
+              peakDfs <- split(x = w@aggregated, f = list("mzFound"=w@aggregated$mzFound, "cpdID"=w@aggregated$cpdID))
+              numberOfPeaks <- length(peakDfs)
+              multiplicityNotOkCount <- numberOfPeaks - sum(unlist(lapply(X = peakDfs, FUN = function(x){any(x$filterOK)})))
+              if(multiplicityNotOkCount > 0)
+                cat(paste("### Warning ### ", multiplicityNotOkCount, " / ", numberOfPeaks, " peaks do not fulfill the multiplicity criterion\n", sep = ""))
+            }
+            
             w@aggregated <- processProblematicPeaks(w, mode, archivename)
-
+            
+            if(RMassBank.env$verbose.output){
+              problematicPeakCount <- sum(w@aggregated$problematicPeak)
+              if(problematicPeakCount > 0)
+                cat(paste("### Warning ### ", problematicPeakCount, " / ", nrow(w@aggregated), " peaks are problematic\n", sep = ""))
+            }
+            
             if(!is.na(archivename))
             archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
         }
@@ -418,6 +463,8 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 	## );
 	.checkMbSettings()
 	
+	if(msmsPeaks@found == FALSE)
+		return(msmsPeaks)
 	
 	# Check whether the spectra can be fitted to the spectra list correctly!
 	if(length(msmsPeaks@children) != length(spectraList))
@@ -430,18 +477,13 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 		
 	}
 	
-	if(msmsPeaks@found == FALSE)
-		return(msmsPeaks)
-	
 	if(method=="formula")
 	{
-		r <- (analyzeMsMs.formula(msmsPeaks, mode, detail, run, filterSettings
-						))
+		r <- analyzeMsMs.formula(msmsPeaks, mode, detail, run, filterSettings)
 	}
 	else if(method == "intensity")
 	{
-		r <- (analyzeMsMs.intensity(msmsPeaks, mode, detail, run, filterSettings
-				))
+		r <- analyzeMsMs.intensity(msmsPeaks, mode, detail, run, filterSettings)
 	}
 	
 	# Add the spectrum labels to the spectra here.
@@ -475,22 +517,17 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 {
   cut <- 0
   cut_ratio <- 0
-  if(run=="preliminary")
-  {
+  if(run=="preliminary"){
     filterMode <- "coarse"
-	cut <- filterSettings$prelimCut
+	  cut <- filterSettings$prelimCut
     if(is.na(cut))
     {
-      if(mode %in% c("pH", "pM", "pNa", "pNH4"))
-        cut <- 1e4
-      else if(mode %in% c("mH", "mFA","mM"))
-        cut <- 0
-	  else stop(paste("The ionization mode", mode, "is unknown."))
+      adductProperties <- getAdductProperties(mode, msmsPeaks@formula)
+      if(adductProperties$charge > 0) cut <- 1e4
+      if(adductProperties$charge < 0) cut <- 0
     }
-	cutRatio <- filterSettings$prelimCutRatio
-  }
-  else
-  {
+	  cutRatio <- filterSettings$prelimCutRatio
+  } else {
     filterMode <- "fine"
 	cut <- filterSettings$fineCut
 	cut_ratio <- filterSettings$fineCutRatio
@@ -509,10 +546,13 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   # with insufficient match accuracy or no match.
   analyzeTandemShot <- function(child)
   {
-	shot <- getData(child)
-	shot$row <- which(!is.na(shot$mz))
-	
-	
+    childIdx <- which(sapply(X = seq_along(msmsPeaks@children), FUN = function(i){ 
+      all(child@mz == msmsPeaks@children[[i]]@mz) & all(child@rt == msmsPeaks@children[[i]]@rt) & all(child@intensity == msmsPeaks@children[[i]]@intensity) }
+    ))
+  	shot <- getData(child)
+  	shot$row <- which(!is.na(shot$mz))
+  	
+  	
     # Filter out low intensity peaks:
     child@low <- (shot$intensity < cut) | (shot$intensity < max(shot$intensity)*cut_ratio)
     shot <- shot[!child@low,,drop=FALSE]
@@ -520,238 +560,266 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
     
     # Is there still anything left?
     if(length(which(!child@low))==0)
-	{
-		child@ok <- FALSE
-		return(child)
-	}
-    
+  	{
+  		child@ok <- FALSE
+  		
+  		if(RMassBank.env$verbose.output)
+        cat(paste("\n### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' contains only low-intensity peaks\n", sep = ""))
+  		
+  		return(child)
+  	}
+      
     # Filter out satellite peaks:
     shot <- filterPeakSatellites(shot, filterSettings)
-	child@satellite <- rep(TRUE, child@peaksCount)
-	child@satellite[which(child@low == TRUE)] <- NA
-	child@satellite[shot$row] <- FALSE
-	
+  	child@satellite <- rep(TRUE, child@peaksCount)
+  	child@satellite[which(child@low == TRUE)] <- NA
+  	child@satellite[shot$row] <- FALSE
+  	
     # Is there still anything left?
     if(nrow(shot)==0)
-	{
-		child@ok <- FALSE
-		return(child)
-	}
-    
+  	{
+  		child@ok <- FALSE
+  		
+  		if(RMassBank.env$verbose.output)
+  		  cat(paste("\n### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' contains no peaks after satellite filtering\n", sep = ""))
+  		
+  		return(child)
+  	}
+      
     if(max(shot$intensity) < as.numeric(filterSettings$specOkLimit))
-	{
-		child@ok <- FALSE
-		return(child)
-	}
-	
+  	{
+  		child@ok <- FALSE
+  		
+  		if(RMassBank.env$verbose.output)
+  		  cat(paste("\n### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' is discarded due to parameter 'specOkLimit'\n", sep = ""))
+  		
+  		return(child)
+  	}
+  	
     # Crop to 4 digits (necessary because of the recalibrated values)
-	# this was done for the MOLGEN MSMS type analysis, is not necessary anymore now (23.1.15 MST)
+  	# this was done for the MOLGEN MSMS type analysis, is not necessary anymore now (23.1.15 MST)
     # shot[,mzColname] <- round(shot[,mzColname], 5)
-    
-	# here follows the Rcdk analysis
-	#------------------------------------
-	parentPeaks <- data.frame(mzFound=msmsPeaks@mz, 
-			formula=msmsPeaks@formula,
-			dppm=0,
-			x1=0,x2=0,x3=0)
-	
-	# define the adduct additions
-	if(mode == "pH") {
-		allowed_additions <- "H"
-		mode.charge <- 1
-	} else if(mode == "pNa") {
-		allowed_additions <- "Na"
-		mode.charge <- 1
-	} else if(mode == "pM") {
-		allowed_additions <- ""
-		mode.charge <- 1
-	} else if(mode == "mM") {
-		allowed_additions <- ""
-		mode.charge <- -1
-	} else if(mode == "mH") {
-		allowed_additions <- "H-1"
-		mode.charge <- -1
-	} else if(mode == "mFA") {
-		allowed_additions <- "C2H3O2"
-		mode.charge <- -1
-	} else if(mode == "pNH4") {
-		allowed_additions <- "NH4"
-		mode.charge <- 1
-	} else{
-          stop("mode = \"", mode, "\" not defined")
-        }
-    
-	
-	# the ppm range is two-sided here.
-	# The range is slightly expanded because dppm calculation of
-	# generate.formula starts from empirical mass, but dppm cal-
-	# culation of the evaluation starts from theoretical mass.
-	# So we don't miss the points on 'the border'.
-	
-	if(run=="preliminary")
-		ppmlimit <- 2 * max(filterSettings$ppmLowMass, filterSettings$ppmHighMass)
-	else
-		ppmlimit <- 2.25 * filterSettings$ppmFine
-	
-	parent_formula <- add.formula(msmsPeaks@formula, allowed_additions)
-	dbe_parent <- dbe(parent_formula)
-	# check whether the formula is valid, i.e. has no negative or zero element numbers.
-	#print(parent_formula)
-	if(!is.valid.formula(parent_formula))
-	{
-		child@ok <- FALSE
-		return(child)
-	}
-
-	limits <- to.limits.rcdk(parent_formula)
-	
-	peakmatrix <- lapply(
-			split(shot,shot$row)
-			, function(shot.row)  {
-				# Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
-				# finally back-correct calculated masses for the charge
-				mass <- shot.row[["mz"]]
-				mass.calc <- mass + mode.charge * .emass
-                               peakformula <- suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
-                                                               limits, charge=0))
-			
+      
+  	# here follows the Rcdk analysis
+  	#------------------------------------
+  	parentPeaks <- data.frame(mzFound=msmsPeaks@mz, 
+  			formula=msmsPeaks@formula,
+  			dppm=0,
+  			x1=0,x2=0,x3=0)
+  	
+  	# get the adduct additions
+  	adductProperties <- getAdductProperties(mode, msmsPeaks@formula)
+  	allowed_additions <- adductProperties$addition
+  	mode.charge <- adductProperties$charge
+  	
+  	# the ppm range is two-sided here.
+  	# The range is slightly expanded because dppm calculation of
+  	# generate.formula starts from empirical mass, but dppm cal-
+  	# culation of the evaluation starts from theoretical mass.
+  	# So we don't miss the points on 'the border'.
+  	
+  	if(run=="preliminary")
+  		ppmlimit <- 2 * max(filterSettings$ppmLowMass, filterSettings$ppmHighMass)
+  	else
+  		ppmlimit <- 2.25 * filterSettings$ppmFine
+  	
+  	parent_formula <- add.formula(msmsPeaks@formula, allowed_additions)
+  	dbe_parent <- dbe(parent_formula)
+  	# check whether the formula is valid, i.e. has no negative or zero element numbers.
+  	#print(parent_formula)
+  	if(!is.valid.formula(parent_formula))
+  	{
+  		child@ok <- FALSE
+  		
+  		if(RMassBank.env$verbose.output)
+  		  cat(paste("\n### Warning ### The precursor ion formula of spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' is invalid\n", sep = ""))
+  		
+  		return(child)
+  	}
+  
+  	limits <- to.limits.rcdk(parent_formula)
+  	
+  	peakmatrix <- lapply(split(shot,shot$row), function(shot.row)  {
+  				# Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
+  				# finally back-correct calculated masses for the charge
+  				mass <- shot.row[["mz"]]
+  				mass.calc <- mass + mode.charge * .emass
+  				peakformula <- tryCatch(suppressWarnings(
+  				  rcdk::generate.formula(mass = mass.calc, window = ppm(mass.calc, ppmlimit, p=TRUE), elements = limits, charge=0)
+  				  ), error=function(e)
+  				    ## in case of zero formulas: Error in .jcall(mfSet, "I", "size") :    RcallMethod: invalid object parameter
+  				    NA
+  				)
+  				#peakformula <- tryCatch(
+  				# generate.formula(mass,
+  				# ppm(mass, ppmlimit, p=TRUE),
+  				# limits, charge=1),
+  				#error= function(e) list())
+  			
 			if(length(peakformula)==0)
-				return(t(c(row=shot.row[["row"]], intensity = shot.row[["intensity"]], mz=mass,
-										formula=NA, mzCalc=NA)))
-			else
-			{
-				return(t(sapply(peakformula, function(f)
-										{
-											mzCalc <- f@mass - mode.charge * .emass
-											c(row=shot.row[["row"]], intensity = shot.row[["intensity"]], mz=mass,
-													formula=f@string, 
-													mzCalc=mzCalc)
-										})))
-			}
-			
-			})
-	
-	childPeaks <- as.data.frame(do.call(rbind, peakmatrix))
-	
-	# Reformat the deformatted output correctly (why doesn't R have a better way to do this, e.g. avoid deformatting?)
-
-	childPeaks$row <- as.numeric(as.character(childPeaks$row))
-	childPeaks$intensity <- as.numeric(as.character(childPeaks$intensity))
-	childPeaks$mz <- as.numeric(as.character(childPeaks$mz))
-	childPeaks$formula <- as.character(childPeaks$formula)
-	childPeaks$mzCalc <- as.numeric(as.character(childPeaks$mzCalc))
-	childPeaks$dppm <- (childPeaks$mz / childPeaks$mzCalc - 1) * 1e6
-	childPeaks$dbe <- unlist(lapply(childPeaks$formula, dbe))
-	
-	# childPeaks now contains all the good and unmatched peaks
-	# but not the ones which were cut as satellites or below threshold.
-	
-	## child@mzFound <- rep(NA, child@peaksCount)
-	## child@mzFound[childPeaks$row] <- as.numeric(as.character(childPeaks$mzFound))
-	## 
-	## child@formula <- rep(NA, child@peaksCount)
-	## child@formula[childPeaks$row] <- as.character(childPeaks$formula)
-	## 
-	## child@mzCalc <- rep(NA, child@peaksCount)
-	## child@mzCalc[childPeaks$row] <- as.numeric(as.character(childPeaks$mzCalc))
-	## 
-	## child@dppm<- rep(NA, child@peaksCount)
-	## child@dppm[childPeaks$row] <- (childPeaks$mzFound / childPeaks$mzCalc - 1) * 1e6
-	# delete the NA data out again, because MolgenMsMs doesn't have them
-	# here and they will be re-added later
-	# (this is just left like this for "historical" reasons)
-	#childPeaks <- childPeaks[!is.na(childPeaks$formula),]
-	# check if a peak was recognized (here for the first time,
-	# otherwise the next command would fail)
-
-	if(nrow(childPeaks)==0)
-	{
-		child@ok <- FALSE
-		return(child)
-	}
-
-	# now apply the rule-based filters to get rid of total junk:
-	# dbe >= -0.5, dbe excess over mother cpd < 3
-	# dbe() has been adapted to return NA for NA input
-	#iff_rcdk_pM_eln$maxvalence <- unlist(lapply(diff_rcdk_pM_eln$formula.rcdk, maxvalence))
-	temp.child.ok <- (childPeaks$dbe >= filterSettings$dbeMinLimit) 
-		# & dbe < dbe_parent + 3)
-	# check if a peak was recognized
-	if(length(which(temp.child.ok)) == 0)
-	{
-		child@ok <- FALSE
-		return(child)
-	}
+  				return(t(c(row=shot.row[["row"]], intensity = shot.row[["intensity"]], mz=mass,
+  										formula=NA, mzCalc=NA)))
+  			else
+  			{
+  				return(t(sapply(peakformula, function(f)
+  										{
+  											mzCalc <- f@mass - mode.charge * .emass
+  											c(row=shot.row[["row"]], intensity = shot.row[["intensity"]], mz=mass,
+  													formula=f@string, 
+  													mzCalc=mzCalc)
+  										})))
+  			}
+  	})
+  	
+  	childPeaks <- as.data.frame(do.call(rbind, peakmatrix))
+  	
+  	presentElements <- unique(unlist(lapply(X = lapply(X = childPeaks$formula, FUN = formulastring.to.list), FUN = names)))
+  	atomDBEs <- sapply(X = presentElements, FUN = dbe)
+  	unknownElements <- names(atomDBEs)[sapply(X = atomDBEs, FUN = function(atomDBE){length(atomDBE)==0})]
+  	if(length(unknownElements) > 0) stop(paste("Element(s)", paste(unknownElements), "cannot be assigned a DBE"))
+  	
+  	# Reformat the deformatted output correctly (why doesn't R have a better way to do this, e.g. avoid deformatting?)
+  
+  	childPeaks$row <- as.numeric(as.character(childPeaks$row))
+  	childPeaks$intensity <- as.numeric(as.character(childPeaks$intensity))
+  	childPeaks$mz <- as.numeric(as.character(childPeaks$mz))
+  	childPeaks$formula <- as.character(childPeaks$formula)
+  	childPeaks$mzCalc <- as.numeric(as.character(childPeaks$mzCalc))
+  	childPeaks$dppm <- (childPeaks$mz / childPeaks$mzCalc - 1) * 1e6
+  	childPeaks$dbe <- unlist(lapply(childPeaks$formula, dbe))
+  	
+  	# childPeaks now contains all the good and unmatched peaks
+  	# but not the ones which were cut as satellites or below threshold.
+  	
+  	## child@mzFound <- rep(NA, child@peaksCount)
+  	## child@mzFound[childPeaks$row] <- as.numeric(as.character(childPeaks$mzFound))
+  	## 
+  	## child@formula <- rep(NA, child@peaksCount)
+  	## child@formula[childPeaks$row] <- as.character(childPeaks$formula)
+  	## 
+  	## child@mzCalc <- rep(NA, child@peaksCount)
+  	## child@mzCalc[childPeaks$row] <- as.numeric(as.character(childPeaks$mzCalc))
+  	## 
+  	## child@dppm<- rep(NA, child@peaksCount)
+  	## child@dppm[childPeaks$row] <- (childPeaks$mzFound / childPeaks$mzCalc - 1) * 1e6
+  	# delete the NA data out again, because MolgenMsMs doesn't have them
+  	# here and they will be re-added later
+  	# (this is just left like this for "historical" reasons)
+  	#childPeaks <- childPeaks[!is.na(childPeaks$formula),]
+  	# check if a peak was recognized (here for the first time,
+  	# otherwise the next command would fail)
+  
+  	if(nrow(childPeaks)==0)
+  	{
+  		child@ok <- FALSE
+  		
+  		if(RMassBank.env$verbose.output)
+  		  cat(paste("\n### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' is empty\n", sep = ""))
+  		
+  		return(child)
+  	}
+    
+  	if(all(is.na(childPeaks$formula)))
+  	{
+  	  child@ok <- FALSE
+  	  child@good <- rep(FALSE, length(childPeaks$formula))
+  	  
+  	  if(RMassBank.env$verbose.output)
+  	    cat(paste("\n### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' comprises no peaks which could be assiged to a molecular formula\n", sep = ""))
+  	  
+  	  return(child)
+  	}
+  	
+  	# now apply the rule-based filters to get rid of total junk:
+  	# dbe >= -0.5, dbe excess over mother cpd < 3
+  	# dbe() has been adapted to return NA for NA input
+  	#iff_rcdk_pM_eln$maxvalence <- unlist(lapply(diff_rcdk_pM_eln$formula.rcdk, maxvalence))
+  	temp.child.ok <- (childPeaks$dbe >= filterSettings$dbeMinLimit) 
+  	# & dbe < dbe_parent + 3)
+  	# check if a peak was recognized
+  	if(length(which(temp.child.ok)) == 0)
+  	{
+  		child@ok <- FALSE
+  		child@good <- rep(FALSE, length(temp.child.ok))
+  		
+  		if(RMassBank.env$verbose.output)
+  		  cat(paste("\n### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' comprises no peaks which fulfil the dbeMinLimit criterion\n", sep = ""))
+  		
+  		return(child)
+  	}
     #browser()	
-	# find the best ppm value
-    bestPpm <- aggregate(as.data.frame(childPeaks[!is.na(childPeaks$dppm),"dppm"]),
-					list(childPeaks[!is.na(childPeaks$dppm),"row"]),
-                         function(dppm) dppm[[which.min(abs(dppm))]])			 
+  	# find the best ppm value
+    bestPpm <- aggregate(
+      x   = as.data.frame(childPeaks[!is.na(childPeaks$dppm),"dppm"]),
+  		by  = list(childPeaks[!is.na(childPeaks$dppm),"row"]),
+      FUN = function(dppm) dppm[[which.min(abs(dppm))]]
+  	)
     colnames(bestPpm) <- c("row", "dppmBest")
     childPeaks <- merge(childPeaks, bestPpm, by="row", all.x=TRUE)
-	
-	# Deactivated the following lines because we never actually want to look at the "old" formula count.
-	# To be verified (cf Refiltering, failpeak list and comparable things) 
-
-	## # count formulas found per mass
-	## countFormulasTab <- xtabs( ~formula + mz, data=childPeaks)
-	## countFormulas <- colSums(countFormulasTab)
-	## childPeaks$formulaCount <- countFormulas[as.character(childPeaks$row)]
-	
+  	
+  	# Deactivated the following lines because we never actually want to look at the "old" formula count.
+  	# To be verified (cf Refiltering, failpeak list and comparable things) 
+  
+  	## # count formulas found per mass
+  	## countFormulasTab <- xtabs( ~formula + mz, data=childPeaks)
+  	## countFormulas <- colSums(countFormulasTab)
+  	## childPeaks$formulaCount <- countFormulas[as.character(childPeaks$row)]
+  	
     # filter results
     childPeaksFilt <- filterLowaccResults(childPeaks, filterMode, filterSettings)
     childPeaksGood <- childPeaksFilt[["TRUE"]]
     childPeaksBad <- childPeaksFilt[["FALSE"]]
-	if(is.null(childPeaksGood)){
-		childPeaksGood <- childPeaks[c(),,drop=FALSE]
-        childPeaksGood$good <- logical(0)
+  	if(is.null(childPeaksGood)){
+  		childPeaksGood <- childPeaks[c(),,drop=FALSE]
+      childPeaksGood$good <- logical(0)
     }
-	if(is.null(childPeaksBad))
-		childPeaksBad <- childPeaks[c(),,drop=FALSE]
-	childPeaksUnassigned <- childPeaks[is.na(childPeaks$dppm),,drop=FALSE]
-	childPeaksUnassigned$good <- rep(FALSE, nrow(childPeaksUnassigned))
-    # count formulas within new limits
+  	if(is.null(childPeaksBad))
+  		childPeaksBad <- childPeaks[c(),,drop=FALSE]
+  	childPeaksUnassigned <- childPeaks[is.na(childPeaks$dppm),,drop=FALSE]
+  	childPeaksUnassigned$good <- rep(FALSE, nrow(childPeaksUnassigned))
+    
+  	# count formulas within new limits
     # (the results of the "old" count stay in childPeaksInt and are returned
     # in $childPeaks)
-	countFormulasTab <- xtabs( ~formula + mz, data=childPeaksGood)
-	countFormulas <- colSums(countFormulasTab)
-	childPeaksGood$formulaCount <- countFormulas[as.character(childPeaksGood$mz)]
-	  
-	childPeaksUnassigned$formulaCount <- rep(NA, nrow(childPeaksUnassigned))
-	childPeaksBad$formulaCount <- rep(NA, nrow(childPeaksBad))
-	childPeaksBad$good <- rep(FALSE, nrow(childPeaksBad))
-    
-	# Now: childPeaksGood (containing the new, recounted peaks with good = TRUE), and childPeaksBad (containing the 
-	# peaks with good=FALSE, i.e. outside filter criteria, with the old formula count even though it is worthless)
-	# are bound together.
-	childPeaksBad <- childPeaksBad[,colnames(childPeaksGood),drop=FALSE]
-	childPeaksUnassigned <- childPeaksUnassigned[,colnames(childPeaksGood),drop=FALSE]
-	childPeaks <- rbind(childPeaksGood, childPeaksBad, childPeaksUnassigned)
-	
-	# Now let's cross fingers. Add a good=NA column to the unmatched peaks and reorder the columns
-	# to match order in childPeaks. After that, setData to the child slot.
-
-	childPeaksOmitted <- getData(child)
-	childPeaksOmitted <- childPeaksOmitted[child@low | child@satellite,,drop=FALSE]
-	childPeaksOmitted$rawOK <- rep(FALSE, nrow(childPeaksOmitted))
-	childPeaksOmitted$good <- rep(FALSE, nrow(childPeaksOmitted))
-	childPeaksOmitted$dppm <- rep(NA, nrow(childPeaksOmitted))
-	childPeaksOmitted$formula <- rep(NA, nrow(childPeaksOmitted))
-	childPeaksOmitted$mzCalc <- rep(NA, nrow(childPeaksOmitted))
-	childPeaksOmitted$dbe <- rep(NA, nrow(childPeaksOmitted))
+  	countFormulasTab <- xtabs( ~formula + mz, data=childPeaksGood)
+  	countFormulas <- colSums(countFormulasTab)
+  	childPeaksGood$formulaCount <- countFormulas[as.character(childPeaksGood$mz)]
+  	  
+  	childPeaksUnassigned$formulaCount <- rep(NA, nrow(childPeaksUnassigned))
+  	childPeaksBad$formulaCount <- rep(NA, nrow(childPeaksBad))
+  	childPeaksBad$good <- rep(FALSE, nrow(childPeaksBad))
+      
+  	# Now: childPeaksGood (containing the new, recounted peaks with good = TRUE), and childPeaksBad (containing the 
+  	# peaks with good=FALSE, i.e. outside filter criteria, with the old formula count even though it is worthless)
+  	# are bound together.
+  	childPeaksBad <- childPeaksBad[,colnames(childPeaksGood),drop=FALSE]
+  	childPeaksUnassigned <- childPeaksUnassigned[,colnames(childPeaksGood),drop=FALSE]
+  	childPeaks <- rbind(childPeaksGood, childPeaksBad, childPeaksUnassigned)
+  	
+  	# Now let's cross fingers. Add a good=NA column to the unmatched peaks and reorder the columns
+  	# to match order in childPeaks. After that, setData to the child slot.
+  
+  	childPeaksOmitted <- getData(child)
+  	childPeaksOmitted <- childPeaksOmitted[child@low | child@satellite,,drop=FALSE]
+  	childPeaksOmitted$rawOK <- rep(FALSE, nrow(childPeaksOmitted))
+  	childPeaksOmitted$good <- rep(FALSE, nrow(childPeaksOmitted))
+  	childPeaksOmitted$dppm <- rep(NA, nrow(childPeaksOmitted))
+  	childPeaksOmitted$formula <- rep(NA, nrow(childPeaksOmitted))
+  	childPeaksOmitted$mzCalc <- rep(NA, nrow(childPeaksOmitted))
+  	childPeaksOmitted$dbe <- rep(NA, nrow(childPeaksOmitted))
     childPeaksOmitted$dppmBest <- rep(NA, nrow(childPeaksOmitted))
     childPeaksOmitted$formulaCount <- rep(0, nrow(childPeaksOmitted))
-	childPeaks$satellite <- rep(FALSE, nrow(childPeaks))
-	childPeaks$low <- rep(FALSE, nrow(childPeaks))
-	childPeaks$rawOK <- rep(TRUE, nrow(childPeaks))
-    
-	childPeaks <- childPeaks[,colnames(childPeaksOmitted), drop=FALSE]
-	
-	childPeaksTotal <- rbind(childPeaks, childPeaksOmitted)
-	child <- setData(child, childPeaksTotal)
-	child@ok <- TRUE
-	
-	return(child)
+  	childPeaks$satellite <- rep(FALSE, nrow(childPeaks))
+  	childPeaks$low <- rep(FALSE, nrow(childPeaks))
+  	childPeaks$rawOK <- rep(TRUE, nrow(childPeaks))
+      
+  	childPeaks <- childPeaks[,colnames(childPeaksOmitted), drop=FALSE]
+  	
+  	childPeaksTotal <- rbind(childPeaks, childPeaksOmitted)
+  	child <- setData(child, childPeaksTotal)
+  	child@ok <- TRUE
+  	
+  	return(child)
   }
   
   # I believe these lines were fixed to remove a warning but in the refactored workflow "mzranges" doesn't exist anymore.
@@ -768,9 +836,20 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   ## mzmax <- max(mzranges[,2], na.rm=TRUE)
   children <- lapply(msmsPeaks@children, analyzeTandemShot)
   
+  ## correct fields in case of invalid data
+  children <- lapply(children, function(child){
+    if(child@ok)  return(child)
+    child@rawOK        <- rep(x = TRUE,  times = child@peaksCount)
+    child@good         <- rep(x = FALSE, times = child@peaksCount)
+    child@mzCalc       <- as.numeric(  rep(x = NA, times = child@peaksCount))
+    child@formula      <- as.character(rep(x = NA, times = child@peaksCount))
+    child@dbe          <- as.numeric(  rep(x = NA, times = child@peaksCount))
+    child@formulaCount <- as.integer(  rep(x = NA, times = child@peaksCount))
+    child@dppm         <- as.numeric(  rep(x = NA, times = child@peaksCount))
+    child@dppmBest     <- as.numeric(  rep(x = NA, times = child@peaksCount))
+    return(child)
+  })
   
-
-
 ## shots <- mapply(function(shot, scan, info)
   ##         {
   ##             shot$scan <- scan
@@ -796,11 +875,9 @@ analyzeMsMs.intensity <- function(msmsPeaks, mode="pH", detail=FALSE, run="preli
 		cut <- filterSettings$prelimCut
 		if(is.na(cut))
 		{
-			if(mode %in% c("pH", "pM", "pNa", "pNH4"))
-				cut <- 1e4
-			else if(mode %in% c("mH", "mFA", "mM"))
-				cut <- 0
-			else stop(paste("The ionization mode", mode, "is unknown."))
+		  adductProperties <- getAdductProperties(mode, msmsPeaks@formula)
+		  if(adductProperties$charge > 0) cut <- 1e4
+		  if(adductProperties$charge < 0) cut <- 0
 		}
 		cutRatio <- filterSettings$prelimCutRatio
 	}
@@ -1046,12 +1123,22 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 							return(table.c)
 						})
 				table.cpd <- do.call(rbind, tables.c)
+				
+				## complete missing columns if necessary
+				## mz intensity  good                                                                   scan cpdID parentScan
+				## mz intensity  good    mzCalc    formula    dbe    formulaCount    dppm    dppmBest   scan cpdID parentScan
+				columnNames <- c(       "mzCalc", "formula", "dbe", "formulaCount", "dppm", "dppmBest")
+				if(all(!(columnNames %in% colnames(table.cpd))))
+				  for(columnName in columnNames)
+				    table.cpd[, columnName] <- as.numeric(rep(x = NA, times = nrow(table.cpd)))
+				
 				table.cpd$cpdID <- rep(s@id, nrow(table.cpd))
 				table.cpd$parentScan <- rep(s@parent@acquisitionNum, nrow(table.cpd))
 				return(table.cpd)
 			})
 	#return(compoundTables)
 	aggTable <- do.call(rbind, compoundTables)
+	if(is.null(aggTable)) aggTable <- data.frame("mz"=numeric(), "intensity"=numeric(), "good"=logical(), "mzCalc"=numeric(), "formula"=character(), "dbe"=numeric(), "formulaCount"=integer(), "dppm"=numeric(), "dppmBest"=numeric(), "scan"=integer(), "cpdID"=integer(), "parentScan"=integer(), stringsAsFactors=FALSE)
 	colnames(aggTable)[1] <- "mzFound"
 
 	aggTable <- addProperty(aggTable, "dppmRc", "numeric")
@@ -1091,22 +1178,21 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 cleanElnoise <- function(peaks, noise=getOption("RMassBank")$electronicNoise,
 		width = getOption("RMassBank")$electronicNoiseWidth)
 {
-	
 	peaks <- addProperty(peaks, "noise", "logical", FALSE)
-	  
-	  # I don't think this makes sense if using one big table...
-	  ## # use only best peaks
-	  ## p_best <- peaks[is.na(peaks$dppmBest) | (peaks$dppm == peaks$dppmBest),]
-      
-      # remove known electronic noise
-      p_eln <- peaks
-      for(noisePeak in noise)
-      {
+	
+	# I don't think this makes sense if using one big table...
+	## # use only best peaks
+	## p_best <- peaks[is.na(peaks$dppmBest) | (peaks$dppm == peaks$dppmBest),]
+  
+  # remove known electronic noise
+  p_eln <- peaks
+  for(noisePeak in noise)
+  {
 		noiseMatches <- which(!((p_eln$mzFound > noisePeak + width)	| (p_eln$mzFound < noisePeak - width)))
 		if(length(noiseMatches) > 0)
 			p_eln[noiseMatches, "noise"] <- TRUE
-      }
-      return(p_eln)
+  }
+  return(p_eln)
 }
 
 #' Identify intense peaks (in a list of unmatched peaks)
@@ -1202,7 +1288,7 @@ processProblematicPeaks <- function(w, mode, archivename = NA)
 	
 	# Add the info to specs
 	specs <- addProperty(specs, "problematicPeak", "logical", FALSE)
-	specs[match(fp$index, specs$index),"problematicPeak"] <- TRUE
+	if(nrow(specs) > 0)	specs[match(fp$index, specs$index),"problematicPeak"] <- TRUE
 	
 	# Select the columns for output into the failpeaks file
 	fp <- fp[,c("OK", "name", "cpdID", "scan", "mzFound", "formula", 
@@ -1297,7 +1383,7 @@ makeRecalibration <- function(w, mode,
 		stop("No spectra present to generate recalibration curve.")
 
 	rcdata <- peaksMatched(w)
-	rcdata <- rcdata[rcdata$formulaCount == 1, ,drop=FALSE]
+	rcdata <- rcdata[!is.na(rcdata$formulaCount) & rcdata$formulaCount == 1, ,drop=FALSE]
 	
 	rcdata <- rcdata[,c("mzFound", "dppm", "mzCalc")]
 	
@@ -1336,9 +1422,9 @@ makeRecalibration <- function(w, mode,
 	# plot the model
 	par(mfrow=c(2,2))
 	if(nrow(rcdata)>0)
-		plotRecalibration.direct(rcdata, rc, rc.ms1, "MS2", 
-				range(rcdata$mzFound),
-				recalibrateBy)
+		plotRecalibration.direct(rcdata = rcdata, rc = rc, rc.ms1 = rc.ms1, title = "MS2", 
+				mzrange = range(rcdata$mzFound),
+				recalibrateBy = recalibrateBy)
 	if(nrow(ms1data)>0)
 		plotRecalibration.direct(ms1data, rc, rc.ms1, "MS1",
 				range(ms1data$mzFound),
@@ -1716,32 +1802,6 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	# here follows the Rcdk analysis
 	#------------------------------------
 	
-	# define the adduct additions
-	if(mode == "pH") {
-		allowed_additions <- "H"
-		mode.charge <- 1
-	} else if(mode == "pNa") {
-		allowed_additions <- "Na"
-		mode.charge <- 1
-	} else if(mode == "pM") {
-		allowed_additions <- ""
-		mode.charge <- 1
-	} else if(mode == "mM") {
-		allowed_additions <- ""
-		mode.charge <- -1
-	} else if(mode == "mH") {
-		allowed_additions <- "H-1"
-		mode.charge <- -1
-	} else if(mode == "mFA") {
-		allowed_additions <- "C2H3O2"
-		mode.charge <- -1
-	} else if(mode == "pNH4") {
-		allowed_additions <- "NH4"
-		mode.charge <- 1
-	} else {
-          stop("mode = \"", mode, "\" not defined")
-        }
-	
 	# the ppm range is two-sided here.
 	# The range is slightly expanded because dppm calculation of
 	# generate.formula starts from empirical mass, but dppm cal-
@@ -1749,6 +1809,11 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	# So we don't miss the points on 'the border'.
     
 	db_formula <- findFormula(cpdID, retrieval=findLevel(cpdID,TRUE))
+	
+	# get the adduct additions
+	adductProperties <- getAdductProperties(mode, db_formula)
+	allowed_additions <- adductProperties$addition
+	mode.charge <- adductProperties$charge
 	
 	ppmlimit <- 2.25 * filterSettings$ppmFine
 	parent_formula <- add.formula(db_formula, allowed_additions)
@@ -1758,7 +1823,7 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	#print(parent_formula)
 	limits <- to.limits.rcdk(parent_formula)        
 	
-	peakformula <- suppressWarnings(generate.formula(mass, ppm(mass, ppmlimit, p=TRUE), 
+	peakformula <- tryCatch(suppressWarnings(rcdk::generate.formula(mass, ppm(mass, ppmlimit, p=TRUE), 
 					limits, charge=mode.charge))
 	# was a formula found? If not, return empty result
 	if(length(peakformula)==0)
@@ -1865,10 +1930,10 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 		peaks <- cbind(peaks, data.frame(formulaMultiplicity=numeric()))
 		if(recalcBest){
 			if(formulacol == "formula"){
-				warning("filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point if this error message also shows for reanalyzed peaks.")
+			  cat(paste("### Warning ### filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point if this error message also shows for reanalyzed peaks."))
 			}
 			if(formulacol == "reanalyzed.formula"){
-				warning("filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point if this error message also shows for reanalyzed peaks.")
+				warning("filterPeaksMultiplicity: All peaks have been filtered. The workflow can not be continued beyond this point.")
 			}
 			peaks$fM_factor <- as.factor(peaks$formulaMultiplicity)
 			return(peaks)
@@ -1877,8 +1942,7 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 	else
 	{
 		# calculate duplicity info
-		multInfo <- aggregate(as.data.frame(peaks$scan),
-			list(peaks$cpdID, peaks[,formulacol]), FUN=length)
+		multInfo <- aggregate(as.data.frame(peaks$scan), list(peaks$cpdID, peaks[,formulacol]), FUN=length)
 		# just for comparison:
 		# nform <- unique(paste(pks$cpdID,pks$formula))
 		
@@ -2020,22 +2084,16 @@ filterPeaksMultiplicity <- function(peaks, formulacol, recalcBest = TRUE)
 filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 		multiplicityFilter = getOption("RMassBank")$multiplicityFilter)
 {
-    # Read multiplicity filter setting
-    # For backwards compatibility: If the option is not set, define as 2
-    # (which was the behaviour before we introduced the option)
-    if(is.null(multiplicityFilter))
-      multiplicityFilter <- 2
+  # Read multiplicity filter setting
+  # For backwards compatibility: If the option is not set, define as 2
+  # (which was the behaviour before we introduced the option)
+  if(is.null(multiplicityFilter))
+    multiplicityFilter <- 2
   
-    specs <- w@aggregated
-    
-    peaksFiltered <- filterPeaksMultiplicity(peaksMatched(specs),
-                                                        "formula", recalcBest)
-												
-												
-    peaksFilteredReanalysis <- 
-      filterPeaksMultiplicity(specs[!is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE], "reanalyzed.formula", FALSE)
-    
-			
+  specs <- w@aggregated
+  
+  peaksFiltered <- filterPeaksMultiplicity(peaksMatched(specs), "formula", recalcBest)
+  peaksFilteredReanalysis <- filterPeaksMultiplicity(specs[!is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE], "reanalyzed.formula", FALSE)
 	
 	specs <- addProperty(specs, "formulaMultiplicity", "numeric", 0)
 	
@@ -2063,7 +2121,7 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 		
     # Kick the M+H+ satellites out of peaksReanOK:
     peaksReanOK$mzCenter <- as.numeric(
-      unlist(lapply(peaksReanOK$cpdID, function(id) findMz(id, retrieval=findLevel(id,TRUE))$mzCenter)) )
+      unlist(lapply(peaksReanOK$cpdID, function(id) findMz(id, mode=mode, retrieval=findLevel(id,TRUE))$mzCenter)) )
     peaksReanBad <- peaksReanOK[
 			!((peaksReanOK$mzFound < peaksReanOK$mzCenter - 1) |
 			(peaksReanOK$mzFound > peaksReanOK$mzCenter + 1)),]

@@ -47,8 +47,8 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	.checkMbSettings()
 	##Read the files and cpdids according to the definition
 	##All cases are silently accepted, as long as they can be handled according to one definition
-	if(!any(mode %in% c("pH","pNa","pM","pNH4","mH","mFA","mM",""))) stop(paste("The ionization mode", mode, "is unknown."))
-    
+	if(!any(mode %in% knownAdducts())) stop(paste("The ionization mode", mode, "is unknown."))
+  
 	if(is.null(filetable)){
 		##If no filetable is supplied, filenames must be named explicitly
 		if(is.null(files))
@@ -77,7 +77,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		stop("There are a different number of cpdids than files")
 	}
 	
-	if(!(readMethod %in% c("mzR","peaklist","xcms","minimal"))){
+	if(!(readMethod %in% c("mzR","peaklist","xcms","minimal","msp"))){
 		stop("The supplied method does not exist")
 	}
 	
@@ -92,16 +92,16 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
     # }
 	
 	##This should work
-    if(readMethod == "minimal"){
-        ##Edit options
-        opt <- getOption("RMassBank")
-        opt$recalibrator$MS1 <- "recalibrate.identity"
-        opt$recalibrator$MS2 <- "recalibrate.identity"
-        opt$add_annotation==FALSE
-        options(RMassBank=opt)
-        ##Edit analyzemethod
-        analyzeMethod <- "intensity"
-    }
+  if(readMethod == "minimal"){
+      ##Edit options
+      opt <- getOption("RMassBank")
+      opt$recalibrator$MS1 <- "recalibrate.identity"
+      opt$recalibrator$MS2 <- "recalibrate.identity"
+      opt$add_annotation==FALSE
+      options(RMassBank=opt)
+      ##Edit analyzemethod
+      analyzeMethod <- "intensity"
+  }
 	
 	if(readMethod == "mzR"){
 		##Progressbar
@@ -136,7 +136,6 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 							return(spec)
 						} ), "SimpleList")
 		names(w@spectra) <- basename(as.character(w@files))
-		return(w)
 	}
 	
 	##xcms-readmethod 
@@ -169,29 +168,27 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 						
 						return(spec)
 					}),FALSE),"SimpleList")
-			return(w)
+		} else {
+		  ##Routine for the other cases
+		  w@spectra <- as(lapply(uIDs, function(ID){
+		    # Find files corresponding to the compoundID
+		    currentFile <- w@files[which(cpdids == ID)]
+		    
+		    # Retrieve spectrum data
+		    spec <- findMsMsHRperxcms(currentFile, ID, mode=mode, findPeaksArgs=Args, plots, MSe = MSe)
+		    gc()
+		    
+		    # Progress:
+		    nProg <<- nProg + 1
+		    pb <- do.call(progressbar, list(object=pb, value= nProg))
+		    
+		    return(spec)
+		  }),"SimpleList")
+		  ##If there are more files than unique cpdIDs, only remember the first file for every cpdID
+		  w@files <- w@files[sapply(uIDs, function(ID){
+		    return(which(cpdids == ID)[1])
+		  })]
 		}
-		
-		##Routine for the other cases
-		w@spectra <- as(lapply(uIDs, function(ID){
-					# Find files corresponding to the compoundID
-					currentFile <- w@files[which(cpdids == ID)]
-					
-					# Retrieve spectrum data
-					spec <- findMsMsHRperxcms(currentFile, ID, mode=mode, findPeaksArgs=Args, plots, MSe = MSe)
-					gc()
-					
-					# Progress:
-					nProg <<- nProg + 1
-					pb <- do.call(progressbar, list(object=pb, value= nProg))
-					
-					return(spec)
-				}),"SimpleList")
-		##If there are more files than unique cpdIDs, only remember the first file for every cpdID
-		w@files <- w@files[sapply(uIDs, function(ID){
-			return(which(cpdids == ID)[1])
-		})]
-		return(w)
 	}
 	
 	##Peaklist-readmethod 
@@ -207,10 +204,63 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		
 		w@files <- sapply(files,function(file){return(file[1])})
 		message("Peaks read")
-		return(w)
 	}
+  
+  ##MSP-readmethod 
+  if(readMethod == "msp"){
+    ##Find unique files and cpdIDs
+    ufiles <- unique(w@files)
+    uIDs <- unique(cpdids)
+    nLen <- length(ufiles)
+    
+    ##Progressbar
+    nProg <- 0
+    pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
+    i <- 1
+    
+    ##Routine for the case of multiple cpdIDs per file
+    if(length(uIDs) > length(ufiles)){
+      w@spectra <- as(unlist(lapply(ufiles, function(currentFile){
+        fileIDs <- cpdids[which(w@files == currentFile)]
+        spec <- findMsMsHRperMsp(fileName = currentFile, cpdIDs = fileIDs, mode=mode)
+        gc()
+        
+        # Progress:
+        nProg <<- nProg + 1
+        pb <- do.call(progressbar, list(object=pb, value= nProg))
+        
+        return(spec)
+      }),FALSE),"SimpleList")
+    } else {
+      ##Routine for the other cases
+      w@spectra <- as(lapply(uIDs, function(ID){
+        # Find files corresponding to the compoundID
+        currentFile <- w@files[which(cpdids == ID)]
+        
+        # Retrieve spectrum data
+        spec <- findMsMsHRperMsp(fileName = currentFile, cpdIDs = ID, mode=mode)
+        gc()
+        
+        # Progress:
+        nProg <<- nProg + 1
+        pb <- do.call(progressbar, list(object=pb, value= nProg))
+        
+        return(spec)
+      }),"SimpleList")
+      ##If there are more files than unique cpdIDs, only remember the first file for every cpdID
+      w@files <- w@files[sapply(uIDs, function(ID){
+        return(which(cpdids == ID)[1])
+      })]
+    }
+  }
 	
-	
+  ## verbose output
+  if(RMassBank.env$verbose.output)
+    for(parentIdx in seq_along(w@spectra))
+      if(!w@spectra[[parentIdx]]@found)
+        cat(paste("### Warning ### No precursor ion was detected for ID '", w@spectra[[parentIdx]]@id, "'\n", sep = ""))
+  
+  return(w)
 }
 
 #' 
