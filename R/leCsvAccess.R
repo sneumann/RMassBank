@@ -359,19 +359,49 @@ getMonoisotopicMass <- function(formula){
 getAdductInformation <- function(formula){
   adductDf <- as.data.frame(rbind(
     
-    ## strange negative adducts
-    c(mode = "mpM",            addition = formula,    charge = -1, adductString = "[2M]-"),
-    c(mode = "m2H_pHCOOH_pNa", addition = "Na1C1O2",  charge = -1, adductString = "[M+HCOOH+Na-2H]-"),
-    c(mode = "mH_p2H",         addition = "H2",       charge = -1, adductString = "[M+3H-H]-"),
-    c(mode = "mH_pH",          addition = "H1",       charge = -1, adductString = "[M+2H-H]-"),
-    c(mode = "mH_pH2O",        addition = "H1O1",     charge = -1, adductString = "[M+H2O-H]-"),
-    c(mode = "m4H_pM_p3Na",    addition = add.formula(formula, "Na3H-4"),    charge = -1, adductString = "[2M+3Na-4H]-"),
-    c(mode = "m2H_mNH3_pNa",   addition = add.formula(formula, "Na1N-1H-5"), charge = -1, adductString = "[2M-NH3+Na-2H]-"),
-    c(mode = "m3H_pM_p2Na",    addition = add.formula(formula, "Na2H-3"),    charge = -1, adductString = "[2M+2Na-3H]-"),
-    c(mode = "m3H_pM",         addition = add.formula(formula, "H-3"),       charge = -1, adductString = "[2M-3H]-"),
-    c(mode = "mH_p2M",         addition = add.formula(formula, add.formula(formula, "H-1")), charge = -1, adductString = "[3M-H]-"),
-    
-    ## strange positive adducts
+    ## positive: M+X
+    c(mode = "pH",       addition = "H",         charge = 1, adductString = "[M+H]+"),
+    c(mode = "pLi",      addition = "Li",        charge = 1, adductString = "[M+Li]+"),
+    c(mode = "pNa",      addition = "Na",        charge = 1, adductString = "[M+Na]+"),
+    c(mode = "pNa_mO3S_mH",      addition = "Na1O-3S-1H-1",        charge = 1, adductString = "[M-O3S-H+Na]+"),
+    c(mode = "pK",       addition = "K",         charge = 1, adductString = "[M+K]+"),
+    c(mode = "pM",       addition = "",          charge = 1, adductString = "[M]+"),
+    c(mode = "pM_mC7H11NO9S2",       addition = "C-7H-11NO-9S-2",          charge = 1, adductString = "[M-C7H11NO9S2]+"),
+    c(mode = "pM_mC7H12NO9S2",       addition = "C-7H-12NO-9S-2",          charge = 1, adductString = "[M-C7H12NO9S2]+"),
+    c(mode = "pNH4",     addition = "NH4",       charge = 1, adductString = "[M+NH4]+"),
+    c(mode = "p2Na_mH",  addition = "Na2H-1",    charge = 1, adductString = "[M+2Na-H]+"),
+    c(mode = "pACN_pH",  addition = "C2H4N1",    charge = 1, adductString = "[M+ACN+H]+"),
+    c(mode = "pACN_pNa", addition = "C2H3N1Na1", charge = 1, adductString = "[M+ACN+Na]+"),
+    c(mode = "pH_mC7H6O",     addition = "C-7H-5O-1", charge = 1, adductString = "[M-C7H6O+H]+"),
+    c(mode = "pH_mC18H30O14", addition = "C-18H-29O-14", charge = 1, adductString = "[M-C18H30O14+H]+"),
+    c(mode = "pH_mC6H10O5",   addition = "C-6H-9O-5", charge = 1, adductString = "[M-C6H10O5+H]+"),
+    c(mode = "pH_mC12H20O9",  addition = "C-12H-19O-9", charge = 1, adductString = "[M-C12H20O9+H]+"),
+    c(mode = "pH_mC9H8O4_mH2O",  addition = "C-9H-9O-5", charge = 1, adductString = "[M-C9H8O4-H2O+H]+"),
+    c(mode = "pH_mC6H10O5_mH2O", addition = "C-6H-11O-6", charge = 1, adductString = "[M-C6H10O5-H2O+H]+"),
+    c(mode = "pH_mC5H8NO4",   addition = "C-5H-7N-1O-4", charge = 1, adductString = "[M-C5H8NO4+H]+"),
+    c(mode = "pH_mO3S",       addition = "O-3S-1H1", charge = 1, adductString = "[M-O3S+H]+"),
+    c(mode = "pH_mC6H10O8S",  addition = "C-6H-9O-8S-1", charge = 1, adductString = "[M-C6H10O8S+H]+"),
+    c(mode = "pH_mC5H10N2O",  addition = "C-5H-9N-2O-1", charge = 1, adductString = "[M-C5H10N2O+H]+"),
+    c(mode = "pH_mHO3P",      addition = "O-3P-1", charge = 1, adductString = "[M-HO3P+H]+"),
+    c(mode = "pH_mC4H7",      addition = "C-4H-6", charge = 1, adductString = "[M-C4H7+H]+"),
+    c(mode = "pH_mC6H10O4",   addition = "C-6H-9O-4", charge = 1, adductString = "[M-C6H10O4+H]+"),
+    c(mode = "pH_mC5H8O3",    addition = "C-5H-7O-3", charge = 1, adductString = "[M-C5H8O3+H]+"),
+    c(mode = "pH_mCO",        addition = "H-1C-1O-1", charge = 1, adductString = "[M-CO+H]+"),
+    c(mode = "pH_mO3",        addition = "H-1O-3", charge = 1, adductString = "[M-O3+H]+"),
+    c(mode = "pH_mC3H6",      addition = "C-3H-5", charge = 1, adductString = "[M-C3H6+H]+"),
+    c(mode = "pH_mC4H3O5",    addition = "C-4H-2O-5", charge = 1, adductString = "[M-C4H3O5+H]+"),
+    c(mode = "pH_mC6H11O6",   addition = "C-6H-10O-6", charge = 1, adductString = "[M-C6H11O6+H]+"),
+    c(mode = "pH_mH2O",  addition = "H-1O-1",    charge = 2, adductString = "[M-H2O+H]+"),
+    c(mode = "pNa_mH2O", addition = "H-2O-1Na1", charge = 2, adductString = "[M-H2O+Na]+"),
+    c(mode = "p2H",      addition = "H2",        charge = 2, adductString = "[M+2H]2+"),
+    c(mode = "pACN_p2H", addition = "C2H5N1",    charge = 2, adductString = "[M+ACN+2H]2+"),
+    ## positive: 2M+X
+    c(mode = "pM_pH",      addition = add.formula(formula, "H1"),     charge = 1, adductString = "[2M+H]+"),
+    c(mode = "pM_pK",      addition = add.formula(formula, "K1"),     charge = 1, adductString = "[2M+K]+"),
+    c(mode = "pM_pNa",     addition = add.formula(formula, "Na1"),    charge = 1, adductString = "[2M+Na]+"),
+    c(mode = "pM_pNH4",    addition = add.formula(formula, "N1H4"),   charge = 1, adductString = "[2M+NH4]+"),
+    c(mode = "pM_pACN_pH", addition = add.formula(formula, "C2H4N1"), charge = 1, adductString = "[2M+ACN+H]+"),
+    ## positive: strange positive adducts
     c(mode = "pCOONa",         addition = "C1O2Na1", charge =  1, adductString = "[M+COONa]+"),
     c(mode = "p3H_c1",         addition = "H3",      charge =  1, adductString = "[M+3H]+"),
     c(mode = "pH2O_c1",        addition = "H2O1",    charge =  1, adductString = "[M+H2O]+"),
@@ -399,39 +429,42 @@ getAdductInformation <- function(formula){
     c(mode = "pM_mH_pH",       addition = formula,   charge =  1, adductString = "[2M-H+H]+"),
     c(mode = "pH_c2",          addition = "H1",      charge =  2, adductString = "[M+H]2+"),
     
-    ## M+X
-    c(mode = "pH",       addition = "H",         charge = 1, adductString = "[M+H]+"),
-    c(mode = "pLi",      addition = "Li",        charge = 1, adductString = "[M+Li]+"),
-    c(mode = "pNa",      addition = "Na",        charge = 1, adductString = "[M+Na]+"),
-    c(mode = "pK",       addition = "K",         charge = 1, adductString = "[M+K]+"),
-    c(mode = "pM",       addition = "",          charge = 1, adductString = "[M]+"),
-    c(mode = "pNH4",     addition = "NH4",       charge = 1, adductString = "[M+NH4]+"),
-    c(mode = "p2Na_mH",  addition = "Na2H-1",    charge = 1, adductString = "[M+2Na-H]+"),
-    c(mode = "pACN_pH",  addition = "C2H4N1",    charge = 1, adductString = "[M+ACN+H]+"),
-    c(mode = "pACN_pNa", addition = "C2H3N1Na1", charge = 1, adductString = "[M+ACN+Na]+"),
-    c(mode = "pH_mH2O",  addition = "H-1O-1",    charge = 2, adductString = "[M-H2O+H]+"),
-    c(mode = "pNa_mH2O", addition = "H-2O-1Na1", charge = 2, adductString = "[M-H2O+Na]+"),
-    c(mode = "p2H",      addition = "H2",        charge = 2, adductString = "[M+2H]2+"),
-    c(mode = "pACN_p2H", addition = "C2H5N1",    charge = 2, adductString = "[M+ACN+2H]2+"),
-    ## 2M+X
-    c(mode = "pM_pH",      addition = add.formula(formula, "H1"),     charge = 1, adductString = "[2M+H]+"),
-    c(mode = "pM_pK",      addition = add.formula(formula, "K1"),     charge = 1, adductString = "[2M+K]+"),
-    c(mode = "pM_pNa",     addition = add.formula(formula, "Na1"),    charge = 1, adductString = "[2M+Na]+"),
-    c(mode = "pM_pNH4",    addition = add.formula(formula, "N1H4"),   charge = 1, adductString = "[2M+NH4]+"),
-    c(mode = "pM_pACN_pH", addition = add.formula(formula, "C2H4N1"), charge = 1, adductString = "[2M+ACN+H]+"),
-    ## M-X
+    
+    ## negative: M-X
     c(mode = "mH",      addition = "H-1",    charge = -1, adductString = "[M-H]-"),
+    c(mode = "mCl",     addition = "Cl-1",   charge = -1, adductString = "[M+Cl]-"),
     c(mode = "mFA",     addition = "C1O2H",  charge = -1, adductString = "[M+HCOOH-H]-"),
+    c(mode = "mH_pTFA", addition = "C2F3O2", charge = -1, adductString = "[M+CF3CO2H-H]-"),
+    
+    c(mode = "mH_mC6H10O5", addition = "C-6H-11O-5", charge = -1, adductString = "[M-C6H10O5-H]-"),
+    
     c(mode = "mFA_pH",  addition = "C1O2H2", charge = -1, adductString = "[M+HCOOH]-"),
     c(mode = "mH_mH2O", addition = "H-3O-1", charge = -1, adductString = "[M-H2O-H]-"),
+    c(mode = "mCO2",    addition = "C-1O-2", charge = -1, adductString = "[M-CO2]-"),
+    c(mode = "mH_mCH3", addition = "C-1H-4", charge = -1, adductString = "[M-CH3-H]-"),
+    c(mode = "mH_mCO2", addition = "C-1H-1O-2", charge = -1, adductString = "[M-CO2-H]-"),
+    c(mode = "mCH3",    addition = "C-1H-3", charge = -1, adductString = "[M-CH3]-"),
     c(mode = "m2H_pNa", addition = "H-2Na1", charge = -1, adductString = "[M+Na-2H]-"),
     c(mode = "mM",      addition = "",       charge = -1, adductString = "[M]-"),
     c(mode = "m2H",     addition = "H-2",    charge = -1, adductString = "[M-2H]-"), ## in case of positively charged compounds
-    ## 2M-X
+    c(mode = "m2H_c2",  addition = "H-2",    charge = -2, adductString = "[M-2H]2-"),
+    ## negative: 2M-X
     c(mode = "mH_pM",      addition = add.formula(formula, "H-1"),    charge = -1, adductString = "[2M-H]-"),
     c(mode = "mFA_pM",     addition = add.formula(formula, "C1O2H"),  charge = -1, adductString = "[2M+HCOOH-H]-"),
     c(mode = "mH_pM_mH2O", addition = add.formula(formula, "H-3O-1"), charge = -1, adductString = "[2M-H2O-H]-"),
     c(mode = "m2H_pM_pNa", addition = add.formula(formula, "H-2Na1"), charge = -1, adductString = "[2M+Na-2H]-"),
+    ## negative: strange adducts
+    c(mode = "mpM",            addition = formula,    charge = -1, adductString = "[2M]-"),
+    c(mode = "m2H_pHCOOH_pNa", addition = "Na1C1O2",  charge = -1, adductString = "[M+HCOOH+Na-2H]-"),
+    c(mode = "mH_p2H",         addition = "H2",       charge = -1, adductString = "[M+3H-H]-"),
+    c(mode = "mH_pH",          addition = "H1",       charge = -1, adductString = "[M+2H-H]-"),
+    c(mode = "mH_pH2O",        addition = "H1O1",     charge = -1, adductString = "[M+H2O-H]-"),
+    c(mode = "m4H_pM_p3Na",    addition = add.formula(formula, "Na3H-4"),    charge = -1, adductString = "[2M+3Na-4H]-"),
+    c(mode = "m2H_mNH3_pNa",   addition = add.formula(formula, "Na1N-1H-5"), charge = -1, adductString = "[2M-NH3+Na-2H]-"),
+    c(mode = "m3H_pM_p2Na",    addition = add.formula(formula, "Na2H-3"),    charge = -1, adductString = "[2M+2Na-3H]-"),
+    c(mode = "m3H_pM",         addition = add.formula(formula, "H-3"),       charge = -1, adductString = "[2M-3H]-"),
+    c(mode = "mH_p2M",         addition = add.formula(formula, add.formula(formula, "H-1")), charge = -1, adductString = "[3M-H]-"),
+    
     ## ???
     c(mode = "",        addition = "",       charge = 0,  adductString = "[M]")
   ), stringsAsFactors = F)
