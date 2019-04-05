@@ -62,4 +62,4 @@ Collate:
     'msmsRead.R'
     'Isotopic_Annotation.R'
     'zzz.R'
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
