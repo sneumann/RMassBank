@@ -544,11 +544,9 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   # filtering out low-intensity (<1e4) and shoulder peaks (deltam/z < 0.5, intensity
   # < 5%) and subsequently matching the peaks to formulas using Rcdk, discarding peaks
   # with insufficient match accuracy or no match.
-  analyzeTandemShot <- function(child)
+  analyzeTandemShot <- function(child, childIdx = 0)
   {
-    childIdx <- which(sapply(X = seq_along(msmsPeaks@children), FUN = function(i){ 
-      all(child@mz == msmsPeaks@children[[i]]@mz) & all(child@rt == msmsPeaks@children[[i]]@rt) & all(child@intensity == msmsPeaks@children[[i]]@intensity) }
-    ))
+
   	shot <- getData(child)
   	shot$row <- which(!is.na(shot$mz))
   	
@@ -644,12 +642,9 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   				# finally back-correct calculated masses for the charge
   				mass <- shot.row[["mz"]]
   				mass.calc <- mass + mode.charge * .emass
-  				peakformula <- tryCatch(suppressWarnings(
+  				peakformula <- suppressWarnings(
   				  rcdk::generate.formula(mass = mass.calc, window = ppm(mass.calc, ppmlimit, p=TRUE), elements = limits, charge=0)
-  				  ), error=function(e)
-  				    ## in case of zero formulas: Error in .jcall(mfSet, "I", "size") :    RcallMethod: invalid object parameter
-  				    NA
-  				)
+  				  )
   				#peakformula <- tryCatch(
   				# generate.formula(mass,
   				# ppm(mass, ppmlimit, p=TRUE),
@@ -834,7 +829,9 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   ## 
   ## mzmin <- min(mzranges[,1], na.rm=TRUE)
   ## mzmax <- max(mzranges[,2], na.rm=TRUE)
-  children <- lapply(msmsPeaks@children, analyzeTandemShot)
+  children <- lapply(seq_along(msmsPeaks@children),
+                     function(i) analyzeTandemShot(msmsPeaks@children[[i]], 
+                                                   childIdx = i))
   
   ## correct fields in case of invalid data
   children <- lapply(children, function(child){
@@ -1823,8 +1820,9 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	#print(parent_formula)
 	limits <- to.limits.rcdk(parent_formula)        
 	
-	peakformula <- tryCatch(suppressWarnings(rcdk::generate.formula(mass, ppm(mass, ppmlimit, p=TRUE), 
-					limits, charge=mode.charge))
+	peakformula <- tryCatch(suppressWarnings(rcdk::generate.formula(
+	  mass = mass, window = ppm(mass, ppmlimit, p=TRUE), 
+			elements = limits, charge=mode.charge)))
 	# was a formula found? If not, return empty result
 	if(length(peakformula)==0)
 		return(as.data.frame(
