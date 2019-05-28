@@ -111,17 +111,17 @@ resetInfolists <- function(mb)
 							CH.IUPAC = character(0), CH.LINK.CAS = character(0), CH.LINK.CHEBI = integer(0), 
 							CH.LINK.HMDB = character(0), CH.LINK.KEGG = character(0), CH.LINK.LIPIDMAPS = character(0), 
 							CH.LINK.PUBCHEM = character(0), CH.LINK.INCHIKEY = character(0), 
-							CH.LINK.CHEMSPIDER = integer(0)), .Names = c("X", "id", "dbcas", 
+							CH.LINK.CHEMSPIDER = integer(0), CH.LINK.COMPTOX = character(0)), .Names = c("X", "id", "dbcas", 
 							"dbname", "dataused", "COMMENT.CONFIDENCE", "COMMENT.ID", 
 							"CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.COMPOUND_CLASS", "CH.FORMULA", 
 							"CH.EXACT_MASS", "CH.SMILES", "CH.IUPAC", "CH.LINK.CAS", "CH.LINK.CHEBI", 
-							"CH.LINK.HMDB", "CH.LINK.KEGG", "CH.LINK.LIPIDMAPS", "CH.LINK.PUBCHEM", 
-							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER"), row.names = integer(0), class = "data.frame")
+							"CH.LINK.HMDB", "CH.LINK.KEGG", "CH.LINK.LIPIDMAPS", "CH.LINK.PUBCHEM",
+							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER", "CH.LINK.COMPTOX"), row.names = integer(0), class = "data.frame")
 	return(mb)
 	
 }
 
-# The workflow function, i.e. (almost) the only thing you actually need to call. 
+# The workflow function, i.e. (almost) the only thing you actually need to call.
 # See below for explanation of steps.
 #' MassBank record creation workflow
 #' 
@@ -527,6 +527,13 @@ gatherData <- function(id)
 		csid <- getCactus(inchikey_split, 'chemspider_id')
 	}
 	
+	##Get CompTox
+	comptox <- getCompTox(inchikey_split)
+	
+	if(is.null(comptox)){
+	  comptox <- NA
+	}
+	
 	##Use CTS to retrieve information
 	CTSinfo <- getCtsRecord(inchikey_split)
 		
@@ -711,6 +718,7 @@ gatherData <- function(id)
 	}
 	
 	link[["INCHIKEY"]] <- inchikey_split
+	link[["COMPTOX"]] <- comptox
 	if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid)))
 	mbdata[['CH$LINK']] <- link
 	
@@ -1071,7 +1079,9 @@ flatten <- function(mbdata)
               "CH$LINK.LIPIDMAPS",
               "CH$LINK.PUBCHEM",
               "CH$LINK.INCHIKEY",
-              "CH$LINK.CHEMSPIDER")
+              "CH$LINK.CHEMSPIDER",
+	          "CH$LINK.COMPTOX"
+	          )
   # make an empty data frame with the right length
   rows <- length(mbdata)
   cols <- length(colList)
@@ -1136,7 +1146,8 @@ readMbdata <- function(row)
               "CH$LINK.LIPIDMAPS",
               "CH$LINK.PUBCHEM",
               "CH$LINK.INCHIKEY",
-              "CH$LINK.CHEMSPIDER")
+              "CH$LINK.CHEMSPIDER",
+              "CH$LINK.COMPTOX")
   mbdata[["COMMENT"]] = list()
   mbdata[["COMMENT"]][["CONFIDENCE"]] <- row[["COMMENT.CONFIDENCE"]]
   # Again, our ID field. 
@@ -1163,6 +1174,7 @@ readMbdata <- function(row)
   link[["PUBCHEM"]] = row[["CH.LINK.PUBCHEM"]]
   link[["INCHIKEY"]] = row[["CH.LINK.INCHIKEY"]]
   link[["CHEMSPIDER"]] = row[["CH.LINK.CHEMSPIDER"]]
+  link[["COMPTOX"]] = row[["CH.LINK.COMPTOX"]]
   link[which(is.na(link))] <- NULL
   mbdata[["CH$LINK"]] <- link
   # again, these constants are read from the options:
