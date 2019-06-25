@@ -642,10 +642,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   				# finally back-correct calculated masses for the charge
   				mass <- shot.row[["mz"]]
   				mass.calc <- mass + mode.charge * .emass
-  				peakformula <- suppressWarnings(
-  				  rcdk::generate.formula(mass = mass.calc, window = ppm(mass.calc, ppmlimit, p=TRUE), elements = limits, charge=0)
-  				  )
-  				#peakformula <- tryCatch(
+       peakformula <- tryCatch(
+         suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
+                                       limits, charge=0)),
+         error = function(e) list())
   				# generate.formula(mass,
   				# ppm(mass, ppmlimit, p=TRUE),
   				# limits, charge=1),
@@ -1820,9 +1820,10 @@ reanalyzeFailpeak <- function(custom_additions, mass, cpdID, counter, pb = NULL,
 	#print(parent_formula)
 	limits <- to.limits.rcdk(parent_formula)        
 	
-	peakformula <- tryCatch(suppressWarnings(rcdk::generate.formula(
-	  mass = mass, window = ppm(mass, ppmlimit, p=TRUE), 
-			elements = limits, charge=mode.charge)))
+	peakformula <- tryCatch(
+	  suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
+	                                    limits, charge=0)),
+	  error = function(e) list())
 	# was a formula found? If not, return empty result
 	if(length(peakformula)==0)
 		return(as.data.frame(
