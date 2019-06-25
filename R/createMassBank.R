@@ -253,7 +253,8 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
                     return(res)
                 })
         # check which compounds have useful spectra
-        ok <- unlist(lapply(X = selectSpectra(mb@spectra, "found", "object"), FUN = function(spec){unlist(lapply(X = spec@children, FUN = function(child){child@ok}))}))
+        ok <- unlist(lapply(X = selectSpectra(mb@spectra, "found", "object"),
+                            FUN = function(spec){any(unlist(lapply(X = spec@children, FUN = function(child){child@ok})))}))
         notEmpty <- unlist(lapply(X = mb@compiled, FUN = length)) > 0
         ok <- ok & notEmpty
         mb@ok <- which(ok)
