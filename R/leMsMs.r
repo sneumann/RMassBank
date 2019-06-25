@@ -1984,7 +1984,7 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 	# now add the filter criterion to the spectra:
 	spectra <- lapply(w@spectra, function(sp)
 			{
-				mz <- findMz(sp@id, retrieval=findLevel(sp@id,TRUE))$mzCenter
+				mz <- sp@mz
 				if(length(sp@children) == 0)
 					return(sp)
 				children <- lapply(sp@children, function(ch)

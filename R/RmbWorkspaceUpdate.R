@@ -64,22 +64,26 @@
 			w.new@parent <- w.parent.new
 		}
 		w.new@spectra <- .updateObject.spectra(w.old@specs, w.old@analyzedSpecs)
-		if(7 %in% progress)
+		if(any(c(3,6,7) %in% progress))
 		{
-			w.new@aggregated <- .updateObject.aggregated(w.old@reanalyzedRcSpecs)
+			w.new@aggregated <- aggregateSpectra(w.new, addIncomplete=TRUE)
+			warning("You are loading an archive from an old RMassBank version. The aggregate tables are not loaded from the original object, but recomputed.")
+			warning("If you hand-edited any aggregate table, the information might not be retained in the new object.")
 		}
-		else if(6 %in% progress)
-		{
-			w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedRcSpecs)
-		}
-		else if(3 %in% progress)
-		{
-			w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedSpecs)
-		}
+		# else if(6 %in% progress)
+		# {
+		# 	w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedRcSpecs)
+		# }
+		# else if(3 %in% progress)
+		# {
+		# 	w.new@aggregated <- .updateObject.aggregated(w.old@aggregatedSpecs)
+		# }
 		
 		if(8 %in% progress)
 		{
 			w.new@aggregated <- .updateObject.refiltered(w.new, w.new@aggregated, w.old@refilteredRcSpecs)
+			warning("You are loading an archive from an old RMassBank version. The multiplicity filtering results are not loaded from the original object, but recomputed.")
+			warning("If you hand-edited any multiplicity filtering results, the information might not be retained in the new object.")
 		}
 		
 	}
@@ -482,53 +486,17 @@
   # Filter peaks again, and redetermine the filterMultiplicity settings heuristically - 
   # it is much easier than substituting the info in from the refiltering table
   
-  peaksFiltered <- filterPeaksMultiplicity(peaksMatched(specs),
-                                           "formula", TRUE)
-  
-  
-  peaksFilteredReanalysis <- 
-    filterPeaksMultiplicity(specs[!is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE], "reanalyzed.formula", FALSE)
-  
-  
-  
-  specs <- addProperty(specs, "formulaMultiplicity", "numeric", 0)
-  
-  # Reorder the columns of the filtered peaks such that they match the columns
-  # of the original aggregated table; such that the columns can be substituted in.
-  
-  peaksFiltered <- peaksFiltered[,colnames(specs)]
-  peaksFilteredReanalysis <- peaksFilteredReanalysis[,colnames(specs)]
-  
-  # substitute into the parent dataframe
-  specs[match(peaksFiltered$index,specs$index),] <- peaksFiltered
-  specs[match(peaksFilteredReanalysis$index,specs$index),] <- peaksFilteredReanalysis
-  
+  # Get what the lowest multiplicity was, and filter using this.
   multiplicityFilter <- min(refilteredSpecs$peaksOK$formulaMultiplicity, refilteredSpecs$peaksReanOK$formulaMultiplicity)
   
-  specs <- addProperty(specs, "filterOK", "logical", FALSE)
   
-  specs[specs$formulaMultiplicity > (multiplicityFilter - 1),"filterOK"] <- TRUE
+  w <- filterMultiplicity(
+    w, archivename = NA, mode = NA, multiplicityFilter = multiplicityFilter)
+  # aggregate again:
+  w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
+  w@aggregated <- processProblematicPeaks(w, mode, archivename)
   
-  
-  
-  peaksReanOK <- specs[
-    specs$filterOK & !is.na(specs$matchedReanalysis) & specs$matchedReanalysis,,drop=FALSE]
-  
-  # build M+H+ table
-  mhsat <- lapply(w@spectra, function(s) c(s@id, findMz.formula(s@formula, "pH", 10, 0)$mzCenter))
-  mhsat.df <- as.data.frame(do.call(rbind, mhsat))
-  colnames(mhsat.df) <- c("cpdID", "mass")
-  mhsat.df$mass <- as.numeric(as.character(mhsat.df$mass))
-  
-  # Kick the M+H+ satellites out of peaksReanOK:
-  peaksReanOK$mzCenter <- mhsat.df[match(as.numeric(as.character(peaksReanOK$cpdID)), as.numeric(as.character(mhsat.df$cpdID))),"mass"]
-    
-  peaksReanBad <- peaksReanOK[
-    !((peaksReanOK$mzFound < peaksReanOK$mzCenter - 1) |
-        (peaksReanOK$mzFound > peaksReanOK$mzCenter + 1)),]
-  specs[match(peaksReanBad$index, specs$index),"filterOK"] <- FALSE
-  
-  return(specs)
+  return(w)
   
 }
 
