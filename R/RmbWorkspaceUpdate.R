@@ -53,14 +53,19 @@
 		if(4 %in% progress)
 		{
 			w.parent <- w.old
+			# remove the recalibrated processing results from the future parent workspace
 			slot(w.parent, "recalibratedSpecs", check=FALSE) <- NULL
 			slot(w.parent, "analyzedRcSpecs", check=FALSE) <- NULL
 			slot(w.parent, "aggregatedRcSpecs", check=FALSE) <- NULL
 			slot(w.parent, "reanalyzedRcSpecs", check=FALSE) <- NULL
 			slot(w.parent, "refilteredRcSpecs", check=FALSE) <- NULL
+			# move the recalibrated base data to the base data of the current workspace
 			slot(w.old, "specs", check=FALSE) <- w.old@recalibratedSpecs
 			slot(w.old, "analyzedSpecs", check=FALSE) <- w.old@analyzedRcSpecs
 			w.parent.new <- updateObject(w.parent)
+			# fill in the calibrations into the parent, which are otherwise not copied
+			slot(w.parent.new, "rc", check=FALSE) <- w.old@rc
+			slot(w.parent.new, "rc.ms1", check=FALSE) <- w.old@rc.ms1
 			w.new@parent <- w.parent.new
 		}
 		w.new@spectra <- .updateObject.spectra(w.old@specs, w.old@analyzedSpecs)
