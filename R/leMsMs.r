@@ -273,7 +273,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
                 w, archivename, mode, multiplicityFilter = settings$multiplicityFilter)
 	  # aggregate again:
 	  w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
-	  w@aggregated <- processProblematicPeaks(w, mode, archivename)
+	  w <- processProblematicPeaks(w, archivename)
 
       if(!is.na(archivename))
         archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
@@ -1054,6 +1054,7 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 						})
 				table.cpd <- do.call(rbind, tables.c)
 				table.cpd$cpdID <- rep(s@id, nrow(table.cpd))
+				table.cpd$name <- rep(s@name, nrow(table.cpd))
 				table.cpd$parentScan <- rep(s@parent@acquisitionNum, nrow(table.cpd))
 				return(table.cpd)
 			})
@@ -1067,7 +1068,6 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 		aggTable$index <- 1:nrow(aggTable)
 	
 	aggTable[aggTable$good, "dppmRc"] <- (aggTable[aggTable$good, "mzFound"]/aggTable[aggTable$good, "mzCalc"] - 1)*1e6
-	
 	
 	return(aggTable)
 }
@@ -1185,33 +1185,33 @@ setMethod("cleanElnoise", c("RmbSpectraSet", noise="numeric", width="numeric"), 
 #' 				,,drop=FALSE], peaksMatched(w), mode)
 #' }
 #' @export
-problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
+problematicPeaks <- function(sp)
 {
-  # find spectrum maximum for each peak, and merge into table
-  if(nrow(peaks_matched) == 0){
-	assIntMax <- data.frame(list(integer(0),integer(0),integer(0)))
-  } else{
-	assIntMax <- as.data.frame(aggregate(as.data.frame(peaks_matched$intensity), 
-        by=list(peaks_matched$cpdID, peaks_matched$scan), max))
-  }
-  colnames(assIntMax) <- c("cpdID", "scan", "aMax")
-  peaks_unmatched <- merge(peaks_unmatched, assIntMax)
-  # which of these peaks are intense?
+  sp <- addProperty(sp, "problematicPeak", "logical", FALSE)
+  sp <- addProperty(sp, "aMax", "numeric", 0)
+  sp <- addProperty(sp, "mzCenter", "numeric", sp@precursorMz)
+  peaks <- getData(sp)
+  peaks$`_index` <- seq_len(nrow(peaks))
+  peaks$aMax <- max(peaksMatched(peaks)$intensity)
+  
+  peaks_unmatched <- peaks[!peaks$good,,drop=FALSE]
+  #peaks_unmatched$aMax <- aMax
   p_control <- peaks_unmatched[
-  	( (peaks_unmatched$intensity > 1e5) &
-	(peaks_unmatched$intensity > 0.01*peaks_unmatched$aMax)) 
-			| ( (peaks_unmatched$intensity > 1e4) &
-				(peaks_unmatched$intensity > 0.1* peaks_unmatched$aMax)) ,]
-  # find parent m/z to exclude co-isolated peaks
+    ( (peaks_unmatched$intensity > 1e5) &
+        (peaks_unmatched$intensity > 0.01*peaks_unmatched$aMax)) 
+    | ( (peaks_unmatched$intensity > 1e4) &
+          (peaks_unmatched$intensity > 0.1* peaks_unmatched$aMax)) ,]
+  
+  # use parent m/z to exclude co-isolated peaks
   #p_control$mzCenter <- numeric(nrow(p_control))
-  p_control$mzCenter <- as.numeric(
-    unlist(lapply(p_control$cpdID, function(id) findMz(id, mode, retrieval=findLevel(id,TRUE))$mzCenter)) )
   p_control_noMH <- p_control[
 		  (p_control$mzFound < p_control$mzCenter - 1) |
-		  (p_control$mzFound > p_control$mzCenter + 1),]
-  return(p_control_noMH)
+		  (p_control$mzFound > p_control$mzCenter + 1),,drop=FALSE]
+  if(nrow(p_control_noMH) > 0)
+    peaks[peaks$`_index` %in% p_control_noMH$`_index`]$problematicPeak <- TRUE
+  sp <- setData(sp, peaks)
+  return(sp)
 }
-
 
 #' Generate list of problematic peaks
 #' 
@@ -1226,19 +1226,30 @@ problematicPeaks <- function(peaks_unmatched, peaks_matched, mode="pH")
 #' 
 #' @author stravsmi
 #' @export
-processProblematicPeaks <- function(w, mode, archivename = NA)
+processProblematicPeaks <- function(w, archivename = NA)
 {
+	w@spectra <- as(lapply(w@spectra, function(cpd) {
+	  cpd@children <- as(
+	    lapply(cpd@children, problematicPeaks),
+	    "SimpleList")
+	  cpd
+	}), "SimpleList")
 	
-	specs <- w@aggregated
-	fp <- problematicPeaks(specs[!specs$filterOK & !specs$noise & 
-							((specs$dppm == specs$dppmBest) | (is.na(specs$dppmBest)))
-					,,drop=FALSE], peaksMatched(w), mode)
-	fp$OK <- rep('', nrow(fp))
-	fp$name <- rownames(fp)
+	w@aggregated <- aggregateSpectra(w)
 	
-	fp <- fp[with(fp, 
-					order(cpdID, mzCalc, scan)),,drop=FALSE
-	]
+	fp <- w@aggregated[w@aggregated$problematicPeak,,drop=FALSE]
+	fp$OK <- rep(FALSE, nrow(fp))
+	
+	# Select the columns for output into the failpeaks file
+	fp <- fp[,c("OK", "name", "cpdID", "scan", "mzFound", "formula", 
+	            "mzCalc", "dppm", "dbe", "intensity",
+	            "formulaCount", "parentScan", "aMax", "mzCenter")]		
+	if(!is.na(archivename))
+	  write.csv(fp, file=
+	              paste(archivename,"_Failpeaks.csv", sep=''), row.names=FALSE)
+	
+	return(w)
+	# TODO: Handle combineMultiplicities
 	
 	# Select the correct precursor scans. This serves to filter the list
 	# for the cases where multiple workspaces were combined after step 7
@@ -1251,19 +1262,6 @@ processProblematicPeaks <- function(w, mode, archivename = NA)
 			fp$parentScan %in% precursors
 			,]
 	
-	# Add the info to specs
-	specs <- addProperty(specs, "problematicPeak", "logical", FALSE)
-	specs[match(fp$index, specs$index),"problematicPeak"] <- TRUE
-	
-	# Select the columns for output into the failpeaks file
-	fp <- fp[,c("OK", "name", "cpdID", "scan", "mzFound", "formula", 
-					 "mzCalc", "dppm", "dbe", "intensity",
-					"formulaCount", "parentScan", "aMax", "mzCenter")]		
-	if(!is.na(archivename))
-		write.csv(fp, file=
-						paste(archivename,"_Failpeaks.csv", sep=''), row.names=FALSE)
-	
-	return(specs)
 }
 
 #' Recalibrate MS/MS spectra

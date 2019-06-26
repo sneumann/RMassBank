@@ -81,7 +81,7 @@
 		
 		if(8 %in% progress)
 		{
-			w.new@aggregated <- .updateObject.refiltered(w.new, w.new@aggregated, w.old@refilteredRcSpecs)
+			w.new <- .updateObject.refiltered(w.new, w.new@aggregated, w.old@refilteredRcSpecs)
 			warning("You are loading an archive from an old RMassBank version. The multiplicity filtering results are not loaded from the original object, but recomputed.")
 			warning("If you hand-edited any multiplicity filtering results, the information might not be retained in the new object.")
 		}
@@ -494,7 +494,7 @@
     w, archivename = NA, mode = NA, multiplicityFilter = multiplicityFilter)
   # aggregate again:
   w@aggregated <- aggregateSpectra(w@spectra, addIncomplete=TRUE)
-  w@aggregated <- processProblematicPeaks(w, mode, archivename)
+  w <- processProblematicPeaks(w, "")
   
   return(w)
   
