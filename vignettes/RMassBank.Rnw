@@ -403,8 +403,8 @@ data without making a new recalibration curve:
 storedW <- msmsWorkflow(storedW, mode="pH", steps=4)
 # Copy the recalibration to workspace w and apply it
 # (no graph displayed here)
-w@rc <- storedW@rc
-w@rc.ms1 <- storedW@rc.ms1
+w@rc <- storedW@parent@rc
+w@rc.ms1 <- storedW@parent@rc.ms1
 w <- msmsWorkflow(w, mode="pH", steps=4, archivename = 
 	"pH_narcotics", newRecalibration = FALSE)
 @
