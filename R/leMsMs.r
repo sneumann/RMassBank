@@ -1156,6 +1156,8 @@ setMethod("cleanElnoise", c("RmbSpectrum2List",noise="numeric", width="numeric")
 
 setMethod("cleanElnoise", c("RmbSpectraSet", noise="numeric", width="numeric"), function(peaks, noise, width)
 		{
+      if(length(peaks@children) == 0)
+        return(peaks)
 			children <- lapply(peaks@children, cleanElnoise, noise=noise, width=width)
 			peaks@children <- as(children, "SimpleList")
 			return(peaks)
