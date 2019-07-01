@@ -1682,6 +1682,8 @@ reanalyzeFailpeaks <- function(w, custom_additions, mode, filterSettings =
 					return(sp)
 				
 				children <- lapply(sp@children, function(ch) {
+				      if(!ch@ok)
+				        return(ch)
 							peaks <- getData(ch)
 							peaks.sp <- split(peaks, peaks$good | (!peaks$rawOK))
 							if (!is.null(peaks.sp[["FALSE"]])) {
@@ -1851,7 +1853,11 @@ filterPeaksMultiplicity <- function(w, recalcBest = TRUE)
 	
 	spectra <- lapply(w@spectra, function(sp)
 			{
+	      if(!sp@found)
+	        return(sp)
 				allPeaks <- lapply(sp@children, getData)
+				childrenOK <- unlist(lapply(sp@children, function(c) c@ok))
+				allPeaks <- allPeaks[childrenOK]
 				allPeaks.df <- do.call(rbind, allPeaks)
 				# sum the count per formula
 				formulaMultiplicity <- table(allPeaks.df$formula[isTRUE(allPeaks.df$good)])
@@ -1904,11 +1910,13 @@ filterPeaksMultiplicity <- function(w, recalcBest = TRUE)
 					
 				}
 				# Write the data back to the spectra
-				for(i in seq_along(sp@children))
+				rewritePos <- which(childrenOK)
+				for(i_ in seq_along(rewritePos))
 				{
+				  i <- rewritePos[[i_]]
 					sp@children[[i]] <- addProperty(sp@children[[i]], "formulaMultiplicity", "integer", NA)
 					sp@children[[i]] <- addProperty(sp@children[[i]], "bestMultiplicity", "integer", NA)
-					sp@children[[i]] <- setData(sp@children[[i]], allPeaks[[i]])
+					sp@children[[i]] <- setData(sp@children[[i]], allPeaks[[i_]])
 				}
 				sp
 			})
@@ -1989,6 +1997,8 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 					return(sp)
 				children <- lapply(sp@children, function(ch)
 						{
+				      if(ch@ok == FALSE)
+				        return(ch)
 							# filterOK TRUE if multiplicity is sufficient
 							ch <- addProperty(ch, "filterOK", "logical", NA)
 							property(ch, "filterOK") <- (property(ch, "formulaMultiplicity") > (multiplicityFilter - 1)) & (ch@good == TRUE)
