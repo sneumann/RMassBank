@@ -354,7 +354,7 @@ renderPeaks <- function(spectrum, ..., cpd = NULL, additionalPeaks = NULL)
 	# per peak.
   spectrum <- .fillSlots(spectrum, c("good", "dppm", "dppmBest", "mzCalc", "formula", "formulaCount"))
   peaks <- getData(spectrum)
-  property(spectrum, "best", addNew=TRUE, "logical") <- peaks$good & !is.na(peaks$good) & (peaks$dppm == peaks$dppmBest)
+  property(spectrum, "best", addNew=TRUE, "logical") <- (peaks$good %in% TRUE) & (peaks$dppm == peaks$dppmBest)
   spectrum <- normalize(spectrum, 999, slot="intrel", ...)
   peaks <- getData(selectPeaks(spectrum, ...))
   # filterOK is the final criterion for selection, it includes both reanalyzed and original matches.
@@ -363,29 +363,13 @@ renderPeaks <- function(spectrum, ..., cpd = NULL, additionalPeaks = NULL)
   # rawOK gives the unfiltered, not denoised spectrum.
   # Any other condition can be used (also for example intrel > 50)
   
+  if(!getOption("RMassBank")$use_rean_peaks)
+    peaks <- peaks[peaks$formulaSource == "analyze",,drop=FALSE]
+  
+  
 	# No peaks? Aha, bye
 	if(nrow(peaks) == 0)
 		return(NA)
-	
-  # If we don't include the reanalyzed peaks:
-  if("matchedReanalysis" %in% colnames(peaks))
-  {
-    if(!getOption("RMassBank")$use_rean_peaks)
-      peaks <- peaks[is.na(peaks$matchedReanalysis),,drop=FALSE]
-    # but if we include them:
-    else
-    {
-      # for info, the following data will be used in the default annotator:
-      # annotation <- annotation[,c("mzSpec","formula", "formulaCount", "mzCalc", "dppm")]
-      # and in the peaklist itself:
-      # c("mzSpec", "int", "intrel")
-      peaks[!is.na(peaks$matchedReanalysis),"formula"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.formula"]
-      peaks[!is.na(peaks$matchedReanalysis),"mzCalc"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.mzCalc"]
-      peaks[!is.na(peaks$matchedReanalysis),"dppm"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.dppm"]
-      peaks[!is.na(peaks$matchedReanalysis),"dbe"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.dbe"]
-      peaks[!is.na(peaks$matchedReanalysis),"formulaCount"]  <- peaks[!is.na(peaks$matchedReanalysis),"reanalyzed.formulaCount"]
-    }
-  }
 	
 	# Calculate relative intensity and make a formatted m/z to use in the output
 	# (mzSpec, for "spectrum")

@@ -1189,6 +1189,8 @@ setMethod("cleanElnoise", c("RmbSpectraSet", noise="numeric", width="numeric"), 
 #' @export
 problematicPeaks <- function(sp)
 {
+  if(!sp@ok)
+    return(sp)
   sp <- addProperty(sp, "problematicPeak", "logical", FALSE)
   sp <- addProperty(sp, "aMax", "numeric", 0)
   sp <- addProperty(sp, "mzCenter", "numeric", sp@precursorMz)
@@ -1231,13 +1233,15 @@ problematicPeaks <- function(sp)
 processProblematicPeaks <- function(w, archivename = NA)
 {
 	w@spectra <- as(lapply(w@spectra, function(cpd) {
+	  if(length(cpd@children) == 0)
+	    return(cpd)
 	  cpd@children <- as(
 	    lapply(cpd@children, problematicPeaks),
 	    "SimpleList")
 	  cpd
 	}), "SimpleList")
 	
-	w@aggregated <- aggregateSpectra(w)
+	w@aggregated <- aggregateSpectra(w, addIncomplete = TRUE)
 	
 	fp <- w@aggregated[w@aggregated$problematicPeak,,drop=FALSE]
 	fp$OK <- rep(FALSE, nrow(fp))
@@ -1685,9 +1689,14 @@ reanalyzeFailpeaks <- function(w, custom_additions, mode, filterSettings =
 				      if(!ch@ok)
 				        return(ch)
 							peaks <- getData(ch)
-							peaks.sp <- split(peaks, peaks$good | (!peaks$rawOK))
+							# get the peaks that have no matching formula, but are considered not noise etc.
+							mzGood <- peaks$mz[peaks$good]
+							peaksReanalyze <- !(peaks$mz %in% mzGood)
+							peaksReanalyze <- peaksReanalyze & peaks$rawOK
+							peaks.sp <- split(peaks, !peaksReanalyze)
 							if (!is.null(peaks.sp[["FALSE"]])) {
 								fp <- peaks.sp[["FALSE"]]
+								fp <- fp[!duplicated(fp$mz),,drop=FALSE]
 								peaks.rean <- lapply(fp$mz, reanalyzeFailpeak, 
 										custom_additions = custom_additions, cpdID = sp@id, 
 										mode = mode, filterSettings = filterSettings)
@@ -1860,7 +1869,7 @@ filterPeaksMultiplicity <- function(w, recalcBest = TRUE)
 				allPeaks <- allPeaks[childrenOK]
 				allPeaks.df <- do.call(rbind, allPeaks)
 				# sum the count per formula
-				formulaMultiplicity <- table(allPeaks.df$formula[isTRUE(allPeaks.df$good)])
+				formulaMultiplicity <- table(allPeaks.df$formula[allPeaks.df$good %in% TRUE])
 				allPeaks <- lapply(allPeaks, function(peaks)
 						{
 							peaks$formulaMultiplicity <- formulaMultiplicity[peaks$formula]
@@ -1870,21 +1879,33 @@ filterPeaksMultiplicity <- function(w, recalcBest = TRUE)
 								return(peaks)
 							# prioritize duplicate peaks
 							# get unique peaks with their maximum-multiplicity formula attached
-							best_mult <- aggregate(peaks[,c("formulaMultiplicity"),drop=FALSE], 
-									list(peaks$mz), 
-									max)
-							colnames(best_mult) <- c("mz", "bestMultiplicity")
-							peaks <- merge(peaks, best_mult, all.x = TRUE)
+							peaksMult <- peaks[(peaks$good %in% TRUE),,drop=FALSE]
+							if(nrow(peaksMult) == 0)
+							  best_mult <- data.frame(mz = numeric(), bestMultiplicity = integer())
+							else {
+							  best_mult <- aggregate(as.integer(peaksMult$formulaMultiplicity), 
+							                         by=list(peaksMult$mz), 
+							                         function(x) max(c(0,x), na.rm=TRUE))
+							  colnames(best_mult) <- c("mz", "bestMultiplicity")
+							}
+							peaks$bestMultiplicity <- NULL
+							peaks <- merge(peaks, best_mult, by="mz", all.x = TRUE)
 							
 							#peaks <- peaks[peaks$formulaMultiplicity==peaks$bestMultiplicity,]
 							
 							# now we also have to recalculate dppmBest since the "old best" may have been
 							# dropped.
 							peaks$dppmBest <- NULL
-							bestPpm <- aggregate(peaks[peaks$formulaMultiplicity==peaks$bestMultiplicity,"dppm", drop=FALSE], 
-									list(peaks[peaks$formulaMultiplicity==peaks$bestMultiplicity,"mz"]),
-									function(dppm) dppm[which.min(abs(dppm))])
-							colnames(bestPpm) <- c("mz", "dppmBest")
+							peaksBestMult <- peaks[peaks$formulaMultiplicity==peaks$bestMultiplicity & (peaks$good %in% TRUE),, drop=FALSE]
+							if(nrow(peaksBestMult) == 0)
+							  bestPpm <- data.frame(mz = numeric(), dppmBest = integer())
+							else {
+							  bestPpm <- aggregate(peaksBestMult$dppm, 
+							                       list(peaksBestMult$mz),
+							                       function(dppm) dppm[which.min(abs(dppm))])
+							  colnames(bestPpm) <- c("mz", "dppmBest")  
+							}
+							peaks$dppmBest <- NULL
 							peaks <- merge(peaks, bestPpm, all.x = TRUE)
 							# return the multiplicity-culled (not yet filtered) peak table, which has
 							# the new additional columns formulaMultiplicity and bestMultiplicity
@@ -1901,7 +1922,8 @@ filterPeaksMultiplicity <- function(w, recalcBest = TRUE)
 				{
 					allPeaks.df <- do.call(rbind, allPeaks)
 					# sum the count per formula
-					formulaMultiplicity <- table(allPeaks.df$formula)
+					#formulaMultiplicity <- table(allPeaks.df$formula[allPeaks.df$good %in% TRUE])
+					formulaMultiplicity <- table(allPeaks.df$formula[(allPeaks.df$good %in% TRUE) & (allPeaks.df$dppm == allPeaks.df$dppmBest)])
 					allPeaks <- lapply(allPeaks, function(peaks)
 							{
 								peaks$formulaMultiplicity <- formulaMultiplicity[peaks$formula]
@@ -1984,8 +2006,6 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
     if(is.null(multiplicityFilter))
       multiplicityFilter <- 2
   
-    specs <- w@aggregated
-    
 	# perform the counting:
     w <- filterPeaksMultiplicity(w, recalcBest)
 
@@ -2001,7 +2021,8 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 				        return(ch)
 							# filterOK TRUE if multiplicity is sufficient
 							ch <- addProperty(ch, "filterOK", "logical", NA)
-							property(ch, "filterOK") <- (property(ch, "formulaMultiplicity") > (multiplicityFilter - 1)) & (ch@good == TRUE)
+							property(ch, "filterOK") <- (property(ch, "formulaMultiplicity") > (multiplicityFilter - 1)) &
+							  (ch@good == TRUE) 
 							# filterOK FALSE if the peak is a reanalyzed peak and is a M+H+ satellite
 							peaks <- getData(ch)
 							reanSat <- which(

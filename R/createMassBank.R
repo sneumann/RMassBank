@@ -234,7 +234,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 			  function(r) {
 				  message(paste("Compiling: ", r@name, sep=""))
 				  mbdata <- mb@mbdata_relisted[[which(mb@mbdata_archive$id == as.numeric(r@id))]]
-          res <- buildRecord(r, mbdata=mbdata, additionalPeaks=mb@additionalPeaks, filter = filterOK)
+          res <- buildRecord(r, mbdata=mbdata, additionalPeaks=mb@additionalPeaks, filter = filterOK & best)
           return(res)
 			  })
 	  # check which compounds have useful spectra

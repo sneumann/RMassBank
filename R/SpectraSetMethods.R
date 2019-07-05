@@ -24,7 +24,7 @@ setMethod("checkSpectra", c("RmbSpectraSet", "character"), function(s, property)
 			#stopifnot(value=="logical", "For single spectraSet, only TRUE/FALSE output is supported.")
 			fields <- c("found", "complete", "empty")
 			if(!(property %in% fields)) stop("Only found, complete, empty properties are allowed")
-			slot(s, property)
+			isTRUE(slot(s, property))
 		})
 
 
