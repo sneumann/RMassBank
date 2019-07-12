@@ -615,15 +615,12 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 				# finally back-correct calculated masses for the charge
 				mass <- shot.row[["mz"]]
 				mass.calc <- mass + mode.charge * .emass
-				peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
-								limits, charge=0)), error=function(e) NA)
-				#peakformula <- tryCatch(
-				# generate.formula(mass,
-				# ppm(mass, ppmlimit, p=TRUE),
-				# limits, charge=1),
-				#error= function(e) list())
-			
-			if(!is.list(peakformula))
+				peakformula <- tryCatch(
+				  suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
+				                                    limits, charge=0)),
+				  error = function(e) list())
+				# was a formula found? If not, return empty result
+			if(length(peakformula)==0)
 				return(t(c(row=shot.row[["row"]], intensity = shot.row[["intensity"]], mz=mass,
 										formula=NA, mzCalc=NA)))
 			else
@@ -1774,10 +1771,12 @@ reanalyzeFailpeak <- function(mass, custom_additions, cpdID, mode,
 	#print(parent_formula)
 	limits <- to.limits.rcdk(parent_formula)        
 	
-	peakformula <- tryCatch(suppressWarnings(generate.formula(mass, ppm(mass, ppmlimit, p=TRUE), 
-					limits, charge=mode.charge)), error=function(e) NA)
-	# was a formula found? If not, return empty result
-	if(!is.list(peakformula))
+	peakformula <- tryCatch(
+	  suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
+	                                    limits, charge=0)),
+	  error = function(e) list())
+	
+	if(length(peakformula)==0)
 		return(data.frame())
 	else # if is.list(peakformula)
 	# formula found? then return the one with lowest dppm
