@@ -752,6 +752,9 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
 	childPeaks$satellite <- rep(FALSE, nrow(childPeaks))
 	childPeaks$low <- rep(FALSE, nrow(childPeaks))
 	childPeaks$rawOK <- rep(TRUE, nrow(childPeaks))
+	for(col in colnames(child@properties)) {
+	  childPeaks[,col] <- child@properties[childPeaks$row, col]
+	}
     
 	childPeaks <- childPeaks[,colnames(childPeaksOmitted), drop=FALSE]
 	
@@ -1530,7 +1533,7 @@ recalibrateSpectra <- function(mode, rawspec = NULL, rc = NULL, rc.ms1=NULL, w =
 recalibrateSingleSpec <- function(spectrum, rc, 
 		recalibrateBy = getOption("RMassBank")$recalibrateBy)
 {
-	spectrum.df <- as.data.frame(spectrum)
+	spectrum.df <- as.data.frame(as(spectrum, "Spectrum"))
 	spectrum.df <- spectrum.df[!duplicated(spectrum.df$mz),,drop=FALSE]
 	spectrum.df <- spectrum.df[order(spectrum.df$mz),,drop=FALSE]
 	
@@ -1549,6 +1552,7 @@ recalibrateSingleSpec <- function(spectrum, rc,
 		# And rename them back so our "mz" column is
 		# called "mz" again
 	}
+	spectrum.df$mzRaw <- spectrum.df$mz
 	spectrum.df$mz <- mzRecal
 	
 	
@@ -1560,7 +1564,8 @@ recalibrateSingleSpec <- function(spectrum, rc,
 	if(is(spectrum, "RmbSpectrum2"))
 	{
 		# this removes all evaluated data that were added in step 2 except for @ok I think
-		colnames(spectrum.df) <- c("mz", "intensity")
+		colnames(spectrum.df) <- c("mz", "intensity", "mzRaw")
+		spectrum <- addProperty(spectrum, "mzRaw", "numeric", NA)
 		spectrum <- setData(spectrum, spectrum.df, clean=TRUE)
 		# It also avoids making a new object when we don't know what class it should be 
 	}
