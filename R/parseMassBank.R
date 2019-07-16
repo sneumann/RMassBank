@@ -74,8 +74,8 @@ parseMassBank <- function(Files){
 		if(Version == 1){
 			##This not a real tag anymore(according to the specifications) but RMassBank still writes it...?
 			##I'll include it for the case that I'm reading V1-records
-			ac_ms[['IONIZATION']] <- substring(grep('AC$MASS_SPECTROMETRY: IONIZATION',record, value = TRUE, fixed = TRUE),34)
-			ac_ms[['ION_MODE']] <- substring(grep('AC$ANALYTICAL_CONDITION: MODE',record, value = TRUE, fixed = TRUE),31)
+		    ac_ms[['ION_MODE']] <- substring(grep('AC$ANALYTICAL_CONDITION: MODE',record, value = TRUE, fixed = TRUE),31)
+		    ac_ms[['IONIZATION']] <- substring(grep('AC$MASS_SPECTROMETRY: IONIZATION',record, value = TRUE, fixed = TRUE),34)
 			
 		} else{
 				ac_ms[['ION_MODE']] <- substring(grep('AC$MASS_SPECTROMETRY: ION_MODE',record, value = TRUE, fixed = TRUE),32)
@@ -87,6 +87,7 @@ parseMassBank <- function(Files){
 				ac_ms[['DATE']] <- substring(grep('AC$MASS_SPECTROMETRY: DATE',record, value = TRUE, fixed = TRUE),28)
 				ac_ms[['DESOLVATION_GAS_FLOW']] <- substring(grep('AC$MASS_SPECTROMETRY: DESOLVATION_GAS_FLOW',record, value = TRUE, fixed = TRUE),44)
 				ac_ms[['DESOLVATION_TEMPERATURE']] <- substring(grep('AC$MASS_SPECTROMETRY: DESOLVATION_TEMPERATURE',record, value = TRUE, fixed = TRUE),47)
+				ac_ms[['IONIZATION']] <- substring(grep('AC$MASS_SPECTROMETRY: IONIZATION',record, value = TRUE, fixed = TRUE),34)
 				ac_ms[['IONIZATION_ENERGY']] <- substring(grep('AC$MASS_SPECTROMETRY: IONIZATION_ENERGY',record, value = TRUE, fixed = TRUE),41)
 				ac_ms[['LASER']] <- substring(grep('AC$MASS_SPECTROMETRY: LASER',record, value = TRUE, fixed = TRUE),29)
 				ac_ms[['MATRIX']] <- substring(grep('AC$MASS_SPECTROMETRY: MATRIX',record, value = TRUE, fixed = TRUE),30)

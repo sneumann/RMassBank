@@ -292,14 +292,9 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
           # Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
           # finally back-correct calculated masses for the charge
           mass.calc <- mass + mode.charge * .emass
-          peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
-                                                   limits, charge=0)), error=function(e) NA)
-          #peakformula <- tryCatch( 
-          #  generate.formula(mass, 
-          #                   ppm(mass, ppmlimit, p=TRUE),
-          #                   limits, charge=1),
-          #error= function(e) list())
-          if(!is.list(peakformula)){
+          peakformula <- suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
+                                                   limits, charge=0))
+          if(length(peakformula)==0){
             return(t(c(mzFound=as.numeric(as.character(mass)),
                        formula=NA, mzCalc=NA)))
           }else{
@@ -323,14 +318,9 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
 			# Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
 			# finally back-correct calculated masses for the charge
 			mass.calc <- mass + mode.charge * .emass
-			peakformula <- tryCatch(suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
-												   limits, charge=0)), error=function(e) NA)
-			#peakformula <- tryCatch( 
-			#  generate.formula(mass, 
-			#                   ppm(mass, ppmlimit, p=TRUE),
-			#                   limits, charge=1),
-			#error= function(e) list())
-			if(!is.list(peakformula)){
+			peakformula <- suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE), 
+												   limits, charge=0))
+			if(!is.list(peakformula) || length(peakformula)==0){
 				return(t(c(mzFound=as.numeric(as.character(mass)),
 						formula=NA, mzCalc=NA)))
 			}else{

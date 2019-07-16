@@ -1,5 +1,5 @@
 % \VignetteIndexEntry{RMassBank walkthrough}
-% \VignettePackage{rcdk}
+% \VignettePackage{RMassBank}
 % \VignetteKeywords{}
 %% To generate the Latex code
 %library(RMassBank)

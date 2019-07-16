@@ -1,4 +1,4 @@
-#' @import XML RCurl rjson
+#' @import XML RCurl rjson httr
 NULL
 ## library(XML)
 ## library(RCurl)
@@ -36,19 +36,19 @@ NULL
 #' getCactus("C1=CC=CC=C1", "chemspider_id")
 #' 
 #' @export 
-getCactus <- function(identifier, representation)
-{
-
-  ret <- tryCatch(
-    getURLContent(paste(
-      "https://cactus.nci.nih.gov/chemical/structure/",
-      URLencode(identifier), "/", representation, sep='')),
-    error = function(e) NA)
-  if(is.na(ret))
+#' 
+#' 
+getCactus <- function(identifier,representation){
+  ret <- tryCatch(httr::GET(paste("https://cactus.nci.nih.gov/chemical/structure/",
+                            URLencode(identifier), "/", representation, sep = "")),
+                  error = function(e) NA)
+  if (all(is.na(ret)))
     return(NA)
-  if(ret=="<h1>Page not found (404)</h1>\n")
+  if (ret[2] == 404)
     return(NA)
+  ret <- httr::content(ret)
   return(unlist(strsplit(ret, "\n")))
+  
 }
 
 #' Search Pubchem CID
@@ -151,7 +151,7 @@ getPcId <- function(query, from = "inchikey")
 #' @note Currently, the CTS results are still incomplete; the name scores are all 0,
 #' formula and exact mass return zero.
 #' @references Chemical Translation Service:
-#' \url{http://cts.fiehnlab.ucdavis.edu}
+#' \url{https://cts.fiehnlab.ucdavis.edu}
 #' 
 #' @examples
 #' data <- getCtsRecord("UHOVQNZJYSORNB-UHFFFAOYSA-N")
@@ -163,7 +163,7 @@ getPcId <- function(query, from = "inchikey")
 #' @export
 getCtsRecord <- function(key)
 {
-	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/compound/"
+	baseURL <- "https://cts.fiehnlab.ucdavis.edu/service/compound/"
 	
 	errorvar <- 0
 	currEnvir <- environment()
@@ -205,7 +205,7 @@ getCtsRecord <- function(key)
 #' @export
 getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 {
-	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/convert"
+	baseURL <- "https://cts.fiehnlab.ucdavis.edu/service/convert"
 	url <- paste(baseURL, from, to, query, sep='/')
 	errorvar <- 0
 	currEnvir <- environment()

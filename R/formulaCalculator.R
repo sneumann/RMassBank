@@ -177,6 +177,8 @@ dbe <- function(formula)
     "S" = 2,
     "P" = 1.5,
     "I" = -0.5,
+    "As" = 2.5,
+    "Hg" = 0,
     "Na" = -0.5
     )
   count <- 1

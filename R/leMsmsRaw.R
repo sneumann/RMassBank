@@ -225,7 +225,10 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 		# MS1 scan appears. The resulting NA values in precursorScanNum are problematic downstream.
 		headerData <- headerData[!is.na(headerData$precursorScanNum),]
 	}
-	
+	# bugfix 201803: PRM scans that were performed before the first full scan (found in some files)
+	headerData <- headerData[
+	  !((headerData$msLevel == 2) & (headerData$precursorScanNum == 0)),,drop=FALSE
+	]
 	# Find MS2 spectra with precursors which are in the allowed 
 	# scan filter (coarse limit) range
 	if(!is.null(diaWindows))
@@ -320,6 +323,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				headerCols <- headerCols[unlist(lapply(headerCols, function(col) is.numeric(masterHeader[,col])))]
 				masterHeader <- masterHeader[,headerCols,drop=FALSE]
 				childHeaders <- childHeaders[,headerCols,drop=FALSE]
+				
 				childScans <- childHeaders$seqNum
 				
 				msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)

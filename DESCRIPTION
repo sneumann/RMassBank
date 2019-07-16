@@ -23,18 +23,17 @@ Description: Workflow to process tandem MS files and build MassBank records.
     information from Internet databases, and export to MassBank records.
 License: Artistic-2.0
 SystemRequirements: OpenBabel
-biocViews: Bioinformatics, MassSpectrometry, Metabolomics, Software
+biocViews: ImmunoOncology, Bioinformatics, MassSpectrometry, Metabolomics, Software
 Depends:
     Rcpp
 Encoding: UTF-8
 Imports:
     XML,RCurl,rjson,S4Vectors,digest,
-    rcdk,yaml,mzR,methods,Biobase,MSnbase
+    rcdk,yaml,mzR,methods,Biobase,MSnbase,httr
 Suggests:
     gplots,RMassBankData,
     xcms (>= 1.37.1),
     CAMERA,
-    ontoCAT,
     RUnit,
     enviPat
 Collate:
@@ -68,4 +67,4 @@ Collate:
     'fillback.R'
     'parseMbRecord.R'
     'zzz.R'
-RoxygenNote: 5.0.1
+RoxygenNote: 6.1.0
