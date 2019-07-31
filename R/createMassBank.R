@@ -163,6 +163,9 @@ resetInfolists <- function(mb)
 #' @param gatherData A variable denoting whether to retrieve information using several online databases \code{gatherData= "online"}
 #' or to use the local babel installation \code{gatherData= "babel"}. Note that babel is used either way, if a directory is given 
 #' in the settings. This setting will be ignored if retrieval is set to "standard"
+#' @param filter If \code{TRUE}, the peaks will be filtered according to the standard processing workflow in RMassBank - 
+#' only the best formula for a peak is retained, and only peaks passing multiplicity filtering are retained. If FALSE, it is assumed
+#' that the user has already done filtering, and all peaks in the spectrum should be printed in the record (with or without formula.)
 #' @return The processed \code{mbWorkspace}.
 #' @seealso \code{\link{mbWorkspace-class}}
 #' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
@@ -173,7 +176,7 @@ resetInfolists <- function(mb)
 #' 		
 #' }
 #' @export
-mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.csv", gatherData = "online")
+mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.csv", gatherData = "online", filter = TRUE)
 {
     # Step 1: Find which compounds don't have annotation information yet. For these
     # compounds, pull information from CTS (using gatherData).
@@ -234,7 +237,10 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
 			  function(r) {
 				  message(paste("Compiling: ", r@name, sep=""))
 				  mbdata <- mb@mbdata_relisted[[which(mb@mbdata_archive$id == as.numeric(r@id))]]
-          res <- buildRecord(r, mbdata=mbdata, additionalPeaks=mb@additionalPeaks, filter = filterOK & best)
+				  if(filter)
+            res <- buildRecord(r, mbdata=mbdata, additionalPeaks=mb@additionalPeaks, filter = filterOK & best)
+				  else
+				    res <- buildRecord(r, mbdata=mbdata, additionalPeaks=mb@additionalPeaks)
           return(res)
 			  })
 	  # check which compounds have useful spectra
