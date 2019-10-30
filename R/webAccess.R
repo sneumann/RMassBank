@@ -39,6 +39,7 @@ NULL
 #' 
 #' 
 getCactus <- function(identifier,representation){
+  identifier <- sub('#', '%23', identifier)
   ret <- tryCatch(httr::GET(paste("https://cactus.nci.nih.gov/chemical/structure/",
                             URLencode(identifier), "/", representation, sep = "")),
                   error = function(e) NA)
