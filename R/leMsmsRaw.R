@@ -198,14 +198,14 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 		headerData[which(headerData$msLevel == 1),"precursorScanNum"] <- 0
 	}
 	# bugfix 201803: PRM scans that were performed before the first full scan (found in some files)
-	headerData <- headerData[
-	  !((headerData$msLevel == 2) & (headerData$precursorScanNum == 0)),,drop=FALSE
-	]
+	headerData <- headerData[!((headerData$msLevel == 2) &
+                                   (is.na(headerData$precursorScanNum))),,
+                                 drop = FALSE]
 	# Find MS2 spectra with precursors which are in the allowed 
-	# scan filter (coarse limit) range
-	findValidPrecursors <- headerData[
-			(headerData$precursorMZ > mz - limit.coarse) &
-					(headerData$precursorMZ < mz + limit.coarse),]
+	# scan filter (coarse limit) range; which to get rid of NAs
+	findValidPrecursors <- headerData[which(
+            headerData$precursorMZ > (mz - limit.coarse) &
+            headerData$precursorMZ < (mz + limit.coarse)), ]
 	# Find the precursors for the found spectra
 	validPrecursors <- unique(findValidPrecursors$precursorScanNum)
 	# check whether the precursors are real: must be within fine limits!
@@ -245,9 +245,11 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	spectra <- lapply(eic$scan, function(masterScan)
 			{
 				masterHeader <- headerData[headerData$acquisitionNum == masterScan,]
-				childHeaders <- headerData[(headerData$precursorScanNum == masterScan) 
-								& (headerData$precursorMZ > mz - limit.coarse) 
-								& (headerData$precursorMZ < mz + limit.coarse) ,]
+				childHeaders <- headerData[
+                                    which(headerData$precursorScanNum == masterScan 
+                                          & headerData$precursorMZ > (mz - limit.coarse) 
+                                          & headerData$precursorMZ < (mz + limit.coarse)) , ,
+                                    drop = FALSE]
 				
 				# Fix 9.10.17: headers now include non-numeric columns, leading to errors in data conversion.
 				# Remove non-numeric columns
