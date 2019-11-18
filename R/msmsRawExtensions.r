@@ -62,8 +62,8 @@ findMsMsHR.ticms2 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA
   # Find MS2 spectra with precursors which are in the allowed 
   # scan filter (coarse limit) range
   findValidPrecursors <- headerData[
-      (headerData$precursorMZ > mz - limit.coarse) &
-          (headerData$precursorMZ < mz + limit.coarse),]
+      which(headerData$precursorMZ > (mz - limit.coarse) &
+            headerData$precursorMZ < (mz + limit.coarse)),]
   # Find the precursors for the found spectra
   
   
@@ -94,10 +94,12 @@ findMsMsHR.ticms2 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA
         ret$parentHeader[1,4:20] <- 0
         ret$parentHeader[1,6] <- NA
 
-        childHeaders <- headerData[(headerData$acquisitionNum == masterScan) 
-                & (headerData$precursorMZ > mz - limit.coarse) 
-                & (headerData$precursorMZ < mz + limit.coarse) ,]
-        
+        childHeaders <- headerData[
+            which(headerData$acquisitionNum == masterScan 
+                  & headerData$precursorMZ > (mz - limit.coarse) 
+                  & headerData$precursorMZ < (mz + limit.coarse)), ,
+            drop = FALSE]
+      
         childScans <- childHeaders$acquisitionNum
         ret$parentScan <- min(childScans)-1
 		ret$parentHeader[1,1:3] <- min(childScans)-1
