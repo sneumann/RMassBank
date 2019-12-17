@@ -1,4 +1,4 @@
-#' @import XML RCurl rjson
+#' @import XML RCurl rjson httr
 NULL
 ## library(XML)
 ## library(RCurl)
@@ -68,19 +68,19 @@ retrieveDataWithRetry <- function(url, timeout, maximumNumberOfRetries = 5, retr
 #' getCactus("C1=CC=CC=C1", "chemspider_id")
 #' 
 #' @export 
-getCactus <- function(identifier, representation)
-{
-
-  ret <- tryCatch(
-    getURLContent(paste(
-      "https://cactus.nci.nih.gov/chemical/structure/",
-      URLencode(identifier), "/", representation, sep='')),
-    error = function(e) NA)
-  if(is.na(ret))
+#' 
+#' 
+getCactus <- function(identifier,representation){
+  ret <- tryCatch(httr::GET(paste("https://cactus.nci.nih.gov/chemical/structure/",
+                            URLencode(identifier), "/", representation, sep = "")),
+                  error = function(e) NA)
+  if (all(is.na(ret)))
     return(NA)
-  if(ret=="<h1>Page not found (404)</h1>\n")
+  if (ret[2] == 404)
     return(NA)
+  ret <- httr::content(ret)
   return(unlist(strsplit(ret, "\n")))
+  
 }
 
 #' Search Pubchem CID
@@ -237,7 +237,7 @@ getCtsRecord <- function(key)
 #' @export
 getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 {
-	baseURL <- "http://cts.fiehnlab.ucdavis.edu/service/convert"
+	baseURL <- "https://cts.fiehnlab.ucdavis.edu/service/convert"
 	url <- paste(baseURL, from, to, query, sep='/')
 	errorvar <- 0
 	currEnvir <- environment()
