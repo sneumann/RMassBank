@@ -5,6 +5,38 @@ NULL
 ## library(jsonlite)
 
 
+retrieveDataWithRetry <- function(url, timeout, maximumNumberOfRetries = 5, retryDelayInSeconds = 3){
+  #data <- getURL(URLencode(url), timeout=5)
+  
+  data <- NULL
+  queryIsSuccessful <- FALSE
+  numberOfRetries <- 0
+  while(!queryIsSuccessful & numberOfRetries < maximumNumberOfRetries){
+    data <- tryCatch(
+      expr = {
+        data <- getURL(url = url, timeout = timeout)
+        queryIsSuccessful <- TRUE
+        data
+      },
+      warning=function(w){
+        numberOfRetries <<- numberOfRetries + 1
+        if(RMassBank.env$verbose.output)
+          cat(paste("### Warning ### Web query failed (", numberOfRetries, " / ", maximumNumberOfRetries, ") for url '", url, "' because of warning '", w, "'\n", sep = ""))
+        if(numberOfRetries < maximumNumberOfRetries)
+          Sys.sleep(time = retryDelayInSeconds)
+      },
+      error=function(e){
+        numberOfRetries <<- numberOfRetries + 1
+        if(RMassBank.env$verbose.output)
+          cat(paste("### Warning ### Web query failed (", numberOfRetries, " / ", maximumNumberOfRetries, ") for url '", url, "' because of error '", e, "'\n", sep = ""))
+        if(numberOfRetries < maximumNumberOfRetries)
+          Sys.sleep(time = retryDelayInSeconds)
+      }
+    )
+  }
+  
+  return(data)
+}
 
 #' Retrieve information from Cactus
 #' 
@@ -418,16 +450,22 @@ getCSID <- function(query)
 	baseURL <- "http://www.chemspider.com/InChI.asmx/InChIKeyToCSID?inchi_key="
 	url <- paste0(baseURL, query)
 	
-	errorvar <- 0
-	currEnvir <- environment()
+	#errorvar <- 0
+	#currEnvir <- environment()
+	#
+	#tryCatch(
+	#	data <- getURL(URLencode(url), timeout=5),
+	#	error=function(e){
+	#	currEnvir$errorvar <- 1
+	#})
+	#
+	#if(errorvar){
+	#	warning("Chemspider is currently offline")
+	#	return(NA)
+	#}
 	
-	tryCatch(
-		data <- getURL(URLencode(url), timeout=5),
-		error=function(e){
-		currEnvir$errorvar <- 1
-	})
-	
-	if(errorvar){
+	data <- retrieveDataWithRetry(url = URLencode(url), timeout = 5)
+	if(is.null(data)){
 		warning("Chemspider is currently offline")
 		return(NA)
 	}
@@ -584,3 +622,4 @@ getPcSDF <- function(query, from = "smiles"){
 	data <- c(strsplit(substring(data,1,molEnd),"\n")[[1]],"$$$$")
 	return(data)
 }
+

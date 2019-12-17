@@ -1,0 +1,9 @@
+Changes in version 2.11.2
+
+- Avoid writing out empty PUBLICATIONS
+
+Changes in version 2.11.1
+
+- Fix error in workflow steps 2 and 7 with rcdk >= 3.4.9 
+
+

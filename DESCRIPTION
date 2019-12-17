@@ -1,7 +1,7 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 2.11.0
+Version: 2.15.1
 Authors@R: c(
     person(given = "RMassBank at Eawag", email = "massbank@eawag.ch",
     role=c("cre")),
@@ -12,7 +12,9 @@ Authors@R: c(
     "sneumann@ipb-halle.de"), person(given = "Erik", family = "Muller", role =
     "aut", email = "erik.mueller@student.uni-halle.de"), person(given =
     "Tobias", family = "Schulze", role = "ctb", email =
-    "tobias.schulze@ufz.de") )
+    "tobias.schulze@ufz.de"), person(given =
+    "Hendrik", family = "Treutler", role = "ctb", email =
+    "hendrik.treutler@gmail.com") )
 Author: Michael Stravs, Emma Schymanski, Steffen Neumann, Erik Mueller, with
     contributions from Tobias Schulze
 Maintainer: RMassBank at Eawag <massbank@eawag.ch>
@@ -23,19 +25,19 @@ Description: Workflow to process tandem MS files and build MassBank records.
     information from Internet databases, and export to MassBank records.
 License: Artistic-2.0
 SystemRequirements: OpenBabel
-biocViews: Bioinformatics, MassSpectrometry, Metabolomics, Software
+biocViews: ImmunoOncology, Bioinformatics, MassSpectrometry, Metabolomics, Software
 Depends:
     Rcpp
 Encoding: UTF-8
 Imports:
     XML,RCurl,rjson,S4Vectors,digest,
-    rcdk,yaml,mzR,methods,Biobase,MSnbase,httr
+    rcdk,yaml,mzR,methods,Biobase,MSnbase,httr,
+    enviPat
 Suggests:
     gplots,RMassBankData,
     xcms (>= 1.37.1),
     CAMERA,
-    RUnit,
-    enviPat
+    RUnit
 Collate:
     'alternateAnalyze.R'
     'createMassBank.R'
@@ -60,4 +62,4 @@ Collate:
     'msmsRead.R'
     'Isotopic_Annotation.R'
     'zzz.R'
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
