@@ -121,12 +121,17 @@ resetInfolists <- function(mb)
 							CH.IUPAC = character(0), CH.LINK.CAS = character(0), CH.LINK.CHEBI = integer(0), 
 							CH.LINK.HMDB = character(0), CH.LINK.KEGG = character(0), CH.LINK.LIPIDMAPS = character(0), 
 							CH.LINK.PUBCHEM = character(0), CH.LINK.INCHIKEY = character(0), 
-							CH.LINK.CHEMSPIDER = integer(0), SP.SAMPLE = character(0)), .Names = c("X", "id", "dbcas", 
+							CH.LINK.CHEMSPIDER = integer(0)), .Names = c("X", "id", "dbcas", 
 							"dbname", "dataused", "COMMENT.CONFIDENCE", "COMMENT.ID", 
-							"CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.NAME4", "CH.NAME5", "CH.COMPOUND_CLASS", "CH.FORMULA", 
+                                                        "CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.NAME4", "CH.NAME5", "CH.COMPOUND_CLASS", "CH.FORMULA", 
+
 							"CH.EXACT_MASS", "CH.SMILES", "CH.IUPAC", "CH.LINK.CAS", "CH.LINK.CHEBI", 
 							"CH.LINK.HMDB", "CH.LINK.KEGG", "CH.LINK.LIPIDMAPS", "CH.LINK.PUBCHEM", 
-							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER", "SP.SAMPLE"), row.names = integer(0), class = "data.frame")
+							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER"), row.names = integer(0), class = "data.frame")
+	if(getOption("RMassBank")$include_sp_tags)
+	{
+	  mb@mbdata_archive["SP.SAMPLE"] <- character(0)
+	}
 	return(mb)
 	
 }
@@ -249,7 +254,8 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
                     return(res)
                 })
         # check which compounds have useful spectra
-        ok <- unlist(lapply(X = selectSpectra(mb@spectra, "found", "object"), FUN = function(spec){unlist(lapply(X = spec@children, FUN = function(child){child@ok}))}))
+        ok <- unlist(lapply(X = selectSpectra(mb@spectra, "found", "object"),
+                            FUN = function(spec){any(unlist(lapply(X = spec@children, FUN = function(child){child@ok})))}))
         notEmpty <- unlist(lapply(X = mb@compiled, FUN = length)) > 0
         ok <- ok & notEmpty
         mb@ok <- which(ok)
@@ -1185,8 +1191,9 @@ readMbdata <- function(row)
   mbdata[['AUTHORS']] <- getOption("RMassBank")$annotations$authors
   mbdata[['LICENSE']] <- getOption("RMassBank")$annotations$license
   mbdata[['COPYRIGHT']] <- getOption("RMassBank")$annotations$copyright
-  mbdata[['PUBLICATION']] <- getOption("RMassBank")$annotations$publication
-  
+  if(getOption("RMassBank")$annotations$publication!="") {
+    mbdata[['PUBLICATION']] <- getOption("RMassBank")$annotations$publication
+  }
   commentNames <- names(row)[grepl(x = names(row), pattern = "^COMMENT\\.")]
   commentNames <- commentNames[!is.na(row[commentNames])]
   
@@ -1404,8 +1411,8 @@ gatherSpectrum <- function(spec, msmsdata, ac_ms, ac_lc, aggregated, additionalP
     ms_fi[['BASE_PEAK']] <- round(mz(spec@parent)[which.max(intensity(spec@parent))],4)
     ms_fi[['PRECURSOR_M/Z']] <- round(precursorMz$mzCenter,4)
     ms_fi[['PRECURSOR_TYPE']] <- adductString
-    if(all(!is.na(spec@parent@intensity), spec@parent@intensity != 0, spec@parent@intensity != 100, na.rm = TRUE))
-        ms_fi[['PRECURSOR_INTENSITY']] <- spec@parent@intensity
+    if(all(!is.na(msmsdata@precursorIntensity), msmsdata@precursorIntensity != 0, msmsdata@precursorIntensity != 100, na.rm = TRUE))
+        ms_fi[['PRECURSOR_INTENSITY']] <- msmsdata@precursorIntensity
 
     # Select all peaks which belong to this spectrum (correct cpdID and scan no.)
     # from peaksOK
