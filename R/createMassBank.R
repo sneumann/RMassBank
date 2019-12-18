@@ -116,14 +116,14 @@ resetInfolists <- function(mb)
 			structure(list(X = integer(0), id = integer(0), dbcas = character(0), 
 							dbname = character(0), dataused = character(0), COMMENT.CONFIDENCE = character(0), 
 							COMMENT.ID = integer(0), CH.NAME1 = character(0), 
-							CH.NAME2 = character(0), CH.NAME3 = character(0), CH.COMPOUND_CLASS = character(0), 
+							CH.NAME2 = character(0), CH.NAME3 = character(0), CH.NAME4 = character(0), CH.NAME5 = character(0), CH.COMPOUND_CLASS = character(0), 
 							CH.FORMULA = character(0), CH.EXACT_MASS = numeric(0), CH.SMILES = character(0), 
 							CH.IUPAC = character(0), CH.LINK.CAS = character(0), CH.LINK.CHEBI = integer(0), 
 							CH.LINK.HMDB = character(0), CH.LINK.KEGG = character(0), CH.LINK.LIPIDMAPS = character(0), 
 							CH.LINK.PUBCHEM = character(0), CH.LINK.INCHIKEY = character(0), 
 							CH.LINK.CHEMSPIDER = integer(0), CH.LINK.COMPTOX = character(0)), .Names = c("X", "id", "dbcas", 
 							"dbname", "dataused", "COMMENT.CONFIDENCE", "COMMENT.ID", 
-							"CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.COMPOUND_CLASS", "CH.FORMULA", 
+              "CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.NAME4", "CH.NAME5", "CH.COMPOUND_CLASS", "CH.FORMULA", 
 							"CH.EXACT_MASS", "CH.SMILES", "CH.IUPAC", "CH.LINK.CAS", "CH.LINK.CHEBI", 
 							"CH.LINK.HMDB", "CH.LINK.KEGG", "CH.LINK.LIPIDMAPS", "CH.LINK.PUBCHEM",
 							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER", "CH.LINK.COMPTOX"), row.names = integer(0), class = "data.frame")
@@ -1141,6 +1141,8 @@ flatten <- function(mbdata)
               "CH$NAME1",
               "CH$NAME2",
               "CH$NAME3",
+              "CH$NAME4",
+              "CH$NAME5",
               "CH$COMPOUND_CLASS",
               "CH$FORMULA",
               "CH$EXACT_MASS",
@@ -1213,6 +1215,8 @@ readMbdata <- function(row)
               "CH$NAME1",
               "CH$NAME2",
               "CH$NAME3",
+              "CH$NAME4",
+              "CH$NAME5",
               "CH$COMPOUND_CLASS",
               "CH$FORMULA",
               "CH$EXACT_MASS",
@@ -1233,7 +1237,7 @@ readMbdata <- function(row)
   #mbdata[["COMMENT"]][["ID"]] <- row[["COMMENT.ID"]]
   mbdata[["COMMENT"]][gsub(x = commentNames, pattern = "^COMMENT\\.", replacement = "")] <- row[commentNames]
   
-  names = c(row[["CH.NAME1"]], row[["CH.NAME2"]], row[["CH.NAME3"]])
+  names = c(row[["CH.NAME1"]], row[["CH.NAME2"]], row[["CH.NAME3"]], row[["CH.NAME4"]], row[["CH.NAME5"]])
   names = names[which(!is.na(names))]
   
   names <- gsub("'", "`", names) 
