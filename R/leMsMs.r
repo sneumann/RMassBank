@@ -669,9 +669,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   	childPeaks <- as.data.frame(do.call(rbind, peakmatrix))
   	
   	presentElements <- unique(unlist(lapply(X = lapply(X = childPeaks$formula, FUN = formulastring.to.list), FUN = names)))
+  	## function dbe from FormulaCalculator.R
   	atomDBEs <- sapply(X = presentElements, FUN = dbe)
   	unknownElements <- names(atomDBEs)[sapply(X = atomDBEs, FUN = function(atomDBE){length(atomDBE)==0})]
-  	if(length(unknownElements) > 0) stop(paste("Element(s)", paste(unknownElements), "cannot be assigned a DBE"))
+  	if(length(unknownElements) > 0) stop(paste("Element(s)", paste(unknownElements, collapse = "; "), "cannot be assigned a DBE"))
   	
   	# Reformat the deformatted output correctly (why doesn't R have a better way to do this, e.g. avoid deformatting?)
   

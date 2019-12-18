@@ -116,17 +116,17 @@ resetInfolists <- function(mb)
 			structure(list(X = integer(0), id = integer(0), dbcas = character(0), 
 							dbname = character(0), dataused = character(0), COMMENT.CONFIDENCE = character(0), 
 							COMMENT.ID = integer(0), CH.NAME1 = character(0), 
-							CH.NAME2 = character(0), CH.NAME3 = character(0), CH.COMPOUND_CLASS = character(0), 
+							CH.NAME2 = character(0), CH.NAME3 = character(0), CH.NAME4 = character(0), CH.NAME5 = character(0), CH.COMPOUND_CLASS = character(0), 
 							CH.FORMULA = character(0), CH.EXACT_MASS = numeric(0), CH.SMILES = character(0), 
 							CH.IUPAC = character(0), CH.LINK.CAS = character(0), CH.LINK.CHEBI = integer(0), 
 							CH.LINK.HMDB = character(0), CH.LINK.KEGG = character(0), CH.LINK.LIPIDMAPS = character(0), 
 							CH.LINK.PUBCHEM = character(0), CH.LINK.INCHIKEY = character(0), 
-							CH.LINK.CHEMSPIDER = integer(0)), .Names = c("X", "id", "dbcas", 
+							CH.LINK.CHEMSPIDER = integer(0), CH.LINK.COMPTOX = character(0)), .Names = c("X", "id", "dbcas", 
 							"dbname", "dataused", "COMMENT.CONFIDENCE", "COMMENT.ID", 
-							"CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.COMPOUND_CLASS", "CH.FORMULA", 
+              "CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.NAME4", "CH.NAME5", "CH.COMPOUND_CLASS", "CH.FORMULA", 
 							"CH.EXACT_MASS", "CH.SMILES", "CH.IUPAC", "CH.LINK.CAS", "CH.LINK.CHEBI", 
-							"CH.LINK.HMDB", "CH.LINK.KEGG", "CH.LINK.LIPIDMAPS", "CH.LINK.PUBCHEM", 
-							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER"), row.names = integer(0), class = "data.frame")
+							"CH.LINK.HMDB", "CH.LINK.KEGG", "CH.LINK.LIPIDMAPS", "CH.LINK.PUBCHEM",
+							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER", "CH.LINK.COMPTOX"), row.names = integer(0), class = "data.frame")
 	if(getOption("RMassBank")$include_sp_tags)
 	{
 	  mb@mbdata_archive["SP.SAMPLE"] <- character(0)
@@ -135,7 +135,7 @@ resetInfolists <- function(mb)
 	
 }
 
-# The workflow function, i.e. (almost) the only thing you actually need to call. 
+# The workflow function, i.e. (almost) the only thing you actually need to call.
 # See below for explanation of steps.
 #' MassBank record creation workflow
 #' 
@@ -587,6 +587,13 @@ gatherData <- function(id)
 		csid <- getCactus(inchikey_split, 'chemspider_id')
 	}
 	
+	##Get CompTox
+	comptox <- getCompTox(inchikey_split)
+	
+	if(is.null(comptox)){
+	  comptox <- NA
+	}
+	
 	##Use CTS to retrieve information
 	CTSinfo <- getCtsRecord(inchikey_split)
 		
@@ -781,6 +788,7 @@ gatherData <- function(id)
 	}
 	
 	link[["INCHIKEY"]] <- inchikey_split
+	link[["COMPTOX"]] <- comptox
 	if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid[!is.na(csid)])))
 	mbdata[['CH$LINK']] <- link
 	
@@ -1133,6 +1141,8 @@ flatten <- function(mbdata)
               "CH$NAME1",
               "CH$NAME2",
               "CH$NAME3",
+              "CH$NAME4",
+              "CH$NAME5",
               "CH$COMPOUND_CLASS",
               "CH$FORMULA",
               "CH$EXACT_MASS",
@@ -1145,7 +1155,9 @@ flatten <- function(mbdata)
               "CH$LINK.LIPIDMAPS",
               "CH$LINK.PUBCHEM",
               "CH$LINK.INCHIKEY",
-              "CH$LINK.CHEMSPIDER")
+              "CH$LINK.CHEMSPIDER",
+	          "CH$LINK.COMPTOX"
+	          )
   # make an empty data frame with the right length
   rows <- length(mbdata)
   cols <- length(colList)
@@ -1203,6 +1215,8 @@ readMbdata <- function(row)
               "CH$NAME1",
               "CH$NAME2",
               "CH$NAME3",
+              "CH$NAME4",
+              "CH$NAME5",
               "CH$COMPOUND_CLASS",
               "CH$FORMULA",
               "CH$EXACT_MASS",
@@ -1215,14 +1229,15 @@ readMbdata <- function(row)
               "CH$LINK.LIPIDMAPS",
               "CH$LINK.PUBCHEM",
               "CH$LINK.INCHIKEY",
-              "CH$LINK.CHEMSPIDER")
+              "CH$LINK.CHEMSPIDER",
+              "CH$LINK.COMPTOX")
   mbdata[["COMMENT"]] = list()
   #mbdata[["COMMENT"]][["CONFIDENCE"]] <- row[["COMMENT.CONFIDENCE"]]
   # Again, our ID field. 
   #mbdata[["COMMENT"]][["ID"]] <- row[["COMMENT.ID"]]
   mbdata[["COMMENT"]][gsub(x = commentNames, pattern = "^COMMENT\\.", replacement = "")] <- row[commentNames]
   
-  names = c(row[["CH.NAME1"]], row[["CH.NAME2"]], row[["CH.NAME3"]])
+  names = c(row[["CH.NAME1"]], row[["CH.NAME2"]], row[["CH.NAME3"]], row[["CH.NAME4"]], row[["CH.NAME5"]])
   names = names[which(!is.na(names))]
   
   names <- gsub("'", "`", names) 
@@ -1242,6 +1257,7 @@ readMbdata <- function(row)
   link[["PUBCHEM"]] = row[["CH.LINK.PUBCHEM"]]
   link[["INCHIKEY"]] = row[["CH.LINK.INCHIKEY"]]
   link[["CHEMSPIDER"]] = row[["CH.LINK.CHEMSPIDER"]]
+  link[["COMPTOX"]] = row[["CH.LINK.COMPTOX"]]
   link[which(is.na(link))] <- NULL
   mbdata[["CH$LINK"]] <- link
   ## SP$SAMPLE
