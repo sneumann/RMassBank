@@ -87,7 +87,15 @@ loadInfolist <- function(mb, fileName)
   colNames <- colnames(mb@mbdata_archive)
   commentColNames <- colnames(mbdata_new)[grepl(x = colnames(mbdata_new), pattern = "^COMMENT\\.(?!CONFIDENCE)(?!ID)", perl = TRUE)]
   colNames <- c(colNames, commentColNames)
-  
+
+  ## The read infolists might not have all required / expected columns
+  missingColNames <- colNames[! colNames %in% colnames(mbdata_new)]
+  if (length(missingColNames >0)) {
+    missingCols <- matrix(NA, ncol=length(missingColNames))
+    colnames(missingCols) <- missingColNames
+    mbdata_new <- cbind(mbdata_new, missingCols)
+  }
+    
   mbdata_new <- mbdata_new[, colNames]
   # substitute the old entires with the ones from our files
   # then find the new (previously inexistent) entries, and rbind them to the table
