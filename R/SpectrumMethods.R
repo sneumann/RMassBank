@@ -21,7 +21,8 @@ setMethod("getData", c("RmbSpectrum2"), function(s)
 		{
 			peaks <- s@peaksCount
 			cols <- c("mz", "intensity", "satellite", "low", "rawOK", "good", "mzCalc", "formula", "dbe", "formulaCount", "formulaSource", "dppm", "dppmBest")
-			cols.isFilled <- unlist(lapply(cols, function(col) length(slot(s, col)) == peaks))
+			slotLength <- unlist(lapply(cols, function(col) length(slot(s, col))))
+			cols.isFilled <- slotLength == peaks
 			cols.filled <- cols[cols.isFilled]
 			data <- lapply(cols.filled, function(col) slot(s, col))
 			data$stringsAsFactors <- FALSE

@@ -75,26 +75,44 @@ loadInfolist <- function(mb, fileName)
       "COMMENT.ID"
   
   # Clear from padding spaces and NAs
-  mbdata_new <- as.data.frame(t(apply(mbdata_new, 1, function(r) 
+  mbdata_new <- as.data.frame(x = t(apply(mbdata_new, 1, function(r) 
     {
     # Substitute empty spaces by real NA values
     r[which(r == "")] <- NA
     # Trim spaces (in all non-NA fields)
-    r[which(!is.na(r))] <- sub("^ *([^ ]+) *$", "\\1", r[which(!is.na(r))])
+    r[which(!is.na(r))] <- sub(pattern = "^ *([^ ]+) *$", replacement = "\\1", x = r[which(!is.na(r))])
     return(r)
-  })))
+  })), stringsAsFactors = FALSE)
   # use only the columns present in mbdata_archive, no other columns added in excel
-  mbdata_new <- mbdata_new[, colnames(mb@mbdata_archive)]
+  colNames <- colnames(mb@mbdata_archive)
+  commentColNames <- colnames(mbdata_new)[grepl(x = colnames(mbdata_new), pattern = "^COMMENT\\.(?!CONFIDENCE)(?!ID)", perl = TRUE)]
+  colNames <- c(colNames, commentColNames)
+
+  ## The read infolists might not have all required / expected columns
+  missingColNames <- colNames[! colNames %in% colnames(mbdata_new)]
+  if (length(missingColNames >0)) {
+    missingCols <- matrix(NA, ncol=length(missingColNames))
+    colnames(missingCols) <- missingColNames
+    mbdata_new <- cbind(mbdata_new, missingCols)
+  }
+    
+  mbdata_new <- mbdata_new[, colNames]
   # substitute the old entires with the ones from our files
   # then find the new (previously inexistent) entries, and rbind them to the table
   new_entries <- setdiff(mbdata_new$id, mb@mbdata_archive$id)
   old_entries <- intersect(mbdata_new$id, mb@mbdata_archive$id)
+  
+  for(colname in colnames(mb@mbdata_archive))
+    mb@mbdata_archive[, colname] <- as.character(mb@mbdata_archive[, colname])
+  
   for(entry in old_entries)
     mb@mbdata_archive[mb@mbdata_archive$id == entry,] <- mbdata_new[mbdata_new$id == entry,]
-  mb@mbdata_archive <- rbind(mb@mbdata_archive, 
-		  mbdata_new[mbdata_new$id==new_entries,])
+  mb@mbdata_archive <- rbind(mb@mbdata_archive, mbdata_new[mbdata_new$id==new_entries,])
+  
+  for(colname in colnames(mb@mbdata_archive))
+    mb@mbdata_archive[, colname] <- as.factor(mb@mbdata_archive[, colname])
+  
   return(mb)
-
 }
 
 
@@ -106,22 +124,26 @@ resetInfolists <- function(mb)
 			structure(list(X = integer(0), id = integer(0), dbcas = character(0), 
 							dbname = character(0), dataused = character(0), COMMENT.CONFIDENCE = character(0), 
 							COMMENT.ID = integer(0), CH.NAME1 = character(0), 
-							CH.NAME2 = character(0), CH.NAME3 = character(0), CH.COMPOUND_CLASS = character(0), 
+							CH.NAME2 = character(0), CH.NAME3 = character(0), CH.NAME4 = character(0), CH.NAME5 = character(0), CH.COMPOUND_CLASS = character(0), 
 							CH.FORMULA = character(0), CH.EXACT_MASS = numeric(0), CH.SMILES = character(0), 
 							CH.IUPAC = character(0), CH.LINK.CAS = character(0), CH.LINK.CHEBI = integer(0), 
 							CH.LINK.HMDB = character(0), CH.LINK.KEGG = character(0), CH.LINK.LIPIDMAPS = character(0), 
 							CH.LINK.PUBCHEM = character(0), CH.LINK.INCHIKEY = character(0), 
-							CH.LINK.CHEMSPIDER = integer(0)), .Names = c("X", "id", "dbcas", 
+							CH.LINK.CHEMSPIDER = integer(0), CH.LINK.COMPTOX = character(0)), .Names = c("X", "id", "dbcas", 
 							"dbname", "dataused", "COMMENT.CONFIDENCE", "COMMENT.ID", 
-							"CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.COMPOUND_CLASS", "CH.FORMULA", 
+              "CH.NAME1", "CH.NAME2", "CH.NAME3", "CH.NAME4", "CH.NAME5", "CH.COMPOUND_CLASS", "CH.FORMULA", 
 							"CH.EXACT_MASS", "CH.SMILES", "CH.IUPAC", "CH.LINK.CAS", "CH.LINK.CHEBI", 
-							"CH.LINK.HMDB", "CH.LINK.KEGG", "CH.LINK.LIPIDMAPS", "CH.LINK.PUBCHEM", 
-							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER"), row.names = integer(0), class = "data.frame")
+							"CH.LINK.HMDB", "CH.LINK.KEGG", "CH.LINK.LIPIDMAPS", "CH.LINK.PUBCHEM",
+							"CH.LINK.INCHIKEY", "CH.LINK.CHEMSPIDER", "CH.LINK.COMPTOX"), row.names = integer(0), class = "data.frame")
+	if(getOption("RMassBank")$include_sp_tags)
+	{
+	  mb@mbdata_archive["SP.SAMPLE"] <- character(0)
+	}
 	return(mb)
 	
 }
 
-# The workflow function, i.e. (almost) the only thing you actually need to call. 
+# The workflow function, i.e. (almost) the only thing you actually need to call.
 # See below for explanation of steps.
 #' MassBank record creation workflow
 #' 
@@ -244,9 +266,15 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
           return(res)
 			  })
 	  # check which compounds have useful spectra
-	  mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
+        ok <- unlist(lapply(X = selectSpectra(mb@spectra, "found", "object"),
+                            FUN = function(spec){any(unlist(lapply(X = spec@children, FUN = function(child){child@ok})))}))
+        notEmpty <- unlist(lapply(X = mb@compiled, FUN = length)) > 0
+        ok <- ok & notEmpty
+        mb@ok <- which(ok)
+        #mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
 	  mb@problems <- which(is.na(mb@compiled))
 	  mb@compiled_ok <- mb@compiled[mb@ok]
+        mb@compiled_notOk <- mb@compiled[!ok & notEmpty]
   }
   # Step 5: Convert the internal tree-like representation of the MassBank data into
   # flat-text string arrays (basically, into text-file style, but still in memory)
@@ -254,31 +282,73 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   {
 	message("mbWorkflow: [Legacy Step 5. Flattening records] ignored")
     #mb@mbfiles <- lapply(mb@compiled_ok, function(cpd) toMassbank(cpd, mb@additionalPeaks))
+        mb@mbfiles_notOk <- lapply(mb@compiled_notOk, function(c) lapply(c, toMassbank))
   }
   # Step 6: For all OK records, generate a corresponding molfile with the structure
   # of the compound, based on the SMILES entry from the MassBank record. (This molfile
   # is still in memory only, not yet a physical file)
   if(6 %in% steps)
   {
+        if(RMassBank.env$export.molfiles){
 	message("mbWorkflow: Step 6. Generate molfiles")
         mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(as.numeric(c@id)))
+        } else
+          warning("RMassBank is configured not to export molfiles (RMassBank.env$export.molfiles). Step 6 is therefore ignored.")
     }
   # Step 7: If necessary, generate the appropriate subdirectories, and actually write
   # the files to disk.
   if(7 %in% steps)
   {
 	message("mbWorkflow: Step 7. Generate subdirs and export")
-    dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "moldata", sep='/'),recursive=TRUE)
-    dir.create(paste(getOption("RMassBank")$annotations$entry_prefix, "recdata", sep='/'),recursive=TRUE)
-    mb@mbfiles <- lapply(seq_len(length(mb@compiled_ok)), function(cnt)
-      exportMassbank(mb@compiled_ok[[cnt]], mb@molfile[[cnt]]))    
+        
+        ## create folder
+        filePath_recData_valid   <- file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata")
+        filePath_recData_invalid <- file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata_invalid")
+        filePath_molData         <- file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata")
+        
+        if(!file.exists(filePath_recData_valid)) if(!dir.create(filePath_recData_valid,recursive=TRUE))  stop(paste("Could not create folder", filePath_recData_valid))
+        if(RMassBank.env$export.molfiles)
+          if(!file.exists(filePath_molData)) if(!dir.create(filePath_molData,recursive=TRUE))  stop(paste("Could not create folder", filePath_molData))
+        if(RMassBank.env$export.invalid & length(mb@mbfiles_notOk) > 0)
+          if(!file.exists(filePath_recData_invalid)) if(!dir.create(filePath_recData_invalid,recursive=TRUE))  stop(paste("Could not create folder", filePath_recData_invalid))
+        
+        if(length(mb@molfile) == 0)
+            mb@molfile <- as.list(rep(x = NA, times = length(mb@compiled_ok)))
+        
+        ## export valid spectra
+        for(cnt in seq_along(mb@compiled_ok)){
+            exportMassbank_recdata(
+                accessions = unlist(lapply(X = mb@compiled_ok[[cnt]], FUN = "[", "ACCESSION")), 
+                files = mb@mbfiles[[cnt]], 
+                recDataFolder = filePath_recData_valid
+            )
+            
+            if(findLevel(mb@compiled_ok[[cnt]][[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]],TRUE)=="standard" & RMassBank.env$export.molfiles)
+              exportMassbank_moldata(
+                cpdID = as.numeric(mb@compiled_ok[[cnt]][[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]), 
+                molfile = mb@molfile[[cnt]], 
+                molDataFolder = filePath_molData
+              )
+        }
+        
+        ## export invalid spectra
+        if(RMassBank.env$export.invalid)
+            for(cnt in seq_along(mb@compiled_notOk))
+                exportMassbank_recdata(
+                    accessions = unlist(lapply(X = mb@compiled_notOk[[cnt]], FUN = "[", "ACCESSION")), 
+                    files = mb@mbfiles_notOk[[cnt]], 
+                    recDataFolder = filePath_recData_invalid
+                )
   }
   # Step 8: Create the list.tsv in the molfiles folder, which is required by MassBank
   # to attribute substances to their corresponding structure molfiles.
   if(8 %in% steps)
   {
+        if(RMassBank.env$export.molfiles){
 	message("mbWorkflow: Step 8. Create list.tsv")
-    makeMollist(mb@compiled_ok)
+            makeMollist(compiled = mb@compiled_ok)
+        } else
+            warning("RMassBank is configured not to export molfiles (RMassBank.env$export.molfiles). Step 8 is therefore ignored.")
   }
   return(mb)
 }
@@ -530,6 +600,13 @@ gatherData <- function(id)
 		csid <- getCactus(inchikey_split, 'chemspider_id')
 	}
 	
+	##Get CompTox
+	comptox <- getCompTox(inchikey_split)
+	
+	if(is.null(comptox)){
+	  comptox <- NA
+	}
+	
 	##Use CTS to retrieve information
 	CTSinfo <- getCtsRecord(inchikey_split)
 		
@@ -581,7 +658,7 @@ gatherData <- function(id)
 	# COMMENT: EAWAG_UCHEM_ID 1234
 	# if annotations$internal_id_fieldname is set to "EAWAG_UCHEM_ID"
 	mbdata[["COMMENT"]] <- list()
-    if(findLevel(id) == "0"){
+  if(findLevel(id) == "0"){
 	mbdata[["COMMENT"]][["CONFIDENCE"]] <- getOption("RMassBank")$annotations$confidence_comment
 	} else{
         level <- findLevel(id)
@@ -618,8 +695,18 @@ gatherData <- function(id)
         if(level == c("5")){
              mbdata[["COMMENT"]][["CONFIDENCE"]] <- "Tentative identification: structure and formula unknown (Level 5)"
         }
-    }
+	}
+	
 	mbdata[["COMMENT"]][["ID"]] = id
+  
+  ## add generic COMMENT information
+  rowIdx <- which(.listEnvEnv$listEnv$compoundList$ID == id)
+  properties      <- colnames(.listEnvEnv$listEnv$compoundList)
+  properties2     <- gsub(x = properties, pattern = "^COMMENT ", replacement = "")
+  theseProperties <- grepl(x = properties, pattern = "^COMMENT ")
+  theseProperties <- theseProperties & (!(unlist(.listEnvEnv$listEnv$compoundList[rowIdx, ]) == "NA" | is.na(unlist(.listEnvEnv$listEnv$compoundList[rowIdx, ]))))
+  mbdata[["COMMENT"]][properties2[theseProperties]] <- unlist(.listEnvEnv$listEnv$compoundList[rowIdx, theseProperties])
+  
 	# here compound info starts
 	mbdata[['CH$NAME']] <- names
 	# Currently we use a fixed value for Compound Class, since there is no useful
@@ -714,7 +801,8 @@ gatherData <- function(id)
 	}
 	
 	link[["INCHIKEY"]] <- inchikey_split
-	if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid)))
+	link[["COMPTOX"]] <- comptox
+	if(length(csid)>0) if(any(!is.na(csid))) link[["CHEMSPIDER"]] <- min(as.numeric(as.character(csid[!is.na(csid)])))
 	mbdata[['CH$LINK']] <- link
 		
 	return(mbdata)  
@@ -1042,19 +1130,25 @@ flatten <- function(mbdata)
 {
   .checkMbSettings()
   
+  colNames     <- names(unlist(mbdata[[1]]))
+  commentNames <- colNames[grepl(x = colNames, pattern = "^COMMENT\\.")]
+  
   colList <- c(
               "id",
               "dbcas",
               "dbname",
               "dataused",
-              "COMMENT.CONFIDENCE",
+              commentNames,
+              #"COMMENT.CONFIDENCE",
               # Note: The field name of the internal id field is replaced with the real name
               # at "compilation" time. Therefore, functions DOWNSTREAM from compileRecord() 
               # must use the full name including the info from options("RMassBank").
-              "COMMENT.ID",
+              #"COMMENT.ID",
               "CH$NAME1",
               "CH$NAME2",
               "CH$NAME3",
+              "CH$NAME4",
+              "CH$NAME5",
               "CH$COMPOUND_CLASS",
               "CH$FORMULA",
               "CH$EXACT_MASS",
@@ -1067,7 +1161,9 @@ flatten <- function(mbdata)
               "CH$LINK.LIPIDMAPS",
               "CH$LINK.PUBCHEM",
               "CH$LINK.INCHIKEY",
-              "CH$LINK.CHEMSPIDER")
+              "CH$LINK.CHEMSPIDER",
+	          "CH$LINK.COMPTOX"
+	          )
   # make an empty data frame with the right length
   rows <- length(mbdata)
   cols <- length(colList)
@@ -1113,15 +1209,20 @@ readMbdata <- function(row)
   if(getOption("RMassBank")$annotations$publication!="") {
     mbdata[['PUBLICATION']] <- getOption("RMassBank")$annotations$publication
   }
+  commentNames <- names(row)[grepl(x = names(row), pattern = "^COMMENT\\.")]
+  commentNames <- commentNames[!is.na(row[commentNames])]
   
   # Read all determined fields from the file
   # This is not very flexible, as you can see...
     colList <- c(
-              "COMMENT.CONFIDENCE",
-              "COMMENT.ID",
+              commentNames,
+              #"COMMENT.CONFIDENCE",
+              #"COMMENT.ID",
               "CH$NAME1",
               "CH$NAME2",
               "CH$NAME3",
+              "CH$NAME4",
+              "CH$NAME5",
               "CH$COMPOUND_CLASS",
               "CH$FORMULA",
               "CH$EXACT_MASS",
@@ -1134,14 +1235,15 @@ readMbdata <- function(row)
               "CH$LINK.LIPIDMAPS",
               "CH$LINK.PUBCHEM",
               "CH$LINK.INCHIKEY",
-              "CH$LINK.CHEMSPIDER")
+              "CH$LINK.CHEMSPIDER",
+              "CH$LINK.COMPTOX")
   mbdata[["COMMENT"]] = list()
-  mbdata[["COMMENT"]][["CONFIDENCE"]] <- row[["COMMENT.CONFIDENCE"]]
+  #mbdata[["COMMENT"]][["CONFIDENCE"]] <- row[["COMMENT.CONFIDENCE"]]
   # Again, our ID field. 
+  #mbdata[["COMMENT"]][["ID"]] <- row[["COMMENT.ID"]]
+  mbdata[["COMMENT"]][gsub(x = commentNames, pattern = "^COMMENT\\.", replacement = "")] <- row[commentNames]
   
-  mbdata[["COMMENT"]][["ID"]]<-
-            row[["COMMENT.ID"]]
-  names = c(row[["CH.NAME1"]], row[["CH.NAME2"]], row[["CH.NAME3"]])
+  names = c(row[["CH.NAME1"]], row[["CH.NAME2"]], row[["CH.NAME3"]], row[["CH.NAME4"]], row[["CH.NAME5"]])
   names = names[which(!is.na(names))]
   
   names <- gsub("'", "`", names) 
@@ -1161,8 +1263,33 @@ readMbdata <- function(row)
   link[["PUBCHEM"]] = row[["CH.LINK.PUBCHEM"]]
   link[["INCHIKEY"]] = row[["CH.LINK.INCHIKEY"]]
   link[["CHEMSPIDER"]] = row[["CH.LINK.CHEMSPIDER"]]
+  link[["COMPTOX"]] = row[["CH.LINK.COMPTOX"]]
   link[which(is.na(link))] <- NULL
   mbdata[["CH$LINK"]] <- link
+  ## SP$SAMPLE
+  if(all(nchar(row[["SP.SAMPLE"]]) > 0, row[["SP.SAMPLE"]] != "NA", !is.na(row[["SP.SAMPLE"]]), na.rm = TRUE))
+    mbdata[['SP$SAMPLE']] <- row[["SP.SAMPLE"]]
+    ## add generic AC$MASS_SPECTROMETRY information
+    properties      <- names(getOption("RMassBank")$annotations)
+    presentProperties <- names(ac_ms)#c('MS_TYPE', 'IONIZATION', 'ION_MODE')#, 'FRAGMENTATION_MODE', 'COLLISION_ENERGY', 'RESOLUTION')
+    
+    theseProperties <- grepl(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_")
+    properties2     <- gsub(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_", replacement = "")
+    theseProperties <- theseProperties & !(properties2 %in% presentProperties)
+    theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
+    ac_ms[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
+    
+    ## add generic AC$CHROMATOGRAPHY information
+    #properties      <- names(getOption("RMassBank")$annotations)
+    theseProperties <- grepl(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_")
+    properties2     <- gsub(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_", replacement = "")
+    presentProperties <- names(ac_lc)#c('COLUMN_NAME', 'FLOW_GRADIENT', 'FLOW_RATE', 'RETENTION_TIME', 'SOLVENT A', 'SOLVENT B')
+    theseProperties <- theseProperties & !(properties2 %in% presentProperties)
+    theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
+    ac_lc[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
+    
+    if(all(!is.na(msmsdata@precursorIntensity), msmsdata@precursorIntensity != 0, msmsdata@precursorIntensity != 100, na.rm = TRUE))
+        ms_fi[['PRECURSOR_INTENSITY']] <- msmsdata@precursorIntensity
 
   
   return(mbdata)
@@ -1558,6 +1685,19 @@ setMethod("toMassbank", "RmbSpectrum2", function(o, addAnnotation = getOption("R
 #' 
 #' @export
 exportMassbank <- function(compiled, molfile = NULL)
+    exportMassbank_recdata(
+        accessions = unlist(lapply(X = compiled, FUN = "[", "ACCESSION")), 
+        files,   
+        recDataFolder = file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata")
+    )
+    exportMassbank_moldata(
+        cpdID = as.numeric(compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]), 
+        molfile, 
+        molDataFolder = file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata")
+    )
+}
+
+exportMassbank_recdata <- function(accessions, files, recDataFolder)
 {
   #mb@mbfiles <- lapply(mb@compiled_ok, function(cpd) toMassbank(cpd, mb@additionalPeaks))
   
@@ -1579,6 +1719,7 @@ exportMassbank <- function(compiled, molfile = NULL)
   }
   if(!is.null(molfile))
   {
+{
     # Use internal ID for naming the molfiles
     if(findLevel(compiled@id,TRUE)=="standard"){
       molname <- sprintf("%04d", as.numeric(

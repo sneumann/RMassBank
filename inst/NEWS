@@ -1,3 +1,12 @@
+Changes in version 2.15.3
+
+- Fix an issue if saved InfoLists have missing columns
+
+Changes in version 2.15.2
+
+- Merge PR by Adelene Lai to add CompTox information
+- Merge PR by Hendrik Treutler to 1) add more CH$NAME fields and 2) more Adducts and 3) Selenium 
+
 Changes in version 2.11.2
 
 - Avoid writing out empty PUBLICATIONS
