@@ -1685,19 +1685,21 @@ setMethod("toMassbank", "RmbSpectrum2", function(o, addAnnotation = getOption("R
 #' 
 #' @export
 exportMassbank <- function(compiled, molfile = NULL)
-    exportMassbank_recdata(
-        accessions = unlist(lapply(X = compiled, FUN = "[", "ACCESSION")), 
-        files,   
-        recDataFolder = file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata")
-    )
+{
+  exportMassbank_recdata(
+    compiled,   
+    recDataFolder = file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata")
+  )
+  if(!is.null(molfile)) {
     exportMassbank_moldata(
-        cpdID = as.numeric(compiled[[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]), 
-        molfile, 
-        molDataFolder = file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata")
+      compiled,
+      molfile,
+      molDataFolder = file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata")
     )
+    }
 }
 
-exportMassbank_recdata <- function(accessions, files, recDataFolder)
+exportMassbank_recdata <- function(compiled, recDataFolder)
 {
   #mb@mbfiles <- lapply(mb@compiled_ok, function(cpd) toMassbank(cpd, mb@additionalPeaks))
   
@@ -1707,31 +1709,29 @@ exportMassbank_recdata <- function(accessions, files, recDataFolder)
   molnames <- c()
   for(file in seq_len(length(files)))
   {
-    
     # Read the accession no. from the corresponding "compiled" entry
     filename <- names(files)[[file]]
     # use this accession no. as filename
     filename <- paste(filename, ".txt", sep="")
-    
-    write(files[[file]], 
-          file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata",filename)
-    )
+    filePath <- file.path(recDataFolder,filename)
+    write(files[[file]], filePath)
   }
-  if(!is.null(molfile))
-  {
+}
+
+exportMassbank_moldata <- function(compiled, molfile, molDataFolder)
 {
-    # Use internal ID for naming the molfiles
-    if(findLevel(compiled@id,TRUE)=="standard"){
-      molname <- sprintf("%04d", as.numeric(
-              compiled@id))
-      molname <- paste(molname, ".mol", sep="")
-      write(molfile,
-          file.path(getOption("RMassBank")$annotations$entry_prefix, "moldata",molname)
-      )
-    }
+  # Use internal ID for naming the molfiles
+  if(findLevel(compiled@id,TRUE)=="standard"){
+    molname <- sprintf("%04d", as.numeric(compiled@id))
+    molname <- paste(molname, ".mol", sep="")
+    write(molfile, file.path(molDataFolder, "moldata",molname))
   }
   return(files)
 }
+
+
+
+
 
 # Makes a list.tsv with molfile -> massbank ch$name attribution.
 
