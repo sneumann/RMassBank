@@ -155,6 +155,29 @@ getAnalyticalInfo <- function(cpd = NULL)
 	ac_lc[['SOLVENT A']] <- getOption("RMassBank")$annotations$lc_solvent_a
 	ac_lc[['SOLVENT B']] <- getOption("RMassBank")$annotations$lc_solvent_b
 	
+	# Treutler fixes for custom properties, trying to forwardport this here
+	
+	## add generic AC$MASS_SPECTROMETRY information
+	properties      <- names(getOption("RMassBank")$annotations)
+	presentProperties <- names(ac_ms)#c('MS_TYPE', 'IONIZATION', 'ION_MODE')#, 'FRAGMENTATION_MODE', 'COLLISION_ENERGY', 'RESOLUTION')
+	
+	theseProperties <- grepl(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_")
+	properties2     <- gsub(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_", replacement = "")
+	theseProperties <- theseProperties & !(properties2 %in% presentProperties)
+	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
+	ac_ms[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
+	
+	## add generic AC$CHROMATOGRAPHY information
+	#properties      <- names(getOption("RMassBank")$annotations)
+	theseProperties <- grepl(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_")
+	properties2     <- gsub(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_", replacement = "")
+	presentProperties <- names(ac_lc)#c('COLUMN_NAME', 'FLOW_GRADIENT', 'FLOW_RATE', 'RETENTION_TIME', 'SOLVENT A', 'SOLVENT B')
+	theseProperties <- theseProperties & !(properties2 %in% presentProperties)
+	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
+	ac_lc[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
+	
+
+	
 	return(list( ai=ai, ac_lc=ac_lc, ac_ms=ac_ms))
 }
 
@@ -233,6 +256,11 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
   	ms_fi[['BASE_PEAK']] <- round(mz(cpd@parent)[which.max(intensity(cpd@parent))],4)
   	ms_fi[['PRECURSOR_M/Z']] <- round(cpd@mz,4)
   	ms_fi[['PRECURSOR_TYPE']] <- .precursorTypes[cpd@mode]
+  	
+  	if(all(!is.na(spectrum@precursorIntensity), 
+  	       spectrum@precursorIntensity != 0, 
+  	       spectrum@precursorIntensity != 100, na.rm = TRUE))
+  	  ms_fi[['PRECURSOR_INTENSITY']] <- spectrum@precursorIntensity
   }
 
 	

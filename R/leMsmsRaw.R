@@ -249,6 +249,9 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	}
 	else
 	{
+	  findValidPrecursors <- headerData[which(
+	    (headerData$precursorMZ > (mz - limit.coarse)) &
+	      (headerData$precursorMZ < (mz + limit.coarse))),]
 	# Find the precursors for the found spectra
 	}
 	validPrecursors <- unique(findValidPrecursors$precursorScanNum)
@@ -293,23 +296,25 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	if(!is.na(maxCount))
 	{
 		spectraCount <- min(maxCount, nrow(eic))
-		eic <- eic[1:spectraCount, drop = FALSE]
+		eic <- eic[1:spectraCount,]
 	}
 	# Construct all spectra groups in decreasing intensity order
 	spectra <- lapply(eic$scan, function(masterScan)
 			{
-				masterHeader <- headerData[headerData$acquisitionNum == masterScan, drop = FALSE]
+				masterHeader <- headerData[headerData$acquisitionNum == masterScan,]
 				
 				if(is.null(diaWindows))
 				{
-				  childHeaders <- headerData[(headerData$precursorScanNum == masterScan) 
-				                             & (headerData$precursorMZ > mz - limit.coarse) 
-				                             & (headerData$precursorMZ < mz + limit.coarse) , drop = FALSE]
+				  childHeaders <- headerData[
+				    which(headerData$precursorScanNum == masterScan 
+				          & headerData$precursorMZ > (mz - limit.coarse) 
+				          & headerData$precursorMZ < (mz + limit.coarse)) , ,
+				    drop = FALSE]
 				  
 				}
 				else
 				{
-				  childHeaders <- headerData[(headerData$precursorScanNum == masterScan), drop = FALSE]
+				  childHeaders <- headerData[which(headerData$precursorScanNum == masterScan), drop = FALSE]
 				  childHeaders <- childHeaders[window, drop = FALSE]
 				  
 				}
@@ -471,6 +476,7 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 			sp@name <- findName(cpdID[i])
 			sp@formula <- findFormula(cpdID[i])
 			sp@mode <- mode
+			sp@polarity <- .polarity[[sp@mode]]
 			return(sp)
 		})
 		return(P)
@@ -488,7 +494,6 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 	sp@name <- findName(cpdID)
 	sp@formula <- findFormula(cpdID)
 	sp@mode <- mode
-		
 	return(sp)
 }
 
@@ -1078,6 +1083,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 				precursorIntensity = ifelse(test = "into_parent" %in% colnames(spec), yes = spec[,"into_parent"], no = 0),
 				precursorCharge = as.integer(1),
 				collisionEnergy = 0,
+				polarity = .polarity[[mode]],
 				tic = 0,
 				peaksCount = nrow(spec),
 				rt = median(spec[,"rt"]),

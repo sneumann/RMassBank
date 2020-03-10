@@ -29,6 +29,7 @@ options(width=74)
 \parskip 1em
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \title{RMassBank: Non-standard usage}
 \author{Michael Stravs}

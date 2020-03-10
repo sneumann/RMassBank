@@ -266,15 +266,11 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
           return(res)
 			  })
 	  # check which compounds have useful spectra
-        ok <- unlist(lapply(X = selectSpectra(mb@spectra, "found", "object"),
-                            FUN = function(spec){any(unlist(lapply(X = spec@children, FUN = function(child){child@ok})))}))
-        notEmpty <- unlist(lapply(X = mb@compiled, FUN = length)) > 0
-        ok <- ok & notEmpty
-        mb@ok <- which(ok)
+	  mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
         #mb@ok <- which(!is.na(mb@compiled) & !(lapply(mb@compiled, length)==0))
 	  mb@problems <- which(is.na(mb@compiled))
 	  mb@compiled_ok <- mb@compiled[mb@ok]
-        mb@compiled_notOk <- mb@compiled[!ok & notEmpty]
+    mb@compiled_notOk <- mb@compiled[!mb@ok]
   }
   # Step 5: Convert the internal tree-like representation of the MassBank data into
   # flat-text string arrays (basically, into text-file style, but still in memory)
@@ -282,18 +278,18 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   {
 	message("mbWorkflow: [Legacy Step 5. Flattening records] ignored")
     #mb@mbfiles <- lapply(mb@compiled_ok, function(cpd) toMassbank(cpd, mb@additionalPeaks))
-        mb@mbfiles_notOk <- lapply(mb@compiled_notOk, function(c) lapply(c, toMassbank))
+    #mb@mbfiles_notOk <- lapply(mb@compiled_notOk, function(c) lapply(c, toMassbank))
   }
   # Step 6: For all OK records, generate a corresponding molfile with the structure
   # of the compound, based on the SMILES entry from the MassBank record. (This molfile
   # is still in memory only, not yet a physical file)
   if(6 %in% steps)
   {
-        if(RMassBank.env$export.molfiles){
-	message("mbWorkflow: Step 6. Generate molfiles")
-        mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(as.numeric(c@id)))
-        } else
-          warning("RMassBank is configured not to export molfiles (RMassBank.env$export.molfiles). Step 6 is therefore ignored.")
+    if(RMassBank.env$export.molfiles){
+      message("mbWorkflow: Step 6. Generate molfiles")
+      mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(as.numeric(c@id)))
+    } else
+      warning("RMassBank is configured not to export molfiles (RMassBank.env$export.molfiles). Step 6 is therefore ignored.")
     }
   # Step 7: If necessary, generate the appropriate subdirectories, and actually write
   # the files to disk.
@@ -318,25 +314,21 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
         ## export valid spectra
         for(cnt in seq_along(mb@compiled_ok)){
             exportMassbank_recdata(
-                accessions = unlist(lapply(X = mb@compiled_ok[[cnt]], FUN = "[", "ACCESSION")), 
-                files = mb@mbfiles[[cnt]], 
+                mb@compiled_ok[[cnt]], 
                 recDataFolder = filePath_recData_valid
             )
-            
-            if(findLevel(mb@compiled_ok[[cnt]][[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]],TRUE)=="standard" & RMassBank.env$export.molfiles)
+            if(RMassBank.env$export.molfiles)
               exportMassbank_moldata(
-                cpdID = as.numeric(mb@compiled_ok[[cnt]][[1]][["COMMENT"]][[getOption("RMassBank")$annotations$internal_id_fieldname]][[1]]), 
+                mb@compiled_ok[[cnt]], 
                 molfile = mb@molfile[[cnt]], 
                 molDataFolder = filePath_molData
               )
         }
         
         ## export invalid spectra
-        if(RMassBank.env$export.invalid)
             for(cnt in seq_along(mb@compiled_notOk))
                 exportMassbank_recdata(
-                    accessions = unlist(lapply(X = mb@compiled_notOk[[cnt]], FUN = "[", "ACCESSION")), 
-                    files = mb@mbfiles_notOk[[cnt]], 
+                    compiled = mb@mbfiles_notOk[[cnt]], 
                     recDataFolder = filePath_recData_invalid
                 )
   }
@@ -345,8 +337,8 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   if(8 %in% steps)
   {
         if(RMassBank.env$export.molfiles){
-	message("mbWorkflow: Step 8. Create list.tsv")
-            makeMollist(compiled = mb@compiled_ok)
+          message("mbWorkflow: Step 8. Create list.tsv")
+          makeMollist(compiled = mb@compiled_ok)
         } else
             warning("RMassBank is configured not to export molfiles (RMassBank.env$export.molfiles). Step 8 is therefore ignored.")
   }
@@ -1266,30 +1258,11 @@ readMbdata <- function(row)
   link[["COMPTOX"]] = row[["CH.LINK.COMPTOX"]]
   link[which(is.na(link))] <- NULL
   mbdata[["CH$LINK"]] <- link
-  ## SP$SAMPLE
+
+    ## SP$SAMPLE
   if(all(nchar(row[["SP.SAMPLE"]]) > 0, row[["SP.SAMPLE"]] != "NA", !is.na(row[["SP.SAMPLE"]]), na.rm = TRUE))
     mbdata[['SP$SAMPLE']] <- row[["SP.SAMPLE"]]
-    ## add generic AC$MASS_SPECTROMETRY information
-    properties      <- names(getOption("RMassBank")$annotations)
-    presentProperties <- names(ac_ms)#c('MS_TYPE', 'IONIZATION', 'ION_MODE')#, 'FRAGMENTATION_MODE', 'COLLISION_ENERGY', 'RESOLUTION')
-    
-    theseProperties <- grepl(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_")
-    properties2     <- gsub(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_", replacement = "")
-    theseProperties <- theseProperties & !(properties2 %in% presentProperties)
-    theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
-    ac_ms[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
-    
-    ## add generic AC$CHROMATOGRAPHY information
-    #properties      <- names(getOption("RMassBank")$annotations)
-    theseProperties <- grepl(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_")
-    properties2     <- gsub(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_", replacement = "")
-    presentProperties <- names(ac_lc)#c('COLUMN_NAME', 'FLOW_GRADIENT', 'FLOW_RATE', 'RETENTION_TIME', 'SOLVENT A', 'SOLVENT B')
-    theseProperties <- theseProperties & !(properties2 %in% presentProperties)
-    theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
-    ac_lc[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
-    
-    if(all(!is.na(msmsdata@precursorIntensity), msmsdata@precursorIntensity != 0, msmsdata@precursorIntensity != 100, na.rm = TRUE))
-        ms_fi[['PRECURSOR_INTENSITY']] <- msmsdata@precursorIntensity
+
 
   
   return(mbdata)
@@ -1724,9 +1697,8 @@ exportMassbank_moldata <- function(compiled, molfile, molDataFolder)
   if(findLevel(compiled@id,TRUE)=="standard"){
     molname <- sprintf("%04d", as.numeric(compiled@id))
     molname <- paste(molname, ".mol", sep="")
-    write(molfile, file.path(molDataFolder, "moldata",molname))
+    write(molfile, file.path(molDataFolder,molname))
   }
-  return(files)
 }
 
 
