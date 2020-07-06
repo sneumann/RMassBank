@@ -709,6 +709,11 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   	{
   		child@ok <- FALSE
   		
+  		chdata <- getData(child)
+  		chdata$formulaSource <- character(nrow(chdata))
+  		child <- setData(child, chdata)
+  		
+  		
   		if(RMassBank.env$verbose.output)
   		  cat(paste("\n### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' is empty\n", sep = ""))
   		
@@ -719,6 +724,11 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   	{
   	  child@ok <- FALSE
   	  child@good <- rep(FALSE, length(childPeaks$formula))
+  	  
+  	  chdata <- getData(child)
+  	  chdata$formulaSource <- character(nrow(chdata))
+  	  child <- setData(child, chdata)
+  	  
   	  
   	  if(RMassBank.env$verbose.output)
   	    cat(paste("\n### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' comprises no peaks which could be assiged to a molecular formula\n", sep = ""))
@@ -737,6 +747,10 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   	{
   		child@ok <- FALSE
   		child@good <- rep(FALSE, length(temp.child.ok))
+  		
+  		chdata <- getData(child)
+  		chdata$formulaSource <- character(nrow(chdata))
+  		child <- setData(child, chdata)
   		
   		if(RMassBank.env$verbose.output)
   		  cat(paste("\n### Warning ### The spectrum '#", childIdx, "' for ID '", msmsPeaks@id, "' comprises no peaks which fulfil the dbeMinLimit criterion\n", sep = ""))
@@ -1424,14 +1438,18 @@ makeRecalibration <- function(w, mode,
 		recalibrateBy = getOption("RMassBank")$recalibrateBy,
 		recalibrateMS1 = getOption("RMassBank")$recalibrateMS1,
 		recalibrator = getOption("RMassBank")$recalibrator,
-		recalibrateMS1Window = getOption("RMassBank")$recalibrateMS1Window 
+		recalibrateMS1Window = getOption("RMassBank")$recalibrateMS1Window
+		#cropSingleFormula = getOption("RMassBank")$recalibrateCropSingleFormula
 		)
 {
 	if(is.null(w@spectra))
 		stop("No spectra present to generate recalibration curve.")
 
 	rcdata <- peaksMatched(w)
-	rcdata <- rcdata[!is.na(rcdata$formulaCount) & rcdata$formulaCount == 1, ,drop=FALSE]
+	#if(cropSingleFormula)
+	  rcdata <- rcdata[!is.na(rcdata$formulaCount) & rcdata$formulaCount == 1, ,drop=FALSE]
+	#else
+	#  rcdata <- rcdata[!is.na(rcdata$formulaCount), ,drop=FALSE]
 	
 	rcdata <- rcdata[,c("mzFound", "dppm", "mzCalc")]
 	
