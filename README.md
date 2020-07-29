@@ -17,3 +17,6 @@ The RMassBank project master branch is subjected to CI using travis:
 
 [![Build Status](https://travis-ci.org/MassBank/RMassBank.svg?branch=master)](https://travis-ci.org/MassBank/RMassBank)
 
+# New Main Branch
+
+We moved the default branch from `master` to `main` to get rid of this offensive term.
