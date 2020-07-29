@@ -72,7 +72,7 @@ retrieveDataWithRetry <- function(url, timeout, maximumNumberOfRetries = 5, retr
 #' 
 #' 
 getCactus <- function(identifier,representation){
-  identifier <- sub('#', '%23', identifier)
+  identifier <- gsub('#', '%23', identifier)
   ret <- tryCatch(httr::GET(paste("https://cactus.nci.nih.gov/chemical/structure/",
                             URLencode(identifier), "/", representation, sep = "")),
                   error = function(e) NA)
