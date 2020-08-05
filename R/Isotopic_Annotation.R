@@ -53,32 +53,10 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 0, intensity_precis
 	# Load filtersettings
 	filterSettings = settings$filterSettings
 	
-	# Assign formula additions according to code
-	if(mode == "pH") {
-		allowed_additions <- "H"
-		mode.charge <- 1
-	} else if(mode == "pNa") {
-		allowed_additions <- "Na"
-		mode.charge <- 1
-	} else if(mode == "pM") {
-		allowed_additions <- ""
-		mode.charge <- 1
-	} else if(mode == "mM") {
-		allowed_additions <- ""
-		mode.charge <- -1
-	} else if(mode == "mH") {
-		allowed_additions <- "H-1"
-		mode.charge <- -1
-	} else if(mode == "mFA") {
-		allowed_additions <- "C2H3O2"
-		mode.charge <- -1
-	} else if(mode == "pNH4") {
-		allowed_additions <- "NH4"
-		mode.charge <- 1
-	} else{
-		stop("mode = \"", mode, "\" not defined")
-	}
-	
+	# get the adduct additions
+	adductProperties <- getAdductProperties(mode, msmsPeaks@formula)
+	allowed_additions <- adductProperties$addition
+	mode.charge <- adductProperties$charge
 	
 	# "default" isotopes (i.e. those with the highest abundance)
 	defIsotopes <- c("107Ag", "27Al", "40Ar", "75As", "197Au", "11B", "138Ba", "9Be", "209Bi",

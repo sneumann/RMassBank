@@ -215,6 +215,7 @@ NULL
 			"RECALIBRATE" = "loess on assigned fragments and MS1"
 			)
     ),
+  include_sp_tags = FALSE,
   # List of data-dependent scans in their order (relative to the parent scan)
 	# list(mode, ces, ce, res):
 	# mode: fragmentation mode

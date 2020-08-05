@@ -100,11 +100,9 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
 		cut <- filterSettings$prelimCut
 		if(is.na(cut))
 		{
-			if(mode %in% c("pH", "pM", "pNa", "pNH4"))
-			cut <- 1e4
-			else if(mode %in% c("mH", "mFA","mM"))
-			cut <- 0
-			else stop(paste("The ionization mode", mode, "is unknown."))
+		  adductProperties <- getAdductProperties(mode, msmsPeaks@formula)
+		  if(adductProperties$charge > 0) cut <- 1e4
+		  if(adductProperties$charge < 0) cut <- 0
 		}
 		cutRatio <- filterSettings$prelimCutRatio
 	} else{
@@ -137,32 +135,10 @@ analyzeMsMs.formula.optimized <- function(msmsPeaks, mode="pH", detail=FALSE, ru
                             dppm=0,
                             x1=0,x2=0,x3=0)
   
-  # define the adduct additions
-  if(mode == "pH") {
-    allowed_additions <- "H"
-    mode.charge <- 1
-  } else if(mode == "pNa") {
-    allowed_additions <- "Na"
-    mode.charge <- 1
-  } else if(mode == "pM") {
-    allowed_additions <- ""
-    mode.charge <- 1
-  } else if(mode == "mM") {
-    allowed_additions <- ""
-    mode.charge <- -1
-  } else if(mode == "mH") {
-    allowed_additions <- "H-1"
-    mode.charge <- -1
-  } else if(mode == "mFA") {
-    allowed_additions <- "C2H3O2"
-    mode.charge <- -1
-  } else if(mode == "pNH4") {
-    allowed_additions <- "NH4"
-    mode.charge <- 1
-  } else{
-    stop("mode = \"", mode, "\" not defined")
-  }
-  
+	# get the adduct additions
+	adductProperties <- getAdductProperties(mode, msmsPeaks@formula)
+	allowed_additions <- adductProperties$addition
+	mode.charge <- adductProperties$charge
   
   # the ppm range is two-sided here.
   # The range is slightly expanded because dppm calculation of
