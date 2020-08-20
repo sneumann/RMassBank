@@ -1,0 +1,180 @@
+---
+title: "RMassBank: Non-standard usage"
+author: "Michael Stravs"
+output:
+  html_document:
+    toc: true
+    theme: united
+---
+```{r echo=FALSE}
+options(width=74)
+#library(xtable)
+```
+## Introduction
+
+```{r echo=FALSE}
+library("RMassBank")
+library("RMassBankData")
+library("gplots")
+```
+
+
+This vignette assumes you are familiar with the standard usage of
+*RMassBank*, which is documented in
+```{r eval=FALSE}
+vignette("RMassBank")
+```
+
+## Skipping recalibration
+
+For instances where recalibration is not wanted, e.g. there is
+not enough data, or the user wants to use non-recalibrated
+data, recalibration can be deactivated. To do this, the `recalibrator`
+entry in the settings must be set to `recalibrate.identity`. This can be
+done in the settings file directly (preferred):
+
+````
+recalibrator:
+    MS1: recalibrate.identity
+    MS2: recalibrate.identity
+````
+
+Or, alternatively, the settings can be adapted directly via R code.
+```{r }
+RmbDefaultSettings()
+rmbo <- getOption("RMassBank")
+rmbo$recalibrator <- list(
+		"MS1" = "recalibrate.identity",
+		"MS2" = "recalibrate.identity"
+	)
+options("RMassBank" = rmbo)
+```
+
+To show the results of using a non-recalibrated workflow, we load a workspace
+with pre-processed data:
+
+```{r }
+w <- loadMsmsWorkspace(system.file("results/pH_narcotics_RF.RData", 
+				package="RMassBankData"))
+```
+
+The recalibration curve:
+```{r fig=TRUE}
+recal <- makeRecalibration(w@parent, "pH",
+				recalibrateBy = rmbo$recalibrateBy,
+				recalibrateMS1 = rmbo$recalibrateMS1,
+				recalibrator = list(MS1="recalibrate.loess",MS2="recalibrate.loess"),
+				recalibrateMS1Window = 15)
+w@rc <- recal$rc
+w@rc.ms1 <- recal$rc.ms1
+w@parent <- w
+plotRecalibration(w)
+```
+
+Some example peaks to show the effect of recalibration:
+```{r }
+w@spectra[[1]]@parent@mz[30:32]
+w@spectra[[1]]@children[[1]]@mz[15:17]
+```
+
+Now reprocess the recalibration step with the
+above set `recalibration.identity`:
+
+```{r fig=TRUE}
+w <- msmsWorkflow(w, steps=4)
+```
+
+The recalibration graph shows that the recalibration "curve" will do no
+recalibration. To verify, we can show the same peaks as before:
+
+```{r }
+w@spectra[[1]]@parent@mz[30:32]
+w@spectra[[1]]@children[[1]]@mz[15:17]
+```
+
+## Combining multiplicities
+
+Standard multiplicity filtering, which is configurable in the settings,
+eliminates peaks which are observed only once for a compound. This eliminates
+spurious formula matches for random noise efficiently. It works
+well if either many spectra are recorded per compound, or if the same collision energy
+is present twice (e.g. with different resolutions). It sometimes fails
+for spectra on the "outer end" of the recorded collision energies when that
+spectrum is only present once -- peaks which appear only in the highest or only
+in the lowest recorded energy can be erroneously deleted. To prevent this, one
+can re-run the workflow, read a second set of spectra for every compound (the
+second most intense) and combine the peak multiplicities of the two analyzed
+runs. (Mutiplicity filtering can also be switched off completely.)
+
+Example:
+```{r }
+RmbDefaultSettings()
+getOption("RMassBank")$multiplicityFilter
+
+# to make processing faster, we only use 3 spectra per compound
+rmbo <- getOption("RMassBank")
+rmbo$spectraList <- list(
+    list(mode="CID", ces = "35%", ce = "35 % (nominal)", res = 7500),
+    list(mode="HCD", ces = "15%", ce = "15 % (nominal)", res = 7500),
+    list(mode="HCD", ces = "30%", ce = "30 % (nominal)", res = 7500)
+)
+options(RMassBank = rmbo)
+
+loadList(system.file("list/NarcoticsDataset.csv", 
+        package="RMassBankData"))
+
+
+w <- newMsmsWorkspace()
+files <- list.files(system.file("spectra", package="RMassBankData"),
+        ".mzML", full.names = TRUE)
+w@files <- files[1:2]
+```
+First, the spectra are read and processed until reanalysis (step 7) normally:
+```{r }
+w1 <- msmsWorkflow(w, mode="pH", steps=c(1))
+# Here we artificially cut spectra out to make the workflow run faster for the vignette:
+w1@spectra <- as(lapply(w1@spectra, function(s)
+    {
+		s@children <- s@children[1:3]
+		s
+    }),"SimpleList")
+w1 <- msmsWorkflow(w1, mode="pH", steps=c(2:7))
+```
+
+Subsequently, we re-read and process the "confirmation spectra", i.e. the
+second-best spectra from the files. Therefore, we will have two sets of spectra
+for each compound and every real peak should in theory occur twice. 
+```{r }
+w2 <- msmsWorkflow(w, mode="pH", steps=c(1), confirmMode = 1)
+# Here we artificially cut spectra out to make the workflow run faster for the vignette:
+
+w2@spectra <- as(lapply(w2@spectra, function(s)
+    {
+		s@children <- s@children[1:3]
+		s
+    }),"SimpleList")
+w2 <- msmsWorkflow(w2, mode="pH", steps=c(2:7))
+```
+
+Finally, we combine the two workspaces for multiplicity filtering, and apply the
+last step in the workflow (multiplicity filtering).
+
+```{r }
+wTotal <- combineMultiplicities(c(w1, w2))
+wTotal <- msmsWorkflow(wTotal, steps=8, mode="pH", archivename = "output")
+```
+
+Subsequently, we can proceed as usual with `mbWorkflow`:
+
+```{r }
+mb <- newMbWorkspace(wTotal)
+# [...] load lists, execute workflow etc.
+```
+
+
+
+## Session information
+
+```{r }
+sessionInfo()
+```
