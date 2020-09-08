@@ -2,23 +2,28 @@
 title: "RMassBank for XCMS"
 author: "Erik Müller"
 output:
-  html_document:
-    toc: true
-    theme: united
+  BiocStyle::html_document:
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{RMassBank for XCMS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteKeywords{Mass Spectrometry, MS, Metabolomics, Bioinformatics}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{RMassBank, RMassBankData, BiocStyle, xcms, CAMERA}
+  %\VignettePackage{RMassBank}
 ---
 ```{r echo=FALSE}
 options(width=74)
-#library(xtable)
 ```
 
-## Introduction
+# Introduction
 
 As the RMassBank-workflow is described in the other manual, this document mainly explains how to utilize the
 XCMS-, MassBank-, and peaklist-readMethods for Step 1 of the workflow.
 
-## Input files
+# Input files
 
-### LC/MS data
+## LC/MS data
 
 *RMassBank* handles high-resolution LC/MS spectra in mzML or mzdata format in
 centroid^[The term "centroid" here refers to any kind of data which are not in profile mode, i.e. don't have continuous m/z data. It does not refer to the (mathematical) centroid peak, i.e. the area-weighted mass peak.] or in profile mode.
@@ -32,7 +37,7 @@ the compound list (see below). Advanced and alternative uses can be implemented;
 consult the implementation of `msmsRead`, `msms_workflow` and 
 `findMsMsHRperX.direct` for more information.
 
-## Additional Workflow-Methods
+# Additional Workflow-Methods
 
 The data used in the following example is available as a package *RMassBankData*,
 so both libraries have to be installed to run this vignette.
@@ -42,7 +47,7 @@ library(RMassBank)
 library(RMassBankData)
 ```
 
-### Options
+## Options
 
 In the first part of the workflow, spectra are extracted from the
 files and processed. In the following example, we will process the
@@ -71,7 +76,7 @@ options("RMassBank" = rmbo)
 ```
 
 
-### XCMS-workflow
+## XCMS-workflow
 
 First, a workspace for the `msmsWorkflow` must be created:
 ```{r }
@@ -138,7 +143,7 @@ msmsList <- msmsWorkflow(msmsList, steps=2:8,
 
 You can of course run the rest of the workflow as usual, by - like here - setting steps to 1:8
 
-### Export the records
+## Export the records
 
 To export the records from the XCMS workflow, follow the same procedure 
 as the standard RMassBank workflow, i.e.:
@@ -148,11 +153,11 @@ mb <- newMbWorkspace(msmsList)
 mb <- resetInfolists(mb)
 mb <- loadInfolist(mb,system.file("infolists/PlantDataset.csv",
                                   package = "RMassBankData"))
-## Step
+# Step
 mb <- mbWorkflow(mb, steps=1:8)
 ```
 
-### peaklist-workflow
+## peaklist-workflow
 
 The peaklist-workflow works akin to the normal mzR-workflow with the
 only difference being, that the supplied data has to be in .csv format
@@ -173,7 +178,7 @@ msmsPeaklist <- msmsWorkflow(msmsPeaklist, steps=1:8,
 
 The records can then be generated and exported with `mbWorkflow`.
 
-## Session information
+# Session information
 
 ```{r }
 sessionInfo()

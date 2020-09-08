@@ -2,15 +2,20 @@
 title: "RMassBank: Non-standard usage"
 author: "Michael Stravs"
 output:
-  html_document:
-    toc: true
-    theme: united
+  BiocStyle::html_document:
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{RMassBank: Non-standard usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteKeywords{Mass Spectrometry, MS, Metabolomics, Bioinformatics}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{RMassBank, RMassBankData, BiocStyle, gplots}
+  %\VignettePackage{RMassBank}
 ---
 ```{r echo=FALSE}
 options(width=74)
-#library(xtable)
 ```
-## Introduction
+# Introduction
 
 ```{r echo=FALSE}
 library("RMassBank")
@@ -25,7 +30,7 @@ This vignette assumes you are familiar with the standard usage of
 vignette("RMassBank")
 ```
 
-## Skipping recalibration
+# Skipping recalibration
 
 For instances where recalibration is not wanted, e.g. there is
 not enough data, or the user wants to use non-recalibrated
@@ -92,7 +97,7 @@ w@spectra[[1]]@parent@mz[30:32]
 w@spectra[[1]]@children[[1]]@mz[15:17]
 ```
 
-## Combining multiplicities
+# Combining multiplicities
 
 Standard multiplicity filtering, which is configurable in the settings,
 eliminates peaks which are observed only once for a compound. This eliminates
@@ -173,7 +178,7 @@ mb <- newMbWorkspace(wTotal)
 
 
 
-## Session information
+# Session information
 
 ```{r }
 sessionInfo()
