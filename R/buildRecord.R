@@ -203,98 +203,97 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 
 .buildRecord.RmbSpectrum2 <- function(spectrum, ..., cpd = NULL, mbdata = list(), analyticalInfo = list(), additionalPeaks = NULL)
 {
-  
-  if(length(analyticalInfo$ac_ms) > 0)
-    ac_ms=analyticalInfo$ac_ms
-  else
-    ac_ms=list()
-  
-  if(length(analyticalInfo$ac_lc) > 0)
-    ac_lc=analyticalInfo$ac_lc
-  else
-    ac_lc=list()
-  
-  
-  if(length(mbdata) == 0)
-  {
-    if(is.null(cpd))
-      mbdata <- gatherDataMinimal.spectrum(spectrum)
-    else
-      mbdata <- gatherDataMinimal.cpd(cpd)
-  }
-  
-  if(length(analyticalInfo$ai) > 0)
-    mbdata <- c(mbdata, analyticalInfo$ai)
-  
+
+	if(length(analyticalInfo$ac_ms) > 0)
+		ac_ms=analyticalInfo$ac_ms
+	else
+		ac_ms=list()
+
+	if(length(analyticalInfo$ac_lc) > 0)
+		ac_lc=analyticalInfo$ac_lc
+	else
+		ac_lc=list()
+
+	if(length(mbdata) == 0)
+	{
+		if(is.null(cpd))
+			mbdata <- gatherDataMinimal.spectrum(spectrum)
+		else
+			mbdata <- gatherDataMinimal.cpd(cpd)
+	}
+
+	if(length(analyticalInfo$ai) > 0)
+		mbdata <- c(mbdata, analyticalInfo$ai)
+
 	# If the spectrum is not filled, return right now. All "NA" spectra will
 	# not be treated further.
-  # If step 2 was not performed, instead, spectrum@ok is empty and we want to export it, so proceed.
-  if(length(spectrum@ok) > 0)
-  {
-    if(spectrum@ok == FALSE)
-      return(NA)
-  }
+	# If step 2 was not performed, instead, spectrum@ok is empty and we want to export it, so proceed.
+	if(length(spectrum@ok) > 0)
+	{
+		if(spectrum@ok == FALSE)
+			return(NA)
+	}
 	# get data
 	scan <- spectrum@acquisitionNum
 
-  
+
 	# Further fill the ac_ms datasets, and add the ms$focused_ion with spectrum-specific data:
 	ac_ms[['FRAGMENTATION_MODE']] <- spectrum@info$mode
 	#ac_ms['PRECURSOR_TYPE'] <- precursor_types[spec$mode]
-  if(length(spectrum@info$ce) > 0)
-	  ac_ms[['COLLISION_ENERGY']] <- spectrum@info$ce
-  else
-    ac_ms[['COLLISION_ENERGY']] <- spectrum@collisionEnergy
+	if(length(spectrum@info$ce) > 0)
+		ac_ms[['COLLISION_ENERGY']] <- spectrum@info$ce
+	else
+		ac_ms[['COLLISION_ENERGY']] <- spectrum@collisionEnergy
 	ac_ms[['RESOLUTION']] <- spectrum@info$res
-	
+
 	# Calculate exact precursor mass with Rcdk, and find the base peak from the parent
 	# spectrum. (Yes, that's what belongs here, I think.)
 
 	ms_fi <- list()
-  if(!is.null(cpd))
-  {
-  	ms_fi[['BASE_PEAK']] <- round(mz(cpd@parent)[which.max(intensity(cpd@parent))],4)
-  	ms_fi[['PRECURSOR_M/Z']] <- round(cpd@mz,4)
-  	ms_fi[['PRECURSOR_TYPE']] <- .precursorTypes[cpd@mode]
-  	
-  	if(all(!is.na(spectrum@precursorIntensity), 
-  	       spectrum@precursorIntensity != 0, 
-  	       spectrum@precursorIntensity != 100, na.rm = TRUE))
-  	  ms_fi[['PRECURSOR_INTENSITY']] <- spectrum@precursorIntensity
-  }
+	if(!is.null(cpd))
+	{
+		ms_fi[['BASE_PEAK']] <- round(mz(cpd@parent)[which.max(intensity(cpd@parent))],4)
+		ms_fi[['PRECURSOR_M/Z']] <- round(cpd@mz,4)
+		ms_fi[['PRECURSOR_TYPE']] <- .precursorTypes[cpd@mode]
 
-	
+		if(all(!is.na(spectrum@precursorIntensity), 
+		   spectrum@precursorIntensity != 0, 
+		   spectrum@precursorIntensity != 100, na.rm = TRUE))
+			ms_fi[['PRECURSOR_INTENSITY']] <- spectrum@precursorIntensity
+	}
+
+
 	# Create the "lower part" of the record.  
 
 	# Add the AC$MS, AC$LC info.
 	if(getOption("RMassBank")$use_version == 2)
 	{
-    if(length(ac_ms) >0)
-		  mbdata[["AC$MASS_SPECTROMETRY"]] <- ac_ms
-    if(length(ac_lc) >0)
-		  mbdata[["AC$CHROMATOGRAPHY"]] <- ac_lc
+		if(length(ac_ms) >0)
+			mbdata[["AC$MASS_SPECTROMETRY"]] <- ac_ms
+		if(length(ac_lc) >0)
+			mbdata[["AC$CHROMATOGRAPHY"]] <- ac_lc
 	}
 	else
 	{
 		# Fix for MassBank data format 1, where ION_MODE must be renamed to MODE
-    ac <- c(ac_ms, ac_lc)
-    if(length(ac) > 0)
-    {
-		  mbdata[["AC$ANALYTICAL_CONDITION"]] <- ac
-		  names(mbdata[["AC$ANALYTICAL_CONDITION"]])[[
-          which(names(mbdata[["AC$ANALYTICAL_CONDITION"]]) == "ION_MODE")
-          ]] <- "MODE"
-    }
+		ac <- c(ac_ms, ac_lc)
+		if(length(ac) > 0)
+		{
+			mbdata[["AC$ANALYTICAL_CONDITION"]] <- ac
+			names(mbdata[["AC$ANALYTICAL_CONDITION"]])[[
+			  which(names(mbdata[["AC$ANALYTICAL_CONDITION"]]) == "ION_MODE")
+			]] <- "MODE"
+		}
 	}
 	# Add the MS$FOCUSED_ION info.
-  if(length(ms_fi) > 0)
-	  mbdata[["MS$FOCUSED_ION"]] <- ms_fi
-	
+	if(length(ms_fi) > 0)
+		mbdata[["MS$FOCUSED_ION"]] <- ms_fi
+
 	## The SPLASH is a hash value calculated across all peaks
 	## http://splash.fiehnlab.ucdavis.edu/
 	## Has to be temporarily added as "PK$SPLASH" in the "lower" part
 	## of the record, but will later be moved "up" when merging parts in compileRecord()  
-	
+
 	# the data processing tag :)
 	# Change by Tobias:
 	# I suggest to add here the current version number of the clone due to better distinction between different makes of MB records
@@ -304,45 +303,46 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	else
 		processingComment <- list()
 	mbdata[["MS$DATA_PROCESSING"]] <- c(
-			getOption("RMassBank")$annotations$ms_dataprocessing,
-			processingComment,
-			list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
+	  getOption("RMassBank")$annotations$ms_dataprocessing,
+	  processingComment,
+	  list("WHOLE" = paste("RMassBank", packageVersion("RMassBank")))
 	)
-  
-  if(length(spectrum@info$ces) > 0)
-    mbdata[['RECORD_TITLE_CE']] <- spectrum@info$ces
-  else
-    mbdata[['RECORD_TITLE_CE']] <- spectrum@collisionEnergy
-  
+
+	if(length(spectrum@info$ces) > 0)
+		mbdata[['RECORD_TITLE_CE']] <- spectrum@info$ces
+	else
+		mbdata[['RECORD_TITLE_CE']] <- spectrum@collisionEnergy
+
 	# Mode of relative scan calculation: by default it is calculated relative to the
 	# parent scan. If a corresponding option is set, it will be calculated from the first
 	# present child scan in the list.
-  
-  if(!is.null(cpd))
-  {
-    relativeScan <- "fromParent"
-    if(!is.null(getOption("RMassBank")$recomputeRelativeScan))
-      if(getOption("RMassBank")$recomputeRelativeScan == "fromFirstChild")
-        relativeScan <- "fromFirstChild"
-    if(relativeScan == "fromParent")
-      subscan <- spectrum@acquisitionNum - cpd@parent@acquisitionNum #relative scan
-    else if(relativeScan == "fromFirstChild"){
-      firstChild <- min(unlist(lapply(cpd@children,function(d) d@acquisitionNum)))
-      subscan <- spectrum@acquisitionNum - firstChild + 1
-    }
-  }
-	
-	
+
+	if(!is.null(cpd))
+	{
+		relativeScan <- "fromParent"
+		if(!is.null(getOption("RMassBank")$recomputeRelativeScan))
+			if(getOption("RMassBank")$recomputeRelativeScan == "fromFirstChild")
+				relativeScan <- "fromFirstChild"
+		if(relativeScan == "fromParent")
+			subscan <- spectrum@acquisitionNum - cpd@parent@acquisitionNum #relative scan
+		else if(relativeScan == "fromFirstChild")
+		{
+			firstChild <- min(unlist(lapply(cpd@children,function(d) d@acquisitionNum)))
+			subscan <- spectrum@acquisitionNum - firstChild + 1
+		}
+	}
+
+
 	# Here is the right place to fix the name of the INTERNAL ID field.
 	if(!is.null(getOption("RMassBank")$annotations$internal_id_fieldname))
-  {
-    id.col <- which(names(mbdata[["COMMENT"]]) == "ID")
-    if(length(id.col) > 0)
-    {
-      names(mbdata[["COMMENT"]])[[id.col]] <-
-          getOption("RMassBank")$annotations$internal_id_fieldname
-    }
-  }
+	{
+		id.col <- which(names(mbdata[["COMMENT"]]) == "ID")
+		if(length(id.col) > 0)
+		{
+			names(mbdata[["COMMENT"]])[[id.col]] <-
+			getOption("RMassBank")$annotations$internal_id_fieldname
+		}
+	}
 	# get mode parameter (for accession number generation) depending on version 
 	# of record definition
 	# Generate the title and then delete the temprary RECORD_TITLE_CE field used before
@@ -351,22 +351,20 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	# Calculate the accession number from the options.
 	userSettings = getOption("RMassBank")
 	# Use a user-defined accessionBuilder, if present
-	if("accessionBuilder" %in% names(userSettings)) {
-	  accessionBuilder <- userSettings$accessionBuilder
-	  mbdata[['ACCESSION']] = accesionBuilder(cpd, spectrum, subscan)
+	if("accessionBuilder" %in% names(userSettings))
+	{
+		accessionBuilder <- userSettings$accessionBuilder
+		mbdata[['ACCESSION']] = accesionBuilder(cpd, spectrum, subscan)
 	}
-	else {
-	  mbdata[['ACCESSION']] <- .defaultAccesionBuilder(cpd, subscan)
-	}
+	else
+		mbdata[['ACCESSION']] <- .defaultAccesionBuilder(cpd, subscan)
 
-  spectrum@info <- mbdata
-  
-  spectrum <- renderPeaks(spectrum, cpd=cpd, additionalPeaks=additionalPeaks, ...)
-  
-  
+	spectrum@info <- mbdata
+
+	spectrum <- renderPeaks(spectrum, cpd=cpd, additionalPeaks=additionalPeaks, ...)
+
 	return(spectrum)
 }
-
 
 .defaultAccesionBuilder <- function(cpd, subscan)
 {
