@@ -349,12 +349,16 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	mbdata[["RECORD_TITLE"]] <- .parseTitleString(mbdata)
 	mbdata[["RECORD_TITLE_CE"]] <- NULL
 	# Calculate the accession number from the options.
-	accessionBuilder <- getOption("RMassBank")$accessionBuilder
-	if(!is.null(accessionBuilder))
-	  mbData[["ACCESSSION"]] <- do.call(accessionBuilder, list(cpd, subscan))
-	else
-	  mbdata[["ACCESSION"]] <- .getAccession(cpd, subscan)
-	
+	userSettings = getOption("RMassBank")
+	# Use a user-defined accessionBuilder, if present
+	if("accessionBuilder" %in% names(userSettings)) {
+	  accessionBuilder <- userSettings$accessionBuilder
+	  mbdata[['ACCESSION']] = accesionBuilder(cpd, spectrum, subscan)
+	}
+	else {
+	  mbdata[['ACCESSION']] <- .defaultAccesionBuilder(cpd, subscan)
+	}
+
   spectrum@info <- mbdata
   
   spectrum <- renderPeaks(spectrum, cpd=cpd, additionalPeaks=additionalPeaks, ...)
@@ -364,7 +368,7 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 }
 
 
-.getAccession <- function(cpd, subscan)
+.defaultAccesionBuilder <- function(cpd, subscan)
 {
 	shift <- getOption("RMassBank")$accessionNumberShifts[[cpd@mode]]
 	sprintf("%s%04d%02d", getOption("RMassBank")$annotations$entry_prefix,
