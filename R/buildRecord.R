@@ -2,6 +2,7 @@
 # 
 # Author: stravsmi
 ###############################################################################
+#' @import assertthat
 
 
 #' @export
@@ -351,10 +352,21 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	# Calculate the accession number from the options.
 	userSettings = getOption("RMassBank")
 	# Use a user-defined accessionBuilder, if present
-	if("accessionBuilder" %in% names(userSettings))
+	if("accessionBuilderFile" %in% names(userSettings))
 	{
-		accessionBuilder <- userSettings$accessionBuilder
-		mbdata[['ACCESSION']] = accesionBuilder(cpd, spectrum, subscan)
+		source(userSettings$accessionBuilderFile)
+		#The file must contain a function called 'accessionBuilder'
+		#with arguments cpd, spectrum, subscan
+		assert_that(exists("accessionBuilder"),
+		  msg=paste('No accessionBuilder defined in',
+		  userSettings$accessionBuilderFile))
+		assert_that(class(accessionBuilder)=='function',
+		  msg='accessionBuilder must be a function')
+		assert_that(has_args(accessionBuilder,
+		  c('cpd', 'spectrum', 'subscan'), exact=TRUE),
+		  msg=paste('accessionBuilder must have function arguments',
+		  'cpd, spectrum, subscan in this order'))
+		mbdata[['ACCESSION']] = accessionBuilder(cpd, spectrum, subscan)
 	}
 	else
 		mbdata[['ACCESSION']] <- .defaultAccesionBuilder(cpd, subscan)
