@@ -150,6 +150,8 @@ should then be edited. Important settings are:
     compound ID. The last 2 digits are generated from the position of the
     spectrum in `spectraList` and the shift given in this option for the
     selected ion type. (Example: the compound with ID 2112, processed in "pNa" mode ([M+Na]+), will have accession numbers XX211233, XX211234 ... etc in for the first, second... spectrum in the data-dependent scan, if the "pNa" shift is set to 32. )
+*  `accessionBuilderFile`: A file with a user-defined function to generate accession IDs. If this is given, `accessionNumberShifts` is ignored. The function definition must be in the form `accessionBuilder <- function(cpd, spectrm, subscan)`.
+  Note: This functionality is quite advanced. If you really want to specify your own `accessionBuilder` instead of using the default one, we highly encourage you to familiarize yourself with the source code of the function `.buildRecord.RmbSpectraSet` in `buildRecord.R`.
 *  `electronicNoise`, `electronicNoiseWidth`: known m/z values of constant electronic noise in the spectral data; and a window (in m/z units) for exclusion of such peaks from reanalysis. Note that peaks matched in the first analysis step (see below) are not affected by this (in our tests, only a very small number of peaks was affected by this.)
 *  `recalibrateBy`: Which parameter to use for recalibration:
     `dppm` (recalibrate the deviation in ppm) or `dmz`
