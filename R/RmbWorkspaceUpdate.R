@@ -2,7 +2,8 @@
 # 
 # Author: stravsmi
 ###############################################################################
-
+#' @importFrom Biobase isVersioned
+#' @importFrom Biobase isCurrent
 
 .updateObject.RmbWorkspace <- setMethod("updateObject", signature(object="msmsWorkspace"), function(object, ..., verbose = FALSE) 
 		{
