@@ -352,24 +352,24 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	# Calculate the accession number from the options.
 	userSettings = getOption("RMassBank")
 	# Use a user-defined accessionBuilder, if present
-	if("accessionBuilderFile" %in% names(userSettings))
+	if("accessionBuilderType" %in% names(userSettings))
 	{
-		source(userSettings$accessionBuilderFile)
-		#The file must contain a function called 'accessionBuilder'
-		#with arguments cpd, spectrum, subscan
-		assert_that(exists("accessionBuilder"),
-		  msg=paste('No accessionBuilder defined in',
-		  userSettings$accessionBuilderFile))
-		assert_that(class(accessionBuilder)=='function',
-		  msg='accessionBuilder must be a function')
-		assert_that(has_args(accessionBuilder,
-		  c('cpd', 'spectrum', 'subscan'), exact=TRUE),
-		  msg=paste('accessionBuilder must have function arguments',
-		  'cpd, spectrum, subscan in this order'))
-		mbdata[['ACCESSION']] = accessionBuilder(cpd, spectrum, subscan)
+		assert_that(userSettings$accessionBuilderType %in% c(
+		  "standard", "simple", "selfDefined"),
+		  msg=paste("accessionNumberType must be one of",
+		  "'standard', 'simple' or 'selfDefined'"))
+		mbdata[['ACCESSION']] <- switch(
+		  userSettings$accessionBuilderType,
+		  simple = .simpleAccessionBuilder(subscan),
+		  standard = .standardAccessionBuilder(cpd, subscan),
+		  selfDefined = .selfDefinedAccessionBuilder(cpd, spectrum,
+		  subscan)
+		)
 	}
 	else
-		mbdata[['ACCESSION']] <- .defaultAccesionBuilder(cpd, subscan)
+	{
+		mbdata[['ACCESSION']] <- .standardAccessionBuilder(cpd, subscan)
+	}
 
 	spectrum@info <- mbdata
 
@@ -378,14 +378,53 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	return(spectrum)
 }
 
-.defaultAccesionBuilder <- function(cpd, subscan)
+.simpleAccessionBuilder <- function(subscan)
 {
-	shift <- getOption("RMassBank")$accessionNumberShifts[[cpd@mode]]
-	sprintf("%s%04d%02d", getOption("RMassBank")$annotations$entry_prefix,
-			as.numeric(cpd@id), subscan+shift)
+	userSettings = getOption("RMassBank")
+	assert_that('accessionNumberStart' %in% names(userSettings),
+	  msg=paste("accessionBuilderType is 'simple', but",
+	  "accessionNumberStart is not provided.",
+	  "You may set the value of accessionBuilderType to",
+	  "'standard' or 'selfDefined' to use a different accessionBuilder.", 
+	  "For detailed explanations of accessionBuilders, check out the",
+	  "'Settings' section of the RMassBank vignette."))
+	sprintf('%s%06d', userSettings$annotations$entry_prefix,
+	  subscan + userSettings$accessionNumberStart)
+}
+
+.standardAccessionBuilder <- function(cpd, subscan)
+{
+	userSettings = getOption("RMassBank")
+	shift <- userSettings$accessionNumberShifts[[cpd@mode]]
+	sprintf("%s%04d%02d", userSettings$annotations$entry_prefix,
+	  as.numeric(cpd@id), subscan+shift)
 }
 	
-
+.selfDefinedAccessionBuilder <- function(cpd, spectrum, subscan)
+{
+	#This is a wrapper for the user-defined accessionBuilder
+	userSettings = getOption("RMassBank")
+	assert_that("accessionBuilderFile" %in% names(userSettings),
+	  msg=paste("accessionBuilderType is 'selfDefined', but",
+	  "accessionBuilderFile is not provided.",
+	  "You may set the value of accessionBuilderType",
+	  "to 'standard' or 'simple' to use a different accessionBuilder.", 
+	  "For detailed explanations of accessionBuilders, check out the",
+	  "'Settings' section of the RMassBank vignette."))
+	source(userSettings$accessionBuilderFile)
+	#The file must contain a function called 'accessionBuilder'
+	#with arguments cpd, spectrum, subscan
+	assert_that(exists("accessionBuilder"),
+	  msg=paste('No accessionBuilder defined in',
+	  userSettings$accessionBuilderFile))
+	assert_that(class(accessionBuilder)=='function',
+	  msg='accessionBuilder must be a function')
+	assert_that(has_args(accessionBuilder,
+	  c('cpd', 'spectrum', 'subscan'), exact=TRUE),
+	  msg=paste('accessionBuilder must have function arguments',
+	  'cpd, spectrum, subscan in this order'))
+	accessionBuilder(cpd, spectrum, subscan)
+}
 renderPeaks <- function(spectrum, ..., cpd = NULL, additionalPeaks = NULL)
 {
 	# Select all peaks which belong to this spectrum (correct cpdID and scan no.)
