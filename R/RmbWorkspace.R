@@ -1,6 +1,7 @@
 #' @import methods
 #' @importFrom Biobase isVersioned
 #' @importFrom Biobase isCurrent
+#' @importFrom Biobase classVersion<-
 NULL
 
 
