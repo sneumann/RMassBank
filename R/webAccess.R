@@ -16,7 +16,7 @@ retrieveDataWithRetry <- function(url, timeout, maximumNumberOfRetries = 5, retr
       expr = {
         #data <- getURL(url = url, timeout = timeout)
         res <- GET(URLencode(url))
-        data <- httr::content(res, "text")
+        data <- httr::content(res, type="text", encoding="UTF-8")
         
         queryIsSuccessful <- TRUE
         data
@@ -120,7 +120,7 @@ getPcId <- function(query, from = "inchikey")
 	tryCatch(
     {#		data <- getURL(URLencode(url),timeout=8),
 	    res <- GET(URLencode(url))
-	    data <- httr::content(res, "text")
+	    data <- httr::content(res, type="text", encoding="UTF-8")
     },
 		error=function(e){
 		currEnvir$errorvar <- 1
@@ -215,7 +215,7 @@ getCtsRecord <- function(key)
 			#data <- getURL(paste0(baseURL,key), timeout=10)
 			url <- paste0(baseURL,key)
 			res <- GET(URLencode(url))
-			data <- httr::content(res, "text")
+			data <- httr::content(res, type="text", encoding="UTF-8")
 		},
 		error=function(e){
 			currEnvir$errorvar <- 1
@@ -259,7 +259,7 @@ getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 		{
 			#data <- getURL(URLencode(url), timeout=10)
 			res <- GET(URLencode(url))
-			data <- httr::content(res, "text")
+			data <- httr::content(res, type="text", encoding="UTF-8")
 		},
 		error=function(e){
 			currEnvir$errorvar <- 1
@@ -347,7 +347,7 @@ CTS.externalIdTypes <- function(data)
 	tryCatch(
 		{#ret <- getURL(URLencode(url), timeout=8),
 	    res <- GET(URLencode(url))
-	    ret <- httr::content(res, "text")
+	    ret <- httr::content(res, type="text", encoding="UTF-8")
 	  },
 	  error=function(e){
 		currEnvir$errorvar <- 1
@@ -374,7 +374,7 @@ getPcCHEBI <- function(query, from = "inchikey")
 	tryCatch(
 		{#data <- getURL(URLencode(url),timeout=8),
 		  res <- GET(URLencode(url))
-		  data <- httr::content(res, "text")
+		  data <- httr::content(res, type="text", encoding="UTF-8")
 		},
 		error=function(e){
 		currEnvir$errorvar <- 1
@@ -428,7 +428,7 @@ getCompTox <- function(query)
   tryCatch(
     {#data <- getURL(URLencode(url), timeout=8)
       res <- GET(URLencode(url))
-      data <- httr::content(res, "text")
+      data <- httr::content(res, type="text", encoding="UTF-8")
     }, 
     error=function(e){
       currEnvir$errorvar <- 1 #TRUE?
@@ -511,7 +511,7 @@ getPcSynonym <- function (query, from = "inchikey")
 	tryCatch(
 		{#data <- getURL(URLencode(url),timeout=8)
 		  res <- GET(URLencode(url))
-		  data <- httr::content(res, "text")
+		  data <- httr::content(res, type="text", encoding="UTF-8")
 		},
 		error=function(e){
 		currEnvir$errorvar <- 1
@@ -556,7 +556,7 @@ getPcIUPAC <- function (query, from = "inchikey")
 	tryCatch(
 		{#data <- getURL(URLencode(url),timeout=8)
 		  res <- GET(URLencode(url))
-		  data <- httr::content(res, "text")
+		  data <- httr::content(res, type="text", encoding="UTF-8")
 		},
 		error=function(e){
 		currEnvir$errorvar <- 1
@@ -604,7 +604,7 @@ getPcInchiKey <- function(query, from = "smiles"){
 	tryCatch(
 		{#data <- getURL(URLencode(url),timeout=8)
 		  res <- GET(URLencode(url))
-		  data <- httr::content(res, "text")
+		  data <- httr::content(res, type="text", encoding="UTF-8")
 		},
 		error=function(e){
 		currEnvir$errorvar <- 1
@@ -641,7 +641,7 @@ getPcSDF <- function(query, from = "smiles"){
 	tryCatch(
 		{#data <- getURL(URLencode(url),timeout=8)
 		  res <- GET(URLencode(url))
-		  data <- httr::content(res, "text")
+		  data <- httr::content(res, type="text", encoding="UTF-8")
 		},
 		error=function(e){
 		currEnvir$errorvar <- 1
