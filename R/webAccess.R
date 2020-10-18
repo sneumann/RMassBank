@@ -1,7 +1,7 @@
 #' @import XML RCurl rjson httr
 NULL
 ## library(XML)
-## library(RCurl)
+## library(httr)
 ## library(jsonlite)
 
 
@@ -14,7 +14,10 @@ retrieveDataWithRetry <- function(url, timeout, maximumNumberOfRetries = 5, retr
   while(!queryIsSuccessful & numberOfRetries < maximumNumberOfRetries){
     data <- tryCatch(
       expr = {
-        data <- getURL(url = url, timeout = timeout)
+        #data <- getURL(url = url, timeout = timeout)
+        res <- GET(URLencode(url))
+        data <- httr::content(res, "text")
+        
         queryIsSuccessful <- TRUE
         data
       },
@@ -78,7 +81,7 @@ getCactus <- function(identifier,representation){
                   error = function(e) NA)
   if (all(is.na(ret)))
     return(NA)
-  if (ret[2] == 404)
+  if (ret["status_code"] == 404)
     return(NA)
   ret <- httr::content(ret)
   return(unlist(strsplit(ret, "\n")))
@@ -115,7 +118,10 @@ getPcId <- function(query, from = "inchikey")
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=8),
+    {#		data <- getURL(URLencode(url),timeout=8),
+	    res <- GET(URLencode(url))
+	    data <- httr::content(res, "text")
+    },
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -206,7 +212,10 @@ getCtsRecord <- function(key)
 	##
 	tryCatch(
 		{
-			data <- getURL(paste0(baseURL,key), timeout=10)
+			#data <- getURL(paste0(baseURL,key), timeout=10)
+			url <- paste0(baseURL,key)
+			res <- GET(URLencode(url))
+			data <- httr::content(res, "text")
 		},
 		error=function(e){
 			currEnvir$errorvar <- 1
@@ -248,7 +257,9 @@ getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 	##
 	tryCatch(
 		{
-			data <- getURL(URLencode(url), timeout=10)
+			#data <- getURL(URLencode(url), timeout=10)
+			res <- GET(URLencode(url))
+			data <- httr::content(res, "text")
 		},
 		error=function(e){
 			currEnvir$errorvar <- 1
@@ -334,8 +345,11 @@ CTS.externalIdTypes <- function(data)
 	errorvar <- 0
 	currEnvir <- environment()
 	tryCatch(
-		ret <- getURL(URLencode(url), timeout=8),
-		error=function(e){
+		{#ret <- getURL(URLencode(url), timeout=8),
+	    res <- GET(URLencode(url))
+	    ret <- httr::content(res, "text")
+	  },
+	  error=function(e){
 		currEnvir$errorvar <- 1
 	})
   
@@ -358,7 +372,10 @@ getPcCHEBI <- function(query, from = "inchikey")
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=8),
+		{#data <- getURL(URLencode(url),timeout=8),
+		  res <- GET(URLencode(url))
+		  data <- httr::content(res, "text")
+		},
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -409,7 +426,10 @@ getCompTox <- function(query)
   errorvar <- 0
   currEnvir <- environment()
   tryCatch(
-    data <- getURL(URLencode(url), timeout=8), 
+    {#data <- getURL(URLencode(url), timeout=8)
+      res <- GET(URLencode(url))
+      data <- httr::content(res, "text")
+    }, 
     error=function(e){
       currEnvir$errorvar <- 1 #TRUE?
     }
@@ -489,7 +509,10 @@ getPcSynonym <- function (query, from = "inchikey")
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=8),
+		{#data <- getURL(URLencode(url),timeout=8)
+		  res <- GET(URLencode(url))
+		  data <- httr::content(res, "text")
+		},
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -531,7 +554,10 @@ getPcIUPAC <- function (query, from = "inchikey")
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=8),
+		{#data <- getURL(URLencode(url),timeout=8)
+		  res <- GET(URLencode(url))
+		  data <- httr::content(res, "text")
+		},
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -576,7 +602,10 @@ getPcInchiKey <- function(query, from = "smiles"){
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=8),
+		{#data <- getURL(URLencode(url),timeout=8)
+		  res <- GET(URLencode(url))
+		  data <- httr::content(res, "text")
+		},
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -610,7 +639,10 @@ getPcSDF <- function(query, from = "smiles"){
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=8),
+		{#data <- getURL(URLencode(url),timeout=8)
+		  res <- GET(URLencode(url))
+		  data <- httr::content(res, "text")
+		},
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
