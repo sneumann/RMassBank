@@ -6,7 +6,7 @@ NULL
 
 
 retrieveDataWithRetry <- function(url, timeout, maximumNumberOfRetries = 5, retryDelayInSeconds = 3){
-  #data <- getURL(URLencode(url), timeout=5)
+  #data <- getURL(URLencode(url), timeout=8)
   
   data <- NULL
   queryIsSuccessful <- FALSE
@@ -115,7 +115,7 @@ getPcId <- function(query, from = "inchikey")
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=5),
+		data <- getURL(URLencode(url),timeout=8),
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -206,7 +206,7 @@ getCtsRecord <- function(key)
 	##
 	tryCatch(
 		{
-			data <- getURL(paste0(baseURL,key), timeout=7)
+			data <- getURL(paste0(baseURL,key), timeout=10)
 		},
 		error=function(e){
 			currEnvir$errorvar <- 1
@@ -248,7 +248,7 @@ getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 	##
 	tryCatch(
 		{
-			data <- getURL(URLencode(url), timeout=7)
+			data <- getURL(URLencode(url), timeout=10)
 		},
 		error=function(e){
 			currEnvir$errorvar <- 1
@@ -334,7 +334,7 @@ CTS.externalIdTypes <- function(data)
 	errorvar <- 0
 	currEnvir <- environment()
 	tryCatch(
-		ret <- getURL(URLencode(url), timeout=5),
+		ret <- getURL(URLencode(url), timeout=8),
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -358,7 +358,7 @@ getPcCHEBI <- function(query, from = "inchikey")
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=5),
+		data <- getURL(URLencode(url),timeout=8),
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -409,7 +409,7 @@ getCompTox <- function(query)
   errorvar <- 0
   currEnvir <- environment()
   tryCatch(
-    data <- getURL(URLencode(url), timeout=5), 
+    data <- getURL(URLencode(url), timeout=8), 
     error=function(e){
       currEnvir$errorvar <- 1 #TRUE?
     }
@@ -455,7 +455,7 @@ getCSID <- function(query)
 	#currEnvir <- environment()
 	#
 	#tryCatch(
-	#	data <- getURL(URLencode(url), timeout=5),
+	#	data <- getURL(URLencode(url), timeout=8),
 	#	error=function(e){
 	#	currEnvir$errorvar <- 1
 	#})
@@ -465,7 +465,7 @@ getCSID <- function(query)
 	#	return(NA)
 	#}
 	
-	data <- retrieveDataWithRetry(url = URLencode(url), timeout = 5)
+	data <- retrieveDataWithRetry(url = URLencode(url), timeout=8)
 	if(is.null(data)){
 		warning("Chemspider is currently offline")
 		return(NA)
@@ -489,7 +489,7 @@ getPcSynonym <- function (query, from = "inchikey")
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=5),
+		data <- getURL(URLencode(url),timeout=8),
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -531,7 +531,7 @@ getPcIUPAC <- function (query, from = "inchikey")
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=5),
+		data <- getURL(URLencode(url),timeout=8),
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -576,7 +576,7 @@ getPcInchiKey <- function(query, from = "smiles"){
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=5),
+		data <- getURL(URLencode(url),timeout=8),
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
@@ -610,7 +610,7 @@ getPcSDF <- function(query, from = "smiles"){
 	currEnvir <- environment()
 	
 	tryCatch(
-		data <- getURL(URLencode(url),timeout=5),
+		data <- getURL(URLencode(url),timeout=8),
 		error=function(e){
 		currEnvir$errorvar <- 1
 	})
