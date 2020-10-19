@@ -1,5 +1,5 @@
 #' @import MSnbase
-#' @import Biobase
+#' @importFrom Biobase classVersion
 #' @import S4Vectors
 
 #' @exportClass RmbSpectrum2

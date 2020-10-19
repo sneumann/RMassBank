@@ -25,6 +25,7 @@ Description: Workflow to process tandem MS files and build MassBank records.
     information from Internet databases, and export to MassBank records.
 License: Artistic-2.0
 SystemRequirements: OpenBabel
+VignetteBuilder: knitr
 biocViews: ImmunoOncology, Bioinformatics, MassSpectrometry, Metabolomics, Software
 Depends:
     Rcpp
@@ -32,12 +33,13 @@ Encoding: UTF-8
 Imports:
     XML,rjson,S4Vectors,digest,
     rcdk,yaml,mzR,methods,Biobase,MSnbase,httr,
-    enviPat
+    enviPat,assertthat
 Suggests:
-    gplots,RMassBankData,
+    BiocStyle,gplots,RMassBankData,
     xcms (>= 1.37.1),
     CAMERA,
-    RUnit
+    RUnit,
+    knitr
 Collate:
     'alternateAnalyze.R'
     'formulaCalculator.R'
@@ -69,4 +71,4 @@ Collate:
     'fillback.R'
     'parseMbRecord.R'
     'zzz.R'
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
