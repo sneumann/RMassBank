@@ -43,10 +43,9 @@ into the peak tables.
 }
 
 }
-\author{
-Michael Stravs
-}
 \seealso{
 \code{\link{msmsWorkflow}}, \code{\link{analyzeMsMs}}
 }
-
+\author{
+Michael Stravs
+}
