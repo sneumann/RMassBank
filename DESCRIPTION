@@ -35,7 +35,7 @@ Imports:
     rcdk,yaml,mzR,methods,Biobase,MSnbase,httr,
     enviPat,assertthat
 Suggests:
-    gplots,RMassBankData,
+    BiocStyle,gplots,RMassBankData,
     xcms (>= 1.37.1),
     CAMERA,
     RUnit,
