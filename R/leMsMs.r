@@ -636,14 +636,18 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   	}
   
   	limits <- to.limits.rcdk(parent_formula)
+	maximal.mass <- get.formula(parent_formula)@mass
   	
   	peakmatrix <- lapply(split(shot,shot$row), function(shot.row)  {
   				# Circumvent bug in rcdk: correct the mass for the charge first, then calculate uncharged formulae
   				# finally back-correct calculated masses for the charge
   				mass <- shot.row[["mz"]]
   				mass.calc <- mass + mode.charge * .emass
+				tolerance <- ppm(mass.calc, ppmlimit, p=TRUE)
+				if (mass.calc > maximal.mass + tolerance)
+  					return(t(c(row=shot.row[["row"]], intensity = shot.row[["intensity"]], mz=mass, formula=NA, mzCalc=NA)))
 				peakformula <- tryCatch(
-				  suppressWarnings(generate.formula(mass.calc, ppm(mass.calc, ppmlimit, p=TRUE),
+				  suppressWarnings(generate.formula(mass.calc, tolerance,
 				                                    limits, charge=0)),
 				  error = function(e) list())
 				# was a formula found? If not, return empty result
