@@ -31,7 +31,7 @@ Depends:
     Rcpp
 Encoding: UTF-8
 Imports:
-    XML,RCurl,rjson,S4Vectors,digest,
+    XML,rjson,S4Vectors,digest,
     rcdk,yaml,mzR,methods,Biobase,MSnbase,httr,
     enviPat,assertthat
 Suggests:
