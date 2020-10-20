@@ -1,4 +1,7 @@
 [![Build Status](https://travis-ci.org/MassBank/RMassBank.svg?branch=main)](https://travis-ci.org/MassBank/RMassBank)
+[![codecov.io](https://codecov.io/github/MassBank/RMassBank/coverage.svg?branch=main)](https://codecov.io/github/MassBank/RMassBank?branch=main)
+[![Bioconductor release build status](http://www.bioconductor.org/shields/build/release/bioc/RMassBank.svg)](http://www.bioconductor.org/packages/release/bioc/html/RMassBank.html)
+[![Bioconductor devel build status](http://www.bioconductor.org/shields/build/devel/bioc/RMassBank.svg)](http://www.bioconductor.org/checkResults/devel/bioc-LATEST/RMassBank.html)
 
 # RMassBank
 
