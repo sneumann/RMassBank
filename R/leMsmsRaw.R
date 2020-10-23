@@ -2,8 +2,6 @@
 #' @import mzR
 
 #' @import Rcpp 
-## Was not in manually written NAMESPACE ?
-#' @import RCurl 
 #' @import XML 
 #' @import methods 
 #' @import mzR 
