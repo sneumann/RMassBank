@@ -33,7 +33,7 @@ Encoding: UTF-8
 Imports:
     XML,rjson,S4Vectors,digest,
     rcdk,yaml,mzR,methods,Biobase,MSnbase,httr,
-    enviPat,BiocStyle,assertthat
+    enviPat,assertthat
 Suggests:
     BiocStyle,gplots,RMassBankData,
     xcms (>= 1.37.1),
