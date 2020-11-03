@@ -266,10 +266,10 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	# Add scan range to AC$MS, if present
 	if (all(c("scanWindowUpperLimit", "scanWindowLowerLimit") %in%
 	  names(spectrum@info))) {
-		ac_ms[['MS_SCAN_LOWER_LIMIT']] <-
-		  spectrum@info$scanWindowLowerLimit
-		ac_ms[['MS_SCAN_UPPER_LIMIT']] <-
-		  spectrum@info$scanWindowUpperLimit
+		ac_ms[['SCAN_RANGE_M/Z']] <- paste(
+		  spectrum@info$scanWindowLowerLimit,
+		  spectrum@info$scanWindowUpperLimit,
+		  sep='-')
 	}
 
 	# Create the "lower part" of the record.  
