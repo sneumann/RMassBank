@@ -298,98 +298,98 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	}
 	# Construct all spectra groups in decreasing intensity order
 	spectra <- lapply(eic$scan, function(masterScan)
+	{
+		masterHeader <- headerData[headerData$acquisitionNum == masterScan,]
+		
+		if(is.null(diaWindows))
+		{
+			childHeaders <- headerData[
+			  which(headerData$precursorScanNum == masterScan 
+			  & headerData$precursorMZ > (mz - limit.coarse) 
+			  & headerData$precursorMZ < (mz + limit.coarse)) , ,
+			  drop = FALSE]
+		}
+		else
+		{
+			childHeaders <- headerData[which(headerData$precursorScanNum == masterScan), drop = FALSE]
+			childHeaders <- childHeaders[window, drop = FALSE]
+		}
+		
+		# Fix 9.10.17: headers now include non-numeric columns, leading to errors in data conversion.
+		# Remove non-numeric columns
+		headerCols <- colnames(masterHeader)
+		headerCols <- headerCols[unlist(lapply(headerCols, function(col) is.numeric(masterHeader[,col])))]
+		masterHeader <- masterHeader[,headerCols,drop=FALSE]
+		childHeaders <- childHeaders[,headerCols,drop=FALSE]
+		
+		childScans <- childHeaders$seqNum
+		
+		msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
+		# if deprofile option is set: run deprofiling
+		deprofile.setting <- deprofile
+		if(!is.na(deprofile.setting))
+			msPeaks <- deprofile.scan(
+					msPeaks, method = deprofile.setting, noise = NA, colnames = FALSE
+			)
+		colnames(msPeaks) <- c("mz","int")
+		
+		msmsSpecs <- apply(childHeaders, 1, function(line)
+		{
+			pks <- mzR::peaks(msRaw, line["seqNum"])
+			
+			if(!is.na(deprofile.setting))
 			{
-				masterHeader <- headerData[headerData$acquisitionNum == masterScan,]
+				pks <- deprofile.scan(
+				  pks, method = deprofile.setting, noise = NA
+				  , colnames = FALSE)
+			}
+			
+			new("RmbSpectrum2",
+			  mz = pks[,1],
+			  intensity = pks[,2],
+			  precScanNum = as.integer(line["precursorScanNum"]),
+			  precursorMz = line["precursorMZ"],
+			  precursorIntensity = line["precursorIntensity"],
+			  precursorCharge = as.integer(line["precursorCharge"]),
+			  collisionEnergy = line["collisionEnergy"],
+			  tic = line["totIonCurrent"],
+			  peaksCount = line["peaksCount"],
+			  rt = line["retentionTime"],
+			  acquisitionNum = as.integer(line["seqNum"]),
+			  centroided = TRUE,
+			  polarity = as.integer(line["polarity"]),
+			  info = lapply(list(
+			  scanWindowLowerLimit=line["scanWindowLowerLimit"],
+			  scanWindowUpperLimit=line["scanWindowUpperLimit"]
+			  ), unname)
+			)
+		})
+		msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
+		
+		# build the new objects
+		masterSpec <- new("Spectrum1",
+				mz = msPeaks[,"mz"],
+				intensity = msPeaks[,"int"],
+				polarity = as.integer(masterHeader$polarity),
+				peaksCount = as.integer(masterHeader$peaksCount),
+				rt = masterHeader$retentionTime,
+				acquisitionNum = as.integer(masterHeader$seqNum),
+				tic = masterHeader$totIonCurrent,
+				centroided = TRUE
+				)
 				
-				if(is.null(diaWindows))
-				{
-				  childHeaders <- headerData[
-				    which(headerData$precursorScanNum == masterScan 
-				          & headerData$precursorMZ > (mz - limit.coarse) 
-				          & headerData$precursorMZ < (mz + limit.coarse)) , ,
-				    drop = FALSE]
-				  
-				}
-				else
-				{
-				  childHeaders <- headerData[which(headerData$precursorScanNum == masterScan), drop = FALSE]
-				  childHeaders <- childHeaders[window, drop = FALSE]
-				  
-				}
-				
-				# Fix 9.10.17: headers now include non-numeric columns, leading to errors in data conversion.
-				# Remove non-numeric columns
-				headerCols <- colnames(masterHeader)
-				headerCols <- headerCols[unlist(lapply(headerCols, function(col) is.numeric(masterHeader[,col])))]
-				masterHeader <- masterHeader[,headerCols,drop=FALSE]
-				childHeaders <- childHeaders[,headerCols,drop=FALSE]
-				
-				childScans <- childHeaders$seqNum
-				
-				msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
-				# if deprofile option is set: run deprofiling
-				deprofile.setting <- deprofile
-				if(!is.na(deprofile.setting))
-					msPeaks <- deprofile.scan(
-							msPeaks, method = deprofile.setting, noise = NA, colnames = FALSE
-					)
-				colnames(msPeaks) <- c("mz","int")
-				
-				msmsSpecs <- apply(childHeaders, 1, function(line)
-						{
-							pks <- mzR::peaks(msRaw, line["seqNum"])
-							
-							if(!is.na(deprofile.setting))
-							{								
-								pks <- deprofile.scan(
-										pks, method = deprofile.setting, noise = NA, colnames = FALSE
-								)
-							}
-							
-							new("RmbSpectrum2",
-									mz = pks[,1],
-									intensity = pks[,2],
-									precScanNum = as.integer(line["precursorScanNum"]),
-									precursorMz = line["precursorMZ"],
-									precursorIntensity = line["precursorIntensity"],
-									precursorCharge = as.integer(line["precursorCharge"]),
-									collisionEnergy = line["collisionEnergy"],
-									tic = line["totIonCurrent"],
-									peaksCount = line["peaksCount"],
-									rt = line["retentionTime"],
-									acquisitionNum = as.integer(line["seqNum"]),
-									centroided = TRUE,
-                  polarity = as.integer(line["polarity"])
-									)
-						})
-				msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
-				
-				
-				
-				# build the new objects
-				masterSpec <- new("Spectrum1",
-						mz = msPeaks[,"mz"],
-						intensity = msPeaks[,"int"],
-						polarity = as.integer(masterHeader$polarity),
-						peaksCount = as.integer(masterHeader$peaksCount),
-						rt = masterHeader$retentionTime,
-						acquisitionNum = as.integer(masterHeader$seqNum),
-						tic = masterHeader$totIonCurrent,
-						centroided = TRUE
-						)
-						
-				spectraSet <- new("RmbSpectraSet",
-						parent = masterSpec,
-						children = msmsSpecs,
-						found = TRUE,
-						#complete = NA,
-						#empty = NA,
-						#formula = character(),
-						mz = mz
-						#name = character(),
-						#annotations = list()
-						)
-				return(spectraSet)
+		spectraSet <- new("RmbSpectraSet",
+				parent = masterSpec,
+				children = msmsSpecs,
+				found = TRUE,
+				#complete = NA,
+				#empty = NA,
+				#formula = character(),
+				mz = mz
+				#name = character(),
+				#annotations = list()
+				)
+		return(spectraSet)
 			})
 	names(spectra) <- eic$acquisitionNum
 	return(spectra)

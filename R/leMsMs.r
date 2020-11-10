@@ -146,12 +146,6 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         }
 	  pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 	  w@spectra <- as(lapply(w@spectra, function(spec) {
-				  #print(spec$id)
-                        # if(findLevel(spec@id,TRUE) == "unknown"){
-                            # analyzeMethod <- "intensity"
-                        # } else {
-                            # analyzeMethod <- "formula"
-                        # }
                         s <- analyzeMsMs(msmsPeaks = spec, mode=mode, detail=TRUE, run="preliminary",
 						  filterSettings = settings$filterSettings,
 						  spectraList = settings$spectraList, method = analyzeMethod)
@@ -492,7 +486,7 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 	# merged together with all the combine / pack stuff.
 	children <- mapply(function(spec, info)
 			{
-				spec@info <- info
+				spec@info <- c(info, spec@info)
 				spec
 			}, r@children, spectraList, SIMPLIFY=FALSE)
 	r@children <- as(children, "SimpleList")
