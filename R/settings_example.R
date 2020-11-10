@@ -365,7 +365,7 @@ loadRmbSettings <- function(file_or_list)
 
 
 		if(nchar(o$annotations$entry_prefix) != 2){
-			stop("The entry prefix must be of length 2")
+			warning("The entry prefix is not of length 2. Hence, the resulting accession numbers will not be of length 8. This will make them incompatible with database restrictions. Please use entry prefixes with length other than 2 for internal purposes only!")
 		}
 		for(name in names(o$annotations))
 		{
