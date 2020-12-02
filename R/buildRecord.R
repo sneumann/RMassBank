@@ -153,8 +153,11 @@ getAnalyticalInfo <- function(cpd = NULL)
 	ac_lc[['FLOW_GRADIENT']] <- getOption("RMassBank")$annotations$lc_gradient
 	ac_lc[['FLOW_RATE']] <- getOption("RMassBank")$annotations$lc_flow
 	ac_lc[['RETENTION_TIME']] <- sprintf("%.3f min", rt)  
-	ac_lc[['SOLVENT A']] <- getOption("RMassBank")$annotations$lc_solvent_a
-	ac_lc[['SOLVENT B']] <- getOption("RMassBank")$annotations$lc_solvent_b
+	lc_solvents <- getOption("RMassBank")$annotations$lc_solvents
+	ac_lc[['SOLVENT A']] <- lc_solvents$lc_solvent_a
+	ac_lc[['SOLVENT B']] <- lc_solvents$lc_solvent_b
+	if(length(lc_solvents) > 2)
+		ac_lc[['SOLVENT C']] <- lc_solvents$lc_solvent_c
 	
 	# Treutler fixes for custom properties, trying to forwardport this here
 	
