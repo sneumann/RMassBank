@@ -152,6 +152,7 @@ should then be edited. Important settings are:
     for generating MassBank record accession numbers. This will be used if `accessionBuilderType` is unspecified or "standard" (see `accessionBuilderType` above).
 *  `accessionBuilderFile`: A file with a user-defined function to generate MassBank record accession numbers. This will be used if `accessionBuilderType` is "selfDefined" (see `accessionBuilderType` above.)
 *  `accessionNumberStart`: An integer < 1000000 defining the starting point of MassBank record accession numbers. This will be used if `accessionBuilderType` is "simple". (see `accessionBuilderType` above).
+*  `project`: A string giving the project tag, optional. If present, this will be inclueded in the `PROJECT` field of the record.
 *  `recalibrateBy`: Which parameter to use for recalibration:
     `dppm` (recalibrate the deviation in ppm) or `dmz`
     (recalibrate the m/z deviation).

@@ -357,9 +357,14 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	# Generate the title and then delete the temprary RECORD_TITLE_CE field used before
 	mbdata[["RECORD_TITLE"]] <- .parseTitleString(mbdata)
 	mbdata[["RECORD_TITLE_CE"]] <- NULL
-	# Calculate the accession number from the options.
 	userSettings = getOption("RMassBank")
-	# Use a user-defined accessionBuilder, if present
+	# Include project tag, if present
+	if("project" %in% names(userSettings))
+	{
+		mbdata[["PROJECT"]] <- userSettings$project
+	}
+	# Use 'simple', 'standard' or 'selfDefined' accessionBuilder
+	# depending on user input
 	if("accessionBuilderType" %in% names(userSettings))
 	{
 		assert_that(userSettings$accessionBuilderType %in% c(
