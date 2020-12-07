@@ -76,6 +76,26 @@ setMethod("buildRecord", "RmbSpectraSet", function(o, ..., mbdata = list(), addi
     )
 
 
+.addGenericInfo <- function(ac, annotations, search_string=c("^AC\\$MASS_SPECTROMETRY_", "^AC\\$CHROMATOGRAPHY_")) {
+	# Note: For whatever reason, recursivity is inverted for the unlist
+	# function, meaning that recursive=FALSE actually leads to the
+	# behaviour expected when setting recursive=TRUE, which is desired
+	# here, because nested lists exist. See help(unlist)
+
+	properties <- names(unlist(annotations, recursive=FALSE))
+	presentProperties <- names(ac)
+	
+	theseProperties <- grepl(x = properties, pattern = search_string)
+	properties2     <- gsub(x = properties, pattern = search_string,
+	  replacement = "")
+	theseProperties <- theseProperties &
+	  !(properties2 %in% presentProperties)
+	theseProperties <- theseProperties &
+	  (unlist(annotations, recursive=FALSE) != "NA")
+	ac[properties2[theseProperties]] <-
+	  unlist(annotations, recursive=FALSE)[theseProperties]
+	return(ac)
+}
 
 # For each compound, this function creates the "lower part" of the MassBank record, i.e.
 # everything that comes after AC$INSTRUMENT_TYPE.
@@ -159,34 +179,10 @@ getAnalyticalInfo <- function(cpd = NULL)
 	if(length(lc_solvents) > 2)
 		ac_lc[['SOLVENT C']] <- lc_solvents$lc_solvent_c
 	
-	# Treutler fixes for custom properties, trying to forwardport this here
-	
-	## add generic AC$MASS_SPECTROMETRY information
-	# Note: For whatever reason, recursivity is inverted for the unlist
-	# function, meaning that recursive=FALSE actually leads to the
-	# behaviour expected when setting recursive=TRUE, which is desired
-	# here, because nested lists exist. See help(unlist)
-	properties <- names(unlist(getOption("RMassBank")$annotations,
-	  recursive=FALSE))
-	presentProperties <- names(ac_ms)
-	
-	theseProperties <- grepl(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_")
-	properties2     <- gsub(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_", replacement = "")
-	theseProperties <- theseProperties & !(properties2 %in% presentProperties)
-	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations, recursive=FALSE) != "NA")
-	ac_ms[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations, recursive=FALSE)[theseProperties]
-	
-	## add generic AC$CHROMATOGRAPHY information
-	#properties      <- names(getOption("RMassBank")$annotations)
-	theseProperties <- grepl(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_")
-	properties2     <- gsub(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_", replacement = "")
-	presentProperties <- names(ac_lc)#c('COLUMN_NAME', 'FLOW_GRADIENT', 'FLOW_RATE', 'RETENTION_TIME', 'SOLVENT A', 'SOLVENT B')
-	theseProperties <- theseProperties & !(properties2 %in% presentProperties)
-	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations, recursive=FALSE) != "NA")
-	ac_lc[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations, recursive=FALSE)[theseProperties]
-	
-
-	
+	ac_ms <- .addGenericInfo(ac_ms, getOption('RMassBank')$annotations,
+	  search_string="^AC\\$MASS_SPECTROMETRY_")
+	ac_lc <- .addGenericInfo(ac_lc, getOption('RMassBank')$annotations,
+	  search_string="^AC\\$CHROMATOGRAPHY_")
 	return(list( ai=ai, ac_lc=ac_lc, ac_ms=ac_ms))
 }
 
