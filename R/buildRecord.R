@@ -162,14 +162,19 @@ getAnalyticalInfo <- function(cpd = NULL)
 	# Treutler fixes for custom properties, trying to forwardport this here
 	
 	## add generic AC$MASS_SPECTROMETRY information
-	properties      <- names(getOption("RMassBank")$annotations)
-	presentProperties <- names(ac_ms)#c('MS_TYPE', 'IONIZATION', 'ION_MODE')#, 'FRAGMENTATION_MODE', 'COLLISION_ENERGY', 'RESOLUTION')
+	# Note: For whatever reason, recursivity is inverted for the unlist
+	# function, meaning that recursive=FALSE actually leads to the
+	# behaviour expected when setting recursive=TRUE, which is desired
+	# here, because nested lists exist. See help(unlist)
+	properties <- names(unlist(getOption("RMassBank")$annotations,
+	  recursive=FALSE))
+	presentProperties <- names(ac_ms)
 	
 	theseProperties <- grepl(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_")
 	properties2     <- gsub(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_", replacement = "")
 	theseProperties <- theseProperties & !(properties2 %in% presentProperties)
-	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
-	ac_ms[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
+	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations, recursive=FALSE) != "NA")
+	ac_ms[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations, recursive=FALSE)[theseProperties]
 	
 	## add generic AC$CHROMATOGRAPHY information
 	#properties      <- names(getOption("RMassBank")$annotations)
@@ -177,8 +182,8 @@ getAnalyticalInfo <- function(cpd = NULL)
 	properties2     <- gsub(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_", replacement = "")
 	presentProperties <- names(ac_lc)#c('COLUMN_NAME', 'FLOW_GRADIENT', 'FLOW_RATE', 'RETENTION_TIME', 'SOLVENT A', 'SOLVENT B')
 	theseProperties <- theseProperties & !(properties2 %in% presentProperties)
-	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
-	ac_lc[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
+	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations, recursive=FALSE) != "NA")
+	ac_lc[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations, recursive=FALSE)[theseProperties]
 	
 
 	
