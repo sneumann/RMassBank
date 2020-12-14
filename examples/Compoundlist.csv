@@ -1,0 +1,4 @@
+ID,Name,SMILES,RT,CAS
+1,"1,1,2,3,4,4-hexachloro-1,3-Butadiene",ClC(Cl)=C(Cl)C(Cl)=C(Cl)Cl,,
+2,"1,2,4-trimethylbenzene",CC1=CC(C)=C(C)C=C1,,
+3,"1,3-dichlorobenzene",ClC1=CC(Cl)=CC=C1,,
