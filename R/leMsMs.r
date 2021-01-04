@@ -252,13 +252,17 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         }
         
     if(!is.na(archivename))
-      archiveResults(w, paste(archivename, ".RData", sep=''), settings)
-  spectra <- lapply(w@spectra, cleanElnoise, noise=settings$electronicNoise, width=settings$electronicNoiseWidth)
-  w@spectra <- as(spectra, "SimpleList")
+        archiveResults(w, paste(archivename, ".RData", sep=''), settings)
+
+    ## clean electronic noise if specified in the settings.ini file
+    if (length(settings$electronicNoise) > 0 && settings$electronicNoiseWidth > 0) {  
+        spectra <- lapply(w@spectra, cleanElnoise, noise=settings$electronicNoise, width=settings$electronicNoiseWidth)
+        w@spectra <- as(spectra, "SimpleList")
         if(RMassBank.env$verbose.output)
-          if(sum(w@aggregated$noise) > 0)
-            cat(paste("### Warning ### ", sum(w@aggregated$noise), " / ", nrow(w@aggregated), " peaks have been identified as electronic noise\n", sep = ""))
-  }
+            if(sum(w@aggregated$noise) > 0)
+                cat(paste("### Warning ### ", sum(w@aggregated$noise), " / ", nrow(w@aggregated), " peaks have been identified as electronic noise\n", sep = ""))
+    }
+  }  
   # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
   if(7 %in% steps)
   {
