@@ -73,7 +73,7 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export
 msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NULL, plots = FALSE,
+		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", filetable=NULL, findPeaksArgs = NULL, plots = FALSE,
 		precursorscan.cf = FALSE,
 		settings = getOption("RMassBank"), analyzeMethod = "formula",
 		progressbar = "progressBarHook", MSe = FALSE)
@@ -133,7 +133,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(1 %in% steps)
   {
     message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
-	w <- msmsRead(w = w, files = w@files, readMethod=readMethod, mode=mode, confirmMode = confirmMode, useRtLimit = useRtLimit, 
+	w <- msmsRead(w = w, files = w@files, readMethod=readMethod, filetable=filetable, mode=mode, confirmMode = confirmMode, useRtLimit = useRtLimit, 
                         Args = findPeaksArgs, settings = settings, progressbar = progressbar, MSe = MSe)
   }
   # Step 2: first run analysis before recalibration
