@@ -1,4 +1,5 @@
-Name: 20201121_NTS_VAN_PFTBA_monitori_Summer_2020_066 #1005  RT: 8.46 AV: 1 SB: 110  8.52-8.74 , 8.14-8.41 NL: 6.45E8
+Name: 20201121_NTS_VAN_PFTBA_monitori_Summer_2020_066 #1005 AV: 1 SB: 110  8.52-8.74 , 8.14-8.41 NL: 6.45E8
+RETENTIONTIME: 8.46
 Spectrum_type: accurate m/z
 DB#: 12
 Comments: T: FTMS + p EI Full ms [50.0000-750.0000]
