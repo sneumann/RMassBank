@@ -182,7 +182,11 @@ dbe <- function(formula)
     "Hg" = 0,
     "Li" = -0.5,
     "Na" = -0.5,
-    "K" = -0.5
+    "K" = -0.5,    
+    "B" = 0.5,
+    "Al" = 0.5,  
+    "Ga" = 0.5,
+    "Ca" = 0  
     )
   count <- 1
   for(element in names(formula))
