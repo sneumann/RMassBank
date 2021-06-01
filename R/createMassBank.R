@@ -409,9 +409,9 @@ createMolfile <- function(id_or_smiles, fileName = FALSE)
 	else
 	{
 		if(!is.character(fileName))
-			cmd <- paste(babeldir, "babel -ismi -osdf -d -b --gen2D", sep='')
+			cmd <- paste(babeldir, "obabel -ismi -osdf -d -b --gen2D", sep='')
 		else
-			cmd <- paste(babeldir, "babel -ismi -osdf ", fileName , " -d -b --gen2D", sep='')
+			cmd <- paste(babeldir, "obabel -ismi -osdf ", fileName , " -d -b --gen2D", sep='')
 		res <- system(cmd, intern=TRUE, input=smiles, ignore.stderr=TRUE)
 		# If we wrote to a file, read it back as return value.
 		if(is.character(fileName))
