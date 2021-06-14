@@ -343,10 +343,38 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				  pks, method = deprofile.setting, noise = NA
 				  , colnames = FALSE)
 			}
-			
+			pks_mz <- pks[,1]
+			pks_intensity <- pks[,2]
+			scanWindowLowerLimit <- line["scanWindowLowerLimit"]
+			scanWindowUpperLimit <- line["scanWindowUpperLimit"]
+			check_mz <- function(m) {isTRUE(
+				m > scanWindowLowerLimit &&
+				m < scanWindowUpperLimit
+			)}
+			in_range <- sapply(pks_mz, check_mz)
+			if (!all(in_range)) {
+				outliers <- pks[!in_range, ]
+				cat(paste('WARNING: There were',
+				  dim(outliers)[1],
+				  'peaks out of scan range.',
+				  'They will be saved to outliers.csv'))
+				if(file.exists('outliers.csv')) {
+					write.table(outliers, 'outliers.csv',
+					  sep=',', row.names=FALSE,
+					  col.names=FALSE, append=TRUE)
+				}
+				else {
+					colnames(outliers) = c(
+					  'mz', 'intensity')
+					write.table(outliers, 'outliers.csv',
+					  sep=',', row.names=FALSE,
+					  quote=FALSE, col.names=TRUE,
+					  append=FALSE)
+				}
+			}
 			new("RmbSpectrum2",
-			  mz = pks[,1],
-			  intensity = pks[,2],
+			  mz = pks_mz,
+			  intensity = pks_intensity,
 			  precScanNum = as.integer(line["precursorScanNum"]),
 			  precursorMz = line["precursorMZ"],
 			  precursorIntensity = line["precursorIntensity"],
@@ -359,9 +387,9 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			  centroided = TRUE,
 			  polarity = as.integer(line["polarity"]),
 			  info = lapply(list(
-			  scanWindowLowerLimit=line["scanWindowLowerLimit"],
-			  scanWindowUpperLimit=line["scanWindowUpperLimit"]
-			  ), unname)
+			    scanWindowLowerLimit=scanWindowLowerLimit,
+			    scanWindowUpperLimit=scanWindowUpperLimit,
+			    ), unname)
 			)
 		})
 		msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
