@@ -355,7 +355,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			if (!all(in_range)) {
 				outliers <- pks[!in_range, ]
 				cat(paste('WARNING: There were',
-				  dim(outliers)[1],
+				  nrow(outliers),
 				  'peaks out of scan range.',
 				  'They will be saved to outliers.csv'))
 				if(file.exists('outliers.csv')) {
@@ -388,7 +388,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			  polarity = as.integer(line["polarity"]),
 			  info = lapply(list(
 			    scanWindowLowerLimit=scanWindowLowerLimit,
-			    scanWindowUpperLimit=scanWindowUpperLimit,
+			    scanWindowUpperLimit=scanWindowUpperLimit
 			    ), unname)
 			)
 		})
