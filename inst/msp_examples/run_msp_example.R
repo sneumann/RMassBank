@@ -10,5 +10,5 @@ w <- msmsWorkflow(w, readMethod='msp',
 mb <- newMbWorkspace(w)
 #mb <- mbWorkflow(mb)
 mb <- resetInfolists(mb)
-mb <- loadInfolists(mb, system.file('infolists', package="RMassBankData"))
+mb <- loadInfolists(mb, system.file('msp_examples/infolists', package="RMassBankData"))
 mb <- mbWorkflow(mb, filter=FALSE)
