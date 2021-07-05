@@ -672,6 +672,14 @@ findMsMsHRperMsp <- function(fileName, cpdIDs, mode="pH"){
   return(sp)
 }
 
+.retrieve <- function (x, argument) {
+	entry <- x[[argument]]
+	if(length(entry) == 0 || entry == "NA")
+		return(NA)
+	else
+		return(entry) 
+}
+
 #' @describeIn findMsMsHRperMsp A submethod of findMsMsHrperxcms that retrieves basic spectrum data
 #' @export
 findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
@@ -704,8 +712,8 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
   whichmissing <- vector()
   metaspec <- list()
   
-  mzs <- unlist(lapply(X = xrmsms, FUN = function(x){    x$PRECURSORMZ   }))
-  rts <- unlist(lapply(X = xrmsms, FUN = function(x){ if(x$RETENTIONTIME == "NA") return(NA) else return(x$RETENTIONTIME) }))
+  mzs <- unlist(lapply(X = xrmsms, FUN = function(x){.retrieve(x, 'PRECURSORMZ')}))
+  rts <- unlist(lapply(X = xrmsms, FUN = function(x){.retrieve(x, 'RETENTIONTIME')}))
   precursorTable <- data.frame(stringsAsFactors = FALSE,
     mz = as.numeric(mzs),
     rt = as.numeric(rts)
@@ -821,7 +829,7 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
       metaspec[[idIdx]] <- list(matrix(0,1,7))
     } else {
       mz <- as.numeric(spectrum$pspectrum[, "mz"])
-      rt <- as.numeric(ifelse(test = spectrum$RETENTIONTIME=="NA", yes = NA, no = spectrum$RETENTIONTIME))
+      rt <- as.numeric(.retrieve(spectrum, 'RETENTIONTIME'))
       metaspec[[idIdx]] <- list(data.frame(
         stringsAsFactors = F,
         "mz"      = mz,
