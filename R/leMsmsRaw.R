@@ -180,6 +180,8 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 	return(sp)
 }
 
+
+
 #' @describeIn findMsMsHR A submethod of find MsMsHR that retrieves basic spectrum data 
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
@@ -343,10 +345,30 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 				  pks, method = deprofile.setting, noise = NA
 				  , colnames = FALSE)
 			}
-			
+			pks_mz <- pks[,1]
+			pks_intensity <- pks[,2]
+			scanWindowLowerLimit <- line["scanWindowLowerLimit"]
+			scanWindowUpperLimit <- line["scanWindowUpperLimit"]
+			limits <- list(
+			  scanWindowLowerLimit=scanWindowLowerLimit,
+			  scanWindowUpperLimit=scanWindowUpperLimit
+			)
+			if(!anyNA(limits)) {
+				check_mz <- function(m) {isTRUE(
+					m > scanWindowLowerLimit &&
+					m < scanWindowUpperLimit
+				)}
+				in_range <- sapply(pks_mz, check_mz)
+				if (!all(in_range)) {
+					outliers <- pks[!in_range, ]
+					warning(paste('There were',
+					  nrow(outliers),
+					  'peaks out of mass range.'))
+				}
+			}
 			new("RmbSpectrum2",
-			  mz = pks[,1],
-			  intensity = pks[,2],
+			  mz = pks_mz,
+			  intensity = pks_intensity,
 			  precScanNum = as.integer(line["precursorScanNum"]),
 			  precursorMz = line["precursorMZ"],
 			  precursorIntensity = line["precursorIntensity"],
@@ -358,10 +380,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			  acquisitionNum = as.integer(line["seqNum"]),
 			  centroided = TRUE,
 			  polarity = as.integer(line["polarity"]),
-			  info = lapply(list(
-			  scanWindowLowerLimit=line["scanWindowLowerLimit"],
-			  scanWindowUpperLimit=line["scanWindowUpperLimit"]
-			  ), unname)
+			  info = lapply(limits, unname)
 			)
 		})
 		msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
