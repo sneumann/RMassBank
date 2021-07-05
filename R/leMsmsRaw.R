@@ -180,6 +180,8 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 	return(sp)
 }
 
+
+
 #' @describeIn findMsMsHR A submethod of find MsMsHR that retrieves basic spectrum data 
 #' @export
 findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
@@ -347,29 +349,21 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			pks_intensity <- pks[,2]
 			scanWindowLowerLimit <- line["scanWindowLowerLimit"]
 			scanWindowUpperLimit <- line["scanWindowUpperLimit"]
-			check_mz <- function(m) {isTRUE(
-				m > scanWindowLowerLimit &&
-				m < scanWindowUpperLimit
-			)}
-			in_range <- sapply(pks_mz, check_mz)
-			if (!all(in_range)) {
-				outliers <- pks[!in_range, ]
-				cat(paste('WARNING: There were',
-				  nrow(outliers),
-				  'peaks out of scan range.',
-				  'They will be saved to outliers.csv'))
-				if(file.exists('outliers.csv')) {
-					write.table(outliers, 'outliers.csv',
-					  sep=',', row.names=FALSE,
-					  col.names=FALSE, append=TRUE)
-				}
-				else {
-					colnames(outliers) = c(
-					  'mz', 'intensity')
-					write.table(outliers, 'outliers.csv',
-					  sep=',', row.names=FALSE,
-					  quote=FALSE, col.names=TRUE,
-					  append=FALSE)
+			limits <- list(
+			  scanWindowLowerLimit=scanWindowLowerLimit,
+			  scanWindowUpperLimit=scanWindowUpperLimit
+			)
+			if(!anyNA(limits)) {
+				check_mz <- function(m) {isTRUE(
+					m > scanWindowLowerLimit &&
+					m < scanWindowUpperLimit
+				)}
+				in_range <- sapply(pks_mz, check_mz)
+				if (!all(in_range)) {
+					outliers <- pks[!in_range, ]
+					warning(paste('There were',
+					  nrow(outliers),
+					  'peaks out of mass range.'))
 				}
 			}
 			new("RmbSpectrum2",
@@ -386,10 +380,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 			  acquisitionNum = as.integer(line["seqNum"]),
 			  centroided = TRUE,
 			  polarity = as.integer(line["polarity"]),
-			  info = lapply(list(
-			    scanWindowLowerLimit=scanWindowLowerLimit,
-			    scanWindowUpperLimit=scanWindowUpperLimit
-			    ), unname)
+			  info = lapply(limits, unname)
 			)
 		})
 		msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
