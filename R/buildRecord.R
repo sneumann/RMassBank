@@ -264,7 +264,7 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 		if(all(!is.na(spectrum@precursorIntensity), 
 		   spectrum@precursorIntensity != 0, 
 		   spectrum@precursorIntensity != 100, na.rm = TRUE))
-			ms_fi[['PRECURSOR_INTENSITY']] <- spectrum@precursorIntensity
+			ms_fi[['PRECURSOR_INTENSITY']] <- round(spectrum@precursorIntensity, 2)
 	}
 
 	# Add scan range to AC$MS, if present
