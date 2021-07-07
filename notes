@@ -1,0 +1,10 @@
+Verwende statische Variable logging_file im RMassBank Paket
+Gebe dem User die Möglichkeit, einen logging-file in den Settings einzustellen
+Bei jedem Aufruf von log('Nachricht'): Überprüfe ob die statische Variable noch mit dem entsprechenden Setting übereinstimmt.
+Andernfalls muss sie geupdatet werden.
+Ersetze zunächst alle Aufrufe von 'message' durch den logger
+mögliches Problem: Andere Pakete könnten ebenfalls den logger verwenden und möglicherweise ohne, dass wir es merken, in den selben file loggen
+-> sollte getestet werden
+
+Das bereits existierende RMassBank.env soll verwendet werden.
+Nächster Schritt: Schreiben von log_wrapper.R
