@@ -7,4 +7,5 @@ mögliches Problem: Andere Pakete könnten ebenfalls den logger verwenden und m�
 -> sollte getestet werden
 
 Das bereits existierende RMassBank.env soll verwendet werden.
-Nächster Schritt: Schreiben von log_wrapper.R
+DONE: Schreiben von log_wrapper.R
+TODO: Möglichkeit zum Setzen von 'logging_file' in der 'mysettings.ini' etablieren
