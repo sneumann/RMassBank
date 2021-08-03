@@ -10,9 +10,6 @@ recalibrate.addMS1data(spec,mode="pH", recalibrateMS1Window =
 \arguments{
 \item{spec}{A \code{msmsWorkspace} or \code{RmbSpectraSetList} containing spectra for which MS1 "peaks" should be "constructed".}
 
-\item{mode}{\code{"pH", "pNa", "pM", "pNH4",  "mH", "mM", "mFA"} for different ions 
-([M+H]+, [M+Na]+, [M]+,  [M+NH4]+, [M-H]-, [M]-, [M+FA]-).}
-
 \item{recalibrateMS1Window}{Window width to look for MS1 peaks to recalibrate (in ppm).}
 }
 \value{

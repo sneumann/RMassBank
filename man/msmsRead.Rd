@@ -11,7 +11,7 @@ msmsRead(
   files = NULL,
   cpdids = NULL,
   readMethod,
-  mode,
+  mode = NULL,
   confirmMode = FALSE,
   useRtLimit = TRUE,
   Args = NULL,
