@@ -360,7 +360,7 @@ getMonoisotopicMass <- function(formula){
 getAdductPolarity <- function(mode) {
   df <- getAdductInformation("")
   charge <- df[df$mode == mode,"charge"]
-  ifelse(charge > 0, 1, 0)
+  ifelse(charge > 0, 1L, 0L)
 }
 
 getIonMode <- function(mode) {
