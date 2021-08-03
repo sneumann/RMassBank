@@ -1,3 +1,6 @@
+#' @import R.utils
+NULL
+
 #' 
 #' Extracts and processes spectra from a specified file list, according to 
 #' loaded options and given parameters.
@@ -68,9 +71,14 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	} else{
 		##If a filetable is supplied read it
 		tab <- read.csv(filetable, stringsAsFactors = FALSE)
-		# Assuming that filetable contains paths
-		# relative to its own location
-		tab[,"Files"] <- paste(dirname(filetable), tab[,"Files"], sep="/")
+		# Check if we have absolute or relative paths.
+		# If relative, they are assumed to be relative to the filetable path
+		
+		tab[,"Files"] <- ifelse(
+		  isAbsolutePath(tab[,"Files"]),
+		  tab[,"Files"],
+		  paste(dirname(filetable), tab[,"Files"], sep="/")
+		)
 		w@files <- tab[,"Files"]
 		cpdids <- tab[,"ID"]
 	}
