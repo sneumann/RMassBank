@@ -1789,7 +1789,7 @@ reanalyzeFailpeaks <- function(w, custom_additions, filterSettings =
 					return(sp)
 				
 				children <- lapply(sp@children, function(ch) {
-				      if(!ch@ok)
+				      if(!isTRUE(ch@ok))
 				        return(ch)
 							peaks <- getData(ch)
 							# get the peaks that have no matching formula, but are considered not noise etc.
@@ -2104,7 +2104,7 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 					return(sp)
 				children <- lapply(sp@children, function(ch)
 						{
-				      if(ch@ok == FALSE)
+				      if(!isTRUE(ch@ok))
 				        return(ch)
 							# filterOK TRUE if multiplicity is sufficient
 							ch <- addProperty(ch, "filterOK", "logical", NA)
