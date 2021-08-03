@@ -356,6 +356,13 @@ getMonoisotopicMass <- function(formula){
   }
   return(monoisotopicMass)
 }
+
+getAdductPolarity <- function(mode) {
+  df <- getAdductInformation("")
+  charge <- df[df$mode == mode,charge]
+  ifelse(charge > 0, 1, 0)
+}
+
 getAdductInformation <- function(formula){
   adductDf <- as.data.frame(rbind(
     
@@ -486,6 +493,8 @@ getAdductInformation <- function(formula){
     c(mode = "",        addition = "",       charge = 0,  adductString = "[M]")
   ), stringsAsFactors = F)
   adductDf$charge <- as.integer(adductDf$charge)
+  
+  
   
   if(any(any(duplicated(adductDf$mode)), any(duplicated(adductDf$adductString)))) stop("Invalid adduct table")
   

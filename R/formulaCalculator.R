@@ -390,12 +390,3 @@ split.formula.posneg <- function(f, as.formula = TRUE, as.list=FALSE)
     "pM" = "+",
     "mM" = "-",
     "pNH4" = "+")
-
-.polarity <- list(
-    "pH" = as.integer(1),
-    "pNa" = as.integer(1),
-    "mH" = as.integer(0),
-    "mFA" = as.integer(0),
-    "pM" = as.integer(1),
-    "mM" = as.integer(0),
-    "pNH4" = as.integer(1))

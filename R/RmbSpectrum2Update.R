@@ -83,10 +83,10 @@
 
 .updateObject.RmbSpectraSet.updatePolarity <- function(w)
 {
-  w@parent@polarity <- .polarity[[w@mode]]
+  w@parent@polarity <- getAdductPolarity(w@mode)
   for(n in seq_len(length(w@children)))
   {
-    w@children[[n]]@polarity <- .polarity[[w@mode]]
+    w@children[[n]]@polarity <- getAdductPolarity(w@mode)
   }
   w
 }
