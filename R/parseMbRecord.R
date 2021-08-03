@@ -255,8 +255,8 @@ parseMbRecords <- function(files)
       # Select one spectrum to get compound data from:
       sp <- sps[[1]]
       cpd@mz <- as.numeric(sp@info[["MS$FOCUSED_ION"]][['PRECURSOR_M/Z']])
-      cpd@mode <- names(RMassBank:::.precursorTypes)[which(RMassBank:::.precursorTypes == 
-      sp@info[["MS$FOCUSED_ION"]][['PRECURSOR_TYPE']])]
+      adductInfo <- getAdductInformation()
+      cpd@mode <- adductInfo[adductInfo$adductString ==  sp@info[["MS$FOCUSED_ION"]][['PRECURSOR_TYPE']], "mode"]
       cpd@name <- sp@info[["CH$NAME"]][[1]]
       cpd@formula <- sp@info[['CH$FORMULA']]
       cpd@smiles <- sp@info[['CH$SMILES']]
