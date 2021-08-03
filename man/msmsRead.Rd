@@ -43,7 +43,10 @@ so that e.g. a recalibration can be performed, and "peaklist"
 just requires a CSV with two columns and the column header "mz", "int".}
 
 \item{mode}{\code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
-([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).}
+([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
+For `readMethod == "mzR"`, a vector of `mode` entries is supported. The user 
+should check that they are either all positive or negative. If this isn't the case,
+the recalibration will be incorrect.}
 
 \item{confirmMode}{Defaults to false (use most intense precursor). Value 1 uses
 the 2nd-most intense precursor for a chosen ion (and its data-dependent scans)
