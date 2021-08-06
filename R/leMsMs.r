@@ -1139,6 +1139,10 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 							table.c$rawOK <- NULL
 							table.c$low <- NULL
 							table.c$satellite <- NULL
+							if(!("formulaSource" %in% colnames(table.c)))
+							  table.c$formulaSource <- character(nrow(table.c))
+							
+							
 							# add scan no
 							table.c$scan <- rep(c@acquisitionNum, nrow(table.c))
 							return(table.c)
