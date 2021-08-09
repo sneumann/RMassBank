@@ -39,7 +39,8 @@ Suggests:
     xcms (>= 1.37.1),
     CAMERA,
     RUnit,
-    knitr
+    knitr,
+    rmarkdown
 Collate:
     'alternateAnalyze.R'
     'formulaCalculator.R'

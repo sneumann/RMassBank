@@ -128,7 +128,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	  mode_ <- mode
 	  if(length(mode) == 1)
 	    mode_ <- rep(mode, length(w@files))
-	  if(length(mode) != length(w@files))
+	  if(length(mode_) != length(w@files))
 	    stop("Supply either one mode or a vector for one mode per file")
 	  
 		##Progressbar

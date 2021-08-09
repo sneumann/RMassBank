@@ -494,6 +494,7 @@ getAdductInformation <- function(formula){
     c(mode = "m3H_pM_p2Na",    addition = add.formula(formula, "Na2H-3"),    charge = -1, adductString = "[2M+2Na-3H]-"),
     c(mode = "m3H_pM",         addition = add.formula(formula, "H-3"),       charge = -1, adductString = "[2M-3H]-"),
     c(mode = "mH_p2M",         addition = add.formula(formula, add.formula(formula, "H-1")), charge = -1, adductString = "[3M-H]-"),
+    c(mode = "mAc", addition = "C2O2H3",  charge = -1, adductString = "[M+CH3COO]-"),
     
     ## ???
     c(mode = "",        addition = "",       charge = 0,  adductString = "[M]")
