@@ -94,7 +94,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   allUnknown <- FALSE
     if(all(.listEnvEnv$listEnv$compoundList$Level == "5")){
         allUnknown <- TRUE
-        message("All compounds are unknown, the workflow will be adjusted accordingly")
+        rmb_log_info("All compounds are unknown, the workflow will be adjusted accordingly")
     }
     
     if(readMethod == "minimal"){
@@ -132,7 +132,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Step 1: acquire all MSMS spectra from files
   if(1 %in% steps)
   {
-    message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
+    rmb_log_info("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
 	w <- msmsRead(w = w, files = w@files, readMethod=readMethod, filetable=filetable, mode=mode, confirmMode = confirmMode, useRtLimit = useRtLimit, 
                         Args = findPeaksArgs, settings = settings, progressbar = progressbar, MSe = MSe)
   }
@@ -140,7 +140,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(2 %in% steps)
   {
 	  nProg <- 0
-	  message("msmsWorkflow: Step 2. First analysis pre recalibration")
+	  rmb_log_info("msmsWorkflow: Step 2. First analysis pre recalibration")
         if(allUnknown){
             analyzeMethod <- "intensity"
         }
@@ -162,7 +162,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Step 3: aggregate all spectra
   if(3 %in% steps)
   {
-	message("msmsWorkflow: Step 3. Aggregate all spectra")
+	rmb_log_info("msmsWorkflow: Step 3. Aggregate all spectra")
         w@aggregated <- aggregateSpectra(spec = w@spectra, addIncomplete=TRUE)
         
         if(RMassBank.env$verbose.output){
@@ -191,7 +191,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Step 4: recalibrate all m/z values in raw spectra
   if(4 %in% steps)
   {
-	message("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
+	rmb_log_info("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
 	if(newRecalibration)
 	{
 		# note: makeRecalibration takes w as argument now, because it needs to get the MS1 spectra from @spectra
@@ -214,7 +214,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(5 %in% steps)
   {
 	nProg <- 0
-	message("msmsWorkflow: Step 5. Reanalyze recalibrated spectra")
+	rmb_log_info("msmsWorkflow: Step 5. Reanalyze recalibrated spectra")
 	pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 	
 	w@spectra <- as(lapply(w@spectra, function(spec) {
@@ -242,7 +242,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Step 6: aggregate recalibrated results
   if(6 %in% steps)
   {
-    message("msmsWorkflow: Step 6. Aggregate recalibrated results")
+    rmb_log_info("msmsWorkflow: Step 6. Aggregate recalibrated results")
         w@aggregated <- aggregateSpectra(spec = w@spectra, addIncomplete=TRUE)
         
         if(RMassBank.env$verbose.output){
@@ -266,7 +266,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
   if(7 %in% steps)
   {
-	message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
+	rmb_log_info("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
     w <- reanalyzeFailpeaks(
 			w, custom_additions="N2O", mode=mode,
 				filterSettings=settings$filterSettings,
@@ -289,9 +289,9 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   #         creation of failpeak list
   if(8 %in% steps)
   {
-	message("msmsWorkflow: Step 8. Peak multiplicity filtering")
+	rmb_log_info("msmsWorkflow: Step 8. Peak multiplicity filtering")
     if (is.null(settings$multiplicityFilter)) {
-      message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
+      rmb_log_info("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
           w@aggregated <- addProperty(w@aggregated, "formulaMultiplicity", "integer", 1)
           w@aggregated <- addProperty(w@aggregated, "filterOK",            "logical", FALSE)
           w@aggregated$filterOK <- !((is.na(w@aggregated$formulaCount) | w@aggregated$formulaCount==0) & (is.na(w@aggregated$reanalyzed.formulaCount) | w@aggregated$reanalyzed.formulaCount==0))
@@ -319,7 +319,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
     }
   }
-  message("msmsWorkflow: Done.")
+  rmb_log_info("msmsWorkflow: Done.")
   return(w)
 }
 
@@ -1574,8 +1574,8 @@ plotRecalibration.direct <- function(rcdata, rc, rc.ms1, title, mzrange,
 		}
 		else
 		{
-			message("Package gplots not installed. The recalibration density plot will not be displayed.")
-			message("To install gplots: install.packages('gplots')")
+			rmb_log_info("Package gplots not installed. The recalibration density plot will not be displayed.")
+			rmb_log_info("To install gplots: install.packages('gplots')")
 		}
 	}
 }
