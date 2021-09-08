@@ -271,8 +271,8 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	if (all(c("scanWindowUpperLimit", "scanWindowLowerLimit") %in%
 	  names(spectrum@info))) {
 		ac_ms[['MASS_RANGE_M/Z']] <- paste(
-		  round(spectrum@info$scanWindowLowerLimit, 0),
-		  round(spectrum@info$scanWindowUpperLimit, 0),
+		  floor(spectrum@info$scanWindowLowerLimit),
+		  ceiling(spectrum@info$scanWindowUpperLimit),
 		  sep='-')
 	}
 
