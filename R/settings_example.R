@@ -372,6 +372,13 @@ loadRmbSettings <- function(file_or_list)
 			if(is.null(o$annotations[[name]]))
 				o$annotations[[name]] <- ""
 		}
+		if (!is.null(o$logging_file)) {
+			appender_obj <- logger::appender_file(o$logging_file)
+			# This implicitly creates a new namespace in the
+			# logger package, that is used to treat calls from
+			# RMassBank differently
+			log_appender(appender_obj, namespace='RMassBank')
+		}
 		options(RMassBank = o)
 	}
 	else if (isR)
