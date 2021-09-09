@@ -102,7 +102,7 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 0, intensity_precis
 			if(nrow(currentMPeaks)){
 				rownames(currentMPeaks) <- 1:nrow(currentMPeaks)
 			} else {
-				log_info(paste0("Compound ", id, " in spectrum #", specEnv$specNum," does not have matched peaks, so no isotopes can be found"))
+				rmb_log_info(paste0("Compound ", id, " in spectrum #", specEnv$specNum," does not have matched peaks, so no isotopes can be found"))
 				if(plotSpectrum){
 					plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), col="black", xlab="m/z", ylab="intensity", lwd=3)
 				}
@@ -130,7 +130,7 @@ checkIsotopes <- function(w, mode = "pH", intensity_cutoff = 0, intensity_precis
 			
             # If there are no peaks left, then abort for this spectrum
 			if(!length(peaksToCheck)){
-				log_info(paste0("The already annotated peaks of compound ", id, " in spectrum #", specEnv$specNum," are not intense enough to search for isotopic peaks"))
+				rmb_log_info(paste0("The already annotated peaks of compound ", id, " in spectrum #", specEnv$specNum," are not intense enough to search for isotopic peaks"))
 				if(plotSpectrum){
 					plot(currentMPeaks$mzFound, currentMPeaks$intensity,type="h", main=paste(id,findName(id)), col="black", xlab="m/z", ylab="intensity", lwd=3)
 				}

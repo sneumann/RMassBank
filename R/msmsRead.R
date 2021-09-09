@@ -227,7 +227,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		}
 		
 		w@files <- sapply(files,function(file){return(file[1])})
-		log_info("Peaks read")
+		rmb_log_info("Peaks read")
 	}
   
   ##MSP-readmethod 

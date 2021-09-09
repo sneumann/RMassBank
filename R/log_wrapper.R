@@ -1,90 +1,72 @@
 #' @import logger
 NULL
 
-update_appender <- function() {
-	logging_file <- RMassBank.env$logging_file
-	if (!is.null(logging_file)) {
-		appender_obj <- logger::log_appender()
-		if (as.character(appender_obj)[1] != "logger::appender_file") {
-			appender_obj <- logger::appender_file(logging_file)
-			logger::log_appender(appender_obj)
-		}
-	}
-}
-
-#' Update logging file and pass arguments to logger::log_info
+#' Pass arguments to logger::log_info using custom RMassBank-logging settings
 #'
-#' The logging file to be used must be specified by the user in the \code{logging_file} field of \code{settings.ini}
+#' The logging file to be used can be specified by the user in the \code{logging_file} field of \code{settings.ini}
 #' @seealso logger::log_info
 #' @author pstahlhofen
 #' @export
-log_info <- function(...) {
-	update_appender()
-	logger::log_info(...)
+rmb_log_info <- function(...) {
+	logger::log_info(..., namespace='RMassBank')
 }
 
-#' Update logging file and pass arguments to logger::log_trace
+#' Pass arguments to logger::log_trace using custom RMassBank-logging settings
 #'
-#' The logging file to be used must be specified by the user in the \code{logging_file} field of \code{settings.ini}
+#' The logging file to be used can be specified by the user in the \code{logging_file} field of \code{settings.ini}
 #' @seealso logger::log_trace
 #' @author pstahlhofen
 #' @export
-log_trace <- function(...) {
-	update_appender()
-	logger::log_trace(...)
+rmb_log_trace <- function(...) {
+	logger::log_trace(..., namespace='RMassBank')
 }
 
-#' Update logging file and pass arguments to logger::log_debug
+#' Pass arguments to logger::log_debug using custom RMassBank-logging settings
 #'
-#' The logging file to be used must be specified by the user in the \code{logging_file} field of \code{settings.ini}
+#' The logging file to be used can be specified by the user in the \code{logging_file} field of \code{settings.ini}
 #' @seealso logger::log_debug
 #' @author pstahlhofen
 #' @export
-log_debug <- function(...) {
-	update_appender()
-	logger::log_debug(...)
+rmb_log_debug <- function(...) {
+	logger::log_debug(..., namespace='RMassBank')
 }
 
-#' Update logging file and pass arguments to logger::log_warn
+#' Pass arguments to logger::log_warn using custom RMassBank-logging settings
 #'
-#' The logging file to be used must be specified by the user in the \code{logging_file} field of \code{settings.ini}
+#' The logging file to be used can be specified by the user in the \code{logging_file} field of \code{settings.ini}
 #' @seealso logger::log_warn
 #' @author pstahlhofen
 #' @export
-log_warn <- function(...) {
-	update_appender()
-	logger::log_warn(...)
+rmb_log_warn <- function(...) {
+	logger::log_warn(..., namespace='RMassBank')
 }
 
-#' Update logging file and pass arguments to logger::log_success
+#' Pass arguments to logger::log_success using custom RMassBank-logging settings
 #'
-#' The logging file to be used must be specified by the user in the \code{logging_file} field of \code{settings.ini}
+#' The logging file to be used can be specified by the user in the \code{logging_file} field of \code{settings.ini}
 #' @seealso logger::log_success
 #' @author pstahlhofen
 #' @export
-log_success <- function(...) {
-	update_appender()
-	logger::log_success(...)
+rmb_log_success <- function(...) {
+	logger::log_success(..., namespace='RMassBank')
 }
 
-#' Update logging file and pass arguments to logger::log_error
+#' Pass arguments to logger::log_error using custom RMassBank-logging settings
 #'
-#' The logging file to be used must be specified by the user in the \code{logging_file} field of \code{settings.ini}
+#' The logging file to be used can be specified by the user in the \code{logging_file} field of \code{settings.ini}
 #' @seealso logger::log_error
 #' @author pstahlhofen
 #' @export
-log_error <- function(...) {
-	update_appender()
-	logger::log_error(...)
+rmb_log_error <- function(...) {
+	logger::log_error(..., namespace='RMassBank')
 }
 
-#' Update logging file and pass arguments to logger::log_fatal
+#' Pass arguments to logger::log_fatal using custom RMassBank-logging settings
 #'
-#' The logging file to be used must be specified by the user in the \code{logging_file} field of \code{settings.ini}
+#' The logging file to be used can be specified by the user in the \code{logging_file} field of \code{settings.ini}
 #' @seealso logger::log_fatal
 #' @author pstahlhofen
 #' @export
-log_fatal <- function(...) {
-	update_appender()
-	logger::log_fatal(...)
+rmb_log_fatal <- function(...) {
+	logger::log_fatal(..., namespace='RMassBank')
 }

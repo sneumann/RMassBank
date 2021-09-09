@@ -1,17 +1,18 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 3.1.1
+Version: 3.3.1
 Authors@R: c(
     person(given = "RMassBank at Eawag", email = "massbank@eawag.ch",
     role=c("cre")),
     person(given = "Michael A.", family = "Stravs", email =
     "michael.stravs@eawag.ch", role=c("aut")), person(given = "Emma L.",
-    family = "Schymanski", email = "emma.schymanski@eawag.ch", role=c("aut")),
+    family = "Schymanski", email = "emma.schymanski@uni.lu", role=c("aut")),
     person(given = "Steffen", family = "Neumann", role = "aut", email =
     "sneumann@ipb-halle.de"), person(given = "Erik", family = "Muller", role =
-    "aut", email = "erik.mueller@student.uni-halle.de"), person(given =
-    "Tobias", family = "Schulze", role = "ctb", email =
+    "aut", email = "erik.mueller@ufz.de"), person(given = "Paul", family = "Stahlhofen", role =
+    "aut", email = "paul-jonas.stahlhofen@ufz.de"),
+	person(given = "Tobias", family = "Schulze", role = "ctb", email =
     "tobias.schulze@ufz.de"), person(given =
     "Hendrik", family = "Treutler", role = "ctb", email =
     "hendrik.treutler@gmail.com") )
