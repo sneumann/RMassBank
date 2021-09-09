@@ -68,6 +68,9 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	} else{
 		##If a filetable is supplied read it
 		tab <- read.csv(filetable, stringsAsFactors = FALSE)
+		# Assuming that filetable contains paths
+		# relative to its own location
+		tab[,"Files"] <- paste(dirname(filetable), tab[,"Files"], sep="/")
 		w@files <- tab[,"Files"]
 		cpdids <- tab[,"ID"]
 	}
@@ -82,7 +85,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	}
 	
 	if(!all(file.exists(w@files))){
-		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist")
+		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist. Paths in the Filelist were interpreted relative to the location of the Filelist.")
 	}
 
     # na.ids <- which(is.na(sapply(cpdids, findSmiles)))
@@ -202,7 +205,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		}
 		
 		w@files <- sapply(files,function(file){return(file[1])})
-		message("Peaks read")
+		rmb_log_info("Peaks read")
 	}
   
   ##MSP-readmethod 
