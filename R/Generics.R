@@ -40,4 +40,4 @@ setGeneric("selectPeaks", function(o, ...) standardGeneric("selectPeaks"))
 setGeneric("addProperty", function(o, name, type, value=NA) standardGeneric("addProperty"))
 
 setGeneric("property", function(o, property) standardGeneric("property"))
-setGeneric("property<-", function(o, property, value, addNew = FALSE, class="") standardGeneric("property<-"))
+setGeneric("property<-", function(o, property, addNew = FALSE, class="", value) standardGeneric("property<-"))
