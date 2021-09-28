@@ -1279,7 +1279,7 @@ readMbdata <- function(row)
 #'      "dbe","mz","int","formulaCount","parentScan","fM_factor","dppmBest",
 #'     "formulaMultiplicity","intrel","mzSpec"}
 #' 
-#' @param type The ion type to be added to annotated formulas ("+" or "-" usually)
+#' @param formulaTag The ion type to be added to annotated formulas ("+" or "-" usually)
 #' 
 #' @return The annotated peak table. Table \code{colnames()} will be used for the
 #' 		titles (preferrably don't use spaces in the column titles; however no format is
