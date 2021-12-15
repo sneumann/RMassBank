@@ -1,8 +1,7 @@
+#' @importFrom webchem cir_query
+#' @importFrom ChemmineR smiles2sdf validSDF write.SDF
+#' @importFrom data.table fread fwrite
 #' @import readJDX
-#' @import webchem
-#' @import data.table
-#' @import ChemmineR
-#' @import ChemmineOB
 
 #' @title Add a header to a Multiblock JCAMP file
 #'
