@@ -544,7 +544,6 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   # with insufficient match accuracy or no match.
   analyzeTandemShot <- function(child, childIdx = 0)
   {
-	browser()
   	shot <- getData(child)
   	shot$row <- which(!is.na(shot$mz))
   	
