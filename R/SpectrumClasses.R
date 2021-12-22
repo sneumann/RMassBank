@@ -24,7 +24,7 @@ NULL
 #' The mz value calculated from the found formula for each peak (if any)
 #' @slot formula character
 #' The formula found for each peak.
-#' \code{\link{generate.formula}} from \code{\link{rcdk}} is used
+#' \code{\link[rcdk]{generate.formula}} is used
 #' for formula-fitting
 #' @slot dbe numeric
 #' The number of double bond equivalents.
@@ -67,8 +67,8 @@ NULL
 #' \code{mbWorkflow}, this will typically contain columns \code{mzRaw},
 #' \code{noise}, \code{formulaMultiplicity}, \code{bestMultiplicity}
 #' and \code{filterOK}. However, new columns may be added on demand
-#' (see \code{\link{property-set}})
-#' @seealso \code{\link{rcdk}}, \code{\link{property-set}}
+#' (see \code{\link{property<-}})
+#' @seealso \code{\link[rcdk]{generate.formula}}, \code{\link{property<-}}
 #' \code{\link{analyzeMsMs}}, \code{\link{generate.formula}},
 #' \code{\link{is.valid.formula}}
 #' @exportClass RmbSpectrum2
