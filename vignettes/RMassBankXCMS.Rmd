@@ -89,7 +89,7 @@ The full paths of the files must be loaded into the container in the array
 ```{r }
 msmsList@files <- list.files(system.file("spectra.Glucolesquerellin",
                                          package = "RMassBankData"),
-                             "Glucolesquerellin.*mzData", full.names=TRUE)
+                             "Glucolesquerellin.*mzML", full.names=TRUE)
 ```
 
 Note the position of the compound IDs in the filenames. Historically,
