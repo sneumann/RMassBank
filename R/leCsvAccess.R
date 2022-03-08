@@ -451,6 +451,7 @@ getAdductInformation <- function(formula){
     c(mode = "mH",      addition = "H-1",    charge = -1, adductString = "[M-H]-"),
     c(mode = "mCl",     addition = "Cl1",    charge = -1, adductString = "[M+Cl]-"),
     c(mode = "mFA",     addition = "C1O2H",  charge = -1, adductString = "[M+HCOOH-H]-"),
+    c(mode = "mAc",     addition = "C2O2H3",  charge = -1, adductString = "[M+CH3COOH-H]-"),
     c(mode = "mH_pTFA", addition = "C2F3O2", charge = -1, adductString = "[M+CF3CO2H-H]-"),
     
     c(mode = "mH_mC6H10O5", addition = "C-6H-11O-5", charge = -1, adductString = "[M-C6H10O5-H]-"),
