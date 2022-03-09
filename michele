@@ -1,7 +1,0 @@
-Funktion .buildRecord.RmbSpectraSet in buildRecord.R (ab Zeile 11):
-Hier ist im usage-Block die Rede von einer Funktion names compileRecord, deren Implementierung ich nirgendwo finden konnte. Sie wird auch noch anderswo in den Roxygen-Tags erwähnt (z.B. in createMassBank.R). Wurde sie vielleicht umbenannt?
-Die Parameter in den Tags und die von .buildRecord.RmbSpectraSet unterscheiden sich: Comments für 'spec', 'aggregated' und 'retrieval' sollten durch neue für 'cpd' und '...' ersetzt werden 
-
-Funktion .updateObject.RmbSpectrum2.formulaSource in RmbSpectrum2Update.R ab Zeile 35:
-Dokumentation für Parameter 'w' fehlt
-@returnType sollte durch @return <something> ersetzt werden
