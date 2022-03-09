@@ -1,7 +1,7 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 3.3.3
+Version: 3.3.4
 Authors@R: c(
     person(given = "RMassBank at Eawag", email = "massbank@eawag.ch",
     role=c("cre")),
@@ -35,13 +35,14 @@ Imports:
     XML,rjson,S4Vectors,digest,
     rcdk,yaml,mzR,methods,Biobase,MSnbase,httr,
     enviPat,assertthat,logger,RCurl,readJDX,webchem,
-    ChemmineR,ChemmineOB
+    ChemmineR,ChemmineOB,R.utils
 Suggests:
     BiocStyle,gplots,RMassBankData,
     xcms (>= 1.37.1),
     CAMERA,
     RUnit,
-    knitr
+    knitr,
+    rmarkdown
 Collate:
     'alternateAnalyze.R'
     'formulaCalculator.R'

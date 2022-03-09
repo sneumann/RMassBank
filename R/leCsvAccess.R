@@ -356,6 +356,19 @@ getMonoisotopicMass <- function(formula){
   }
   return(monoisotopicMass)
 }
+
+getAdductPolarity <- function(mode) {
+  df <- getAdductInformation("")
+  charge <- df[df$mode == mode,"charge"]
+  ifelse(charge > 0, 1L, 0L)
+}
+
+getIonMode <- function(mode) {
+  df <- getAdductInformation("")
+  charge <- df[df$mode == mode,"charge"]
+  ifelse(charge > 0, "POSITIVE", "NEGATIVE")
+}
+
 getAdductInformation <- function(formula){
   adductDf <- as.data.frame(rbind(
     
@@ -451,7 +464,6 @@ getAdductInformation <- function(formula){
     c(mode = "mH",      addition = "H-1",    charge = -1, adductString = "[M-H]-"),
     c(mode = "mCl",     addition = "Cl1",    charge = -1, adductString = "[M+Cl]-"),
     c(mode = "mFA",     addition = "C1O2H",  charge = -1, adductString = "[M+HCOOH-H]-"),
-    c(mode = "mAc",     addition = "C2O2H3",  charge = -1, adductString = "[M+CH3COOH-H]-"),
     c(mode = "mH_pTFA", addition = "C2F3O2", charge = -1, adductString = "[M+CF3CO2H-H]-"),
     
     c(mode = "mH_mC6H10O5", addition = "C-6H-11O-5", charge = -1, adductString = "[M-C6H10O5-H]-"),
@@ -482,11 +494,14 @@ getAdductInformation <- function(formula){
     c(mode = "m3H_pM_p2Na",    addition = add.formula(formula, "Na2H-3"),    charge = -1, adductString = "[2M+2Na-3H]-"),
     c(mode = "m3H_pM",         addition = add.formula(formula, "H-3"),       charge = -1, adductString = "[2M-3H]-"),
     c(mode = "mH_p2M",         addition = add.formula(formula, add.formula(formula, "H-1")), charge = -1, adductString = "[3M-H]-"),
+    c(mode = "mAc", addition = "C2O2H3",  charge = -1, adductString = "[M+CH3COO]-"),
     
     ## ???
     c(mode = "",        addition = "",       charge = 0,  adductString = "[M]")
   ), stringsAsFactors = F)
   adductDf$charge <- as.integer(adductDf$charge)
+  
+  
   
   if(any(any(duplicated(adductDf$mode)), any(duplicated(adductDf$adductString)))) stop("Invalid adduct table")
   

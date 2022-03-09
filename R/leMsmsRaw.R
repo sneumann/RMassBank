@@ -123,7 +123,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
     enforcePolarity <- FALSE
   
   if(enforcePolarity)
-    polarity <- .polarity[[mode]]
+    polarity <- getAdductPolarity(mode)
   else
     polarity <- NA
 	# access data directly for finding the MS/MS data. This is done using
@@ -167,10 +167,10 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
   
   # Overwrite the polarity with a value we generate, so it's consistent.
   # Some mzML files give only -1 as a result for polarity, which is useless for us
-  sp@parent@polarity <- .polarity[[sp@mode]]
+  sp@parent@polarity <- getAdductPolarity(sp@mode)
   for(n in seq_len(length(sp@children)))
   {
-    sp@children[[n]]@polarity <- .polarity[[sp@mode]]
+    sp@children[[n]]@polarity <- getAdductPolarity(sp@mode)
   }
 	
 	# If we had to open the file, we have to close it again
@@ -493,7 +493,7 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 			sp@name <- findName(cpdID[i])
 			sp@formula <- findFormula(cpdID[i])
 			sp@mode <- mode
-			sp@polarity <- .polarity[[sp@mode]]
+			sp@polarity <- getAdductPolarity(sp@mode)
 			return(sp)
 		})
 		return(P)
@@ -1011,7 +1011,7 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 	if(!is.na(polarity))
 	{
 	  if(is.character(polarity))
-	    polarity <- .polarity[[polarity]]
+	    polarity <- getAdductPolarity(polarity)
 	  headerMS1 <- headerMS1[headerMS1$polarity == polarity,]
 	}
 	
@@ -1127,7 +1127,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 				precursorIntensity = ifelse(test = "into_parent" %in% colnames(spec), yes = spec[,"into_parent"], no = 0),
 				precursorCharge = as.integer(1),
 				collisionEnergy = 0,
-				polarity = .polarity[[mode]],
+				polarity = getAdductPolarity(mode),
 				tic = 0,
 				peaksCount = nrow(spec),
 				rt = median(spec[,"rt"]),

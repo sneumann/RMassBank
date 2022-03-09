@@ -1717,7 +1717,10 @@ makeMollist <- function(compiled)
   # For every "compiled" entry (here, compiled is not one "compiled" entry but the total
   # list of all compiled spectra), extract the uppermost CH$NAME and the ID (from the
   # first spectrum.) Make the ID into 0000 format.
-    
+  
+  emptySpectra <- unlist(lapply(compiled, function(cpd) length(cpd@children) == 0))
+  compiled <- compiled[!emptySpectra]
+  
   tsvlist <- t(sapply(compiled, function(entry)
     {
     name <- entry@children[[1]]@info[["CH$NAME"]][[1]]

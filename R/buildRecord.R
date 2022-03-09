@@ -144,7 +144,7 @@ getAnalyticalInfo <- function(cpd = NULL)
   ai <- list()
 	# define positive or negative, based on processing mode.
   if(!is.null(cpd))
-	  mode <- .ionModes[[cpd@mode]]
+	  mode <- getIonMode(cpd@mode)
 	
   # again, these constants are read from the options:
   ai[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
@@ -234,9 +234,10 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	ms_fi <- list()
 	if(!is.null(cpd))
 	{
+	  adductInfo <- getAdductInformation("")
 		ms_fi[['BASE_PEAK']] <- round(mz(cpd@parent)[which.max(intensity(cpd@parent))],4)
 		ms_fi[['PRECURSOR_M/Z']] <- round(cpd@mz,4)
-		ms_fi[['PRECURSOR_TYPE']] <- .precursorTypes[cpd@mode]
+		ms_fi[['PRECURSOR_TYPE']] <- adductInfo[adductInfo$mode == cpd@mode, "adductString"]
 
 		if(all(!is.na(spectrum@precursorIntensity), 
 		   spectrum@precursorIntensity != 0, 
