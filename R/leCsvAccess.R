@@ -320,7 +320,7 @@ getMolecule <- function(smiles)
   do.aromaticity(mol)
   convert.implicit.to.explicit(mol)
   do.aromaticity(mol)
-  do.typing(mol)
+  set.atom.types(mol)
   do.isotopes(mol)
  
   return(mol)

@@ -103,7 +103,7 @@ validate <- function(path, simple = TRUE) {
 #' @export
 smiles2mass <- function(SMILES){
 	massfromformula <- parse.smiles(SMILES)[[1]]
-	do.typing(massfromformula)
+	set.atom.types(massfromformula)
 	do.aromaticity(massfromformula)
 	convert.implicit.to.explicit(massfromformula)
 	do.isotopes(massfromformula)
