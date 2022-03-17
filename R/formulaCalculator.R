@@ -358,6 +358,7 @@ split.formula.posneg <- function(f, as.formula = TRUE, as.list=FALSE)
 	if(!is.list(f)) f <- formulastring.to.list(f)
 	pos <- f[which(f > 0)]
 	neg <- f[which(f < 0)]
+	neg <- multiply.formula(neg, -1, as.list = TRUE)
 	if(as.formula & !as.list)
 		return(list(pos=list.to.formula(pos), neg=list.to.formula(neg)))
 	else

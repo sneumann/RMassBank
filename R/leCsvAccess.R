@@ -541,22 +541,26 @@ findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 	formula <- add.formula(formula, mzopt$addition)
 	# Since in special cases we want to use this with negative and zero number of atoms, we account for this case
 	# by splitting up the formula into positive and negative atom counts (this eliminates the zeroes.)
+	# Note: the previous implementation was incorrect, since 
 	formula.split <- split.formula.posneg(formula)
 	m <- 0
 	if(formula.split$pos != "")
 	{
-		formula.pos <- get.formula(formula.split$pos, charge = mzopt$charge)
+		formula.pos <- get.formula(formula.split$pos, charge = 0)
 		m = m + formula.pos@mass
 	}
 	if(formula.split$neg != "")
 	{
-		formula.neg <- get.formula(formula.split$neg, charge = -mzopt$charge)
+		formula.neg <- get.formula(formula.split$neg, charge = 0)
 		m = m - formula.neg@mass
 	}
-	if((nchar(formula.split$pos)==0) & (nchar(formula.split$neg)==0))
-	{
-		m <- get.formula("H", charge = mzopt$charge)@mass - get.formula("H", charge = 0)@mass
-	}
+	m <- m + get.formula("H", charge = mzopt$charge)@mass - get.formula("H", charge = 0)@mass
+	
+	# get.formula only takes "charge" into account to add the electrons - not to 
+	# divide by z to get m/z. therefore, we do it ourselves
+	if(mzopt$charge != 0)
+	  m <- m / abs(mzopt$charge)
+	# Note: technically there is no m/z for charge=0
 	delta <- ppm(m, ppm, l = TRUE)
 	return(list(mzMin = delta[[2]] - deltaMz, mzMax = delta[[1]] + 
 							deltaMz, mzCenter = m))
