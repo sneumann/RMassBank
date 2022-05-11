@@ -1,17 +1,18 @@
 Package: RMassBank
 Type: Package
 Title: Workflow to process tandem MS files and build MassBank records
-Version: 2.99.2
+Version: 3.7.1
 Authors@R: c(
     person(given = "RMassBank at Eawag", email = "massbank@eawag.ch",
     role=c("cre")),
     person(given = "Michael A.", family = "Stravs", email =
     "michael.stravs@eawag.ch", role=c("aut")), person(given = "Emma L.",
-    family = "Schymanski", email = "emma.schymanski@eawag.ch", role=c("aut")),
+    family = "Schymanski", email = "emma.schymanski@uni.lu", role=c("aut")),
     person(given = "Steffen", family = "Neumann", role = "aut", email =
     "sneumann@ipb-halle.de"), person(given = "Erik", family = "Muller", role =
-    "aut", email = "erik.mueller@student.uni-halle.de"), person(given =
-    "Tobias", family = "Schulze", role = "ctb", email =
+    "aut", email = "erik.mueller@ufz.de"), person(given = "Paul", family = "Stahlhofen", role =
+    "aut", email = "paul-jonas.stahlhofen@ufz.de"),
+	person(given = "Tobias", family = "Schulze", role = "ctb", email =
     "tobias.schulze@ufz.de"), person(given =
     "Hendrik", family = "Treutler", role = "ctb", email =
     "hendrik.treutler@gmail.com") )
@@ -33,13 +34,15 @@ Encoding: UTF-8
 Imports:
     XML,rjson,S4Vectors,digest,
     rcdk,yaml,mzR,methods,Biobase,MSnbase,httr,
-    enviPat,assertthat
+    enviPat,assertthat,logger,RCurl,readJDX,webchem,
+    ChemmineR,ChemmineOB,R.utils,data.table
 Suggests:
-    BiocStyle,gplots,RMassBankData,
+    BiocStyle,gplots,RMassBankData (>= 1.33.1),
     xcms (>= 1.37.1),
     CAMERA,
     RUnit,
-    knitr
+    knitr,
+    rmarkdown
 Collate:
     'alternateAnalyze.R'
     'formulaCalculator.R'
@@ -71,4 +74,6 @@ Collate:
     'fillback.R'
     'parseMbRecord.R'
     'zzz.R'
-RoxygenNote: 7.1.1
+    'log_wrapper.R'
+    'createCompoundlist.R'
+RoxygenNote: 7.1.2

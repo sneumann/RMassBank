@@ -289,7 +289,7 @@ setMethod("addProperty", c("RmbSpectrum2", "character", "character", "ANY"), fun
 #setGeneric("setData",	function(s, df, ...) standardGeneric("setData"))
 
 
-#' @export
+#' @rdname property
 setMethod("property", c("RmbSpectrum2", "character"), function(o, property)
 		{
 			if(property %in% colnames(o@properties))
@@ -300,7 +300,7 @@ setMethod("property", c("RmbSpectrum2", "character"), function(o, property)
 		})
 
 
-.propertySet <- function(o, property, value, addNew = FALSE, class="")
+.propertySet <- function(o, property, addNew = FALSE, class="", value)
 {
 	if(class == "") class <- class(value)
 	if(!(property %in% colnames(o@properties)) & !addNew)
@@ -314,14 +314,18 @@ setMethod("property", c("RmbSpectrum2", "character"), function(o, property)
 	return(o)
 }
 
-#' @export
-setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "logical", "character"), .propertySet )
-#' @export
-setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "missing", "character"), .propertySet )
-#' @export
-setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "logical", "missing"), .propertySet)
-#' @export
-setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "missing", "missing"), .propertySet )
+
+#' @rdname property-set
+setMethod("property<-", signature(o="RmbSpectrum2", property="character", addNew="logical", class="character", value="ANY"), .propertySet )
+
+#' @rdname property-set
+setMethod("property<-", signature(o="RmbSpectrum2", property="character", addNew="missing", class="character", value="ANY"), .propertySet )
+
+#' @rdname property-set
+setMethod("property<-", signature(o="RmbSpectrum2", property="character", addNew="logical", class="missing", value="ANY"), .propertySet)
+
+#' @rdname property-set
+setMethod("property<-", signature(o="RmbSpectrum2", property="character", addNew="missing", class="missing", value="ANY"), .propertySet )
 
 
 .fillSlots <- function(o, slotNames)
@@ -333,3 +337,4 @@ setMethod("property<-", c("RmbSpectrum2", "character", "ANY", "missing", "missin
   }
   return(o)
 }
+

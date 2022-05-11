@@ -36,9 +36,9 @@
 #' 
 #' TODO: consider whether to add functionality to move reanalysis stuff from legacy data back in.
 #' 
-#' @param w 
-#' @returnType 
-#' @return 
+#' @param w RmbSpectrum2
+#' The object to be updated
+#' @return The updated RmbSpectrum2 object
 #' 
 #' @author stravsmi
 #' @export
@@ -83,10 +83,10 @@
 
 .updateObject.RmbSpectraSet.updatePolarity <- function(w)
 {
-  w@parent@polarity <- .polarity[[w@mode]]
+  w@parent@polarity <- getAdductPolarity(w@mode)
   for(n in seq_len(length(w@children)))
   {
-    w@children[[n]]@polarity <- .polarity[[w@mode]]
+    w@children[[n]]@polarity <- getAdductPolarity(w@mode)
   }
   w
 }

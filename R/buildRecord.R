@@ -2,54 +2,44 @@
 # 
 # Author: stravsmi
 ###############################################################################
+
 #' @import assertthat
 
 
-#' @export
-setGeneric("buildRecord", function(o, ...) standardGeneric("buildRecord"))
-
-#' Compile MassBank records
+#' @title Build MassBank records
 #' 
-#' Takes a spectra block for a compound, as returned from
+#' @description Takes a spectra block for a compound, as returned from
 #' \code{\link{analyzeMsMs}}, and an aggregated cleaned peak table, together
 #' with a MassBank information block, as stored in the infolists and loaded via
 #' \code{\link{loadInfolist}}/\code{\link{readMbdata}} and processes them to a
 #' MassBank record
 #' 
-#' \code{compileRecord} calls \code{\link{gatherCompound}} to create blocks of
-#' spectrum data, and finally fills in the record title and accession number,
-#' renames the "internal ID" comment field and removes dummy fields.
-#' 
-#' @usage compileRecord(spec, mbdata, aggregated, additionalPeaks = NULL, retrieval="standard")
-#' @param spec A \code{RmbSpectraSet} for a compound, after analysis (\code{\link{analyzeMsMs}}).
+#' @usage buildRecord(o, ..., cpd, mbdata, analyticalInfo, additionalPeaks)
+#' @param o \code{RmbSpectraSet} or \code{RmbSpectrum2}
+#' The spectra (or single spectrum) should be taken from a compound after analysis (\code{\link{analyzeMsMs}}).
 #' Note that \bold{peaks are not read from this
 #' object anymore}: Peaks come from the \code{aggregated} dataframe (and from
 #' the global \code{additionalPeaks} dataframe; cf. \code{\link{addPeaks}} for
 #' usage information.)
-#' @param mbdata The information data block for the record header, as stored in
+#' @param ...
+#' keyword arguments for intensity normalization and peak selection (see \code{\link{normalize}} and \code{\link{selectPeaks}})
+#' @param cpd \code{RmbSpectraSet} or missing
+#' In case o is an \code{RmbSpectrum2}, this represents the \code{RmbSpectraSet} it belongs to
+#' @param mbdata list
+#' The information data block for the record header, as stored in
 #' \code{mbdata_relisted} after loading an infolist.
-#' @param aggregated An aggregated peak data table containing information about refiltered spectra etc.
-#' @param additionalPeaks If present, a table with additional peaks to add into the spectra.
+#' @param additionalPeaks data.frame
+#' If present, a table with additional peaks to add into the spectra.
 #' 		As loaded with \code{\link{addPeaks}}.
-#' @param retrieval A value that determines whether the files should be handled either as "standard",
-#' if the compoundlist is complete, "tentative", if at least a formula is present or "unknown"
-#' if the only know thing is the m/z
-#' @return Returns a MassBank record in list format: e.g.
-#' \code{list("ACCESSION" = "XX123456", "RECORD_TITLE" = "Cubane", ...,
-#' "CH\$LINK" = list( "CAS" = "12-345-6", "CHEMSPIDER" = 1111, ...))}
+#' @return An object of the same type as was used for the input with new information added to it
 #' @author Michael Stravs
 #' @seealso \code{\link{mbWorkflow}}, \code{\link{addPeaks}},
 #' \code{\link{gatherCompound}}, \code{\link{toMassbank}}
 #' @references MassBank record format:
 #' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
-#' @examples
-#' 
-#' #
-#' \dontrun{myspec <- w@@spectra[[2]]}
-#' # after having loaded an infolist:
-#' \dontrun{mbdata <- mbdata_relisted[[which(mbdata_archive\$id == as.numeric(myspec\$id))]]}
-#' \dontrun{compiled <- compileRecord(myspec, mbdata, w@@aggregated)}
-#' 
+#' @rdname buildRecord
+#' @export
+setGeneric("buildRecord", function(o, ..., cpd, mbdata, analyticalInfo, additionalPeaks) standardGeneric("buildRecord"))
 
 .buildRecord.RmbSpectraSet <- function(cpd, ..., mbdata = list(), additionalPeaks = NULL)
 {
@@ -70,15 +60,36 @@ setGeneric("buildRecord", function(o, ...) standardGeneric("buildRecord"))
   cpd
 }
 
-#' @export
+#' @rdname buildRecord
 setMethod("buildRecord", "RmbSpectraSet", function(o, ..., mbdata = list(), additionalPeaks = NULL)
       .buildRecord.RmbSpectraSet(cpd=o, ..., mbdata = mbdata, additionalPeaks = additionalPeaks)
     )
 
 
+.addGenericInfo <- function(ac, annotations, search_string=c("^AC\\$MASS_SPECTROMETRY_", "^AC\\$CHROMATOGRAPHY_")) {
+	# Note: For whatever reason, recursivity is inverted for the unlist
+	# function, meaning that recursive=FALSE actually leads to the
+	# behaviour expected when setting recursive=TRUE, which is desired
+	# here, because nested lists exist. See help(unlist)
+
+	properties <- names(unlist(annotations, recursive=FALSE))
+	presentProperties <- names(ac)
+	
+	theseProperties <- grepl(x = properties, pattern = search_string)
+	properties2     <- gsub(x = properties, pattern = search_string,
+	  replacement = "")
+	theseProperties <- theseProperties &
+	  !(properties2 %in% presentProperties)
+	theseProperties <- theseProperties &
+	  (unlist(annotations, recursive=FALSE) != "NA")
+	ac[properties2[theseProperties]] <-
+	  unlist(annotations, recursive=FALSE)[theseProperties]
+	return(ac)
+}
 
 # For each compound, this function creates the "lower part" of the MassBank record, i.e.
 # everything that comes after AC$INSTRUMENT_TYPE.
+
 #' Compose data block of MassBank record
 #' 
 #' \code{gatherCompound} composes the data blocks (the "lower half") of all
@@ -112,7 +123,7 @@ setMethod("buildRecord", "RmbSpectraSet", function(o, ..., mbdata = list(), addi
 #' @note Note that the global table \code{additionalPeaks} is also used as an
 #' additional source of peaks.
 #' @author Michael Stravs
-#' @seealso \code{\link{mbWorkflow}}, \code{\link{compileRecord}}
+#' @seealso \code{\link{mbWorkflow}}, \code{\link{buildRecord}}
 #' @references MassBank record format:
 #' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
 #' @examples \dontrun{
@@ -133,7 +144,7 @@ getAnalyticalInfo <- function(cpd = NULL)
   ai <- list()
 	# define positive or negative, based on processing mode.
   if(!is.null(cpd))
-	  mode <- .ionModes[[cpd@mode]]
+	  mode <- getIonMode(cpd@mode)
 	
   # again, these constants are read from the options:
   ai[['AC$INSTRUMENT']] <- getOption("RMassBank")$annotations$instrument
@@ -153,51 +164,21 @@ getAnalyticalInfo <- function(cpd = NULL)
 	ac_lc[['FLOW_GRADIENT']] <- getOption("RMassBank")$annotations$lc_gradient
 	ac_lc[['FLOW_RATE']] <- getOption("RMassBank")$annotations$lc_flow
 	ac_lc[['RETENTION_TIME']] <- sprintf("%.3f min", rt)  
-	ac_lc[['SOLVENT A']] <- getOption("RMassBank")$annotations$lc_solvent_a
-	ac_lc[['SOLVENT B']] <- getOption("RMassBank")$annotations$lc_solvent_b
+	lc_solvents <- getOption("RMassBank")$annotations$lc_solvents
+	ac_lc[['SOLVENT A']] <- lc_solvents$lc_solvent_a
+	ac_lc[['SOLVENT B']] <- lc_solvents$lc_solvent_b
+	if(length(lc_solvents) > 2)
+		ac_lc[['SOLVENT C']] <- lc_solvents$lc_solvent_c
 	
-	# Treutler fixes for custom properties, trying to forwardport this here
-	
-	## add generic AC$MASS_SPECTROMETRY information
-	properties      <- names(getOption("RMassBank")$annotations)
-	presentProperties <- names(ac_ms)#c('MS_TYPE', 'IONIZATION', 'ION_MODE')#, 'FRAGMENTATION_MODE', 'COLLISION_ENERGY', 'RESOLUTION')
-	
-	theseProperties <- grepl(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_")
-	properties2     <- gsub(x = properties, pattern = "^AC\\$MASS_SPECTROMETRY_", replacement = "")
-	theseProperties <- theseProperties & !(properties2 %in% presentProperties)
-	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
-	ac_ms[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
-	
-	## add generic AC$CHROMATOGRAPHY information
-	#properties      <- names(getOption("RMassBank")$annotations)
-	theseProperties <- grepl(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_")
-	properties2     <- gsub(x = properties, pattern = "^AC\\$CHROMATOGRAPHY_", replacement = "")
-	presentProperties <- names(ac_lc)#c('COLUMN_NAME', 'FLOW_GRADIENT', 'FLOW_RATE', 'RETENTION_TIME', 'SOLVENT A', 'SOLVENT B')
-	theseProperties <- theseProperties & !(properties2 %in% presentProperties)
-	theseProperties <- theseProperties & (unlist(getOption("RMassBank")$annotations) != "NA")
-	ac_lc[properties2[theseProperties]] <- unlist(getOption("RMassBank")$annotations[theseProperties])
-	
-
-	
+	ac_ms <- .addGenericInfo(ac_ms, getOption('RMassBank')$annotations,
+	  search_string="^AC\\$MASS_SPECTROMETRY_")
+	ac_lc <- .addGenericInfo(ac_lc, getOption('RMassBank')$annotations,
+	  search_string="^AC\\$CHROMATOGRAPHY_")
 	return(list( ai=ai, ac_lc=ac_lc, ac_ms=ac_ms))
 }
 
 
-# Process one single MSMS child scan.
-# spec: an object of "analyzedSpectrum" type (i.e. contains 
-#       14x (or other number) msmsdata, info, mzrange,
-#       compound ID, parent MS1, cpd id...)
-# msmsdata: the msmsdata sub-object from the spec which is the child scan we want to process.
-#       Contains childFilt, childBad, scan #, etc. Note that the peaks are actually not
-#       taken from here! They were taken from msmsdata initially, but after introduction
-#       of the refiltration and multiplicity filtering, this was changed. Now only the
-#       scan information is actually taken from msmsdata.
-# ac_ms, ac_lc: pre-filled info for the MassBank dataset (see above)
-# refiltered: the refilteredRcSpecs dataset which contains our good peaks :)
-#       Contains peaksOK, peaksReanOK, peaksFiltered, peaksFilteredReanalysis, 
-#       peaksProblematic. Currently we use peaksOK and peaksReanOK to create the files.
-#       (Also, the global additionalPeaks table is used.)
-#' @export
+#' @rdname buildRecord
 setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = list(), analyticalInfo = list(), additionalPeaks = NULL)
       .buildRecord.RmbSpectrum2(spectrum = o, cpd=cpd, mbdata=mbdata, analyticalInfo=analyticalInfo, additionalPeaks=additionalPeaks, ...)
 )
@@ -253,16 +234,25 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	ms_fi <- list()
 	if(!is.null(cpd))
 	{
+	  adductInfo <- getAdductInformation("")
 		ms_fi[['BASE_PEAK']] <- round(mz(cpd@parent)[which.max(intensity(cpd@parent))],4)
 		ms_fi[['PRECURSOR_M/Z']] <- round(cpd@mz,4)
-		ms_fi[['PRECURSOR_TYPE']] <- .precursorTypes[cpd@mode]
+		ms_fi[['PRECURSOR_TYPE']] <- adductInfo[adductInfo$mode == cpd@mode, "adductString"]
 
 		if(all(!is.na(spectrum@precursorIntensity), 
 		   spectrum@precursorIntensity != 0, 
 		   spectrum@precursorIntensity != 100, na.rm = TRUE))
-			ms_fi[['PRECURSOR_INTENSITY']] <- spectrum@precursorIntensity
+			ms_fi[['PRECURSOR_INTENSITY']] <- round(spectrum@precursorIntensity, 2)
 	}
 
+	# Add scan range to AC$MS, if present
+	if (all(c("scanWindowUpperLimit", "scanWindowLowerLimit") %in%
+	  names(spectrum@info))) {
+		ac_ms[['MASS_RANGE_M/Z']] <- paste(
+		  floor(spectrum@info$scanWindowLowerLimit),
+		  ceiling(spectrum@info$scanWindowUpperLimit),
+		  sep='-')
+	}
 
 	# Create the "lower part" of the record.  
 
@@ -349,9 +339,14 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	# Generate the title and then delete the temprary RECORD_TITLE_CE field used before
 	mbdata[["RECORD_TITLE"]] <- .parseTitleString(mbdata)
 	mbdata[["RECORD_TITLE_CE"]] <- NULL
-	# Calculate the accession number from the options.
 	userSettings = getOption("RMassBank")
-	# Use a user-defined accessionBuilder, if present
+	# Include project tag, if present
+	if("project" %in% names(userSettings))
+	{
+		mbdata[["PROJECT"]] <- userSettings$project
+	}
+	# Use 'simple', 'standard' or 'selfDefined' accessionBuilder
+	# depending on user input
 	if("accessionBuilderType" %in% names(userSettings))
 	{
 		assert_that(userSettings$accessionBuilderType %in% c(
@@ -425,6 +420,7 @@ setMethod("buildRecord", "RmbSpectrum2", function(o, ..., cpd = NULL, mbdata = l
 	  'cpd, spectrum, subscan in this order'))
 	accessionBuilder(cpd, spectrum, subscan)
 }
+
 renderPeaks <- function(spectrum, ..., cpd = NULL, additionalPeaks = NULL)
 {
 	# Select all peaks which belong to this spectrum (correct cpdID and scan no.)
