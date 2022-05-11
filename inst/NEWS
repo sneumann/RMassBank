@@ -1,6 +1,7 @@
 Changes in version 3.7.1
 
 - Remove getCompTox() because EPA AcTORWS web services have been retired
+- Fix issue #309 when a FileList had no "mode" column
 
 Changes in version 3.5.1
 
