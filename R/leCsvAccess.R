@@ -222,7 +222,7 @@ loadList <- function(path, listEnv = NULL, check = TRUE)
         Level <- rep("0",nrow(compoundList))
         .listEnvEnv$listEnv$compoundList <- cbind(compoundList,Level)
     }
-    message("Loaded compoundlist successfully")
+    rmb_log_info("Loaded compoundlist successfully")
 }
 
 #' @export
@@ -320,7 +320,7 @@ getMolecule <- function(smiles)
   do.aromaticity(mol)
   convert.implicit.to.explicit(mol)
   do.aromaticity(mol)
-  do.typing(mol)
+  set.atom.types(mol)
   do.isotopes(mol)
  
   return(mol)
@@ -356,6 +356,19 @@ getMonoisotopicMass <- function(formula){
   }
   return(monoisotopicMass)
 }
+
+getAdductPolarity <- function(mode) {
+  df <- getAdductInformation("")
+  charge <- df[df$mode == mode,"charge"]
+  ifelse(charge > 0, 1L, 0L)
+}
+
+getIonMode <- function(mode) {
+  df <- getAdductInformation("")
+  charge <- df[df$mode == mode,"charge"]
+  ifelse(charge > 0, "POSITIVE", "NEGATIVE")
+}
+
 getAdductInformation <- function(formula){
   adductDf <- as.data.frame(rbind(
     
@@ -401,8 +414,8 @@ getAdductInformation <- function(formula){
     c(mode = "pH_mC8H18O2",  addition = "C-8H-17O-2", charge = 1, adductString = "[M-C8H18O2+H]+"),
     c(mode = "pH_mC6H14O2",  addition = "C-6H-13O-2", charge = 1, adductString = "[M-C6H14O2+H]+"),
     c(mode = "pH_mC4H12O2",  addition = "C-4H-11O-2", charge = 1, adductString = "[M-C4H12O2+H]+"),
-    c(mode = "pH_mH2O",  addition = "H-1O-1",    charge = 2, adductString = "[M-H2O+H]+"),
-    c(mode = "pNa_mH2O", addition = "H-2O-1Na1", charge = 2, adductString = "[M-H2O+Na]+"),
+    c(mode = "pH_mH2O",  addition = "H-1O-1",    charge = 1, adductString = "[M-H2O+H]+"),
+    c(mode = "pNa_mH2O", addition = "H-2O-1Na1", charge = 1, adductString = "[M-H2O+Na]+"),
     c(mode = "pH_mCO2",  addition = "C-1O-2H1", charge = 1, adductString = "[M-CO2+H]+"),
     c(mode = "pH_mO",  addition = "O-1H1", charge = 1, adductString = "[M-O+H]+"),
     c(mode = "p_mO",  addition = "O-1", charge = 1, adductString = "[M-O]+"),
@@ -481,11 +494,14 @@ getAdductInformation <- function(formula){
     c(mode = "m3H_pM_p2Na",    addition = add.formula(formula, "Na2H-3"),    charge = -1, adductString = "[2M+2Na-3H]-"),
     c(mode = "m3H_pM",         addition = add.formula(formula, "H-3"),       charge = -1, adductString = "[2M-3H]-"),
     c(mode = "mH_p2M",         addition = add.formula(formula, add.formula(formula, "H-1")), charge = -1, adductString = "[3M-H]-"),
+    c(mode = "mAc", addition = "C2O2H3",  charge = -1, adductString = "[M+CH3COO]-"),
     
     ## ???
     c(mode = "",        addition = "",       charge = 0,  adductString = "[M]")
   ), stringsAsFactors = F)
   adductDf$charge <- as.integer(adductDf$charge)
+  
+  
   
   if(any(any(duplicated(adductDf$mode)), any(duplicated(adductDf$adductString)))) stop("Invalid adduct table")
   
@@ -525,22 +541,26 @@ findMz.formula <- function(formula, mode="pH", ppm=10, deltaMz=0)
 	formula <- add.formula(formula, mzopt$addition)
 	# Since in special cases we want to use this with negative and zero number of atoms, we account for this case
 	# by splitting up the formula into positive and negative atom counts (this eliminates the zeroes.)
+	# Note: the previous implementation was incorrect, since 
 	formula.split <- split.formula.posneg(formula)
 	m <- 0
 	if(formula.split$pos != "")
 	{
-		formula.pos <- get.formula(formula.split$pos, charge = mzopt$charge)
+		formula.pos <- get.formula(formula.split$pos, charge = 0)
 		m = m + formula.pos@mass
 	}
 	if(formula.split$neg != "")
 	{
-		formula.neg <- get.formula(formula.split$neg, charge = -mzopt$charge)
+		formula.neg <- get.formula(formula.split$neg, charge = 0)
 		m = m - formula.neg@mass
 	}
-	if((nchar(formula.split$pos)==0) & (nchar(formula.split$neg)==0))
-	{
-		m <- get.formula("H", charge = mzopt$charge)@mass - get.formula("H", charge = 0)@mass
-	}
+	m <- m + get.formula("H", charge = mzopt$charge)@mass - get.formula("H", charge = 0)@mass
+	
+	# get.formula only takes "charge" into account to add the electrons - not to 
+	# divide by z to get m/z. therefore, we do it ourselves
+	if(mzopt$charge != 0)
+	  m <- m / abs(mzopt$charge)
+	# Note: technically there is no m/z for charge=0
 	delta <- ppm(m, ppm, l = TRUE)
 	return(list(mzMin = delta[[2]] - deltaMz, mzMax = delta[[1]] + 
 							deltaMz, mzCenter = m))

@@ -205,7 +205,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
     if(1 %in% steps)
     {
         mbdata_ids <- lapply(selectSpectra(mb@spectra, "found", "object"), function(spec) spec@id)
-                message("mbWorkflow: Step 1. Gather info from several databases")
+                rmb_log_info("mbWorkflow: Step 1. Gather info from several databases")
       # Which IDs are not in mbdata_archive yet?
       new_ids <- setdiff(as.numeric(unlist(mbdata_ids)), mb@mbdata_archive$id)
       mb@mbdata <- lapply(new_ids, function(id) 
@@ -223,7 +223,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
                 # message("mbWorkflow: Step 1. Gather no info - Unknown structure")
                 d <- gatherDataUnknown(id, mb@spectra[[1]]@mode, retrieval=findLevel(id,TRUE))
         }
-		message(paste(id, ": ", d$dataused, sep=''))
+		rmb_log_info(paste(id, ": ", d$dataused, sep=''))
         return(d)
       })
   }
@@ -231,21 +231,21 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # Otherwise, continue!
   if(2 %in% steps)
   {
-	message("mbWorkflow: Step 2. Export infolist (if required)")
+	rmb_log_info("mbWorkflow: Step 2. Export infolist (if required)")
     if(length(mb@mbdata)>0)
     {
       mbdata_mat <- flatten(mb@mbdata)
       write.csv(as.data.frame(mbdata_mat),infolist_path, na="")
-            message(paste("The file", infolist_path, "was generated with new compound information. Please check and edit the table, and add it to your infolist folder."))
+            rmb_log_info(paste("The file", infolist_path, "was generated with new compound information. Please check and edit the table, and add it to your infolist folder."))
       return(mb)
     }
     else
-      message("No new data added.")
+      rmb_log_info("No new data added.")
   }
   # Step 3: Take the archive data (in table format) and reformat it to MassBank tree format.
   if(3 %in% steps)
   {
-	message("mbWorkflow: Step 3. Data reformatting")
+	rmb_log_info("mbWorkflow: Step 3. Data reformatting")
     mb@mbdata_relisted <- apply(mb@mbdata_archive, 1, readMbdata)
   }
   # Step 4: Compile the spectra! Using the skeletons from the archive data, create
@@ -253,11 +253,11 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # Also, assign accession numbers based on scan mode and relative scan no.
   if(4 %in% steps)
   {
-	  message("mbWorkflow: Step 4. Spectra compilation")
+	  rmb_log_info("mbWorkflow: Step 4. Spectra compilation")
 	  mb@compiled <- lapply(
 			  selectSpectra(mb@spectra, "found", "object"),
 			  function(r) {
-				  message(paste("Compiling: ", r@name, sep=""))
+				  rmb_log_info(paste("Compiling: ", r@name, sep=""))
 				  mbdata <- mb@mbdata_relisted[[which(mb@mbdata_archive$id == as.numeric(r@id))]]
 				  if(filter)
             res <- buildRecord(r, mbdata=mbdata, additionalPeaks=mb@additionalPeaks, filter = filterOK & best)
@@ -276,7 +276,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # flat-text string arrays (basically, into text-file style, but still in memory)
   if(5 %in% steps)
   {
-	message("mbWorkflow: [Legacy Step 5. Flattening records] ignored")
+	rmb_log_info("mbWorkflow: [Legacy Step 5. Flattening records] ignored")
     #mb@mbfiles <- lapply(mb@compiled_ok, function(cpd) toMassbank(cpd, mb@additionalPeaks))
     #mb@mbfiles_notOk <- lapply(mb@compiled_notOk, function(c) lapply(c, toMassbank))
   }
@@ -286,7 +286,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   if(6 %in% steps)
   {
     if(RMassBank.env$export.molfiles){
-      message("mbWorkflow: Step 6. Generate molfiles")
+      rmb_log_info("mbWorkflow: Step 6. Generate molfiles")
       mb@molfile <- lapply(mb@compiled_ok, function(c) createMolfile(as.numeric(c@id)))
     } else
       warning("RMassBank is configured not to export molfiles (RMassBank.env$export.molfiles). Step 6 is therefore ignored.")
@@ -295,7 +295,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   # the files to disk.
   if(7 %in% steps)
   {
-	message("mbWorkflow: Step 7. Generate subdirs and export")
+	rmb_log_info("mbWorkflow: Step 7. Generate subdirs and export")
         
         ## create folder
         filePath_recData_valid   <- file.path(getOption("RMassBank")$annotations$entry_prefix, "recdata")
@@ -337,7 +337,7 @@ mbWorkflow <- function(mb, steps=c(1,2,3,4,5,6,7,8), infolist_path="./infolist.c
   if(8 %in% steps)
   {
         if(RMassBank.env$export.molfiles){
-          message("mbWorkflow: Step 8. Create list.tsv")
+          rmb_log_info("mbWorkflow: Step 8. Create list.tsv")
           makeMollist(compiled = mb@compiled_ok)
         } else
             warning("RMassBank is configured not to export molfiles (RMassBank.env$export.molfiles). Step 8 is therefore ignored.")
@@ -409,9 +409,9 @@ createMolfile <- function(id_or_smiles, fileName = FALSE)
 	else
 	{
 		if(!is.character(fileName))
-			cmd <- paste(babeldir, "babel -ismi -osdf -d -b --gen2D", sep='')
+			cmd <- paste(babeldir, "obabel -ismi -osdf -d -b --gen2D", sep='')
 		else
-			cmd <- paste(babeldir, "babel -ismi -osdf ", fileName , " -d -b --gen2D", sep='')
+			cmd <- paste(babeldir, "obabel -ismi -osdf ", fileName , " -d -b --gen2D", sep='')
 		res <- system(cmd, intern=TRUE, input=smiles, ignore.stderr=TRUE)
 		# If we wrote to a file, read it back as return value.
 		if(is.character(fileName))
@@ -1279,7 +1279,7 @@ readMbdata <- function(row)
 #'      "dbe","mz","int","formulaCount","parentScan","fM_factor","dppmBest",
 #'     "formulaMultiplicity","intrel","mzSpec"}
 #' 
-#' @param type The ion type to be added to annotated formulas ("+" or "-" usually)
+#' @param formulaTag The ion type to be added to annotated formulas ("+" or "-" usually)
 #' 
 #' @return The annotated peak table. Table \code{colnames()} will be used for the
 #' 		titles (preferrably don't use spaces in the column titles; however no format is
@@ -1317,23 +1317,24 @@ annotator.default <- function(annotation, formulaTag)
 #' If the option is not set, a standard title format is used (for record definition
 #' version 1 or 2).
 #' 
-#' @usage .parseTitleString(mbrecord)
-#' @param mbrecord A MassBank record in list format, as returned from
-#' 	\code{\link{gatherSpectrum}}.
+#' @usage .parseTitleString(mbdata)
+#' @param mbdata list
+#' The information data block for the record header, as stored in
+#' \code{mbdata_relisted} after loading an infolist.
 #' @return A string with the title.
 #' @author Michael Stravs, Eawag
-#' @seealso \code{\link{compileRecord}}
+#' @seealso \code{\link{buildRecord}}
 #' @references MassBank record format:
 #' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
 #' @examples
 #' \dontrun{
-#' 		# used in compileRecord()
-#' 		title <- .parseTitleString(mbrecord)
+#' 		# used in buildRecord()
+#' 		title <- .parseTitleString(mbdata)
 #' }
 #' 
 #' 
 #' 
-.parseTitleString <- function(mbrecord)
+.parseTitleString <- function(mbdata)
 {
 	
 	varlist <- getOption("RMassBank")$titleFormat
@@ -1383,9 +1384,9 @@ annotator.default <- function(annotation, formulaTag)
 				splitVar <- strsplit(arg, ": ")[[1]]
 				# Read the parameter value from the record
 				if(length(splitVar) == 2)
-					replaceVar <- mbrecord[[splitVar[[1]]]][[splitVar[[2]]]]
+					replaceVar <- mbdata[[splitVar[[1]]]][[splitVar[[2]]]]
 				else if(length(splitVar) ==  1)
-					replaceVar <- mbrecord[[splitVar]]
+					replaceVar <- mbdata[[splitVar]]
 				else
 					stop(paste(
 									"Title format is incorrectly specified:", var)
@@ -1414,6 +1415,7 @@ annotator.default <- function(annotation, formulaTag)
 # This converts the tree-like list (as obtained e.g. from compileRecord())
 # into a plain text array, which can then be dumped to a file suitable for 
 # MassBank upload.
+
 #' Write MassBank record into character array
 #' 
 #' Writes a MassBank record in list format to a text array.
@@ -1463,7 +1465,7 @@ annotator.default <- function(annotation, formulaTag)
 #' of \code{'CH\$NAME' = 'bla', 'CH\$NAME' = 'blub'} specify \code{'CH\$NAME' =
 #' c('bla','blub')}.
 #' @author Michael Stravs
-#' @seealso \code{\link{compileRecord}}, \code{\link{mbWorkflow}}
+#' @seealso \code{\link{buildRecord}}, \code{\link{mbWorkflow}}
 #' @references MassBank record format:
 #' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
 #' @examples
@@ -1621,6 +1623,7 @@ setMethod("toMassbank", "RmbSpectrum2", function(o, addAnnotation = getOption("R
 # files: is a return value from lapply(toMassbank), i.e. contains 14 plain-text arrays
 #  (for a 14-spectra method)
 # molfile: a molfile from createMolfile
+
 #' Export internally stored MassBank data to files
 #' 
 #' Exports MassBank recfile data arrays and corresponding molfiles to physical
@@ -1632,11 +1635,8 @@ setMethod("toMassbank", "RmbSpectrum2", function(o, addAnnotation = getOption("R
 #' the file.
 #' 
 #' @usage exportMassbank(compiled, files, molfile)
-#' @param compiled Is ONE "compiled" entry, i.e. ONE compound with e.g. 14
-#' spectra, as returned from \code{\link{compileRecord}}.
-#' @param files A n-membered array (usually a return value from
-#' \code{lapply(\link{toMassbank})}), i.e. contains n plain-text arrays with
-#' MassBank records.
+#' @param compiled \code{RmbSpectraSet}
+#' the spectra of one compound for which files should be exported
 #' @param molfile A molfile from \code{\link{createMolfile}}
 #' @return No return value.
 #' @note An improvement would be to write the accession numbers into
@@ -1644,18 +1644,10 @@ setMethod("toMassbank", "RmbSpectrum2", function(o, addAnnotation = getOption("R
 #' wouldn't be needed here anymore. (The compound ID would have to go into
 #' \code{names(molfile)}, since it is also retrieved from \code{compiled}.)
 #' @author Michael Stravs
-#' @seealso \code{\link{createMolfile}}, \code{\link{compileRecord}},
-#' \code{\link{toMassbank}}, \code{\link{mbWorkflow}}
+#' @seealso \code{\link{createMolfile}}, \code{\link{toMassbank}},
+#' \code{\link{mbWorkflow}}
 #' @references MassBank record format:
 #' \url{http://www.massbank.jp/manuals/MassBankRecord_en.pdf}
-#' @examples
-#' \dontrun{
-#' 		compiled <- compileRecord(record, mbdata, refilteredRcSpecs)
-#' 		mbfiles <- toMassbank(compiled)
-#' 		molfile <- createMolfile(compiled[[1]][["CH$SMILES"]])
-#' 		exportMassbank(compiled, mbfiles, molfile)
-#' }
-#' 
 #' @export
 exportMassbank <- function(compiled, molfile = NULL)
 {
@@ -1715,22 +1707,20 @@ exportMassbank_moldata <- function(compiled, molfile, molDataFolder)
 #' their respective molfiles. The first compound name is linked to a mol-file with
 #' the compound ID (e.g. 2334.mol for ID 2334).
 #' 
-#' @param compiled A list of compiled spectra (in tree-format, as returned by \code{compileRecord}).
+#' @param compiled list of \code{RmbSpectraSet}
+#' compiled spectra for multiple compounds (one \code{RmbSpectraSet} each).
 #' @return No return value.
-#' @author Michael A. Stravs, Eawag <michael.stravs@@eawag.ch>
-#' @examples \dontrun{
-#' 		compiled <- compileRecord(record, mbdata, refilteredRcSpecs)
-#' 		# a list.tsv for only one record:
-#' 		clist <- list(compiled)
-#' 		makeMollist(clist)
-#' }
+#' @author Michael A. Stravs, Eawag <michael.stravs@eawag.ch>
 #' @export
 makeMollist <- function(compiled)
 {
   # For every "compiled" entry (here, compiled is not one "compiled" entry but the total
   # list of all compiled spectra), extract the uppermost CH$NAME and the ID (from the
   # first spectrum.) Make the ID into 0000 format.
-    
+  
+  emptySpectra <- unlist(lapply(compiled, function(cpd) length(cpd@children) == 0))
+  compiled <- compiled[!emptySpectra]
+  
   tsvlist <- t(sapply(compiled, function(entry)
     {
     name <- entry@children[[1]]@info[["CH$NAME"]][[1]]

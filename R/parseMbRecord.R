@@ -2,10 +2,13 @@
 #' 
 #' Can parse MassBank-records(only V2)
 #'
-#' @aliases parseMassBank
-#' @usage parseMassBank(Files)
-#' @param Files A path to the plaintext-record that should be read
-#' @return The \code{mbWorkspace} that the plaintext-record creates.
+#' @usage parseMbRecord(filename, readAnnotation=TRUE)
+#' @param filename character
+#' A path to the plaintext-record that should be read
+#' @param readAnnotation logical, Default: TRUE
+#' If TRUE, parse annotations from the record file and add columns for
+#' 'formula', 'formulaCount', 'mzCalc' and 'dppm' to the peak table
+#' @return An \code{RmbSpectrum2} object created from the plaintext-record
 #' @seealso \code{\link{validate}}
 #' @author Erik Mueller
 #' @examples \dontrun{
@@ -255,8 +258,8 @@ parseMbRecords <- function(files)
       # Select one spectrum to get compound data from:
       sp <- sps[[1]]
       cpd@mz <- as.numeric(sp@info[["MS$FOCUSED_ION"]][['PRECURSOR_M/Z']])
-      cpd@mode <- names(RMassBank:::.precursorTypes)[which(RMassBank:::.precursorTypes == 
-      sp@info[["MS$FOCUSED_ION"]][['PRECURSOR_TYPE']])]
+      adductInfo <- getAdductInformation()
+      cpd@mode <- adductInfo[adductInfo$adductString ==  sp@info[["MS$FOCUSED_ION"]][['PRECURSOR_TYPE']], "mode"]
       cpd@name <- sp@info[["CH$NAME"]][[1]]
       cpd@formula <- sp@info[['CH$FORMULA']]
       cpd@smiles <- sp@info[['CH$SMILES']]

@@ -270,7 +270,11 @@ getCtsKey <- function(query, from = "Chemical Name", to = "InChIKey")
 		warning("CTS seems to be currently unavailable or incapable of interpreting your request")
 		return(NULL)
 	}
-	
+
+	if(res$status_code != 200){
+	  warning(paste("CTS has return code", res$status_code))
+	  return(NULL)
+	}
 	
 	r <- fromJSON(data)
 	if(length(r) == 0)

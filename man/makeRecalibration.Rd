@@ -24,9 +24,6 @@ makeRecalibration(w, mode,
 \item{w}{For \code{makeRecalibration}: to perform the recalibration with. For \code{recalibrateSpectra}: 
 the \code{msmsWorkspace} which contains the recalibration curves (alternatively to specifying \code{rc, rc.ms1}).}
 
-\item{mode}{\code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).}
-
 \item{recalibrateBy}{Whether recalibration should be done by ppm ("ppm") or by m/z ("mz").}
 
 \item{recalibrateMS1}{Whether MS1 spectra should be recalibrated separately ("separate"),

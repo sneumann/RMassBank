@@ -13,8 +13,6 @@ reanalyzeFailpeak(custom_additions, mass, cpdID, counter, pb = NULL, mode,
 \arguments{
 \item{custom_additions}{The allowed additions, e.g. "N2O".}
 
-\item{mode}{Processing mode (\code{"pH", "pNa", "mH"} etc.)}
-
 \item{filterSettings}{Settings for filtering data. Refer to\code{\link{analyzeMsMs}} for settings.}
 
 \item{progressbar}{The progress bar callback to use. Only needed for specialized
@@ -55,7 +53,7 @@ additional elements (e.g. "N2O").
 \dontrun{    
 	reanalyzedRcSpecs <- reanalyzeFailpeaks(w@aggregated, custom_additions="N2O", mode="pH")
 # A single peak:
-reanalyzeFailpeak("N2O", 105.0447, 1234, 1, 1, "pH")
+reanalyzeFailpeak("N2O", 105.0447, 1234, 1, 1)
 }
 
 

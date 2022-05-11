@@ -73,13 +73,18 @@ archiveResults <- function(w, fileName, settings = getOption("RMassBank"))
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export
 msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRecalibration = TRUE, 
-		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", findPeaksArgs = NULL, plots = FALSE,
+		useRtLimit = TRUE, archivename=NA, readMethod = "mzR", filetable=NULL, findPeaksArgs = NULL, plots = FALSE,
 		precursorscan.cf = FALSE,
 		settings = getOption("RMassBank"), analyzeMethod = "formula",
 		progressbar = "progressBarHook", MSe = FALSE)
 {
     .checkMbSettings()
-    if(!any(mode %in% knownAdducts())) stop(paste("The ionization mode", mode, "is unknown."))
+  
+  if(!is.na(mode))
+    if(!all(mode %in% knownAdducts())) stop(paste("The ionization mode", mode, "is unknown."))
+  if(is.na(mode) && (1 %in% steps) && is.null(filetable))
+    stop("If step 1 (reading) is included, mode must be specified either as argument or in the filetable.")
+      
 
   if(!is.na(archivename))
 	  w@archivename <- archivename
@@ -94,7 +99,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   allUnknown <- FALSE
     if(all(.listEnvEnv$listEnv$compoundList$Level == "5")){
         allUnknown <- TRUE
-        message("All compounds are unknown, the workflow will be adjusted accordingly")
+        rmb_log_info("All compounds are unknown, the workflow will be adjusted accordingly")
     }
     
     if(readMethod == "minimal"){
@@ -132,27 +137,21 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Step 1: acquire all MSMS spectra from files
   if(1 %in% steps)
   {
-    message("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
-	w <- msmsRead(w = w, files = w@files, readMethod=readMethod, mode=mode, confirmMode = confirmMode, useRtLimit = useRtLimit, 
+    rmb_log_info("msmsWorkflow: Step 1. Acquire all MSMS spectra from files")
+	w <- msmsRead(w = w, files = w@files, readMethod=readMethod, filetable=filetable, mode=mode, confirmMode = confirmMode, useRtLimit = useRtLimit, 
                         Args = findPeaksArgs, settings = settings, progressbar = progressbar, MSe = MSe)
   }
   # Step 2: first run analysis before recalibration
   if(2 %in% steps)
   {
 	  nProg <- 0
-	  message("msmsWorkflow: Step 2. First analysis pre recalibration")
+	  rmb_log_info("msmsWorkflow: Step 2. First analysis pre recalibration")
         if(allUnknown){
             analyzeMethod <- "intensity"
         }
 	  pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 	  w@spectra <- as(lapply(w@spectra, function(spec) {
-				  #print(spec$id)
-                        # if(findLevel(spec@id,TRUE) == "unknown"){
-                            # analyzeMethod <- "intensity"
-                        # } else {
-                            # analyzeMethod <- "formula"
-                        # }
-                        s <- analyzeMsMs(msmsPeaks = spec, mode=mode, detail=TRUE, run="preliminary",
+                        s <- analyzeMsMs(msmsPeaks = spec, mode=spec@mode, detail=TRUE, run="preliminary",
 						  filterSettings = settings$filterSettings,
 						  spectraList = settings$spectraList, method = analyzeMethod)
 				  # Progress:
@@ -168,7 +167,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Step 3: aggregate all spectra
   if(3 %in% steps)
   {
-	message("msmsWorkflow: Step 3. Aggregate all spectra")
+	rmb_log_info("msmsWorkflow: Step 3. Aggregate all spectra")
         w@aggregated <- aggregateSpectra(spec = w@spectra, addIncomplete=TRUE)
         
         if(RMassBank.env$verbose.output){
@@ -197,11 +196,11 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Step 4: recalibrate all m/z values in raw spectra
   if(4 %in% steps)
   {
-	message("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
+	rmb_log_info("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
 	if(newRecalibration)
 	{
 		# note: makeRecalibration takes w as argument now, because it needs to get the MS1 spectra from @spectra
-		recal <- makeRecalibration(w, mode,
+		recal <- makeRecalibration(w, 
 				recalibrateBy = settings$recalibrateBy,
 				recalibrateMS1 = settings$recalibrateMS1,
 				recalibrator = settings$recalibrator,
@@ -211,7 +210,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
 	}
 	w@parent <- w
 	w@aggregated <- data.frame()
-    spectra <- recalibrateSpectra(mode, w@spectra, w = w,
+    spectra <- recalibrateSpectra(w@spectra, w = w,
 			recalibrateBy = settings$recalibrateBy,
 			recalibrateMS1 = settings$recalibrateMS1)
 	w@spectra <- spectra
@@ -220,25 +219,25 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   if(5 %in% steps)
   {
 	nProg <- 0
-	message("msmsWorkflow: Step 5. Reanalyze recalibrated spectra")
+	rmb_log_info("msmsWorkflow: Step 5. Reanalyze recalibrated spectra")
 	pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 	
 	w@spectra <- as(lapply(w@spectra, function(spec) {
-						#print(spec$id)
-                            if(findLevel(spec@id,TRUE) == "unknown"){
-                                analyzeMethod <- "intensity"
-                            } else {
-                                analyzeMethod <- "formula"
-                            }
-                            s <- analyzeMsMs(msmsPeaks = spec, mode=mode, detail=TRUE, run="recalibrated",
-								filterSettings = settings$filterSettings,
-								spectraList = settings$spectraList, method = analyzeMethod)
-						# Progress:
-						nProg <<- nProg + 1
-						pb <- do.call(progressbar, list(object=pb, value= nProg))
-						
-						return(s)
-					}), "SimpleList")
+	  #print(spec$id)
+	  if(findLevel(spec@id,TRUE) == "unknown"){
+	    analyzeMethod <- "intensity"
+	  } else {
+	    analyzeMethod <- "formula"
+	  }
+	  s <- analyzeMsMs(msmsPeaks = spec, mode=spec@mode, detail=TRUE, run="recalibrated",
+	                   filterSettings = settings$filterSettings,
+	                   spectraList = settings$spectraList, method = analyzeMethod)
+	  # Progress:
+	  nProg <<- nProg + 1
+	  pb <- do.call(progressbar, list(object=pb, value= nProg))
+	  
+	  return(s)
+	}), "SimpleList")
 	## for(f in w@files)
 	## w@spectra[[basename(as.character(f))]]@name <- basename(as.character(f))
 	suppressWarnings(do.call(progressbar, list(object=pb, close=TRUE)))
@@ -248,7 +247,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   # Step 6: aggregate recalibrated results
   if(6 %in% steps)
   {
-    message("msmsWorkflow: Step 6. Aggregate recalibrated results")
+    rmb_log_info("msmsWorkflow: Step 6. Aggregate recalibrated results")
         w@aggregated <- aggregateSpectra(spec = w@spectra, addIncomplete=TRUE)
         
         if(RMassBank.env$verbose.output){
@@ -258,19 +257,23 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         }
         
     if(!is.na(archivename))
-      archiveResults(w, paste(archivename, ".RData", sep=''), settings)
-  spectra <- lapply(w@spectra, cleanElnoise, noise=settings$electronicNoise, width=settings$electronicNoiseWidth)
-  w@spectra <- as(spectra, "SimpleList")
+        archiveResults(w, paste(archivename, ".RData", sep=''), settings)
+
+    ## clean electronic noise if specified in the settings.ini file
+    if (length(settings$electronicNoise) > 0 && settings$electronicNoiseWidth > 0) {  
+        spectra <- lapply(w@spectra, cleanElnoise, noise=settings$electronicNoise, width=settings$electronicNoiseWidth)
+        w@spectra <- as(spectra, "SimpleList")
         if(RMassBank.env$verbose.output)
-          if(sum(w@aggregated$noise) > 0)
-            cat(paste("### Warning ### ", sum(w@aggregated$noise), " / ", nrow(w@aggregated), " peaks have been identified as electronic noise\n", sep = ""))
-  }
+            if(sum(w@aggregated$noise) > 0)
+                cat(paste("### Warning ### ", sum(w@aggregated$noise), " / ", nrow(w@aggregated), " peaks have been identified as electronic noise\n", sep = ""))
+    }
+  }  
   # Step 7: reanalyze failpeaks for (mono)oxidation and N2 adduct peaks
   if(7 %in% steps)
   {
-	message("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
+	rmb_log_info("msmsWorkflow: Step 7. Reanalyze fail peaks for N2 + O")
     w <- reanalyzeFailpeaks(
-			w, custom_additions="N2O", mode=mode,
+			w, custom_additions="N2O",
 				filterSettings=settings$filterSettings,
                     progressbar=progressbar)
     if(!is.na(archivename))
@@ -291,9 +294,9 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
   #         creation of failpeak list
   if(8 %in% steps)
   {
-	message("msmsWorkflow: Step 8. Peak multiplicity filtering")
+	rmb_log_info("msmsWorkflow: Step 8. Peak multiplicity filtering")
     if (is.null(settings$multiplicityFilter)) {
-      message("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
+      rmb_log_info("msmsWorkflow: Step 8. Peak multiplicity filtering skipped because multiplicityFilter parameter is not set.")
           w@aggregated <- addProperty(w@aggregated, "formulaMultiplicity", "integer", 1)
           w@aggregated <- addProperty(w@aggregated, "filterOK",            "logical", FALSE)
           w@aggregated$filterOK <- !((is.na(w@aggregated$formulaCount) | w@aggregated$formulaCount==0) & (is.na(w@aggregated$reanalyzed.formulaCount) | w@aggregated$reanalyzed.formulaCount==0))
@@ -321,7 +324,7 @@ msmsWorkflow <- function(w, mode="pH", steps=c(1:8), confirmMode = FALSE, newRec
         archiveResults(w, paste(archivename, "_RF.RData", sep=''), settings)   
     }
   }
-  message("msmsWorkflow: Done.")
+  rmb_log_info("msmsWorkflow: Done.")
   return(w)
 }
 
@@ -492,7 +495,7 @@ analyzeMsMs <- function(msmsPeaks, mode="pH", detail=FALSE, run="preliminary",
 	# merged together with all the combine / pack stuff.
 	children <- mapply(function(spec, info)
 			{
-				spec@info <- info
+				spec@info <- c(info, spec@info)
 				spec
 			}, r@children, spectraList, SIMPLIFY=FALSE)
 	r@children <- as(children, "SimpleList")
@@ -546,7 +549,6 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   # with insufficient match accuracy or no match.
   analyzeTandemShot <- function(child, childIdx = 0)
   {
-
   	shot <- getData(child)
   	shot$row <- which(!is.na(shot$mz))
   	
@@ -799,8 +801,8 @@ analyzeMsMs.formula <- function(msmsPeaks, mode="pH", detail=FALSE, run="prelimi
   	countFormulas <- colSums(countFormulasTab)
   	childPeaksGood$formulaCount <- countFormulas[as.character(childPeaksGood$mz)]
   	  
-  	childPeaksUnassigned$formulaCount <- rep(NA, nrow(childPeaksUnassigned))
-  	childPeaksBad$formulaCount <- rep(NA, nrow(childPeaksBad))
+  	childPeaksUnassigned$formulaCount <- rep(0, nrow(childPeaksUnassigned))
+  	childPeaksBad$formulaCount <- rep(0, nrow(childPeaksBad))
   	childPeaksBad$good <- rep(FALSE, nrow(childPeaksBad))
       
   	# Now: childPeaksGood (containing the new, recounted peaks with good = TRUE), and childPeaksBad (containing the 
@@ -1136,6 +1138,10 @@ aggregateSpectra <- function(spec,  addIncomplete=FALSE)
 							table.c$rawOK <- NULL
 							table.c$low <- NULL
 							table.c$satellite <- NULL
+							if(!("formulaSource" %in% colnames(table.c)))
+							  table.c$formulaSource <- character(nrow(table.c))
+							
+							
 							# add scan no
 							table.c$scan <- rep(c@acquisitionNum, nrow(table.c))
 							return(table.c)
@@ -1408,8 +1414,6 @@ processProblematicPeaks <- function(w, archivename = NA)
 #' 			the \code{msmsWorkspace} which contains the recalibration curves (alternatively to specifying \code{rc, rc.ms1}). 
 #' @param spectrum For \code{recalibrateSingleSpec}:
 #' 			a \code{MSnbase} \code{Spectrum}-derived object, commonly a \code{RmbSpectrum2} for MS2 or \code{Spectrum1} for MS1.
-#' @param mode \code{"pH", "pNa", "pM", "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+, [M-H]-, [M]-, [M+FA]-).
 #' @param rawspec For \code{recalibrateSpectra}:an \code{RmbSpectraSetList} of \code{RmbSpectraSet} objects
 #' 			, as the \code{w@@spectra} slot from \code{msmsWorkspace} or any object returned by \code{\link{findMsMsHR}}.
 #' 			If empty, no spectra are recalibrated, but the recalibration curve is
@@ -1438,7 +1442,7 @@ processProblematicPeaks <- function(w, archivename = NA)
 #' 
 #' @author Michael Stravs, Eawag <michael.stravs@@eawag.ch>
 #' @export 
-makeRecalibration <- function(w, mode, 
+makeRecalibration <- function(w, 
 		recalibrateBy = getOption("RMassBank")$recalibrateBy,
 		recalibrateMS1 = getOption("RMassBank")$recalibrateMS1,
 		recalibrator = getOption("RMassBank")$recalibrator,
@@ -1460,7 +1464,7 @@ makeRecalibration <- function(w, mode,
 	if(nrow(rcdata) == 0)
 		stop("No peaks matched to generate recalibration curve.")
 	
-	ms1data <- recalibrate.addMS1data(w@spectra, mode, recalibrateMS1Window)
+	ms1data <- recalibrate.addMS1data(w@spectra, recalibrateMS1Window)
 	ms1data <- ms1data[,c("mzFound", "dppm", "mzCalc")]
   
 	if (recalibrateMS1 != "none") {
@@ -1576,15 +1580,15 @@ plotRecalibration.direct <- function(rcdata, rc, rc.ms1, title, mzrange,
 		}
 		else
 		{
-			message("Package gplots not installed. The recalibration density plot will not be displayed.")
-			message("To install gplots: install.packages('gplots')")
+			rmb_log_info("Package gplots not installed. The recalibration density plot will not be displayed.")
+			rmb_log_info("To install gplots: install.packages('gplots')")
 		}
 	}
 }
 
 
 #' @export
-recalibrateSpectra <- function(mode, rawspec = NULL, rc = NULL, rc.ms1=NULL, w = NULL,
+recalibrateSpectra <- function(rawspec = NULL, rc = NULL, rc.ms1=NULL, w = NULL,
 		recalibrateBy = getOption("RMassBank")$recalibrateBy,
 		recalibrateMS1 = getOption("RMassBank")$recalibrateMS1)
 {
@@ -1742,7 +1746,6 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' 				filterSettings = getOption("RMassBank")$filterSettings)
 #' @param aggregated A peake aggregate table (\code{w@@aggregate}) (after processing electronic noise removal!)
 #' @param custom_additions The allowed additions, e.g. "N2O".
-#' @param mode Processing mode (\code{"pH", "pNa", "mH"} etc.)
 #' @param mass (Usually recalibrated) m/z value of the peak.
 #' @param cpdID Compound ID of this spectrum.
 #' @param counter Current peak index (used exclusively for the progress
@@ -1767,7 +1770,7 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' \dontrun{    
 #' 	reanalyzedRcSpecs <- reanalyzeFailpeaks(w@@aggregated, custom_additions="N2O", mode="pH")
 #' # A single peak:
-#' reanalyzeFailpeak("N2O", 105.0447, 1234, 1, 1, "pH")
+#' reanalyzeFailpeak("N2O", 105.0447, 1234, 1, 1)
 #' }
 #' 
 #' 
@@ -1777,7 +1780,7 @@ filterPeakSatellites <- function(peaks, filterSettings = getOption("RMassBank")$
 #' 
 #' 
 #' @export
-reanalyzeFailpeaks <- function(w, custom_additions, mode, filterSettings =
+reanalyzeFailpeaks <- function(w, custom_additions, filterSettings =
 				getOption("RMassBank")$filterSettings, progressbar = "progressBarHook")
 {
 	nProg <- 0
@@ -1789,7 +1792,7 @@ reanalyzeFailpeaks <- function(w, custom_additions, mode, filterSettings =
 					return(sp)
 				
 				children <- lapply(sp@children, function(ch) {
-				      if(!ch@ok)
+				      if(!isTRUE(ch@ok))
 				        return(ch)
 							peaks <- getData(ch)
 							# get the peaks that have no matching formula, but are considered not noise etc.
@@ -1802,7 +1805,7 @@ reanalyzeFailpeaks <- function(w, custom_additions, mode, filterSettings =
 								fp <- fp[!duplicated(fp$mz),,drop=FALSE]
 								peaks.rean <- lapply(fp$mz, reanalyzeFailpeak, 
 										custom_additions = custom_additions, cpdID = sp@id, 
-										mode = mode, filterSettings = filterSettings)
+										mode = sp@mode, filterSettings = filterSettings)
 								matched <- (unlist(lapply(peaks.rean, nrow))) > 
 										0
 								df.rean <- do.call(rbind, peaks.rean[matched])
@@ -2104,7 +2107,7 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 					return(sp)
 				children <- lapply(sp@children, function(ch)
 						{
-				      if(ch@ok == FALSE)
+				      if(!isTRUE(ch@ok))
 				        return(ch)
 							# filterOK TRUE if multiplicity is sufficient
 							ch <- addProperty(ch, "filterOK", "logical", NA)
@@ -2142,8 +2145,6 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 #' @usage  recalibrate.addMS1data(spec,mode="pH", recalibrateMS1Window = 
 #' 				getOption("RMassBank")$recalibrateMS1Window)
 #' @param spec A \code{msmsWorkspace} or \code{RmbSpectraSetList} containing spectra for which MS1 "peaks" should be "constructed". 
-#' @param mode \code{"pH", "pNa", "pM", "pNH4",  "mH", "mM", "mFA"} for different ions 
-#' 			([M+H]+, [M+Na]+, [M]+,  [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
 #' @param recalibrateMS1Window Window width to look for MS1 peaks to recalibrate (in ppm).
 #' @return A dataframe with columns \code{mzFound, formula, mzCalc, dppm, dbe, int,
 #' 		dppmBest, formulaCount, good, cpdID, scan, parentScan, dppmRc}. However,
@@ -2159,7 +2160,7 @@ filterMultiplicity <- function(w, archivename=NA, mode="pH", recalcBest = TRUE,
 #' }
 #' @author Michael Stravs, EAWAG <michael.stravs@@eawag.ch>
 #' @export
-recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window = 
+recalibrate.addMS1data <- function(spec, recalibrateMS1Window = 
 				getOption("RMassBank")$recalibrateMS1Window)
 {
 	## which_OK <- lapply(validPrecursors, function(pscan)
@@ -2178,7 +2179,7 @@ recalibrate.addMS1data <- function(spec,mode="pH", recalibrateMS1Window =
 	ms1peaks <- lapply(specFound, function(cpd){
 	    if(cpd@formula == "")
 	      return(NULL)
-			mzL <- findMz.formula(cpd@formula,mode,recalibrateMS1Window,0)
+			mzL <- findMz.formula(cpd@formula,cpd@mode,recalibrateMS1Window,0)
 			mzCalc <- mzL$mzCenter
 			ms1 <- mz(cpd@parent)
            

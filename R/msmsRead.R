@@ -1,3 +1,6 @@
+#' @import R.utils
+NULL
+
 #' 
 #' Extracts and processes spectra from a specified file list, according to 
 #' loaded options and given parameters.
@@ -24,6 +27,9 @@
 #'        just requires a CSV with two columns and the column header "mz", "int".
 #' @param mode \code{"pH", "pNa", "pM", "pNH4", "mH", "mM", "mFA"} for different ions 
 #' 			([M+H]+, [M+Na]+, [M]+, [M+NH4]+, [M-H]-, [M]-, [M+FA]-).
+#' 			For `readMethod == "mzR"`, a vector of `mode` entries is supported. The user 
+#' 			should check that they are either all positive or negative. If this isn't the case,
+#' 			the recalibration will be incorrect.
 #' @param confirmMode Defaults to false (use most intense precursor). Value 1 uses
 #' 			the 2nd-most intense precursor for a chosen ion (and its data-dependent scans)
 #' 			, etc.
@@ -41,18 +47,18 @@
 #' @author Erik Mueller, UFZ
 #' @export
 msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL, 
-					readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
+					readMethod, mode = NULL, confirmMode = FALSE, useRtLimit = TRUE, 
 					Args = NULL, settings = getOption("RMassBank"),
                     progressbar = "progressBarHook", MSe = FALSE, plots = FALSE){
 	.checkMbSettings()
-	##Read the files and cpdids according to the definition
-	##All cases are silently accepted, as long as they can be handled according to one definition
-	if(!any(mode %in% knownAdducts())) stop(paste("The ionization mode", mode, "is unknown."))
+
   
 	if(is.null(filetable)){
 		##If no filetable is supplied, filenames must be named explicitly
 		if(is.null(files))
 			stop("Please supply the files")
+	  if(is.null(mode))
+	    stop("Please supply the mode(s)")
 		
 		##Assign the filenames to the workspace
 		w@files <- unlist(files)
@@ -68,9 +74,22 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	} else{
 		##If a filetable is supplied read it
 		tab <- read.csv(filetable, stringsAsFactors = FALSE)
+		# Check if we have absolute or relative paths.
+		# If relative, they are assumed to be relative to the filetable path
+		
+		tab[,"Files"] <- ifelse(
+		  isAbsolutePath(tab[,"Files"]),
+		  tab[,"Files"],
+		  paste(dirname(filetable), tab[,"Files"], sep="/")
+		)
 		w@files <- tab[,"Files"]
 		cpdids <- tab[,"ID"]
+		mode <- tab[,"mode"]
 	}
+  
+  ##Read the files and cpdids according to the definition
+  ##All cases are silently accepted, as long as they can be handled according to one definition
+  if(!all(mode %in% knownAdducts())) stop(paste("The ionization mode", mode, "is unknown."))
 	
 	##If there's more cpdids than filenames or the other way around, then abort
 	if(length(w@files) != length(cpdids)){
@@ -82,7 +101,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 	}
 	
 	if(!all(file.exists(w@files))){
-		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist")
+		stop("The supplied files ", paste(w@files[!file.exists(w@files)]), " don't exist. Paths in the Filelist were interpreted relative to the location of the Filelist.")
 	}
 
     # na.ids <- which(is.na(sapply(cpdids, findSmiles)))
@@ -90,7 +109,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
     # if(length(na.ids)){
         # stop("The supplied compound ids ", paste(cpdids[na.ids], collapse=" "), " don't have a corresponding smiles entry. Maybe they are missing from the compound list")
     # }
-	
+
 	##This should work
   if(readMethod == "minimal"){
       ##Edit options
@@ -104,23 +123,29 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
   }
 	
 	if(readMethod == "mzR"){
+	  
+	  # To do: check if we can use this verbatim in xcms method too
+	  mode_ <- mode
+	  if(length(mode) == 1)
+	    mode_ <- rep(mode, length(w@files))
+	  if(length(mode_) != length(w@files))
+	    stop("Supply either one mode or a vector for one mode per file")
+	  
 		##Progressbar
 		nLen <- length(w@files)
 		nProg <- 0
 		pb <- do.call(progressbar, list(object=NULL, value=0, min=0, max=nLen))
 		
-		count <- 1
-		envir <- environment()
-		w@spectra <- as(lapply(w@files, function(fileName) {
+		w@spectra <- as(lapply(seq_along(w@files), function(i) {
 							
+		          fileName <- w@files[i]
 							# Find compound ID
-							cpdID <- cpdids[count]
-							# Set counter up
-							envir$count <- envir$count + 1
-							
+							cpdID <- cpdids[i]
+
+
 							# Retrieve spectrum data
 							spec <- findMsMsHR(fileName = fileName, 
-									cpdID = cpdID, mode = mode, confirmMode = confirmMode, useRtLimit = useRtLimit,
+									cpdID = cpdID, mode = mode_[i], confirmMode = confirmMode, useRtLimit = useRtLimit,
 									ppmFine = settings$findMsMsRawSettings$ppmFine,
 									mzCoarse = settings$findMsMsRawSettings$mzCoarse,
 									fillPrecursorScan = settings$findMsMsRawSettings$fillPrecursorScan,
@@ -202,7 +227,7 @@ msmsRead <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
 		}
 		
 		w@files <- sapply(files,function(file){return(file[1])})
-		message("Peaks read")
+		rmb_log_info("Peaks read")
 	}
   
   ##MSP-readmethod 

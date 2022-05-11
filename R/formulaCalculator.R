@@ -182,7 +182,11 @@ dbe <- function(formula)
     "Hg" = 0,
     "Li" = -0.5,
     "Na" = -0.5,
-    "K" = -0.5
+    "K" = -0.5,    
+    "B" = 0.5,
+    "Al" = 0.5,  
+    "Ga" = 0.5,
+    "Ca" = 0  
     )
   count <- 1
   for(element in names(formula))
@@ -354,44 +358,11 @@ split.formula.posneg <- function(f, as.formula = TRUE, as.list=FALSE)
 	if(!is.list(f)) f <- formulastring.to.list(f)
 	pos <- f[which(f > 0)]
 	neg <- f[which(f < 0)]
+	neg <- multiply.formula(neg, -1, as.list = TRUE)
 	if(as.formula & !as.list)
 		return(list(pos=list.to.formula(pos), neg=list.to.formula(neg)))
 	else
 		return(list(pos=pos, neg=neg))
 }
 
-.precursorTypes <- list(
-		"pH" = "[M+H]+",
-		"pNa" = "[M+Na]+",
-		"mH" = "[M-H]-",
-		"mFA" = "[M+HCOO-]-",
-		"pM" = "[M]+",
-		"mM" = "[M]-",
-		"pNH4" = "[M+NH4]+")
 
-.ionModes <- list(
-		"pH" = "POSITIVE",
-		"pNa" = "POSITIVE",
-		"mH" = "NEGATIVE",
-		"mFA" = "NEGATIVE",
-		"pM" = "POSITIVE",
-		"mM" = "NEGATIVE",
-		"pNH4" = "POSITIVE")
-
-.formulaTag <- list(
-    "pH" = "+",
-    "pNa" = "+",
-    "mH" = "-",
-    "mFA" = "-",
-    "pM" = "+",
-    "mM" = "-",
-    "pNH4" = "+")
-
-.polarity <- list(
-    "pH" = as.integer(1),
-    "pNa" = as.integer(1),
-    "mH" = as.integer(0),
-    "mFA" = as.integer(0),
-    "pM" = as.integer(1),
-    "mM" = as.integer(0),
-    "pNH4" = as.integer(1))

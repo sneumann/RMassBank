@@ -65,7 +65,7 @@ w <- loadMsmsWorkspace(system.file("results/pH_narcotics_RF.RData",
 
 The recalibration curve:
 ```{r fig=TRUE}
-recal <- makeRecalibration(w@parent, "pH",
+recal <- makeRecalibration(w@parent,
 				recalibrateBy = rmbo$recalibrateBy,
 				recalibrateMS1 = rmbo$recalibrateMS1,
 				recalibrator = list(MS1="recalibrate.loess",MS2="recalibrate.loess"),

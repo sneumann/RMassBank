@@ -123,7 +123,7 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
     enforcePolarity <- FALSE
   
   if(enforcePolarity)
-    polarity <- .polarity[[mode]]
+    polarity <- getAdductPolarity(mode)
   else
     polarity <- NA
 	# access data directly for finding the MS/MS data. This is done using
@@ -167,10 +167,10 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
   
   # Overwrite the polarity with a value we generate, so it's consistent.
   # Some mzML files give only -1 as a result for polarity, which is useless for us
-  sp@parent@polarity <- .polarity[[sp@mode]]
+  sp@parent@polarity <- getAdductPolarity(sp@mode)
   for(n in seq_len(length(sp@children)))
   {
-    sp@children[[n]]@polarity <- .polarity[[sp@mode]]
+    sp@children[[n]]@polarity <- getAdductPolarity(sp@mode)
   }
 	
 	# If we had to open the file, we have to close it again
@@ -179,6 +179,8 @@ findMsMsHR <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmMo
 	
 	return(sp)
 }
+
+
 
 #' @describeIn findMsMsHR A submethod of find MsMsHR that retrieves basic spectrum data 
 #' @export
@@ -231,7 +233,7 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	# scan filter (coarse limit) range; which to get rid of NAs
 	if(!is.null(diaWindows))
 	{
-	  message("using diaWindows")
+	  rmb_log_info("using diaWindows")
 	  window <- which((diaWindows$mzMin < mz) & (diaWindows$mzMax >= mz))
 	  if(length(window) > 1)
 	  {
@@ -298,98 +300,115 @@ findMsMsHR.mass <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, 
 	}
 	# Construct all spectra groups in decreasing intensity order
 	spectra <- lapply(eic$scan, function(masterScan)
+	{
+		masterHeader <- headerData[headerData$acquisitionNum == masterScan,]
+		
+		if(is.null(diaWindows))
+		{
+			childHeaders <- headerData[
+			  which(headerData$precursorScanNum == masterScan 
+			  & headerData$precursorMZ > (mz - limit.coarse) 
+			  & headerData$precursorMZ < (mz + limit.coarse)) , ,
+			  drop = FALSE]
+		}
+		else
+		{
+			childHeaders <- headerData[which(headerData$precursorScanNum == masterScan), drop = FALSE]
+			childHeaders <- childHeaders[window, drop = FALSE]
+		}
+		
+		# Fix 9.10.17: headers now include non-numeric columns, leading to errors in data conversion.
+		# Remove non-numeric columns
+		headerCols <- colnames(masterHeader)
+		headerCols <- headerCols[unlist(lapply(headerCols, function(col) is.numeric(masterHeader[,col])))]
+		masterHeader <- masterHeader[,headerCols,drop=FALSE]
+		childHeaders <- childHeaders[,headerCols,drop=FALSE]
+		
+		childScans <- childHeaders$seqNum
+		
+		msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
+		# if deprofile option is set: run deprofiling
+		deprofile.setting <- deprofile
+		if(!is.na(deprofile.setting))
+			msPeaks <- deprofile.scan(
+					msPeaks, method = deprofile.setting, noise = NA, colnames = FALSE
+			)
+		colnames(msPeaks) <- c("mz","int")
+		
+		msmsSpecs <- apply(childHeaders, 1, function(line)
+		{
+			pks <- mzR::peaks(msRaw, line["seqNum"])
+			
+			if(!is.na(deprofile.setting))
 			{
-				masterHeader <- headerData[headerData$acquisitionNum == masterScan,]
-				
-				if(is.null(diaWindows))
-				{
-				  childHeaders <- headerData[
-				    which(headerData$precursorScanNum == masterScan 
-				          & headerData$precursorMZ > (mz - limit.coarse) 
-				          & headerData$precursorMZ < (mz + limit.coarse)) , ,
-				    drop = FALSE]
-				  
+				pks <- deprofile.scan(
+				  pks, method = deprofile.setting, noise = NA
+				  , colnames = FALSE)
+			}
+			pks_mz <- pks[,1]
+			pks_intensity <- pks[,2]
+			scanWindowLowerLimit <- line["scanWindowLowerLimit"]
+			scanWindowUpperLimit <- line["scanWindowUpperLimit"]
+			limits <- list(
+			  scanWindowLowerLimit=scanWindowLowerLimit,
+			  scanWindowUpperLimit=scanWindowUpperLimit
+			)
+			if(!anyNA(limits)) {
+				check_mz <- function(m) {isTRUE(
+					m > scanWindowLowerLimit &&
+					m < scanWindowUpperLimit
+				)}
+				in_range <- sapply(pks_mz, check_mz)
+				if (!all(in_range)) {
+					outliers <- pks[!in_range, ]
+					warning(paste('There were',
+					  nrow(outliers),
+					  'peaks out of mass range.'))
 				}
-				else
-				{
-				  childHeaders <- headerData[which(headerData$precursorScanNum == masterScan), drop = FALSE]
-				  childHeaders <- childHeaders[window, drop = FALSE]
-				  
-				}
+			}
+			new("RmbSpectrum2",
+			  mz = pks_mz,
+			  intensity = pks_intensity,
+			  precScanNum = as.integer(line["precursorScanNum"]),
+			  precursorMz = line["precursorMZ"],
+			  precursorIntensity = line["precursorIntensity"],
+			  precursorCharge = as.integer(line["precursorCharge"]),
+			  collisionEnergy = line["collisionEnergy"],
+			  tic = line["totIonCurrent"],
+			  peaksCount = line["peaksCount"],
+			  rt = line["retentionTime"],
+			  acquisitionNum = as.integer(line["seqNum"]),
+			  centroided = TRUE,
+			  polarity = as.integer(line["polarity"]),
+			  info = lapply(limits, unname)
+			)
+		})
+		msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
+		
+		# build the new objects
+		masterSpec <- new("Spectrum1",
+				mz = msPeaks[,"mz"],
+				intensity = msPeaks[,"int"],
+				polarity = as.integer(masterHeader$polarity),
+				peaksCount = as.integer(masterHeader$peaksCount),
+				rt = masterHeader$retentionTime,
+				acquisitionNum = as.integer(masterHeader$seqNum),
+				tic = masterHeader$totIonCurrent,
+				centroided = TRUE
+				)
 				
-				# Fix 9.10.17: headers now include non-numeric columns, leading to errors in data conversion.
-				# Remove non-numeric columns
-				headerCols <- colnames(masterHeader)
-				headerCols <- headerCols[unlist(lapply(headerCols, function(col) is.numeric(masterHeader[,col])))]
-				masterHeader <- masterHeader[,headerCols,drop=FALSE]
-				childHeaders <- childHeaders[,headerCols,drop=FALSE]
-				
-				childScans <- childHeaders$seqNum
-				
-				msPeaks <- mzR::peaks(msRaw, masterHeader$seqNum)
-				# if deprofile option is set: run deprofiling
-				deprofile.setting <- deprofile
-				if(!is.na(deprofile.setting))
-					msPeaks <- deprofile.scan(
-							msPeaks, method = deprofile.setting, noise = NA, colnames = FALSE
-					)
-				colnames(msPeaks) <- c("mz","int")
-				
-				msmsSpecs <- apply(childHeaders, 1, function(line)
-						{
-							pks <- mzR::peaks(msRaw, line["seqNum"])
-							
-							if(!is.na(deprofile.setting))
-							{								
-								pks <- deprofile.scan(
-										pks, method = deprofile.setting, noise = NA, colnames = FALSE
-								)
-							}
-							
-							new("RmbSpectrum2",
-									mz = pks[,1],
-									intensity = pks[,2],
-									precScanNum = as.integer(line["precursorScanNum"]),
-									precursorMz = line["precursorMZ"],
-									precursorIntensity = line["precursorIntensity"],
-									precursorCharge = as.integer(line["precursorCharge"]),
-									collisionEnergy = line["collisionEnergy"],
-									tic = line["totIonCurrent"],
-									peaksCount = line["peaksCount"],
-									rt = line["retentionTime"],
-									acquisitionNum = as.integer(line["seqNum"]),
-									centroided = TRUE,
-                  polarity = as.integer(line["polarity"])
-									)
-						})
-				msmsSpecs <- as(do.call(c, msmsSpecs), "SimpleList")
-				
-				
-				
-				# build the new objects
-				masterSpec <- new("Spectrum1",
-						mz = msPeaks[,"mz"],
-						intensity = msPeaks[,"int"],
-						polarity = as.integer(masterHeader$polarity),
-						peaksCount = as.integer(masterHeader$peaksCount),
-						rt = masterHeader$retentionTime,
-						acquisitionNum = as.integer(masterHeader$seqNum),
-						tic = masterHeader$totIonCurrent,
-						centroided = TRUE
-						)
-						
-				spectraSet <- new("RmbSpectraSet",
-						parent = masterSpec,
-						children = msmsSpecs,
-						found = TRUE,
-						#complete = NA,
-						#empty = NA,
-						#formula = character(),
-						mz = mz
-						#name = character(),
-						#annotations = list()
-						)
-				return(spectraSet)
+		spectraSet <- new("RmbSpectraSet",
+				parent = masterSpec,
+				children = msmsSpecs,
+				found = TRUE,
+				#complete = NA,
+				#empty = NA,
+				#formula = character(),
+				mz = mz
+				#name = character(),
+				#annotations = list()
+				)
+		return(spectraSet)
 			})
 	names(spectra) <- eic$acquisitionNum
 	return(spectra)
@@ -474,7 +493,7 @@ findMsMsHRperxcms <- function(fileName, cpdID, mode="pH", findPeaksArgs = NULL, 
 			sp@name <- findName(cpdID[i])
 			sp@formula <- findFormula(cpdID[i])
 			sp@mode <- mode
-			sp@polarity <- .polarity[[sp@mode]]
+			sp@polarity <- getAdductPolarity(sp@mode)
 			return(sp)
 		})
 		return(P)
@@ -619,8 +638,28 @@ findMsMsHRperxcms.direct <- function(fileName, cpdID, mode="pH", findPeaksArgs =
 	return(metaspec)
 }
 
-################################################################################
-## new
+#' Retrieve spectra from msp files
+#'
+#' This function is currently used to read msp files
+#' containing data that were already processed in order to
+#' convert the results to MassBank records.
+#'
+#' @param fileName vector of character-strings
+#' The msp files to be searched for spectra
+#' @param cpdIDs vector of integers
+#' The IDs of compounds in the compoundlist
+#' for which spectra should be retrieved
+#' @param mode character, default: "pH"
+#' The processing mode that was used to produce the spectrum.
+#' Should be one of
+#' "pH": ([M+H]+)
+#' "pNa": ([M+Na]+)
+#' "pM": ([M]+)
+#' "mH": ([M-H]-)
+#' or "mFA": ([M+FA]-)
+#' (see the \code{RMassBank} vignette)
+#' @return An \code{RmbSpectraSet} with integrated information from the msp files
+#' @export
 findMsMsHRperMsp <- function(fileName, cpdIDs, mode="pH"){
   # Find mz
   #mzLimits <- findMz(cpdIDs, mode)
@@ -672,8 +711,15 @@ findMsMsHRperMsp <- function(fileName, cpdIDs, mode="pH"){
   return(sp)
 }
 
+.retrieve <- function (x, argument) {
+	entry <- x[[argument]]
+	if(length(entry) == 0 || entry == "NA")
+		return(NA)
+	else
+		return(entry) 
+}
+
 #' @describeIn findMsMsHRperMsp A submethod of findMsMsHrperxcms that retrieves basic spectrum data
-#' @export
 findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
   
   #requireNamespace("CAMERA",quietly=TRUE)
@@ -704,8 +750,8 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
   whichmissing <- vector()
   metaspec <- list()
   
-  mzs <- unlist(lapply(X = xrmsms, FUN = function(x){    x$PRECURSORMZ   }))
-  rts <- unlist(lapply(X = xrmsms, FUN = function(x){ if(x$RETENTIONTIME == "NA") return(NA) else return(x$RETENTIONTIME) }))
+  mzs <- unlist(lapply(X = xrmsms, FUN = function(x){.retrieve(x, 'PRECURSORMZ')}))
+  rts <- unlist(lapply(X = xrmsms, FUN = function(x){.retrieve(x, 'RETENTIONTIME')}))
   precursorTable <- data.frame(stringsAsFactors = FALSE,
     mz = as.numeric(mzs),
     rt = as.numeric(rts)
@@ -821,7 +867,7 @@ findMsMsHRperMsp.direct <- function(fileName, cpdIDs, mode="pH") {
       metaspec[[idIdx]] <- list(matrix(0,1,7))
     } else {
       mz <- as.numeric(spectrum$pspectrum[, "mz"])
-      rt <- as.numeric(ifelse(test = spectrum$RETENTIONTIME=="NA", yes = NA, no = spectrum$RETENTIONTIME))
+      rt <- as.numeric(.retrieve(spectrum, 'RETENTIONTIME'))
       metaspec[[idIdx]] <- list(data.frame(
         stringsAsFactors = F,
         "mz"      = mz,
@@ -965,7 +1011,7 @@ findEIC <- function(msRaw, mz, limit = NULL, rtLimit = NA, headerCache = NULL, f
 	if(!is.na(polarity))
 	{
 	  if(is.character(polarity))
-	    polarity <- .polarity[[polarity]]
+	    polarity <- getAdductPolarity(polarity)
 	  headerMS1 <- headerMS1[headerMS1$polarity == polarity,]
 	}
 	
@@ -1081,7 +1127,7 @@ toRMB <- function(msmsXCMSspecs = NA, cpdID = NA, mode="pH", MS1spec = NA){
 				precursorIntensity = ifelse(test = "into_parent" %in% colnames(spec), yes = spec[,"into_parent"], no = 0),
 				precursorCharge = as.integer(1),
 				collisionEnergy = 0,
-				polarity = .polarity[[mode]],
+				polarity = getAdductPolarity(mode),
 				tic = 0,
 				peaksCount = nrow(spec),
 				rt = median(spec[,"rt"]),
